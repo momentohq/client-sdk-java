@@ -87,7 +87,7 @@ public class ScsClient {
         ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
 
         // Build a CompletableFuture to return to caller
-        CompletableFuture<ClientGetResponse<InputStream>> returnFuture = new CompletableFuture<>() {
+        CompletableFuture<ClientGetResponse<InputStream>> returnFuture = new CompletableFuture<ClientGetResponse<InputStream>>() {
             @Override
             public boolean cancel(boolean mayInterruptIfRunning) {
                 // propagate cancel to the listenable future if called on returned completable future
@@ -98,7 +98,7 @@ public class ScsClient {
         };
 
         // Convert returned ListenableFuture to CompletableFuture
-        Futures.addCallback(rspFuture, new FutureCallback<>() {
+        Futures.addCallback(rspFuture, new FutureCallback<GetResponse>() {
             @Override
             public void onSuccess(GetResponse rsp) {
                 try {
@@ -132,7 +132,7 @@ public class ScsClient {
         ListenableFuture<SetResponse> rspFuture = futureStub.set(buildSetRequest(key, value, ttlMilliseconds));
 
         // Build a CompletableFuture to return to caller
-        CompletableFuture<ClientSetResponse> returnFuture = new CompletableFuture<>() {
+        CompletableFuture<ClientSetResponse> returnFuture = new CompletableFuture<ClientSetResponse>() {
             @Override
             public boolean cancel(boolean mayInterruptIfRunning) {
                 // propagate cancel to the listenable future if called on returned completable future
@@ -143,7 +143,7 @@ public class ScsClient {
         };
 
         // Convert returned ListenableFuture to CompletableFuture
-        Futures.addCallback(rspFuture, new FutureCallback<>() {
+        Futures.addCallback(rspFuture, new FutureCallback<SetResponse>() {
             @Override
             public void onSuccess(SetResponse rsp) {
                 returnFuture.complete(new ClientSetResponse(rsp.getResult()));
