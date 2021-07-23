@@ -21,7 +21,6 @@ import java.util.concurrent.TimeUnit;
  * ScsClient is a client used to interact with the momento Simple Caching Service (SCS).
  */
 public class ScsClient {
-
     private final ScsGrpc.ScsBlockingStub blockingStub;
     private final ScsGrpc.ScsFutureStub futureStub;
     private final ManagedChannel channel;
@@ -48,7 +47,7 @@ public class ScsClient {
 
     /**
      * Returns a requested object from cache specified by passed key. This method is a blocking api call. Please use
-     * getAsync if need a {@link java.util.concurrent.CompletionStage<ClientGetResponse>} returned instead.
+     * getAsync if you need a {@link java.util.concurrent.CompletionStage<ClientGetResponse>} returned instead.
      *
      * @param key the key of item to fetch from cache
      * @return {@link ClientGetResponse} with the response object as a {@link java.io.InputStream}
@@ -62,7 +61,7 @@ public class ScsClient {
 
     /**
      * Sets an object in cache by the passed key. This method is a blocking api call. Please use
-     * setAsync if need a {@link java.util.concurrent.CompletionStage<ClientSetResponse>} returned instead.
+     * setAsync if you need a {@link java.util.concurrent.CompletionStage<ClientSetResponse>} returned instead.
      *
      * @param key the key of item to fetch from cache
      * @return {@link ClientSetResponse} with the result of the set operation

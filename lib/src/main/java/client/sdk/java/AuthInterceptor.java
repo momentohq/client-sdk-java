@@ -1,11 +1,18 @@
 package client.sdk.java;
 
-import io.grpc.*;
+import io.grpc.CallOptions;
+import io.grpc.Channel;
+import io.grpc.ClientCall;
+import io.grpc.ClientInterceptor;
+import io.grpc.ForwardingClientCall;
+import io.grpc.Metadata;
+import io.grpc.MethodDescriptor;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
 public class AuthInterceptor implements ClientInterceptor {
 
+    private Metadata.Key<String> authHeaderKey = Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER)
     private String tokenValue;
 
     public AuthInterceptor(String token) {
@@ -19,7 +26,7 @@ public class AuthInterceptor implements ClientInterceptor {
                 channel.newCall(methodDescriptor, callOptions)) {
             @Override
             public void start(Listener<RespT> listener, Metadata metadata) {
-                metadata.put(Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER), tokenValue);
+                metadata.put(authHeaderKey, tokenValue);
                 super.start(listener, metadata);
             }
         };

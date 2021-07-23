@@ -17,6 +17,6 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
 
     // Internal Deps -------------------
-    implementation("io.grpc:grpc-netty:1.39.0")
+    implementation("io.grpc:grpc-netty:${rootProject.ext["grpcVersion"]}")
     implementation(project(":messages"))
 }
