@@ -1,0 +1,26 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    // Use Maven Central for resolving dependencies.
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(16)
+    }
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+
+    // Internal Deps -------------------
+    implementation 'io.grpc:grpc-netty:1.39.0'
+    implementation project(":messages")
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
