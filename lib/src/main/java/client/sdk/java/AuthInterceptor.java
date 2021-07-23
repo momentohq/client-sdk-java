@@ -12,7 +12,7 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
 public class AuthInterceptor implements ClientInterceptor {
 
-    private Metadata.Key<String> authHeaderKey = Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER)
+    private Metadata.Key<String> authHeaderKey = Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
     private String tokenValue;
 
     public AuthInterceptor(String token) {
