@@ -8,9 +8,9 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
@@ -29,16 +29,16 @@ class ScsClientTest {
             //Set Key sync
             ClientSetResponse setRsp = c.set(
                     "foo",
-                    new ByteArrayInputStream("bar".getBytes(StandardCharsets.UTF_8)),
+                    ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
                     100
             );
             Assertions.assertEquals(Result.Ok, setRsp.getResult());
 
             // Get Key that was just set
-            ClientGetResponse<InputStream> rsp = c.get("foo");
+            ClientGetResponse<ByteBuffer> rsp = c.get("foo");
 
             Assertions.assertEquals(Result.Hit, rsp.getResult());
-            Assertions.assertEquals("bar", new String(rsp.getBody().readAllBytes()));
+            Assertions.assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
 
         } catch (IOException e) {
             Assertions.fail(e);
@@ -52,17 +52,16 @@ class ScsClientTest {
             // Set Key Async
             CompletionStage<ClientSetResponse> setRsp = c.setAsync(
                     "foo",
-                    new ByteArrayInputStream("bar".getBytes(StandardCharsets.UTF_8)),
+                    ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
                     100
             );
             Assertions.assertEquals(Result.Ok, setRsp.toCompletableFuture().get().getResult());
 
             // Get Key Async
-            CompletionStage<ClientGetResponse<InputStream>> futureGetRsp = c.getAsync("foo");
-            ClientGetResponse<InputStream> rsp = futureGetRsp.toCompletableFuture().get();
+            ClientGetResponse<ByteBuffer> rsp = c.getAsync("foo").toCompletableFuture().get();
 
             Assertions.assertEquals(Result.Hit, rsp.getResult());
-            Assertions.assertEquals("bar", new String(rsp.getBody().readAllBytes()));
+            Assertions.assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
 
         } catch (IOException | InterruptedException | ExecutionException e) {
             Assertions.fail(e);

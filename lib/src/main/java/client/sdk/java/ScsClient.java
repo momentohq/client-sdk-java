@@ -1,6 +1,5 @@
 package client.sdk.java;
 
-import com.google.common.io.ByteSource;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -11,7 +10,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
@@ -50,12 +49,12 @@ public class ScsClient {
      * getAsync if you need a {@link java.util.concurrent.CompletionStage<ClientGetResponse>} returned instead.
      *
      * @param key the key of item to fetch from cache
-     * @return {@link ClientGetResponse} with the response object as a {@link java.io.InputStream}
+     * @return {@link ClientGetResponse} with the response object as a {@link java.nio.ByteBuffer}
      * @throws IOException if an error occurs opening input stream for response body.
      */
-    public ClientGetResponse<InputStream> get(String key) throws IOException {
+    public ClientGetResponse<ByteBuffer> get(String key) throws IOException {
         GetResponse rsp = blockingStub.get(buildGetRequest(key));
-        InputStream body = ByteSource.wrap(rsp.getCacheBody().toByteArray()).openStream();
+        ByteBuffer body = rsp.getCacheBody().asReadOnlyByteBuffer();
         return new ClientGetResponse<>(rsp.getResult(), body);
     }
 
@@ -67,7 +66,7 @@ public class ScsClient {
      * @return {@link ClientSetResponse} with the result of the set operation
      * @throws IOException if an error occurs opening input stream for request body.
      */
-    public ClientSetResponse set(String key, InputStream value, int ttlMilliseconds) throws IOException {
+    public ClientSetResponse set(String key, ByteBuffer value, int ttlMilliseconds) throws IOException {
         SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlMilliseconds));
         return new ClientSetResponse(rsp.getResult());
     }
@@ -80,13 +79,13 @@ public class ScsClient {
      * @return {@link CompletionStage<ClientGetResponse>} Returns a CompletableFuture as a CompletionStage
      * interface wrapping standard ClientResponse with response object as a {@link java.io.InputStream}.
      */
-    public CompletionStage<ClientGetResponse<InputStream>> getAsync(String key) {
+    public CompletionStage<ClientGetResponse<ByteBuffer>> getAsync(String key) {
 
         // Submit request to non blocking stub
         ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
 
         // Build a CompletableFuture to return to caller
-        CompletableFuture<ClientGetResponse<InputStream>> returnFuture = new CompletableFuture<ClientGetResponse<InputStream>>() {
+        CompletableFuture<ClientGetResponse<ByteBuffer>> returnFuture = new CompletableFuture<ClientGetResponse<ByteBuffer>>() {
             @Override
             public boolean cancel(boolean mayInterruptIfRunning) {
                 // propagate cancel to the listenable future if called on returned completable future
@@ -100,12 +99,8 @@ public class ScsClient {
         Futures.addCallback(rspFuture, new FutureCallback<GetResponse>() {
             @Override
             public void onSuccess(GetResponse rsp) {
-                try {
-                    InputStream body = ByteSource.wrap(rsp.getCacheBody().toByteArray()).openStream();
-                    returnFuture.complete(new ClientGetResponse<>(rsp.getResult(), body));
-                } catch (IOException e) {
-                    returnFuture.completeExceptionally(e); // bubble all errors up
-                }
+                ByteBuffer body = rsp.getCacheBody().asReadOnlyByteBuffer();
+                returnFuture.complete(new ClientGetResponse<>(rsp.getResult(), body));
             }
 
             @Override
@@ -125,7 +120,7 @@ public class ScsClient {
      * @return @{@link CompletionStage<ClientSetResponse>} Returns a CompletableFuture as a CompletionStage
      * interface wrapping standard ClientSetResponse.
      */
-    public CompletionStage<ClientSetResponse> setAsync(String key, InputStream value, int ttlMilliseconds) throws IOException {
+    public CompletionStage<ClientSetResponse> setAsync(String key, ByteBuffer value, int ttlMilliseconds) throws IOException {
 
         // Submit request to non blocking stub
         ListenableFuture<SetResponse> rspFuture = futureStub.set(buildSetRequest(key, value, ttlMilliseconds));
@@ -168,11 +163,11 @@ public class ScsClient {
                 .build();
     }
 
-    private SetRequest buildSetRequest(String key, InputStream value, int ttl) throws IOException {
+    private SetRequest buildSetRequest(String key, ByteBuffer value, int ttl) throws IOException {
         return SetRequest
                 .newBuilder()
                 .setCacheKey(ByteString.copyFrom(key, StandardCharsets.UTF_8))
-                .setCacheBody(ByteString.readFrom(value))
+                .setCacheBody(ByteString.copyFrom(value))
                 .setTtlMilliseconds(ttl)
                 .build();
     }
