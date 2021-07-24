@@ -25,13 +25,23 @@ public class ScsClient {
     private final ManagedChannel channel;
 
     /**
-     * Builds an instance of {@link ScsClient} used to interact w/ SCS
+     * Builds an instance of {@link ScsClient} used to interact w/ SCS with a default endpoint.
      *
      * @param authToken Token to authenticate with SCS
      */
     ScsClient(String authToken) {
+        this(authToken, "alpha.cacheservice.com");
+    }
+
+    /**
+     * Builds an instance of {@link ScsClient} used to interact w/ SCS
+     *
+     * @param authToken Token to authenticate with SCS
+     * @param host      SCS endpoint to make api calls to
+     */
+    ScsClient(String authToken, String host) {
         ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(
-                "alpha.cacheservice.com", // FIXME allow user to override
+                host,
                 443
         );
 
