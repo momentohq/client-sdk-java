@@ -9,9 +9,9 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
-import java.nio.Buffer;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutionException;
 
@@ -20,22 +20,24 @@ class ScsClientTest {
 
     @BeforeEach
     void setUp() {
-        c = new ScsClient("FIXME");
+        c = new ScsClient("TEST_TOKEN");
     }
 
     @Test
     void testBlockingClientHappyPath() {
         try {
+            String key = UUID.randomUUID().toString();
+
             //Set Key sync
             ClientSetResponse setRsp = c.set(
-                    "foo",
+                    key,
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
-                    100
+                    1000
             );
             Assertions.assertEquals(Result.Ok, setRsp.getResult());
 
             // Get Key that was just set
-            ClientGetResponse<ByteBuffer> rsp = c.get("foo");
+            ClientGetResponse<ByteBuffer> rsp = c.get(key);
 
             Assertions.assertEquals(Result.Hit, rsp.getResult());
             Assertions.assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
@@ -48,17 +50,17 @@ class ScsClientTest {
     @Test
     void testAsyncClientHappyPath() {
         try {
-
+            String key = UUID.randomUUID().toString();
             // Set Key Async
             CompletionStage<ClientSetResponse> setRsp = c.setAsync(
-                    "foo",
+                    key,
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
-                    100
+                    1000
             );
             Assertions.assertEquals(Result.Ok, setRsp.toCompletableFuture().get().getResult());
 
             // Get Key Async
-            ClientGetResponse<ByteBuffer> rsp = c.getAsync("foo").toCompletableFuture().get();
+            ClientGetResponse<ByteBuffer> rsp = c.getAsync(key).toCompletableFuture().get();
 
             Assertions.assertEquals(Result.Hit, rsp.getResult());
             Assertions.assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
@@ -68,4 +70,41 @@ class ScsClientTest {
         }
     }
 
+    @Test
+    void testTtlHappyPath() {
+        try {
+            String key = UUID.randomUUID().toString();
+
+            //Set Key sync
+            ClientSetResponse setRsp = c.set(
+                    key,
+                    ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
+                    100
+            );
+            Assertions.assertEquals(Result.Ok, setRsp.getResult());
+
+            Thread.sleep(1000);
+
+            // Get Key that was just set
+            ClientGetResponse<ByteBuffer> rsp = c.get(key);
+
+            Assertions.assertEquals(Result.Miss, rsp.getResult());
+
+        } catch (IOException | InterruptedException e) {
+            Assertions.fail(e);
+        }
+    }
+
+    @Test
+    void testMissHappyPath() {
+        try {
+            // Get Key that was just set
+            ClientGetResponse<ByteBuffer> rsp = c.get(UUID.randomUUID().toString());
+
+            Assertions.assertEquals(Result.Miss, rsp.getResult());
+
+        } catch (IOException e) {
+            Assertions.fail(e);
+        }
+    }
 }
