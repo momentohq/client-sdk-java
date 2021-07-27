@@ -34,7 +34,7 @@ class ScsClientTest {
             ClientSetResponse setRsp = c.set(
                     key,
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
-                    1000
+                    1
             );
             Assertions.assertEquals(Result.Ok, setRsp.getResult());
 
@@ -57,7 +57,7 @@ class ScsClientTest {
             CompletionStage<ClientSetResponse> setRsp = c.setAsync(
                     key,
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
-                    1000
+                    1
             );
             Assertions.assertEquals(Result.Ok, setRsp.toCompletableFuture().get().getResult());
 
@@ -81,11 +81,11 @@ class ScsClientTest {
             ClientSetResponse setRsp = c.set(
                     key,
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
-                    100
+                    1
             );
             Assertions.assertEquals(Result.Ok, setRsp.getResult());
 
-            Thread.sleep(1000);
+            Thread.sleep(1500);
 
             // Get Key that was just set
             ClientGetResponse<ByteBuffer> rsp = c.get(key);
