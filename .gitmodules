@@ -1,3 +1,3 @@
-[submodule "client_protos"]
-	path = client_protos
+[submodule "messages/src/client_protos"]
+	path = messages/src/client_protos
 	url = git@github.com:momentohq/client_protos.git
