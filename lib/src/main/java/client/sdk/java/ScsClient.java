@@ -81,7 +81,7 @@ public class ScsClient {
      * @throws IOException if an error occurs opening ByteBuffer for request body.
      */
     public ClientSetResponse set(String key, ByteBuffer value, int ttlSeconds) throws IOException {
-        SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds));
+        SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
         return new ClientSetResponse(rsp.getResult());
     }
 
