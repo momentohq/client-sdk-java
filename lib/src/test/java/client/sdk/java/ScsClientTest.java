@@ -4,6 +4,8 @@
 package client.sdk.java;
 
 import grpc.cache_client.Result;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,7 +22,7 @@ class ScsClientTest {
 
     @BeforeEach
     void setUp() {
-        c = new ScsClient("TEST_TOKEN");
+        c = new ScsClient(System.getenv("TEST_AUTH_TOKEN"));
     }
 
     @Test
@@ -106,5 +108,31 @@ class ScsClientTest {
         } catch (IOException e) {
             Assertions.fail(e);
         }
+    }
+
+
+    @Test
+    void testBadAuthToken() {
+        ScsClient badCredClient = new ScsClient("BAD_TOKEN");
+        try {
+            // Get Key that was just set
+            ClientGetResponse<ByteBuffer> rsp = badCredClient.get(UUID.randomUUID().toString());
+
+            Assertions.fail("expected PERMISSION_DENIED io.grpc.StatusRuntimeException");
+
+        } catch (IOException e) {
+            Assertions.fail(e);
+        } catch (io.grpc.StatusRuntimeException e) {
+
+            // Make sure we get permission denied error the way we would expected
+            Assertions.assertEquals(
+                    new StatusRuntimeException(
+                            Status.PERMISSION_DENIED
+                                    .withDescription("Malformed authorization token")
+                    ).toString(),
+                    e.toString()
+            );
+        }
+
     }
 }

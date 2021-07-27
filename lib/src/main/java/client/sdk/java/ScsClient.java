@@ -9,7 +9,9 @@ import grpc.cache_client.*;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
@@ -37,11 +39,11 @@ public class ScsClient {
      * Builds an instance of {@link ScsClient} used to interact w/ SCS
      *
      * @param authToken Token to authenticate with SCS
-     * @param host      SCS endpoint to make api calls to
+     * @param endpoint  SCS endpoint to make api calls to
      */
-    ScsClient(String authToken, String host) {
+    ScsClient(String authToken, String endpoint) {
         ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(
-                host,
+                endpoint,
                 443
         );
 
@@ -72,12 +74,14 @@ public class ScsClient {
      * Sets an object in cache by the passed key. This method is a blocking api call. Please use
      * setAsync if you need a {@link java.util.concurrent.CompletionStage<ClientSetResponse>} returned instead.
      *
-     * @param key the key of item to fetch from cache
+     * @param key        the key of item to fetch from cache
+     * @param value      {@link ByteBuffer} of the value to set in cache
+     * @param ttlSeconds the time for your object to live in cache in seconds.
      * @return {@link ClientSetResponse} with the result of the set operation
-     * @throws IOException if an error occurs opening input stream for request body.
+     * @throws IOException if an error occurs opening ByteBuffer for request body.
      */
-    public ClientSetResponse set(String key, ByteBuffer value, int ttlMilliseconds) throws IOException {
-        SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlMilliseconds));
+    public ClientSetResponse set(String key, ByteBuffer value, int ttlSeconds) throws IOException {
+        SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds));
         return new ClientSetResponse(rsp.getResult());
     }
 
@@ -126,14 +130,17 @@ public class ScsClient {
      * Returns CompletableStage of setting an item in SCS by passed key. Allows user off this clients
      * to better control concurrency of outbound cache set requests.
      *
-     * @param key the key of item to fetch from cache.
+     * @param key        the key of item to fetch from cache.
+     * @param value      {@link ByteBuffer} of the value to set in cache
+     * @param ttlSeconds the time for your object to live in cache in seconds.
      * @return @{@link CompletionStage<ClientSetResponse>} Returns a CompletableFuture as a CompletionStage
      * interface wrapping standard ClientSetResponse.
+     * @throws IOException if an error occurs opening ByteBuffer for request body.
      */
-    public CompletionStage<ClientSetResponse> setAsync(String key, ByteBuffer value, int ttlMilliseconds) throws IOException {
+    public CompletionStage<ClientSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds) throws IOException {
 
         // Submit request to non blocking stub
-        ListenableFuture<SetResponse> rspFuture = futureStub.set(buildSetRequest(key, value, ttlMilliseconds));
+        ListenableFuture<SetResponse> rspFuture = futureStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
 
         // Build a CompletableFuture to return to caller
         CompletableFuture<ClientSetResponse> returnFuture = new CompletableFuture<ClientSetResponse>() {
@@ -177,7 +184,7 @@ public class ScsClient {
         return SetRequest
                 .newBuilder()
                 .setCacheKey(ByteString.copyFrom(key, StandardCharsets.UTF_8))
-                .setCacheBody(ByteString.copyFrom(value))
+                .setCacheBody(ByteString.readFrom(new ByteArrayInputStream(value.array())))
                 .setTtlMilliseconds(ttl)
                 .build();
     }
