@@ -127,7 +127,7 @@ public class ScsClient {
     }
 
     /**
-     * Returns CompletableStage of setting an item in SCS by passed key. Allows user off this clients
+     * Returns CompletableStage of setting an item in SCS by passed key. Allows user of this clients
      * to better control concurrency of outbound cache set requests.
      *
      * @param key        the key of item to fetch from cache.
