@@ -17,7 +17,7 @@ repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
     maven {
-        name = ""
+        name = "client-sdk-java"
         url = uri("s3://artifact-814370081888-us-west-2/client-sdk-java/release")
         credentials(AwsCredentials::class) {
             accessKey = awsAccessKeyId
