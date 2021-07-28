@@ -81,7 +81,7 @@ class ScsClientTest {
             ClientSetResponse setRsp = c.set(
                     key,
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
-                    10
+                    1
             );
             Assertions.assertEquals(Result.Ok, setRsp.getResult());
 
