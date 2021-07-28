@@ -11,6 +11,8 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+    env:
+      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
 
     steps:
     - uses: actions/checkout@v2
@@ -21,6 +23,7 @@ jobs:
       uses: actions/setup-java@v2
       with:
         java-version: 16
+        distribution: 'adopt'
     - name: Grant execute permission for gradlew
       run: chmod +x gradlew
     - name: Build with Gradle
