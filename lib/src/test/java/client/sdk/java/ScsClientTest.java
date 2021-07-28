@@ -34,7 +34,7 @@ class ScsClientTest {
             ClientSetResponse setRsp = c.set(
                     key,
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
-                    1
+                    10
             );
             Assertions.assertEquals(Result.Ok, setRsp.getResult());
 
@@ -57,7 +57,7 @@ class ScsClientTest {
             CompletionStage<ClientSetResponse> setRsp = c.setAsync(
                     key,
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
-                    1
+                    10
             );
             Assertions.assertEquals(Result.Ok, setRsp.toCompletableFuture().get().getResult());
 
