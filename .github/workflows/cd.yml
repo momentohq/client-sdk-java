@@ -1,0 +1,45 @@
+# This workflow will build a Java project with Gradle
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-gradle
+
+name: CD
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env:
+      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.PRIVATE_REPO_RELEASE_ACCESS }}
+        submodules: true
+    - name: Set up JDK 16
+      uses: actions/setup-java@v2
+      with:
+        java-version: 16
+        distribution: 'adopt'
+    - name: Grant execute permission for gradlew
+      run: chmod +x gradlew
+    - name: Build with Gradle
+      run: ./gradlew clean build
+      
+    - name: Set release
+      id: semrel
+      uses: go-semantic-release/action@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        allow-initial-development-versions: true
+        force-bump-patch-version: true
+        
+    - name: Deploy Release
+      run: |
+        ACCESS_KEY=${{ secrets.DEPLOY_USER_AWS_ACCESS_KEY_ID }}
+        SECRET_KEY=${{ secrets.DEPLOY_USER_AWS_SECRET_ACCESS_KEY }}
+        VERSION=${{ steps.semrel.outputs.version }}
+        ./gradlew publish -Paws_access_key_id=$ACCESS_KEY -Paws_secret_access_key=$SECRET_KEY -Pversion=$VERSION
