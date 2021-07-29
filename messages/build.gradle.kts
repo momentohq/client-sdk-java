@@ -80,6 +80,7 @@ publishing {
     repositories {
         maven {
             url = uri("s3://artifact-814370081888-us-west-2/client-sdk-java/release")
+            // we are using custom creds here so we don't accidentally publish
             credentials(AwsCredentials::class) {
                 accessKey = awsAccessKeyId
                 secretKey = awsSecretAccessKey
