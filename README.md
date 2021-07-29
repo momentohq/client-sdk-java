@@ -17,20 +17,25 @@ Java sdk customers can use to interact with our ecosystem
 ## How to import into your project
 Add this to your `gradle.build.kts` file
 ```
-var awsAccessKeyId = System.getenv("AWS_ACCESS_KEY_ID") ?: findProperty("aws_access_key_id") as String? ?: "NONE"
-var awsSecretAccessKey = System.getenv("AWS_SECRET_ACCESS_KEY") ?: findProperty("aws_secret_access_key") as String? ?: "NONE"
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath("com.amazonaws:aws-java-sdk:1.12.32")
+    }
+}
 
 repositories {
     maven {
         url = uri("s3://artifact-814370081888-us-west-2/client-sdk-java/release")
         credentials(AwsCredentials::class) {
-            accessKey = awsAccessKeyId
-            secretKey = awsSecretAccessKey
+            val defaultCredentials = com.amazonaws.auth.DefaultAWSCredentialsProviderChain().getCredentials()
+            accessKey = defaultCredentials.awsAccessKeyId
+            secretKey = defaultCredentials.awsSecretKey
         }
     }
 }
 ```
-Then you can either 
-- set the environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`
-- or run
-`gradle clean build -Paws_access_key_id=YOUR_ACCESS_KEY -Paws_secret_access_key=YOUR_SECRET_KEY`
+Then you should be able to use your aws credentials and build your app with the sdk
