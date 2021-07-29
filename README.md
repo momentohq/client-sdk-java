@@ -14,7 +14,7 @@ Java sdk customers can use to interact with our ecosystem
 1. Run gradle build
     * `gradle clean build`
    
-## How to use
+## How to import into your project
 Add this to your `gradle.build.kts` file
 ```
 var awsAccessKeyId = System.getenv("AWS_ACCESS_KEY_ID") ?: findProperty("aws_access_key_id") as String? ?: "NONE"
