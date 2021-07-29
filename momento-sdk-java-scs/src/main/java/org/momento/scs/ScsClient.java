@@ -1,4 +1,4 @@
-package client.sdk.java;
+package org.momento.scs;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -11,7 +11,6 @@ import io.grpc.ManagedChannelBuilder;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.concurrent.CompletableFuture;
@@ -31,7 +30,7 @@ public class ScsClient {
      *
      * @param authToken Token to authenticate with SCS
      */
-    ScsClient(String authToken) {
+    public ScsClient(String authToken) {
         this(authToken, "alpha.cacheservice.com");
     }
 
@@ -41,7 +40,7 @@ public class ScsClient {
      * @param authToken Token to authenticate with SCS
      * @param endpoint  SCS endpoint to make api calls to
      */
-    ScsClient(String authToken, String endpoint) {
+    public ScsClient(String authToken, String endpoint) {
         ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(
                 endpoint,
                 443
