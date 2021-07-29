@@ -1,2 +1,2 @@
 rootProject.name = "client-sdk-java"
-include("lib", "messages")
+include("momento-sdk-java-scs", "messages")
