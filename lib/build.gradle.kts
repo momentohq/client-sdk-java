@@ -15,8 +15,15 @@ java {
     sourceCompatibility = JavaVersion.VERSION_1_8
 }
 
+val opentelemetryVersion = rootProject.ext["opentelemetryVersion"]
+
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+
+    platform("io.opentelemetry:opentelemetry-bom:${opentelemetryVersion}")
+    implementation("io.opentelemetry:opentelemetry-api:${opentelemetryVersion}")
+    implementation("io.opentelemetry:opentelemetry-sdk:${opentelemetryVersion}")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:${opentelemetryVersion}")
 
     // Internal Deps -------------------
     implementation("io.grpc:grpc-netty:${rootProject.ext["grpcVersion"]}")

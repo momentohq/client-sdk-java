@@ -12,4 +12,4 @@ Java sdk customers can use to interact with our ecosystem
 1. Initialize git submodule
     * `git submodule init && git submodule update`
 1. Run gradle build
-    * `gradle clean build`
+    * `TEST_AUTH_TOKEN=<auth token> gradle clean build`

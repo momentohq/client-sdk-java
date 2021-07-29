@@ -6,17 +6,28 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import grpc.cache_client.*;
+import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.SpanKind;
+import io.opentelemetry.api.trace.StatusCode;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
+
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 
 /**
  * ScsClient is a client used to interact with the momento Simple Caching Service (SCS).
@@ -25,6 +36,7 @@ public class ScsClient {
     private final ScsGrpc.ScsBlockingStub blockingStub;
     private final ScsGrpc.ScsFutureStub futureStub;
     private final ManagedChannel channel;
+    private final Optional<Tracer> tracer;
 
     /**
      * Builds an instance of {@link ScsClient} used to interact w/ SCS with a default endpoint.
@@ -32,16 +44,19 @@ public class ScsClient {
      * @param authToken Token to authenticate with SCS
      */
     ScsClient(String authToken) {
-        this(authToken, "alpha.cacheservice.com");
+        this(authToken, Optional.empty());
     }
 
+    ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry) {
+        this(authToken, openTelemetry, "alpha.cacheservice.com");
+    }
     /**
      * Builds an instance of {@link ScsClient} used to interact w/ SCS
      *
      * @param authToken Token to authenticate with SCS
      * @param endpoint  SCS endpoint to make api calls to
      */
-    ScsClient(String authToken, String endpoint) {
+    ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry, String endpoint) {
         ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(
                 endpoint,
                 443
@@ -49,11 +64,17 @@ public class ScsClient {
 
         channelBuilder.useTransportSecurity();
         channelBuilder.disableRetry();
-        channelBuilder.intercept(new AuthInterceptor(authToken));
+        List<ClientInterceptor> clientInterceptors = new ArrayList<>();
+        clientInterceptors.add(new AuthInterceptor(authToken));
+        openTelemetry.ifPresent(theOpenTelemetry -> clientInterceptors.add(new OpenTelemetryClientInterceptor(theOpenTelemetry)));
+        channelBuilder.intercept(clientInterceptors);
         ManagedChannel channel = channelBuilder.build();
         this.blockingStub = ScsGrpc.newBlockingStub(channel);
         this.futureStub = ScsGrpc.newFutureStub(channel);
         this.channel = channel;
+        this.tracer = openTelemetry.map(theOpenTelemetry ->
+                Optional.of(theOpenTelemetry.getTracer("momento-java-scs-client", "1.0.0")))
+                .orElse(Optional.empty());
     }
 
     /**
@@ -65,9 +86,28 @@ public class ScsClient {
      * @throws IOException if an error occurs opening input stream for response body.
      */
     public ClientGetResponse<ByteBuffer> get(String key) throws IOException {
-        GetResponse rsp = blockingStub.get(buildGetRequest(key));
-        ByteBuffer body = rsp.getCacheBody().asReadOnlyByteBuffer();
-        return new ClientGetResponse<>(rsp.getResult(), body);
+        String spanName = "java-sdk-get-request";
+        // TODO - We should change this logic so that the span becomes a sub span of a parent span.
+        Optional<Span> span = tracer.map(theTracer ->
+                Optional.of(theTracer.spanBuilder(spanName).setSpanKind(SpanKind.CLIENT).setStartTimestamp(Instant.now()).startSpan()))
+                .orElse(Optional.empty());
+        try (Scope scope = (span.isPresent() ? span.get().makeCurrent(): null)){
+            GetResponse rsp = blockingStub.get(buildGetRequest(key));
+            ByteBuffer body = rsp.getCacheBody().asReadOnlyByteBuffer();
+            ClientGetResponse clientGetResponse = new ClientGetResponse<>(rsp.getResult(), body);
+            span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
+            return clientGetResponse;
+        } catch (Exception e) {
+            span.ifPresent(theSpan ->  {
+                theSpan.recordException(e);
+                theSpan.setStatus(StatusCode.ERROR);
+            });
+            // TODO - Yup I know this is ugly but we have work to do to handle excpetions properly.
+            throw e;
+        } finally {
+            span.ifPresent(theSpan -> theSpan.end(Instant.now()));
+        }
+
     }
 
     /**
@@ -81,8 +121,27 @@ public class ScsClient {
      * @throws IOException if an error occurs opening ByteBuffer for request body.
      */
     public ClientSetResponse set(String key, ByteBuffer value, int ttlSeconds) throws IOException {
-        SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
-        return new ClientSetResponse(rsp.getResult());
+        String spanName = "java-sdk-set-request";
+        // TODO - We should change this logic so that the span becomes a sub span of a parent span.
+        Optional<Span> span = tracer.map(theTracer ->
+                Optional.of(theTracer.spanBuilder(spanName).setSpanKind(SpanKind.CLIENT).setStartTimestamp(Instant.now()).startSpan()))
+                .orElse(Optional.empty());
+        try (Scope scope = (span.isPresent() ? span.get().makeCurrent(): null)) {
+            SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
+            ClientSetResponse response = new ClientSetResponse(rsp.getResult());
+            span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
+            return response;
+        } catch (Exception e) {
+            span.ifPresent(theSpan -> {
+                theSpan.recordException(e);
+                theSpan.setStatus(StatusCode.ERROR);
+            });
+            // TODO - Yup I know this is ugly but we have work to do to handle exceptions.
+            throw e;
+        } finally {
+            span.ifPresent(theSpan -> theSpan.end(Instant.now()));
+        }
+
     }
 
     /**
@@ -94,7 +153,12 @@ public class ScsClient {
      * interface wrapping standard ClientResponse with response object as a {@link java.io.InputStream}.
      */
     public CompletionStage<ClientGetResponse<ByteBuffer>> getAsync(String key) {
-
+        String spanName = "java-sdk-get-request";
+        // TODO - We should change this logic so that the span becomes a sub span of a parent span.
+        Optional<Span> span = tracer.map(theTracer ->
+                Optional.of(theTracer.spanBuilder(spanName).setSpanKind(SpanKind.CLIENT).setStartTimestamp(Instant.now()).startSpan()))
+                .orElse(Optional.empty());
+        Optional<Scope> scope = (span.isPresent() ? Optional.of(span.get().makeCurrent()): Optional.empty());
         // Submit request to non blocking stub
         ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
 
@@ -115,11 +179,23 @@ public class ScsClient {
             public void onSuccess(GetResponse rsp) {
                 ByteBuffer body = rsp.getCacheBody().asReadOnlyByteBuffer();
                 returnFuture.complete(new ClientGetResponse<>(rsp.getResult(), body));
+                span.ifPresent (theSpan -> {
+                    theSpan.setStatus(StatusCode.OK);
+                    theSpan.end(Instant.now());
+                });
+                scope.ifPresent(theScope -> theScope.close());
+
             }
 
             @Override
             public void onFailure(Throwable e) {
-                returnFuture.completeExceptionally(e);  // bubble all errors up
+                returnFuture.completeExceptionally(e);
+                span.ifPresent (theSpan -> {
+                    theSpan.setStatus(StatusCode.ERROR);
+                    theSpan.recordException(e);
+                    theSpan.end(Instant.now());
+                });
+                scope.ifPresent(theScope -> theScope.close());
             }
         }, MoreExecutors.directExecutor()); // Execute on same thread that called execute on CompletionStage returned
 
@@ -138,7 +214,12 @@ public class ScsClient {
      * @throws IOException if an error occurs opening ByteBuffer for request body.
      */
     public CompletionStage<ClientSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds) throws IOException {
-
+        String spanName = "java-sdk-set-request";
+        // TODO - We should change this logic so that the span becomes a sub span of a parent span.
+        Optional<Span> span = tracer.map(theTracer ->
+                Optional.of(theTracer.spanBuilder(spanName).setSpanKind(SpanKind.CLIENT).setStartTimestamp(Instant.now()).startSpan()))
+                .orElse(Optional.empty());
+        Optional<Scope> scope = (span.isPresent() ? Optional.of(span.get().makeCurrent()): Optional.empty());
         // Submit request to non blocking stub
         ListenableFuture<SetResponse> rspFuture = futureStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
 
@@ -158,11 +239,23 @@ public class ScsClient {
             @Override
             public void onSuccess(SetResponse rsp) {
                 returnFuture.complete(new ClientSetResponse(rsp.getResult()));
+                span.ifPresent (theSpan -> {
+                    theSpan.setStatus(StatusCode.OK);
+                    theSpan.end(Instant.now());
+                });
+                scope.ifPresent(theScope -> theScope.close());
             }
 
             @Override
-            public void onFailure(Throwable e) {
+            public void onFailure(Throwable e)
+            {
                 returnFuture.completeExceptionally(e);  // bubble all errors up
+                span.ifPresent (theSpan -> {
+                    theSpan.setStatus(StatusCode.ERROR);
+                    theSpan.recordException(e);
+                    theSpan.end(Instant.now());
+                });
+                scope.ifPresent(theScope -> theScope.close());
             }
         }, MoreExecutors.directExecutor()); // Execute on same thread that called execute on CompletionStage returned
 
