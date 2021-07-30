@@ -31,7 +31,6 @@ repositories {
     }
 }
 
-
 dependencies {
 
     api("io.grpc:grpc-protobuf:${rootProject.ext["grpcVersion"]}")

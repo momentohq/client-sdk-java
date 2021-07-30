@@ -10,6 +10,7 @@ plugins {
 group = "org.momento"
 version = findProperty("version") as String
 
+val opentelemetryVersion = rootProject.ext["opentelemetryVersion"]
 var awsAccessKeyId = System.getenv("AWS_ACCESS_KEY_ID") ?: findProperty("aws_access_key_id") as String? ?: ""
 var awsSecretAccessKey = System.getenv("AWS_SECRET_ACCESS_KEY") ?: findProperty("aws_secret_access_key") as String? ?: ""
 
@@ -50,6 +51,11 @@ java {
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+
+    platform("io.opentelemetry:opentelemetry-bom:${opentelemetryVersion}")
+    implementation("io.opentelemetry:opentelemetry-api:${opentelemetryVersion}")
+    implementation("io.opentelemetry:opentelemetry-sdk:${opentelemetryVersion}")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp:${opentelemetryVersion}")
 
     // Internal Deps -------------------
     implementation("io.grpc:grpc-netty:${rootProject.ext["grpcVersion"]}")
