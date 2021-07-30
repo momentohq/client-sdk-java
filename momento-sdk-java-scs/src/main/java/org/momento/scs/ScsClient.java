@@ -1,4 +1,4 @@
-package client.sdk.java;
+package org.momento.scs;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -43,20 +43,27 @@ public class ScsClient {
      *
      * @param authToken Token to authenticate with SCS
      */
-    ScsClient(String authToken) {
+    public ScsClient(String authToken) {
         this(authToken, Optional.empty());
     }
 
-    ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry) {
+    /**
+     *
+     * @param authToken Token to authenticate with SCS
+     * @param openTelemetry Open telemetry instance to hook into client traces
+     */
+    public ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry) {
         this(authToken, openTelemetry, "alpha.cacheservice.com");
     }
+
     /**
      * Builds an instance of {@link ScsClient} used to interact w/ SCS
      *
      * @param authToken Token to authenticate with SCS
+     * @param openTelemetry Open telemetry instance to hook into client traces
      * @param endpoint  SCS endpoint to make api calls to
      */
-    ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry, String endpoint) {
+    public ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry, String endpoint) {
         ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(
                 endpoint,
                 443

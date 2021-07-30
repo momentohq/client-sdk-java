@@ -1,4 +1,4 @@
-package client.sdk.java;
+package org.momento.scs;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
