@@ -5,10 +5,16 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import grpc.cache_client.*;
+import grpc.cache_client.GetRequest;
+import grpc.cache_client.GetResponse;
+import grpc.cache_client.ScsGrpc;
+import grpc.cache_client.SetRequest;
+import grpc.cache_client.SetResponse;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
-import io.grpc.ManagedChannelBuilder;
+import io.grpc.netty.GrpcSslContexts;
+import io.grpc.netty.NettyChannelBuilder;
+import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
@@ -16,6 +22,7 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
 
+import javax.net.ssl.SSLException;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -64,11 +71,33 @@ public class ScsClient {
      * @param endpoint  SCS endpoint to make api calls to
      */
     public ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry, String endpoint) {
-        ManagedChannelBuilder<?> channelBuilder = ManagedChannelBuilder.forAddress(
+        this(authToken, openTelemetry, endpoint, false);
+    }
+
+    /**
+     * Builds an instance of {@link ScsClient} used to interact w/ SCS
+     *
+     * @param authToken Token to authenticate with SCS
+     * @param openTelemetry Open telemetry instance to hook into client traces
+     * @param endpoint  SCS endpoint to make api calls to
+     * @param insecureSsl for overriding host validation
+     */
+    public ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry, String endpoint, boolean insecureSsl) {
+        NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(
                 endpoint,
                 443
         );
 
+        if (insecureSsl) {
+            try {
+                channelBuilder.sslContext(GrpcSslContexts.forClient()
+                        .trustManager(InsecureTrustManagerFactory.INSTANCE)
+                        .build()
+                );
+            } catch (SSLException e) {
+                throw new RuntimeException("Unable to use insecure trust manager", e);
+            }
+        }
         channelBuilder.useTransportSecurity();
         channelBuilder.disableRetry();
         List<ClientInterceptor> clientInterceptors = new ArrayList<>();
