@@ -5,6 +5,7 @@ package org.momento.scs;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
@@ -33,7 +34,20 @@ class ScsClientTest {
 
     @BeforeEach
     void setUp() {
-        c = new ScsClient(System.getenv("TEST_AUTH_TOKEN"));
+        c = getScsClient(Optional.empty());
+    }
+
+    ScsClient getScsClient(Optional<OpenTelemetry> openTelemetry) {
+        return getScsClient(System.getenv("TEST_AUTH_TOKEN"), openTelemetry);
+    }
+
+    ScsClient getScsClient(String authToken, Optional<OpenTelemetry> openTelemetry) {
+        String endpoint = System.getenv("TEST_ENDPOINT");
+        if (endpoint == null) {
+            endpoint = "alpha.cacheservice.com";
+        }
+
+        return new ScsClient(authToken, openTelemetry, endpoint, System.getenv("TEST_SSL_INSECURE") != null);
     }
 
     @AfterEach
@@ -50,7 +64,7 @@ class ScsClientTest {
     void testBlockingClientHappyPathWithTracing() throws Exception{
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = new ScsClient(System.getenv("TEST_AUTH_TOKEN"), Optional.of(openTelemetry));
+        ScsClient client = getScsClient(Optional.of(openTelemetry));
         testHappyPath(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -90,7 +104,7 @@ class ScsClientTest {
     void testAsyncClientHappyPathWithTracing() throws Exception{
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = new ScsClient(System.getenv("TEST_AUTH_TOKEN"), Optional.of(openTelemetry));
+        ScsClient client = getScsClient(Optional.of(openTelemetry));
         testAsyncHappyPath(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -128,7 +142,7 @@ class ScsClientTest {
     void testTtlHappyPathWithTracing() throws Exception {
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = new ScsClient(System.getenv("TEST_AUTH_TOKEN"), Optional.of(openTelemetry));
+        ScsClient client = getScsClient(Optional.of(openTelemetry));
         testTtlHappyPath(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -169,7 +183,7 @@ class ScsClientTest {
     void testMissHappyPathWithTracing() throws Exception{
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = new ScsClient(System.getenv("TEST_AUTH_TOKEN"), Optional.of(openTelemetry));
+        ScsClient client = getScsClient(Optional.of(openTelemetry));
         testMissHappyPathInternal(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -192,7 +206,7 @@ class ScsClientTest {
 
     @Test
     void testBadAuthToken() {
-        ScsClient badCredClient = new ScsClient("BAD_TOKEN");
+        ScsClient badCredClient = getScsClient("BAD_TOKEN", Optional.empty());
         testBadAuthToken(badCredClient);
     }
 
@@ -200,7 +214,7 @@ class ScsClientTest {
     void testBadAuthTokenWithTracing() throws Exception{
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = new ScsClient("BAD_TOKEN", Optional.of(openTelemetry));
+        ScsClient client = getScsClient("BAD_TOKEN", Optional.of(openTelemetry));
         testBadAuthToken(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -265,6 +279,9 @@ class ScsClientTest {
                 true,
                 "started local otel container for integration testing",
                 "failed to bootstrap integration test local otel container");
+        shellExpect( 5,
+                "docker logs integtest_otelcol 2>& 1",
+                ".*Everything is ready. Begin running and processing data.*");
 
     }
 
@@ -294,7 +311,22 @@ class ScsClientTest {
         Assertions.assertEquals(expectedCount, count.trim());
     }
 
-    private String shellex(String command, Boolean expectSuccess, String successDescription, String  failDescription) throws Exception{
+    // Polls a command until the expected result comes back
+    private void shellExpect(double timeoutSeconds, String command, String outputRegex) throws Exception {
+        long start = System.currentTimeMillis();
+        String lastOutput = "";
+
+        while ((System.currentTimeMillis() - start) / 1000.0 < timeoutSeconds ) {
+            lastOutput = shellex(command, false, null, null);
+            if (lastOutput.matches(outputRegex)) {
+                return;
+            }
+        }
+
+        throw new InternalError(String.format("Never got expected output. Last:\n%s", lastOutput));
+    }
+
+    private String shellex(String command, Boolean expectSuccess, String successDescription, String failDescription) throws Exception{
         ProcessBuilder processBuilder = new ProcessBuilder();
         processBuilder.command("sh", "-c", command);
         Process process = processBuilder.start();
@@ -313,11 +345,15 @@ class ScsClientTest {
         }
 
         if (exitCode == 0) {
-            System.out.println(successDescription);
+            if (successDescription != null) {
+                System.out.println(successDescription);
+            }
         } else if (expectSuccess) {
             throw new InternalError(failDescription + "exit_code:" + exitCode);
         } else {
-            System.out.println(failDescription);
+            if (failDescription != null) {
+                System.out.println(failDescription);
+            }
         }
 
         return output;
