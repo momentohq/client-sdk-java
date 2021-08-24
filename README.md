@@ -10,7 +10,7 @@ Java sdk customers can use to interact with our ecosystem
 1. Clone repo
     * `git clone git@github.com:momentohq/client-sdk-java.git`
 1. Initialize git submodule
-    * `git submodule init && git submodule update`
+    * `git submodule init && git submodule sync && git submodule update`
 1. Run gradle build
     * `TEST_AUTH_TOKEN=<auth token> gradle clean build`
    
