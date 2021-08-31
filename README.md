@@ -20,7 +20,7 @@ Java sdk customers can use to interact with our ecosystem
       * Running the following command and it will generate and print an `<auth token>`
         * `AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> mm keys generate-api-key <test_key_name> --cell <cell_name>`
     * `TEST_AUTH_TOKEN=<auth token> TEST_ENDPOINT=<endpoint> ./gradlew integrationTest`
-      * `TEST_ENDPOINT` is optional, when not provided default endpoint will be used
+      * `TEST_ENDPOINT` is optional and defaults to alpha. TEST_ENDPOINT must belong to the cell where the auth token was generated.
    
 ## How to import into your project
 Add this to your `gradle.build.kts` file
