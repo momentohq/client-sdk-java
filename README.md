@@ -13,7 +13,7 @@ Java sdk customers can use to interact with our ecosystem
     * `./gradlew clean build`
 1. To run integration tests:
     * Generate test auth token as per TODO TODO TODO 
-    * `TEST_AUTH_TOKEN=<auth token> gradle clean build`
+    * `TEST_AUTH_TOKEN=<auth token> ./gradlew integrationTest`
    
 ## How to import into your project
 Add this to your `gradle.build.kts` file
