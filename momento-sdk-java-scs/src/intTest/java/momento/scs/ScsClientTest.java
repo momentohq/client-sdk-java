@@ -10,9 +10,14 @@ import io.opentelemetry.exporter.otlp.trace.OtlpGrpcSpanExporter;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
-import org.junit.jupiter.api.*;
+
 import io.opentelemetry.context.propagation.ContextPropagators;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.momento.scs.ClientGetResponse;
 import org.momento.scs.ClientSetResponse;
 import org.momento.scs.MomentoResult;
