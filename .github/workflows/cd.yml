@@ -38,10 +38,10 @@ jobs:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         allow-initial-development-versions: true
         force-bump-patch-version: true
-        
+
+    # TODO: set up artifactory deploy creds
+    # TODO: update gradle build to respect version number included here
     - name: Deploy Release
       run: |
-        ACCESS_KEY=${{ secrets.DEPLOY_USER_AWS_ACCESS_KEY_ID }}
-        SECRET_KEY=${{ secrets.DEPLOY_USER_AWS_SECRET_ACCESS_KEY }}
         VERSION=${{ steps.semrel.outputs.version }}
-        ./gradlew publish -Paws_access_key_id=$ACCESS_KEY -Paws_secret_access_key=$SECRET_KEY -Pversion=$VERSION
+        ./gradlew artifactoryPublish -Pversion=$VERSION
