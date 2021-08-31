@@ -12,8 +12,15 @@ Java sdk customers can use to interact with our ecosystem
 1. Run gradle build
     * `./gradlew clean build`
 1. To run integration tests:
-    * Generate test auth token as per TODO TODO TODO 
-    * `TEST_AUTH_TOKEN=<auth token> ./gradlew integrationTest`
+    * Generate test auth token (if you don't already have one)
+      * Pre-requisites
+        * Cell under test must be fully provisioned
+        * `mm` must be installed and configured as per [instructions](https://github.com/momentohq/mm#mm)
+        * Must have AWS Access Key ID and AWS Secret Key belonging to the Cell under test
+      * Running the following command and it will generate and print an `<auth token>`
+        * `AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> mm keys generate-api-key <test_key_name> --cell <cell_name>`
+    * `TEST_AUTH_TOKEN=<auth token> TEST_ENDPOINT=<endpoint> ./gradlew integrationTest`
+      * `TEST_ENDPOINT` is optional, when not provided default endpoint will be used
    
 ## How to import into your project
 Add this to your `gradle.build.kts` file
