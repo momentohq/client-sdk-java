@@ -5,14 +5,15 @@ Java sdk customers can use to interact with our ecosystem
 
 1. Install Java
    * `brew install openjdk`
-1. Install Gradle
-   * `brew install gradle`
 1. Clone repo
     * `git clone git@github.com:momentohq/client-sdk-java.git`
 1. Initialize git submodule
     * `git submodule init && git submodule sync && git submodule update`
 1. Run gradle build
-    * `TEST_AUTH_TOKEN=<auth token> gradle clean build`
+    * `./gradlew clean build`
+1. To run integration tests:
+    * Generate test auth token as per TODO TODO TODO 
+    * `TEST_AUTH_TOKEN=<auth token> ./gradlew integrationTest`
    
 ## How to import into your project
 Add this to your `gradle.build.kts` file
