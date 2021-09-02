@@ -50,8 +50,8 @@ public class ScsClient {
      *
      * @param authToken Token to authenticate with SCS
      */
-    public ScsClient(String authToken) {
-        this(authToken, Optional.empty());
+    public ScsClient(String authToken, String cacheId) {
+        this(authToken, cacheId, Optional.empty());
     }
 
     /**
@@ -59,8 +59,8 @@ public class ScsClient {
      * @param authToken Token to authenticate with SCS
      * @param openTelemetry Open telemetry instance to hook into client traces
      */
-    public ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry) {
-        this(authToken, openTelemetry, "alpha.cacheservice.com");
+    public ScsClient(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry) {
+        this(authToken, cacheId, openTelemetry, "alpha.cacheservice.com");
     }
 
     /**
@@ -70,8 +70,8 @@ public class ScsClient {
      * @param openTelemetry Open telemetry instance to hook into client traces
      * @param endpoint  SCS endpoint to make api calls to
      */
-    public ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry, String endpoint) {
-        this(authToken, openTelemetry, endpoint, false);
+    public ScsClient(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry, String endpoint) {
+        this(authToken, cacheId, openTelemetry, endpoint, false);
     }
 
     /**
@@ -82,7 +82,7 @@ public class ScsClient {
      * @param endpoint  SCS endpoint to make api calls to
      * @param insecureSsl for overriding host validation
      */
-    public ScsClient(String authToken, Optional<OpenTelemetry> openTelemetry, String endpoint, boolean insecureSsl) {
+    public ScsClient(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry, String endpoint, boolean insecureSsl) {
         NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(
                 endpoint,
                 443
@@ -102,6 +102,7 @@ public class ScsClient {
         channelBuilder.disableRetry();
         List<ClientInterceptor> clientInterceptors = new ArrayList<>();
         clientInterceptors.add(new AuthInterceptor(authToken));
+        clientInterceptors.add(new CacheIdInterceptor(cacheId));
         openTelemetry.ifPresent(theOpenTelemetry -> clientInterceptors.add(new OpenTelemetryClientInterceptor(theOpenTelemetry)));
         channelBuilder.intercept(clientInterceptors);
         ManagedChannel channel = channelBuilder.build();

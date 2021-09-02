@@ -43,6 +43,9 @@ class ScsClientTest {
         if (System.getenv("TEST_AUTH_TOKEN") == null) {
             throw new IllegalArgumentException("Integration tests require TEST_AUTH_TOKEN env var; see README for more details.");
         }
+        if (System.getenv("TEST_CACHE_ID") == null) {
+            throw new IllegalArgumentException("Integration tests require TEST_CACHE_ID env var; see README for more details.");
+        }
     }
 
     @BeforeEach
@@ -51,16 +54,16 @@ class ScsClientTest {
     }
 
     ScsClient getScsClient(Optional<OpenTelemetry> openTelemetry) {
-        return getScsClient(System.getenv("TEST_AUTH_TOKEN"), openTelemetry);
+        return getScsClient(System.getenv("TEST_AUTH_TOKEN"), System.getenv("TEST_CACHE_ID"), openTelemetry);
     }
 
-    ScsClient getScsClient(String authToken, Optional<OpenTelemetry> openTelemetry) {
+    ScsClient getScsClient(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry) {
         String endpoint = System.getenv("TEST_ENDPOINT");
         if (endpoint == null) {
             endpoint = "alpha.cacheservice.com";
         }
 
-        return new ScsClient(authToken, openTelemetry, endpoint, System.getenv("TEST_SSL_INSECURE") != null);
+        return new ScsClient(authToken, cacheId, openTelemetry, endpoint, System.getenv("TEST_SSL_INSECURE") != null);
     }
 
     @AfterEach
@@ -219,7 +222,7 @@ class ScsClientTest {
 
     @Test
     void testBadAuthToken() {
-        ScsClient badCredClient = getScsClient("BAD_TOKEN", Optional.empty());
+        ScsClient badCredClient = getScsClient("BAD_TOKEN", "dummy", Optional.empty());
         testBadAuthToken(badCredClient);
     }
 
@@ -227,7 +230,7 @@ class ScsClientTest {
     void testBadAuthTokenWithTracing() throws Exception{
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = getScsClient("BAD_TOKEN", Optional.of(openTelemetry));
+        ScsClient client = getScsClient("BAD_TOKEN", "dummy", Optional.of(openTelemetry));
         testBadAuthToken(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
