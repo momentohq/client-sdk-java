@@ -3,6 +3,7 @@ import com.google.protobuf.gradle.*
 plugins {
     id("com.google.protobuf") version "0.8.16"
     id("momento.artifactory-java-lib")
+    idea
 }
 
 dependencies {
