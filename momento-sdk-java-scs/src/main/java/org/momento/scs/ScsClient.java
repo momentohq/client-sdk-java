@@ -55,6 +55,16 @@ public class ScsClient {
     }
 
     /**
+     * Builds an instance of {@link ScsClient} that will interact with a specified endpoint
+     * @param authToken
+     * @param cacheId
+     * @param endpoint
+     */
+    public ScsClient(String authToken, String cacheId, String endpoint) {
+        this(authToken, cacheId, Optional.empty(), endpoint);
+    }
+
+    /**
      *
      * @param authToken Token to authenticate with SCS
      * @param openTelemetry Open telemetry instance to hook into client traces
