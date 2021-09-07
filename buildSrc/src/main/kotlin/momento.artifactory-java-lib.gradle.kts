@@ -36,7 +36,7 @@ configure<org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention> {
             setRepoKey("maven-local") // The Artifactory repository key to publish to
             setUsername(artifactoryUsername)
             setPassword(artifactoryPassword)
-            setVersion(version)
+            setVersion("0.1.1-SNAPSHOT")
         }
 
         defaults {
