@@ -45,8 +45,5 @@ jobs:
         ARTIFACTORY_USERNAME: deploy-user
         ARTIFACTORY_PASSWORD: ${{ secrets.PUBLIC_ARTIFACTORY_CREDS }}
       run: |
-        # TODO
-        # TODO: update gradle build to respect version number included here
-        # TODO
         VERSION=${{ steps.semrel.outputs.version }}
         ./gradlew artifactoryPublish -Pversion=$VERSION
