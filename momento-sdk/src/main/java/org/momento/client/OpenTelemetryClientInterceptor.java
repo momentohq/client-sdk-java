@@ -1,4 +1,4 @@
-package org.momento.scs;
+package org.momento.client;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -12,6 +12,7 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 
+// TODO: This should be made package default
 public class OpenTelemetryClientInterceptor implements ClientInterceptor {
 
     private final TextMapPropagator textFormat;

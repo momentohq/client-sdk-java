@@ -18,10 +18,10 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.momento.scs.ClientGetResponse;
-import org.momento.scs.ClientSetResponse;
-import org.momento.scs.MomentoResult;
-import org.momento.scs.ScsClient;
+import org.momento.client.Cache;
+import org.momento.client.messages.ClientGetResponse;
+import org.momento.client.messages.ClientSetResponse;
+import org.momento.client.messages.MomentoResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -36,7 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 
 class ScsClientTest {
-    ScsClient c;
+    Cache c;
 
     @BeforeAll
     static void beforeAll() {
@@ -53,17 +53,17 @@ class ScsClientTest {
         c = getScsClient(Optional.empty());
     }
 
-    ScsClient getScsClient(Optional<OpenTelemetry> openTelemetry) {
+    Cache getScsClient(Optional<OpenTelemetry> openTelemetry) {
         return getScsClient(System.getenv("TEST_AUTH_TOKEN"), System.getenv("TEST_CACHE_ID"), openTelemetry);
     }
 
-    ScsClient getScsClient(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry) {
+    Cache getScsClient(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry) {
         String endpoint = System.getenv("TEST_ENDPOINT");
         if (endpoint == null) {
             endpoint = "alpha.cacheservice.com";
         }
 
-        return new ScsClient(authToken, cacheId, openTelemetry, endpoint, System.getenv("TEST_SSL_INSECURE") != null);
+        return new Cache(authToken, cacheId, openTelemetry, endpoint, System.getenv("TEST_SSL_INSECURE") != null);
     }
 
     @AfterEach
@@ -80,7 +80,7 @@ class ScsClientTest {
     void testBlockingClientHappyPathWithTracing() throws Exception{
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = getScsClient(Optional.of(openTelemetry));
+        Cache client = getScsClient(Optional.of(openTelemetry));
         testHappyPath(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -88,7 +88,7 @@ class ScsClientTest {
         verifyGetTrace("1");
     }
 
-    void testHappyPath (ScsClient scsClient) {
+    void testHappyPath (Cache scsClient) {
         try {
             String key = UUID.randomUUID().toString();
 
@@ -120,7 +120,7 @@ class ScsClientTest {
     void testAsyncClientHappyPathWithTracing() throws Exception{
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = getScsClient(Optional.of(openTelemetry));
+        Cache client = getScsClient(Optional.of(openTelemetry));
         testAsyncHappyPath(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -128,7 +128,7 @@ class ScsClientTest {
         verifyGetTrace("1");
     }
 
-    void testAsyncHappyPath(ScsClient client) {
+    void testAsyncHappyPath(Cache client) {
         try {
             String key = UUID.randomUUID().toString();
             // Set Key Async
@@ -158,7 +158,7 @@ class ScsClientTest {
     void testTtlHappyPathWithTracing() throws Exception {
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = getScsClient(Optional.of(openTelemetry));
+        Cache client = getScsClient(Optional.of(openTelemetry));
         testTtlHappyPath(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -166,7 +166,7 @@ class ScsClientTest {
         verifyGetTrace("1");
     }
 
-    void testTtlHappyPath(ScsClient client) {
+    void testTtlHappyPath(Cache client) {
         try {
             String key = UUID.randomUUID().toString();
 
@@ -199,7 +199,7 @@ class ScsClientTest {
     void testMissHappyPathWithTracing() throws Exception{
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = getScsClient(Optional.of(openTelemetry));
+        Cache client = getScsClient(Optional.of(openTelemetry));
         testMissHappyPathInternal(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -207,7 +207,7 @@ class ScsClientTest {
         verifyGetTrace("1");
     }
 
-    void testMissHappyPathInternal(ScsClient client) {
+    void testMissHappyPathInternal(Cache client) {
         try {
             // Get Key that was just set
             ClientGetResponse<ByteBuffer> rsp = client.get(UUID.randomUUID().toString());
@@ -222,7 +222,7 @@ class ScsClientTest {
 
     @Test
     void testBadAuthToken() {
-        ScsClient badCredClient = getScsClient("BAD_TOKEN", "dummy", Optional.empty());
+        Cache badCredClient = getScsClient("BAD_TOKEN", "dummy", Optional.empty());
         testBadAuthToken(badCredClient);
     }
 
@@ -230,7 +230,7 @@ class ScsClientTest {
     void testBadAuthTokenWithTracing() throws Exception{
         startIntegrationTestOtel();
         OpenTelemetrySdk openTelemetry = setOtelSDK();
-        ScsClient client = getScsClient("BAD_TOKEN", "dummy", Optional.of(openTelemetry));
+        Cache client = getScsClient("BAD_TOKEN", "dummy", Optional.of(openTelemetry));
         testBadAuthToken(client);
         // To accommodate for delays in tracing logs to appear in docker
         Thread.sleep(1000);
@@ -238,7 +238,7 @@ class ScsClientTest {
         verifyGetTrace("1");
     }
 
-    void testBadAuthToken(ScsClient badCredClient) {
+    void testBadAuthToken(Cache badCredClient) {
 
         try {
             // Get Key that was just set

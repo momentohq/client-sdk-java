@@ -1,4 +1,4 @@
-package org.momento.scs;
+package org.momento.client.messages;
 
 import grpc.cache_client.Result;
 
