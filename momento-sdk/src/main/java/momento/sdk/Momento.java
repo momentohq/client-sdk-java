@@ -3,11 +3,7 @@ package momento.sdk;
 // TODO: Add Implementation and make non-abstract
 public abstract class Momento {
 
-    public static Momento init(String authToken, Regions region) {
-        throw new UnsupportedOperationException();
-    }
-
-    public static Momento init(String authToken, String endpoint) {
+    public static Momento init(String authToken) {
         throw new UnsupportedOperationException();
     }
 
