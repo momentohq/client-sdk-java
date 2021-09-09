@@ -1,4 +1,4 @@
-package org.momento.scs;
+package momento.sdk;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -21,6 +21,8 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
+import momento.sdk.messages.ClientGetResponse;
+import momento.sdk.messages.ClientSetResponse;
 
 import javax.net.ssl.SSLException;
 import java.io.ByteArrayInputStream;
@@ -37,30 +39,32 @@ import java.util.concurrent.TimeUnit;
 import java.util.List;
 
 /**
- * ScsClient is a client used to interact with the momento Simple Caching Service (SCS).
+ * Client to perform operations on cache.
  */
-public class ScsClient {
+// TODO: https://github.com/momentohq/client-sdk-java/issues/24 - constructors should be visible only in the package.
+// TODO: Also clean up the method and class comments
+public class Cache {
     private final ScsGrpc.ScsBlockingStub blockingStub;
     private final ScsGrpc.ScsFutureStub futureStub;
     private final ManagedChannel channel;
     private final Optional<Tracer> tracer;
 
     /**
-     * Builds an instance of {@link ScsClient} used to interact w/ SCS with a default endpoint.
+     * Builds an instance of {@link Cache} used to interact w/ SCS with a default endpoint.
      *
-     * @param authToken Token to authenticate with SCS
+     * @param authToken Token to authenticate with Cache Service
      */
-    public ScsClient(String authToken, String cacheId) {
+    public Cache(String authToken, String cacheId) {
         this(authToken, cacheId, Optional.empty());
     }
 
     /**
-     * Builds an instance of {@link ScsClient} that will interact with a specified endpoint
+     * Builds an instance of {@link Cache} that will interact with a specified endpoint
      * @param authToken
      * @param cacheId
      * @param endpoint
      */
-    public ScsClient(String authToken, String cacheId, String endpoint) {
+    public Cache(String authToken, String cacheId, String endpoint) {
         this(authToken, cacheId, Optional.empty(), endpoint);
     }
 
@@ -69,30 +73,30 @@ public class ScsClient {
      * @param authToken Token to authenticate with SCS
      * @param openTelemetry Open telemetry instance to hook into client traces
      */
-    public ScsClient(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry) {
+    public Cache(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry) {
         this(authToken, cacheId, openTelemetry, "alpha.cacheservice.com");
     }
 
     /**
-     * Builds an instance of {@link ScsClient} used to interact w/ SCS
+     * Builds an instance of {@link Cache} used to interact w/ SCS
      *
      * @param authToken Token to authenticate with SCS
      * @param openTelemetry Open telemetry instance to hook into client traces
      * @param endpoint  SCS endpoint to make api calls to
      */
-    public ScsClient(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry, String endpoint) {
+    public Cache(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry, String endpoint) {
         this(authToken, cacheId, openTelemetry, endpoint, false);
     }
 
     /**
-     * Builds an instance of {@link ScsClient} used to interact w/ SCS
+     * Builds an instance of {@link Cache} used to interact w/ SCS
      *
      * @param authToken Token to authenticate with SCS
      * @param openTelemetry Open telemetry instance to hook into client traces
      * @param endpoint  SCS endpoint to make api calls to
      * @param insecureSsl for overriding host validation
      */
-    public ScsClient(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry, String endpoint, boolean insecureSsl) {
+    public Cache(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry, String endpoint, boolean insecureSsl) {
         NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(
                 endpoint,
                 443
@@ -126,7 +130,7 @@ public class ScsClient {
 
     /**
      * Returns a requested object from cache specified by passed key. This method is a blocking api call. Please use
-     * getAsync if you need a {@link java.util.concurrent.CompletionStage<ClientGetResponse>} returned instead.
+     * getAsync if you need a {@link java.util.concurrent.CompletionStage<  ClientGetResponse  >} returned instead.
      *
      * @param key the key of item to fetch from cache
      * @return {@link ClientGetResponse} with the response object as a {@link java.nio.ByteBuffer}
@@ -159,7 +163,7 @@ public class ScsClient {
 
     /**
      * Sets an object in cache by the passed key. This method is a blocking api call. Please use
-     * setAsync if you need a {@link java.util.concurrent.CompletionStage<ClientSetResponse>} returned instead.
+     * setAsync if you need a {@link java.util.concurrent.CompletionStage<  ClientSetResponse  >} returned instead.
      *
      * @param key        the key of item to fetch from cache
      * @param value      {@link ByteBuffer} of the value to set in cache

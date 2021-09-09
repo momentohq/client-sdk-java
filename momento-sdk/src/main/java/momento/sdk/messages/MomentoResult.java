@@ -1,4 +1,4 @@
-package org.momento.scs;
+package momento.sdk.messages;
 import grpc.cache_client.Result;
 
 public enum MomentoResult {

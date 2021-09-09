@@ -1,4 +1,4 @@
-package org.momento.scs;
+package momento.sdk;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -10,6 +10,7 @@ import io.grpc.MethodDescriptor;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
+// TODO: This should be made package default
 public class CacheIdInterceptor implements ClientInterceptor {
 
     private Metadata.Key<String> cacheHeaderKey = Metadata.Key.of("cacheId", ASCII_STRING_MARSHALLER);

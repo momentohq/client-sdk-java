@@ -1,7 +1,8 @@
-package org.momento.scs;
+package momento.sdk.messages;
 
 import grpc.cache_client.Result;
 
+// TODO: This should be made package default
 public class BaseResponse {
     MomentoResult resultMapper(Result result) {
         switch (result) {

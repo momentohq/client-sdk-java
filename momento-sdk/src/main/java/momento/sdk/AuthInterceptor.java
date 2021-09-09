@@ -1,4 +1,4 @@
-package org.momento.scs;
+package momento.sdk;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -10,6 +10,7 @@ import io.grpc.MethodDescriptor;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
+// TODO: Make package default
 public class AuthInterceptor implements ClientInterceptor {
 
     private Metadata.Key<String> authHeaderKey = Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
