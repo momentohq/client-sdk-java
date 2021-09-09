@@ -1,4 +1,4 @@
-package org.momento.client;
+package momento.sdk;
 
 // TODO: Add Implementation and make non-abstract
 public abstract class Momento {

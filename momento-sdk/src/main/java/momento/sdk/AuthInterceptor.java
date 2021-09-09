@@ -1,4 +1,4 @@
-package org.momento.client;
+package momento.sdk;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -10,14 +10,14 @@ import io.grpc.MethodDescriptor;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
-// TODO: This should be made package default
-public class CacheIdInterceptor implements ClientInterceptor {
+// TODO: Make package default
+public class AuthInterceptor implements ClientInterceptor {
 
-    private Metadata.Key<String> cacheHeaderKey = Metadata.Key.of("cacheId", ASCII_STRING_MARSHALLER);
-    private String cacheId;
+    private Metadata.Key<String> authHeaderKey = Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
+    private String tokenValue;
 
-    public CacheIdInterceptor(String inputCacheId) {
-        cacheId = inputCacheId;
+    public AuthInterceptor(String token) {
+        tokenValue = token;
     }
 
     @Override
@@ -27,7 +27,7 @@ public class CacheIdInterceptor implements ClientInterceptor {
                 channel.newCall(methodDescriptor, callOptions)) {
             @Override
             public void start(Listener<RespT> listener, Metadata metadata) {
-                metadata.put(cacheHeaderKey, cacheId);
+                metadata.put(authHeaderKey, tokenValue);
                 super.start(listener, metadata);
             }
         };

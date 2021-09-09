@@ -1,4 +1,4 @@
-package org.momento.client;
+package momento.sdk;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -21,8 +21,8 @@ import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Scope;
-import org.momento.client.messages.ClientGetResponse;
-import org.momento.client.messages.ClientSetResponse;
+import momento.sdk.messages.ClientGetResponse;
+import momento.sdk.messages.ClientSetResponse;
 
 import javax.net.ssl.SSLException;
 import java.io.ByteArrayInputStream;
@@ -130,7 +130,7 @@ public class Cache {
 
     /**
      * Returns a requested object from cache specified by passed key. This method is a blocking api call. Please use
-     * getAsync if you need a {@link java.util.concurrent.CompletionStage< ClientGetResponse >} returned instead.
+     * getAsync if you need a {@link java.util.concurrent.CompletionStage<  ClientGetResponse  >} returned instead.
      *
      * @param key the key of item to fetch from cache
      * @return {@link ClientGetResponse} with the response object as a {@link java.nio.ByteBuffer}
@@ -163,7 +163,7 @@ public class Cache {
 
     /**
      * Sets an object in cache by the passed key. This method is a blocking api call. Please use
-     * setAsync if you need a {@link java.util.concurrent.CompletionStage< ClientSetResponse >} returned instead.
+     * setAsync if you need a {@link java.util.concurrent.CompletionStage<  ClientSetResponse  >} returned instead.
      *
      * @param key        the key of item to fetch from cache
      * @param value      {@link ByteBuffer} of the value to set in cache

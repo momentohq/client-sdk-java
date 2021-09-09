@@ -1,4 +1,4 @@
-package org.momento.client;
+package momento.sdk;
 
 /* Cloud and Regions supported by Momento */
 public enum Regions {
