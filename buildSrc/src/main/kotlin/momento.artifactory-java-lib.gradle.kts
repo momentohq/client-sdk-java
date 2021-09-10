@@ -32,11 +32,9 @@ configure<org.jfrog.gradle.plugin.artifactory.dsl.ArtifactoryPluginConvention> {
         repository {
             val artifactoryUsername = System.getenv("ARTIFACTORY_USERNAME")
             val artifactoryPassword = System.getenv("ARTIFACTORY_PASSWORD")
-            val version = System.getenv("VERSION")
             setRepoKey("maven-local") // The Artifactory repository key to publish to
             setUsername(artifactoryUsername)
             setPassword(artifactoryPassword)
-            setVersion("version")
         }
 
         defaults {
