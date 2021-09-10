@@ -7,7 +7,5 @@ allprojects {
     //  to determine the artifact group ID and version that
     //  customers will consume.
     group = "momento.sandbox"
-
-    // Version must be passed in via env variable $version
-    version = "$version"
+    version = findProperty("version") as String
 }
