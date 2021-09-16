@@ -1,15 +1,15 @@
 package momento.sdk.messages;
 
-import grpc.cache_client.Result;
+import grpc.cache_client.ECacheResult;
 
 public class ClientSetResponse extends BaseResponse {
-    private Result result;
+    private ECacheResult result;
 
-    public ClientSetResponse(Result result) {
+    public ClientSetResponse(ECacheResult result) {
         this.result = result;
     }
 
-    public MomentoResult getResult() {
+    public MomentoCacheResult getResult() {
         return this.resultMapper(this.result);
     }
 }
