@@ -20,7 +20,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import momento.sdk.messages.ClientGetResponse;
 import momento.sdk.messages.ClientSetResponse;
-import momento.sdk.messages.MomentoResult;
+import momento.sdk.messages.MomentoCacheResult;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -97,12 +97,12 @@ class CacheTest {
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
                     2
             );
-            Assertions.assertEquals(MomentoResult.Ok, setRsp.getResult());
+            Assertions.assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
 
             // Get Key that was just set
             ClientGetResponse<ByteBuffer> rsp = cache.get(key);
 
-            Assertions.assertEquals(MomentoResult.Hit, rsp.getResult());
+            Assertions.assertEquals(MomentoCacheResult.Hit, rsp.getResult());
             Assertions.assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
 
         } catch (IOException e) {
@@ -136,12 +136,12 @@ class CacheTest {
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
                     10
             );
-            Assertions.assertEquals(MomentoResult.Ok, setRsp.toCompletableFuture().get().getResult());
+            Assertions.assertEquals(MomentoCacheResult.Ok, setRsp.toCompletableFuture().get().getResult());
 
             // Get Key Async
             ClientGetResponse<ByteBuffer> rsp = client.getAsync(key).toCompletableFuture().get();
 
-            Assertions.assertEquals(MomentoResult.Hit, rsp.getResult());
+            Assertions.assertEquals(MomentoCacheResult.Hit, rsp.getResult());
             Assertions.assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
 
         } catch (IOException | InterruptedException | ExecutionException e) {
@@ -175,14 +175,14 @@ class CacheTest {
                     ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)),
                     1
             );
-            Assertions.assertEquals(MomentoResult.Ok, setRsp.getResult());
+            Assertions.assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
 
             Thread.sleep(1500);
 
             // Get Key that was just set
             ClientGetResponse<ByteBuffer> rsp = client.get(key);
 
-            Assertions.assertEquals(MomentoResult.Miss, rsp.getResult());
+            Assertions.assertEquals(MomentoCacheResult.Miss, rsp.getResult());
 
         } catch (IOException | InterruptedException e) {
             Assertions.fail(e);
@@ -211,7 +211,7 @@ class CacheTest {
             // Get Key that was just set
             ClientGetResponse<ByteBuffer> rsp = client.get(UUID.randomUUID().toString());
 
-            Assertions.assertEquals(MomentoResult.Miss, rsp.getResult());
+            Assertions.assertEquals(MomentoCacheResult.Miss, rsp.getResult());
 
         } catch (IOException e) {
             Assertions.fail(e);

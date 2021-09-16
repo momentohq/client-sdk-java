@@ -1,19 +1,19 @@
 package momento.sdk.messages;
 
-import grpc.cache_client.Result;
+import grpc.cache_client.ECacheResult;
 
 // TODO: This should be made package default
 public class BaseResponse {
-    MomentoResult resultMapper(Result result) {
+    MomentoCacheResult resultMapper(ECacheResult result) {
         switch (result) {
-            case Ok: return MomentoResult.Ok;
-            case Hit: return MomentoResult.Hit;
-            case Miss: return MomentoResult.Miss;
-            case Unauthorized: return MomentoResult.Unauthorized;
-            case Bad_Request: return MomentoResult.Bad_Request;
-            case Service_Unavailable: return MomentoResult.Service_Unavailable;
-            case Internal_Server_Error: return MomentoResult.Internal_Server_Error;
-            default: return MomentoResult.Unknown;
+            case Ok: return MomentoCacheResult.Ok;
+            case Hit: return MomentoCacheResult.Hit;
+            case Miss: return MomentoCacheResult.Miss;
+            case Unauthorized: return MomentoCacheResult.Unauthorized;
+            case Bad_Request: return MomentoCacheResult.Bad_Request;
+            case Service_Unavailable: return MomentoCacheResult.Service_Unavailable;
+            case Internal_Server_Error: return MomentoCacheResult.Internal_Server_Error;
+            default: return MomentoCacheResult.Unknown;
         }
     }
 }
