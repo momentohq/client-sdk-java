@@ -11,13 +11,13 @@ import io.grpc.MethodDescriptor;
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
 // TODO: This should be made package default
-public class CacheIdInterceptor implements ClientInterceptor {
+public class CacheNameInterceptor implements ClientInterceptor {
 
-    private Metadata.Key<String> cacheHeaderKey = Metadata.Key.of("cacheId", ASCII_STRING_MARSHALLER);
-    private String cacheId;
+    private Metadata.Key<String> cacheNameKey = Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
+    private String cacheName;
 
-    public CacheIdInterceptor(String inputCacheId) {
-        cacheId = inputCacheId;
+    public CacheNameInterceptor(String inputCacheName) {
+        cacheName = inputCacheName;
     }
 
     @Override
@@ -27,7 +27,7 @@ public class CacheIdInterceptor implements ClientInterceptor {
                 channel.newCall(methodDescriptor, callOptions)) {
             @Override
             public void start(Listener<RespT> listener, Metadata metadata) {
-                metadata.put(cacheHeaderKey, cacheId);
+                metadata.put(cacheNameKey, cacheName);
                 super.start(listener, metadata);
             }
         };

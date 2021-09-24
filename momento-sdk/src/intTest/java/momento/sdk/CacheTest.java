@@ -42,8 +42,8 @@ class CacheTest {
         if (System.getenv("TEST_AUTH_TOKEN") == null) {
             throw new IllegalArgumentException("Integration tests require TEST_AUTH_TOKEN env var; see README for more details.");
         }
-        if (System.getenv("TEST_CACHE_ID") == null) {
-            throw new IllegalArgumentException("Integration tests require TEST_CACHE_ID env var; see README for more details.");
+        if (System.getenv("TEST_CACHE_NAME") == null) {
+            throw new IllegalArgumentException("Integration tests require TEST_CACHE_NAME env var; see README for more details.");
         }
     }
 
@@ -53,16 +53,16 @@ class CacheTest {
     }
 
     Cache getCache(Optional<OpenTelemetry> openTelemetry) {
-        return getCache(System.getenv("TEST_AUTH_TOKEN"), System.getenv("TEST_CACHE_ID"), openTelemetry);
+        return getCache(System.getenv("TEST_AUTH_TOKEN"), System.getenv("TEST_CACHE_NAME"), openTelemetry);
     }
 
-    Cache getCache(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry) {
+    Cache getCache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry) {
         String endpoint = System.getenv("TEST_ENDPOINT");
         if (endpoint == null) {
             endpoint = "alpha.cacheservice.com";
         }
 
-        return new Cache(authToken, cacheId, openTelemetry, endpoint, System.getenv("TEST_SSL_INSECURE") != null);
+        return new Cache(authToken, cacheName, openTelemetry, endpoint, System.getenv("TEST_SSL_INSECURE") != null);
     }
 
     @AfterEach
