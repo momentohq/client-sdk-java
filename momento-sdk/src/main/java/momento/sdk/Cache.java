@@ -54,18 +54,17 @@ public class Cache {
      *
      * @param authToken Token to authenticate with Cache Service
      */
-    public Cache(String authToken, String cacheId) {
-        this(authToken, cacheId, Optional.empty());
+    public Cache(String authToken, String cacheName) {
+        this(authToken, cacheName, Optional.empty());
     }
 
     /**
      * Builds an instance of {@link Cache} that will interact with a specified endpoint
-     * @param authToken
-     * @param cacheId
-     * @param endpoint
+     * @param authToken Token to authenticate with SCS
+     * @param endpoint  SCS endpoint to make api calls to
      */
-    public Cache(String authToken, String cacheId, String endpoint) {
-        this(authToken, cacheId, Optional.empty(), endpoint);
+    public Cache(String authToken, String cacheName, String endpoint) {
+        this(authToken, cacheName, Optional.empty(), endpoint);
     }
 
     /**
@@ -73,8 +72,8 @@ public class Cache {
      * @param authToken Token to authenticate with SCS
      * @param openTelemetry Open telemetry instance to hook into client traces
      */
-    public Cache(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry) {
-        this(authToken, cacheId, openTelemetry, "alpha.cacheservice.com");
+    public Cache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry) {
+        this(authToken, cacheName, openTelemetry, "alpha.cacheservice.com");
     }
 
     /**
@@ -84,8 +83,8 @@ public class Cache {
      * @param openTelemetry Open telemetry instance to hook into client traces
      * @param endpoint  SCS endpoint to make api calls to
      */
-    public Cache(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry, String endpoint) {
-        this(authToken, cacheId, openTelemetry, endpoint, false);
+    public Cache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry, String endpoint) {
+        this(authToken, cacheName, openTelemetry, endpoint, false);
     }
 
     /**
@@ -96,7 +95,7 @@ public class Cache {
      * @param endpoint  SCS endpoint to make api calls to
      * @param insecureSsl for overriding host validation
      */
-    public Cache(String authToken, String cacheId, Optional<OpenTelemetry> openTelemetry, String endpoint, boolean insecureSsl) {
+    public Cache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry, String endpoint, boolean insecureSsl) {
         NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(
                 endpoint,
                 443
@@ -116,7 +115,7 @@ public class Cache {
         channelBuilder.disableRetry();
         List<ClientInterceptor> clientInterceptors = new ArrayList<>();
         clientInterceptors.add(new AuthInterceptor(authToken));
-        clientInterceptors.add(new CacheIdInterceptor(cacheId));
+        clientInterceptors.add(new CacheNameInterceptor(cacheName));
         openTelemetry.ifPresent(theOpenTelemetry -> clientInterceptors.add(new OpenTelemetryClientInterceptor(theOpenTelemetry)));
         channelBuilder.intercept(clientInterceptors);
         ManagedChannel channel = channelBuilder.build();

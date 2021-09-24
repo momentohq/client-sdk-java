@@ -19,8 +19,8 @@ Java sdk customers can use to interact with our ecosystem
         * Must have AWS Access Key ID and AWS Secret Key belonging to the Cell under test
       * Run the following command and it will generate and print an `<auth token>`
         * `AWS_ACCESS_KEY_ID=<ACCESS_KEY> AWS_SECRET_ACCESS_KEY=<SECRET_KEY> mm keys generate-api-key <test_key_name> --cell <cell_name>`
-    * `TEST_AUTH_TOKEN=<auth token> TEST_CACHE_ID=<cache id> TEST_ENDPOINT=<endpoint> ./gradlew integrationTest`
-      * `TEST_CACHE_ID` is required. Give it any string value for now. TODO - Add a way of getting this per environment
+    * `TEST_AUTH_TOKEN=<auth token> TEST_CACHE_NAME=<cache id> TEST_ENDPOINT=<endpoint> ./gradlew integrationTest`
+      * `TEST_CACHE_NAME` is required. Give it any string value for now. TODO - Add a way of getting this per environment
       * `TEST_ENDPOINT` is optional and defaults to alpha. TEST_ENDPOINT must belong to the cell where the auth token was generated.
    
 ## How to import into your project
