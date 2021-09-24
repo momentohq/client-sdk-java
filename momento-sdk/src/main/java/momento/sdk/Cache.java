@@ -178,7 +178,7 @@ public class Cache {
                 theSpan.recordException(e);
                 theSpan.setStatus(StatusCode.ERROR);
             });
-            // TODO - Yup I know this is ugly, but we have work to do to handle excpetions properly.
+            // TODO - Yup I know this is ugly, but we have work to do to handle exceptions properly.
             throw e;
         } finally {
             span.ifPresent(theSpan -> theSpan.end(now()));
