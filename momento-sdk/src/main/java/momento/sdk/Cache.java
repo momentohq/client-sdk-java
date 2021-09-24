@@ -41,7 +41,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
 
-import static java.time.Instant.*;
+import static java.time.Instant.now;
 
 /**
  * Client to perform operations on cache.
