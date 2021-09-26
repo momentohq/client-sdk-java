@@ -3,7 +3,7 @@ package momento.sdk.messages;
 import grpc.cache_client.ECacheResult;
 
 public class ClientSetResponse extends BaseResponse {
-    private ECacheResult result;
+    private final ECacheResult result;
 
     public ClientSetResponse(ECacheResult result) {
         this.result = result;

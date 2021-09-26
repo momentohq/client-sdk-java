@@ -13,8 +13,9 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 // TODO: Make package default
 public class AuthInterceptor implements ClientInterceptor {
 
-    private Metadata.Key<String> authHeaderKey = Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
-    private String tokenValue;
+    private static final Metadata.Key<String> AUTH_HEADER_KEY = Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
+
+    private final String tokenValue;
 
     public AuthInterceptor(String token) {
         tokenValue = token;
@@ -27,7 +28,7 @@ public class AuthInterceptor implements ClientInterceptor {
                 channel.newCall(methodDescriptor, callOptions)) {
             @Override
             public void start(Listener<RespT> listener, Metadata metadata) {
-                metadata.put(authHeaderKey, tokenValue);
+                metadata.put(AUTH_HEADER_KEY, tokenValue);
                 super.start(listener, metadata);
             }
         };
