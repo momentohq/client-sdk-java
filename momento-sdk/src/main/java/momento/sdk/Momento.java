@@ -20,7 +20,7 @@ public class Momento implements Closeable {
     private final ManagedChannel channel;
 
     public static void init(String authToken) {
-        if (authToken == null){
+        if (authToken == null) {
             throw new IllegalArgumentException("cannot pass a null authToken");
         }
         momentoInstance = new momento.sdk.Momento(authToken);
@@ -29,7 +29,9 @@ public class Momento implements Closeable {
     private Momento(String authToken) {
         this.authToken = authToken;
         // FIXME get endpoint from JWT claim
-        NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress("FIXME", 443);
+        NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(
+                "control.cell-alpha-dev.preprod.a.momentohq.com", 443
+        );
         channelBuilder.useTransportSecurity();
         channelBuilder.disableRetry();
         List<ClientInterceptor> clientInterceptors = new ArrayList<>();
@@ -61,20 +63,20 @@ public class Momento implements Closeable {
                 .build();
     }
 
-    private static void checkInitialized(){
-        if (momentoInstance == null){
+    private static void checkInitialized() {
+        if (momentoInstance == null) {
             throw new RuntimeException("must initialize momento sdk with auth token");
         }
     }
 
-    private static void checkCacheNameValid(String cacheName){
-        if (cacheName == null){
+    private static void checkCacheNameValid(String cacheName) {
+        if (cacheName == null) {
             throw new IllegalArgumentException("null cacheName passed");
         }
     }
 
     public void close() {
-       this.channel.shutdown();
+        this.channel.shutdown();
     }
 
 }
