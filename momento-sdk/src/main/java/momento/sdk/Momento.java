@@ -13,7 +13,7 @@ import java.util.List;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.SdkException;
 
-public class Momento implements Closeable {
+public final class Momento implements Closeable {
 
   private final String authToken;
   private final ScsControlBlockingStub blockingStub;

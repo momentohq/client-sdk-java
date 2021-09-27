@@ -42,7 +42,7 @@ import momento.sdk.messages.ClientSetResponse;
 // TODO: https://github.com/momentohq/client-sdk-java/issues/24 - constructors should be visible
 // only in the package.
 // TODO: Also clean up the method and class comments
-public class Cache implements Closeable {
+public final class Cache implements Closeable {
   private final ScsGrpc.ScsBlockingStub blockingStub;
   private final ScsGrpc.ScsFutureStub futureStub;
   private final ManagedChannel channel;
