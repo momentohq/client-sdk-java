@@ -1,5 +1,7 @@
 package momento.sdk;
 
+import static java.time.Instant.now;
+
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -20,12 +22,12 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
 import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.ImplicitContextKeyed;
 import io.opentelemetry.context.Scope;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -122,41 +124,26 @@ public class Cache {
     this.blockingStub = ScsGrpc.newBlockingStub(channel);
     this.futureStub = ScsGrpc.newFutureStub(channel);
     this.channel = channel;
-    this.tracer =
-        openTelemetry
-            .map(
-                theOpenTelemetry ->
-                    Optional.of(theOpenTelemetry.getTracer("momento-java-scs-client", "1.0.0")))
-            .orElse(Optional.empty());
+    this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
   }
 
   /**
    * Returns a requested object from cache specified by passed key. This method is a blocking api
-   * call. Please use getAsync if you need a {@link java.util.concurrent.CompletionStage<
-   * ClientGetResponse >} returned instead.
+   * call. Please use getAsync if you need a {@link
+   * java.util.concurrent.CompletionStage<ClientGetResponse>} returned instead.
    *
    * @param key the key of item to fetch from cache
    * @return {@link ClientGetResponse} with the response object as a {@link java.nio.ByteBuffer}
    * @throws IOException if an error occurs opening input stream for response body.
    */
   public ClientGetResponse<ByteBuffer> get(String key) throws IOException {
-    String spanName = "java-sdk-get-request";
-    // TODO - We should change this logic so that the span becomes a sub span of a parent span.
-    Optional<Span> span =
-        tracer
-            .map(
-                theTracer ->
-                    Optional.of(
-                        theTracer
-                            .spanBuilder(spanName)
-                            .setSpanKind(SpanKind.CLIENT)
-                            .setStartTimestamp(Instant.now())
-                            .startSpan()))
-            .orElse(Optional.empty());
-    try (Scope scope = (span.isPresent() ? span.get().makeCurrent() : null)) {
+    Optional<Span> span = buildSpan("java-sdk-get-request");
+    try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       GetResponse rsp = blockingStub.get(buildGetRequest(key));
+
       ByteBuffer body = rsp.getCacheBody().asReadOnlyByteBuffer();
-      ClientGetResponse clientGetResponse = new ClientGetResponse<>(rsp.getResult(), body);
+      ClientGetResponse<java.nio.ByteBuffer> clientGetResponse =
+          new ClientGetResponse<>(rsp.getResult(), body);
       span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
       return clientGetResponse;
     } catch (Exception e) {
@@ -168,14 +155,14 @@ public class Cache {
       // TODO - Yup I know this is ugly but we have work to do to handle excpetions properly.
       throw e;
     } finally {
-      span.ifPresent(theSpan -> theSpan.end(Instant.now()));
+      span.ifPresent(theSpan -> theSpan.end(now()));
     }
   }
 
   /**
    * Sets an object in cache by the passed key. This method is a blocking api call. Please use
-   * setAsync if you need a {@link java.util.concurrent.CompletionStage< ClientSetResponse >}
-   * returned instead.
+   * setAsync if you need a {@link java.util.concurrent.CompletionStage<ClientSetResponse>} returned
+   * instead.
    *
    * @param key the key of item to fetch from cache
    * @param value {@link ByteBuffer} of the value to set in cache
@@ -184,21 +171,10 @@ public class Cache {
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
   public ClientSetResponse set(String key, ByteBuffer value, int ttlSeconds) throws IOException {
-    String spanName = "java-sdk-set-request";
-    // TODO - We should change this logic so that the span becomes a sub span of a parent span.
-    Optional<Span> span =
-        tracer
-            .map(
-                theTracer ->
-                    Optional.of(
-                        theTracer
-                            .spanBuilder(spanName)
-                            .setSpanKind(SpanKind.CLIENT)
-                            .setStartTimestamp(Instant.now())
-                            .startSpan()))
-            .orElse(Optional.empty());
-    try (Scope scope = (span.isPresent() ? span.get().makeCurrent() : null)) {
+    Optional<Span> span = buildSpan("java-sdk-set-request");
+    try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
+
       ClientSetResponse response = new ClientSetResponse(rsp.getResult());
       span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
       return response;
@@ -208,10 +184,10 @@ public class Cache {
             theSpan.recordException(e);
             theSpan.setStatus(StatusCode.ERROR);
           });
-      // TODO - Yup I know this is ugly but we have work to do to handle exceptions.
+      // TODO - Yup I know this is ugly, but we have work to do to handle exceptions.
       throw e;
     } finally {
-      span.ifPresent(theSpan -> theSpan.end(Instant.now()));
+      span.ifPresent(theSpan -> theSpan.end(now()));
     }
   }
 
@@ -225,22 +201,9 @@ public class Cache {
    *     java.io.InputStream}.
    */
   public CompletionStage<ClientGetResponse<ByteBuffer>> getAsync(String key) {
-    String spanName = "java-sdk-get-request";
-    // TODO - We should change this logic so that the span becomes a sub span of a parent span.
-    Optional<Span> span =
-        tracer
-            .map(
-                theTracer ->
-                    Optional.of(
-                        theTracer
-                            .spanBuilder(spanName)
-                            .setSpanKind(SpanKind.CLIENT)
-                            .setStartTimestamp(Instant.now())
-                            .startSpan()))
-            .orElse(Optional.empty());
-    Optional<Scope> scope =
-        (span.isPresent() ? Optional.of(span.get().makeCurrent()) : Optional.empty());
-    // Submit request to non blocking stub
+    Optional<Span> span = buildSpan("java-sdk-get-request");
+    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+    // Submit request to non-blocking stub
     ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
 
     // Build a CompletableFuture to return to caller
@@ -266,9 +229,9 @@ public class Cache {
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(Instant.now());
+                  theSpan.end(now());
                 });
-            scope.ifPresent(theScope -> theScope.close());
+            scope.ifPresent(Scope::close);
           }
 
           @Override
@@ -278,9 +241,9 @@ public class Cache {
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
                   theSpan.recordException(e);
-                  theSpan.end(Instant.now());
+                  theSpan.end(now());
                 });
-            scope.ifPresent(theScope -> theScope.close());
+            scope.ifPresent(Scope::close);
           }
         },
         MoreExecutors
@@ -291,7 +254,7 @@ public class Cache {
   }
 
   /**
-   * Returns CompletableStage of setting an item in SCS by passed key. Allows user of this clients
+   * Returns CompletableStage of setting an item in SCS by passed key. Allows user of these clients
    * to better control concurrency of outbound cache set requests.
    *
    * @param key the key of item to fetch from cache.
@@ -303,22 +266,11 @@ public class Cache {
    */
   public CompletionStage<ClientSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds)
       throws IOException {
-    String spanName = "java-sdk-set-request";
-    // TODO - We should change this logic so that the span becomes a sub span of a parent span.
-    Optional<Span> span =
-        tracer
-            .map(
-                theTracer ->
-                    Optional.of(
-                        theTracer
-                            .spanBuilder(spanName)
-                            .setSpanKind(SpanKind.CLIENT)
-                            .setStartTimestamp(Instant.now())
-                            .startSpan()))
-            .orElse(Optional.empty());
-    Optional<Scope> scope =
-        (span.isPresent() ? Optional.of(span.get().makeCurrent()) : Optional.empty());
-    // Submit request to non blocking stub
+
+    Optional<Span> span = buildSpan("java-sdk-set-request");
+    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
     ListenableFuture<SetResponse> rspFuture =
         futureStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
 
@@ -344,9 +296,9 @@ public class Cache {
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(Instant.now());
+                  theSpan.end(now());
                 });
-            scope.ifPresent(theScope -> theScope.close());
+            scope.ifPresent(Scope::close);
           }
 
           @Override
@@ -356,9 +308,9 @@ public class Cache {
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
                   theSpan.recordException(e);
-                  theSpan.end(Instant.now());
+                  theSpan.end(now());
                 });
-            scope.ifPresent(theScope -> theScope.close());
+            scope.ifPresent(Scope::close);
           }
         },
         MoreExecutors
@@ -384,5 +336,16 @@ public class Cache {
         .setCacheBody(ByteString.readFrom(new ByteArrayInputStream(value.array())))
         .setTtlMilliseconds(ttl)
         .build();
+  }
+
+  private Optional<Span> buildSpan(String spanName) {
+    // TODO - We should change this logic so can pass in parent span so returned span becomes a sub
+    // span of a parent span.
+    return tracer.map(
+        t ->
+            t.spanBuilder(spanName)
+                .setSpanKind(SpanKind.CLIENT)
+                .setStartTimestamp(now())
+                .startSpan());
   }
 }
