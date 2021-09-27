@@ -11,8 +11,6 @@ import grpc.cache_client.ScsGrpc;
 import grpc.cache_client.SetRequest;
 import grpc.cache_client.SetResponse;
 import grpc.control_client.CreateCacheRequest;
-import grpc.control_client.ScsControlGrpc;
-import grpc.control_client.ScsControlGrpc.ScsControlBlockingStub;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.GrpcSslContexts;
@@ -49,11 +47,9 @@ import static java.time.Instant.now;
 // TODO: https://github.com/momentohq/client-sdk-java/issues/24 - constructors should be visible only in the package.
 // TODO: Also clean up the method and class comments
 public class Cache {
-    private final ScsGrpc.ScsBlockingStub blockingDataStub;
-    private final ScsGrpc.ScsFutureStub futureDataStub;
-    private final ScsControlBlockingStub blockingControlStub;
-    private final ManagedChannel dataChannel;
-    private final ManagedChannel controlChannel;
+    private final ScsGrpc.ScsBlockingStub blockingStub;
+    private final ScsGrpc.ScsFutureStub futureStub;
+    private final ManagedChannel channel;
     private final Optional<Tracer> tracer;
 
     /**
@@ -103,22 +99,15 @@ public class Cache {
      * @param insecureSsl for overriding host validation
      */
     public Cache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry, String endpoint, boolean insecureSsl) {
-        NettyChannelBuilder dataChannelBuilder = NettyChannelBuilder.forAddress(
+        NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(
                 "data." + endpoint,
                 443
         );
-        NettyChannelBuilder controlChannelBuilder = NettyChannelBuilder.forAddress(
-                "control" + endpoint,
-                443
-        );
+
 
         if (insecureSsl) {
             try {
-                dataChannelBuilder.sslContext(GrpcSslContexts.forClient()
-                        .trustManager(InsecureTrustManagerFactory.INSTANCE)
-                        .build()
-                );
-                controlChannelBuilder.sslContext(GrpcSslContexts.forClient()
+                channelBuilder.sslContext(GrpcSslContexts.forClient()
                         .trustManager(InsecureTrustManagerFactory.INSTANCE)
                         .build()
                 );
@@ -126,30 +115,20 @@ public class Cache {
                 throw new RuntimeException("Unable to use insecure trust manager", e);
             }
         }
-        dataChannelBuilder.useTransportSecurity();
-        dataChannelBuilder.disableRetry(); // Customers responsible for retrys on client for data apis
-
-        controlChannelBuilder.useTransportSecurity();
+        channelBuilder.useTransportSecurity();
+        channelBuilder.disableRetry(); // Customers responsible for retrys on client for data apis
 
         AuthInterceptor authInterceptor = new AuthInterceptor(authToken);
 
-        List<ClientInterceptor> dataApiClientInterceptors = new ArrayList<>();
-        dataApiClientInterceptors.add(authInterceptor);
-        dataApiClientInterceptors.add(new CacheNameInterceptor(cacheName));
-        openTelemetry.ifPresent(ot -> dataApiClientInterceptors.add(new OpenTelemetryClientInterceptor(ot)));
-        dataChannelBuilder.intercept(dataApiClientInterceptors);
-        ManagedChannel dataChannel = dataChannelBuilder.build();
-        this.blockingDataStub = ScsGrpc.newBlockingStub(dataChannel);
-        this.futureDataStub = ScsGrpc.newFutureStub(dataChannel);
-        this.dataChannel = dataChannel;
-
-        List<ClientInterceptor> controlApiClientInterceptors = new ArrayList<>();
-        controlApiClientInterceptors.add(authInterceptor);
-        openTelemetry.ifPresent(ot -> controlApiClientInterceptors.add(new OpenTelemetryClientInterceptor(ot)));
-        controlChannelBuilder.intercept(controlApiClientInterceptors);
-        ManagedChannel controlChannel = controlChannelBuilder.build();
-        this.blockingControlStub = ScsControlGrpc.newBlockingStub(controlChannel);
-        this.controlChannel = controlChannel;
+        List<ClientInterceptor> clientInterceptors = new ArrayList<>();
+        clientInterceptors.add(authInterceptor);
+        clientInterceptors.add(new CacheNameInterceptor(cacheName));
+        openTelemetry.ifPresent(ot -> clientInterceptors.add(new OpenTelemetryClientInterceptor(ot)));
+        channelBuilder.intercept(clientInterceptors);
+        ManagedChannel dataChannel = channelBuilder.build();
+        this.blockingStub = ScsGrpc.newBlockingStub(dataChannel);
+        this.futureStub = ScsGrpc.newFutureStub(dataChannel);
+        this.channel = dataChannel;
 
         this.tracer = openTelemetry.map(ot -> ot.getTracer(
                 "momento-java-scs-client",
@@ -168,7 +147,7 @@ public class Cache {
     public ClientGetResponse<ByteBuffer> get(String key) throws IOException {
         Optional<Span> span = buildSpan("java-sdk-get-request");
         try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))){
-            GetResponse rsp = blockingDataStub.get(buildGetRequest(key));
+            GetResponse rsp = blockingStub.get(buildGetRequest(key));
             ByteBuffer body = rsp.getCacheBody().asReadOnlyByteBuffer();
             ClientGetResponse<ByteBuffer> clientGetResponse = new ClientGetResponse<>(rsp.getResult(), body);
             span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
@@ -187,15 +166,6 @@ public class Cache {
     }
 
     /**
-     * Creates a new isolated cache to use.
-     * @param cacheName the name of the new cache to make
-     */
-    public void createCache(String cacheName) {
-        // noinspection ResultOfMethodCallIgnored
-        blockingControlStub.createCache(buildCreateCacheRequest(cacheName));
-    }
-
-    /**
      * Sets an object in cache by the passed key. This method is a blocking api call. Please use
      * setAsync if you need a {@link java.util.concurrent.CompletionStage<ClientSetResponse>} returned instead.
      *
@@ -208,7 +178,7 @@ public class Cache {
     public ClientSetResponse set(String key, ByteBuffer value, int ttlSeconds) throws IOException {
         Optional<Span> span = buildSpan("java-sdk-set-request");
         try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
-            SetResponse rsp = blockingDataStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
+            SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
             ClientSetResponse response = new ClientSetResponse(rsp.getResult());
             span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
             return response;
@@ -237,7 +207,7 @@ public class Cache {
         Optional<Span> span = buildSpan("java-sdk-get-request");
         Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
         // Submit request to non-blocking stub
-        ListenableFuture<GetResponse> rspFuture = futureDataStub.get(buildGetRequest(key));
+        ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
 
         // Build a CompletableFuture to return to caller
         CompletableFuture<ClientGetResponse<ByteBuffer>> returnFuture = new CompletableFuture<ClientGetResponse<ByteBuffer>>() {
@@ -294,7 +264,7 @@ public class Cache {
         Optional<Span> span = buildSpan("java-sdk-set-request");
         Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
         // Submit request to non-blocking stub
-        ListenableFuture<SetResponse> rspFuture = futureDataStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
+        ListenableFuture<SetResponse> rspFuture = futureStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
 
         // Build a CompletableFuture to return to caller
         CompletableFuture<ClientSetResponse> returnFuture = new CompletableFuture<ClientSetResponse>() {
@@ -336,8 +306,7 @@ public class Cache {
     }
 
     public void close() throws InterruptedException {
-        this.dataChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-        this.controlChannel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+        this.channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
     }
 
     private GetRequest buildGetRequest(String key) {
