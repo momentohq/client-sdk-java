@@ -25,6 +25,7 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.ImplicitContextKeyed;
 import io.opentelemetry.context.Scope;
 import java.io.ByteArrayInputStream;
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -42,7 +43,7 @@ import momento.sdk.messages.ClientSetResponse;
 // TODO: https://github.com/momentohq/client-sdk-java/issues/24 - constructors should be visible
 // only in the package.
 // TODO: Also clean up the method and class comments
-public class Cache {
+public class Cache implements Closeable {
   private final ScsGrpc.ScsBlockingStub blockingStub;
   private final ScsGrpc.ScsFutureStub futureStub;
   private final ManagedChannel channel;
@@ -320,8 +321,8 @@ public class Cache {
     return returnFuture;
   }
 
-  public void close() throws InterruptedException {
-    this.channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+  public void close() {
+      this.channel.shutdown();
   }
 
   private GetRequest buildGetRequest(String key) {

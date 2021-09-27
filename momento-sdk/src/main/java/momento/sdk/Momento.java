@@ -8,10 +8,11 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Momento {
+public class Momento implements Closeable {
 
     private static Momento momentoInstance = null;
     private final String authToken;
@@ -72,8 +73,8 @@ public class Momento {
         }
     }
 
-    public void close() throws InterruptedException {
-        this.channel.shutdown().awaitTermination(5, java.util.concurrent.TimeUnit.SECONDS);
+    public void close() {
+       this.channel.shutdown();
     }
 
 }
