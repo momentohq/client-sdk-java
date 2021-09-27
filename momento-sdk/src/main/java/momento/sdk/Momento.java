@@ -7,76 +7,68 @@ import grpc.control_client.ScsControlGrpc.ScsControlBlockingStub;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
-
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
+import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.SdkException;
 
 public class Momento implements Closeable {
 
-    private static Momento momentoInstance = null;
-    private final String authToken;
-    private final ScsControlBlockingStub blockingStub;
-    private final ManagedChannel channel;
+  private final String authToken;
+  private final ScsControlBlockingStub blockingStub;
+  private final ManagedChannel channel;
 
-    public static void init(String authToken) {
-        if (authToken == null) {
-            throw new IllegalArgumentException("cannot pass a null authToken");
-        }
-        momentoInstance = new momento.sdk.Momento(authToken);
+  public static Momento init(String authToken) {
+    if (authToken == null) {
+      throw new ClientSdkException(new IllegalArgumentException("cannot pass a null authToken"));
     }
+    return new Momento(authToken);
+  }
 
-    private Momento(String authToken) {
-        this.authToken = authToken;
-        // FIXME get endpoint from JWT claim
-        NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(
-                "control.cell-alpha-dev.preprod.a.momentohq.com", 443
-        );
-        channelBuilder.useTransportSecurity();
-        channelBuilder.disableRetry();
-        List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-        clientInterceptors.add(new AuthInterceptor(authToken));
-        channelBuilder.intercept(clientInterceptors);
-        ManagedChannel channel = channelBuilder.build();
-        this.blockingStub = ScsControlGrpc.newBlockingStub(channel);
-        this.channel = channel;
+  private Momento(String authToken) {
+    this.authToken = authToken;
+    // FIXME get endpoint from JWT claim
+    NettyChannelBuilder channelBuilder =
+        NettyChannelBuilder.forAddress("control.cell-alpha-dev.preprod.a.momentohq.com", 443);
+    channelBuilder.useTransportSecurity();
+    channelBuilder.disableRetry();
+    List<ClientInterceptor> clientInterceptors = new ArrayList<>();
+    clientInterceptors.add(new AuthInterceptor(authToken));
+    channelBuilder.intercept(clientInterceptors);
+    ManagedChannel channel = channelBuilder.build();
+    this.blockingStub = ScsControlGrpc.newBlockingStub(channel);
+    this.channel = channel;
+  }
+
+  public Cache createCache(String cacheName) {
+    checkCacheNameValid(cacheName);
+    try {
+      CreateCacheResponse ignored =
+          this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
+      return new Cache(this.authToken, cacheName);
+    } catch (io.grpc.StatusRuntimeException e) {
+      // FIXME in future return more granular exceptions based of status code and or perform client
+      // retries
+      throw new SdkException(e);
     }
+  }
 
+  public Cache getCache(String cacheName) {
+    checkCacheNameValid(cacheName);
+    return new Cache(this.authToken, cacheName);
+  }
 
-    public static Cache createCache(String cacheName) {
-        checkInitialized();
-        checkCacheNameValid(cacheName);
-        CreateCacheResponse ignored = momentoInstance.blockingStub.createCache(buildCreateCacheRequest(cacheName));
-        return new Cache(momentoInstance.authToken, cacheName);
-    }
+  private CreateCacheRequest buildCreateCacheRequest(String cacheName) {
+    return CreateCacheRequest.newBuilder().setCacheName(cacheName).build();
+  }
 
-    public Cache getCache(String cacheName) {
-        checkInitialized();
-        checkCacheNameValid(cacheName);
-        return new Cache(momentoInstance.authToken, cacheName);
-    }
+  private static void checkCacheNameValid(String cacheName) {
+    if (cacheName == null)
+      throw new ClientSdkException(new IllegalArgumentException("null cacheName passed"));
+  }
 
-    private static CreateCacheRequest buildCreateCacheRequest(String cacheName) {
-        return CreateCacheRequest
-                .newBuilder()
-                .setCacheName(cacheName)
-                .build();
-    }
-
-    private static void checkInitialized() {
-        if (momentoInstance == null) {
-            throw new RuntimeException("must initialize momento sdk with auth token");
-        }
-    }
-
-    private static void checkCacheNameValid(String cacheName) {
-        if (cacheName == null) {
-            throw new IllegalArgumentException("null cacheName passed");
-        }
-    }
-
-    public void close() {
-        this.channel.shutdown();
-    }
-
+  public void close() {
+    this.channel.shutdown();
+  }
 }

@@ -3,20 +3,17 @@
  */
 package momento.sdk;
 
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import momento.sdk.messages.ClientGetResponse;
 import momento.sdk.messages.ClientSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
 import org.junit.jupiter.api.Assertions;
 
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
-
-import static java.util.Optional.empty;
-
 class MomentoTest {
-//  Cache cache;
+  //  Cache cache;
 
-//  @org.junit.jupiter.api.BeforeAll
+  //  @org.junit.jupiter.api.BeforeAll
   static void beforeAll() {
     if (System.getenv("TEST_AUTH_TOKEN") == null) {
       throw new IllegalArgumentException(
@@ -28,12 +25,11 @@ class MomentoTest {
     }
   }
 
-
   @org.junit.jupiter.api.Test
   void testHappyPath() {
     try {
-      Momento.init(System.getenv("TEST_AUTH_TOKEN"));
-      Cache cache = Momento.createCache(System.getenv("TEST_CACHE_NAME"));
+      Momento m = Momento.init(System.getenv("TEST_AUTH_TOKEN"));
+      Cache cache = m.createCache(System.getenv("TEST_CACHE_NAME"));
 
       String key = java.util.UUID.randomUUID().toString();
 
@@ -52,5 +48,4 @@ class MomentoTest {
       Assertions.fail(e);
     }
   }
-
 }

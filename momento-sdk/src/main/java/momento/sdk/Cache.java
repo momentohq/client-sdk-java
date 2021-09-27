@@ -34,7 +34,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.TimeUnit;
 import javax.net.ssl.SSLException;
 import momento.sdk.messages.ClientGetResponse;
 import momento.sdk.messages.ClientSetResponse;
@@ -322,7 +321,7 @@ public class Cache implements Closeable {
   }
 
   public void close() {
-      this.channel.shutdown();
+    this.channel.shutdown();
   }
 
   private GetRequest buildGetRequest(String key) {
