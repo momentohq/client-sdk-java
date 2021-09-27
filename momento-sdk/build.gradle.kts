@@ -2,6 +2,7 @@ plugins {
     id("momento.artifactory-java-lib")
     id("momento.junit-tests")
     id("momento.integration-tests")
+    id("com.diffplug.spotless") version "5.15.1"
 }
 
 val opentelemetryVersion = rootProject.ext["opentelemetryVersion"]
@@ -17,4 +18,11 @@ dependencies {
 
     // Internal Deps -------------------
     implementation(project(":messages"))
+}
+
+spotless {
+    java {
+        removeUnusedImports()
+        googleJavaFormat("1.11.0")
+    }
 }
