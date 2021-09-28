@@ -6,7 +6,6 @@ import grpc.control_client.ScsControlGrpc.ScsControlBlockingStub;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -60,15 +59,14 @@ public final class Momento implements Closeable {
     try {
       this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
       return new Cache(this.authToken, cacheName);
-    } catch (Exception e) {
-      if (e instanceof io.grpc.StatusRuntimeException) {
-        if (((StatusRuntimeException) e).getStatus() == Status.ALREADY_EXISTS) {
-          throw new CacheAlreadyExistsException(
-              String.format("Cache with name %s already exists", cacheName));
-        }
+    } catch (io.grpc.StatusRuntimeException e) {
+      if (e.getStatus() == Status.ALREADY_EXISTS) {
+        throw new CacheAlreadyExistsException(
+            String.format("Cache with name %s already exists", cacheName));
       }
-      CacheServiceExceptionMapper.convertAndThrow(e);
-      return null;
+      throw CacheServiceExceptionMapper.convert(e);
+    } catch (Exception e) {
+      throw CacheServiceExceptionMapper.convert(e);
     }
   }
 

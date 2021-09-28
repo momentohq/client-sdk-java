@@ -13,7 +13,7 @@ public final class CacheServiceExceptionMapper {
    *
    * @param e
    */
-  public static void convertAndThrow(Exception e) {
+  public static SdkException convert(Exception e) {
     if (e instanceof SdkException) {
       throw (SdkException) e;
     }
@@ -22,14 +22,14 @@ public final class CacheServiceExceptionMapper {
       StatusRuntimeException grpcException = (StatusRuntimeException) e;
       switch (grpcException.getStatus().getCode()) {
         case PERMISSION_DENIED:
-          throw new PermissionDeniedException(grpcException.getMessage());
+          return new PermissionDeniedException(grpcException.getMessage());
 
         default:
-          throw new InternalServerException(
+          return new InternalServerException(
               "Unexpected exception occurred while trying to fulfill the request.");
       }
     }
 
-    throw new ClientSdkException("SDK Failed to process the request", e);
+    return new ClientSdkException("SDK Failed to process the request", e);
   }
 }
