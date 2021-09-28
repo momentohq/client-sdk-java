@@ -29,8 +29,13 @@ class MomentoTest {
   void testHappyPath() {
     try {
       Momento m = Momento.init(System.getenv("TEST_AUTH_TOKEN"));
-      Cache cache = m.createCache(System.getenv("TEST_CACHE_NAME"));
+      final String testCacheName = System.getenv("TEST_CACHE_NAME");
 
+      // Expect cache already exists error for now since we don't have cache-delete yet
+      Assertions.assertThrows(
+          momento.sdk.exceptions.SdkException.class, () -> m.createCache(testCacheName));
+
+      Cache cache = m.getCache(testCacheName);
       String key = java.util.UUID.randomUUID().toString();
 
       // Set Key sync

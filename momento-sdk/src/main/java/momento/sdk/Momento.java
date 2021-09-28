@@ -1,5 +1,7 @@
 package momento.sdk;
 
+import static java.util.Optional.*;
+
 import grpc.control_client.CreateCacheRequest;
 import grpc.control_client.CreateCacheResponse;
 import grpc.control_client.ScsControlGrpc;
@@ -46,7 +48,7 @@ public final class Momento implements Closeable {
     try {
       CreateCacheResponse ignored =
           this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
-      return new Cache(this.authToken, cacheName);
+      return buildCache(cacheName);
     } catch (io.grpc.StatusRuntimeException e) {
       // FIXME in future return more granular exceptions based of status code and or perform client
       // retries
@@ -56,7 +58,7 @@ public final class Momento implements Closeable {
 
   public Cache getCache(String cacheName) {
     checkCacheNameValid(cacheName);
-    return new Cache(this.authToken, cacheName);
+    return buildCache(cacheName);
   }
 
   private CreateCacheRequest buildCreateCacheRequest(String cacheName) {
@@ -66,6 +68,15 @@ public final class Momento implements Closeable {
   private static void checkCacheNameValid(String cacheName) {
     if (cacheName == null)
       throw new ClientSdkException(new IllegalArgumentException("null cacheName passed"));
+  }
+
+  private Cache buildCache(String cacheName) {
+    return new Cache(
+        this.authToken,
+        cacheName,
+        empty(),
+        "cache.cell-alpha-dev.preprod.a.momentohq.com" // FIXME make this prop off jwt
+        );
   }
 
   public void close() {
