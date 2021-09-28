@@ -6,10 +6,14 @@ import grpc.control_client.ScsControlGrpc;
 import grpc.control_client.ScsControlGrpc.ScsControlBlockingStub;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
+import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.SdkException;
 
@@ -21,7 +25,7 @@ public final class Momento implements Closeable {
 
   public static Momento init(String authToken) {
     if (authToken == null) {
-      throw new ClientSdkException(new IllegalArgumentException("cannot pass a null authToken"));
+      throw new ClientSdkException("Auth Token is required to make a request.");
     }
     return new Momento(authToken);
   }
@@ -44,13 +48,17 @@ public final class Momento implements Closeable {
   public Cache createCache(String cacheName) {
     checkCacheNameValid(cacheName);
     try {
-      CreateCacheResponse ignored =
           this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
       return new Cache(this.authToken, cacheName);
-    } catch (io.grpc.StatusRuntimeException e) {
-      // FIXME in future return more granular exceptions based of status code and or perform client
-      // retries
-      throw new SdkException(e);
+    } catch (Exception e) {
+      if (e instanceof io.grpc.StatusRuntimeException) {
+        if (((StatusRuntimeException)e).getStatus() == Status.ALREADY_EXISTS) {
+          throw new CacheAlreadyExistsException(
+                  String.format("Cache with name %s already exists", cacheName));
+        }
+      }
+      CacheServiceExceptionMapper.convertAndThrow(e);
+      return null;
     }
   }
 
@@ -64,8 +72,7 @@ public final class Momento implements Closeable {
   }
 
   private static void checkCacheNameValid(String cacheName) {
-    if (cacheName == null)
-      throw new ClientSdkException(new IllegalArgumentException("null cacheName passed"));
+    if (cacheName == null) throw new ClientSdkException("Cache Name is required.");
   }
 
   public void close() {

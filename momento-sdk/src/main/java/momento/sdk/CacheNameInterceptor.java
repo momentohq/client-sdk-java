@@ -10,11 +10,11 @@ import io.grpc.ForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 
-// TODO: This should be made package default
-public class CacheNameInterceptor implements ClientInterceptor {
+class CacheNameInterceptor implements ClientInterceptor {
 
-  private Metadata.Key<String> cacheNameKey = Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
-  private String cacheName;
+  private static final Metadata.Key<String> CACHE_NAME_KEY =
+      Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
+  private final String cacheName;
 
   public CacheNameInterceptor(String inputCacheName) {
     cacheName = inputCacheName;
@@ -27,7 +27,7 @@ public class CacheNameInterceptor implements ClientInterceptor {
         channel.newCall(methodDescriptor, callOptions)) {
       @Override
       public void start(Listener<RespT> listener, Metadata metadata) {
-        metadata.put(cacheNameKey, cacheName);
+        metadata.put(CACHE_NAME_KEY, cacheName);
         super.start(listener, metadata);
       }
     };
