@@ -82,7 +82,9 @@ public final class Momento implements Closeable {
   }
 
   private static void checkCacheNameValid(String cacheName) {
-    if (cacheName == null) throw new ClientSdkException("Cache Name is required.");
+    if (cacheName == null) {
+      throw new ClientSdkException("Cache Name is required.");
+    }
   }
 
   public void close() {
