@@ -10,7 +10,7 @@ import io.grpc.ForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 
-class AuthInterceptor implements ClientInterceptor {
+final class AuthInterceptor implements ClientInterceptor {
 
   private static final Metadata.Key<String> AUTH_HEADER_KEY =
       Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);

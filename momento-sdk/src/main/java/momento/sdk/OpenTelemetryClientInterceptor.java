@@ -11,7 +11,7 @@ import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.context.propagation.TextMapPropagator;
 import io.opentelemetry.context.propagation.TextMapSetter;
 
-class OpenTelemetryClientInterceptor implements ClientInterceptor {
+final class OpenTelemetryClientInterceptor implements ClientInterceptor {
 
   private final TextMapPropagator textFormat;
 
