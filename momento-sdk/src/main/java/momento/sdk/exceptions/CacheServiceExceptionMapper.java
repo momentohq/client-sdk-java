@@ -13,7 +13,7 @@ public final class CacheServiceExceptionMapper {
    *
    * @param e
    */
-  public static void convertAndThrow(Exception e) throws SdkException {
+  public static void convertAndThrow(Exception e) {
     if (e instanceof SdkException) {
       throw (SdkException) e;
     }

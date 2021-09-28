@@ -1,8 +1,6 @@
 package momento.sdk.exceptions;
 
-/**
- * Base class for all exceptions thrown by the SDK
- */
+/** Base class for all exceptions thrown by the SDK */
 public class SdkException extends RuntimeException {
 
   public SdkException(String message, Throwable cause) {

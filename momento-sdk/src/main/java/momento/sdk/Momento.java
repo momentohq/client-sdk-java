@@ -1,7 +1,6 @@
 package momento.sdk;
 
 import grpc.control_client.CreateCacheRequest;
-import grpc.control_client.CreateCacheResponse;
 import grpc.control_client.ScsControlGrpc;
 import grpc.control_client.ScsControlGrpc.ScsControlBlockingStub;
 import io.grpc.ClientInterceptor;
@@ -15,7 +14,6 @@ import java.util.List;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
-import momento.sdk.exceptions.SdkException;
 
 public final class Momento implements Closeable {
 
@@ -45,16 +43,28 @@ public final class Momento implements Closeable {
     this.channel = channel;
   }
 
+  /**
+   * Creates a cache with provided name
+   *
+   * @param cacheName
+   * @return {@link Cache} that allows consumers to perform cache operations
+   * @throws {@link momento.sdk.exceptions.PermissionDeniedException} - if provided authToken is
+   *     invalid <br>
+   *     {@link CacheAlreadyExistsException} - if Cache with the same name exists <br>
+   *     {@link momento.sdk.exceptions.InternalServerException} - for any unexpected errors that
+   *     occur on the service side.<br>
+   *     {@link ClientSdkException} - for any client side errors
+   */
   public Cache createCache(String cacheName) {
     checkCacheNameValid(cacheName);
     try {
-          this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
+      this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
       return new Cache(this.authToken, cacheName);
     } catch (Exception e) {
       if (e instanceof io.grpc.StatusRuntimeException) {
-        if (((StatusRuntimeException)e).getStatus() == Status.ALREADY_EXISTS) {
+        if (((StatusRuntimeException) e).getStatus() == Status.ALREADY_EXISTS) {
           throw new CacheAlreadyExistsException(
-                  String.format("Cache with name %s already exists", cacheName));
+              String.format("Cache with name %s already exists", cacheName));
         }
       }
       CacheServiceExceptionMapper.convertAndThrow(e);
