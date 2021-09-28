@@ -1,6 +1,6 @@
 package momento.sdk;
 
-import static java.util.Optional.*;
+import static java.util.Optional.empty;
 
 import grpc.control_client.CreateCacheRequest;
 import grpc.control_client.CreateCacheResponse;
