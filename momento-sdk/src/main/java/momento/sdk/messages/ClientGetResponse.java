@@ -2,9 +2,9 @@ package momento.sdk.messages;
 
 import grpc.cache_client.ECacheResult;
 
-public class ClientGetResponse<T> extends BaseResponse {
-  private T body;
-  private ECacheResult result;
+public final class ClientGetResponse<T> extends BaseResponse {
+  private final T body;
+  private final ECacheResult result;
 
   public ClientGetResponse(ECacheResult result, T body) {
     this.body = body;
