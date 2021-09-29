@@ -3,17 +3,18 @@ package momento.sdk;
 import static java.util.Optional.empty;
 
 import grpc.control_client.CreateCacheRequest;
-import grpc.control_client.CreateCacheResponse;
 import grpc.control_client.ScsControlGrpc;
 import grpc.control_client.ScsControlGrpc.ScsControlBlockingStub;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
 import io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
+import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
-import momento.sdk.exceptions.SdkException;
 
 public final class Momento implements Closeable {
 
@@ -23,7 +24,7 @@ public final class Momento implements Closeable {
 
   public static Momento init(String authToken) {
     if (authToken == null) {
-      throw new ClientSdkException(new IllegalArgumentException("cannot pass a null authToken"));
+      throw new ClientSdkException("Auth Token is required to make a request.");
     }
     return new Momento(authToken);
   }
@@ -43,16 +44,31 @@ public final class Momento implements Closeable {
     this.channel = channel;
   }
 
+  /**
+   * Creates a cache with provided name
+   *
+   * @param cacheName
+   * @return {@link Cache} that allows consumers to perform cache operations
+   * @throws {@link momento.sdk.exceptions.PermissionDeniedException} - if provided authToken is
+   *     invalid <br>
+   *     {@link CacheAlreadyExistsException} - if Cache with the same name exists <br>
+   *     {@link momento.sdk.exceptions.InternalServerException} - for any unexpected errors that
+   *     occur on the service side.<br>
+   *     {@link ClientSdkException} - for any client side errors
+   */
   public Cache createCache(String cacheName) {
     checkCacheNameValid(cacheName);
     try {
-      CreateCacheResponse ignored =
-          this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
+      this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
       return buildCache(cacheName);
     } catch (io.grpc.StatusRuntimeException e) {
-      // FIXME in future return more granular exceptions based of status code and or perform client
-      // retries
-      throw new SdkException(e);
+      if (e.getStatus() == Status.ALREADY_EXISTS) {
+        throw new CacheAlreadyExistsException(
+            String.format("Cache with name %s already exists", cacheName));
+      }
+      throw CacheServiceExceptionMapper.convert(e);
+    } catch (Exception e) {
+      throw CacheServiceExceptionMapper.convert(e);
     }
   }
 
@@ -66,8 +82,9 @@ public final class Momento implements Closeable {
   }
 
   private static void checkCacheNameValid(String cacheName) {
-    if (cacheName == null)
-      throw new ClientSdkException(new IllegalArgumentException("null cacheName passed"));
+    if (cacheName == null) {
+      throw new ClientSdkException("Cache Name is required.");
+    }
   }
 
   private Cache buildCache(String cacheName) {

@@ -2,8 +2,7 @@ package momento.sdk.messages;
 
 import grpc.cache_client.ECacheResult;
 
-// TODO: This should be made package default
-public class BaseResponse {
+class BaseResponse {
   MomentoCacheResult resultMapper(ECacheResult result) {
     switch (result) {
       case Ok:
