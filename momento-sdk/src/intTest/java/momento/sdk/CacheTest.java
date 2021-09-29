@@ -28,7 +28,11 @@ import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.messages.ClientGetResponse;
 import momento.sdk.messages.ClientSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
-import org.junit.jupiter.api.*;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Disabled;
 
 final class CacheTest {
 
@@ -294,7 +298,7 @@ final class CacheTest {
             true,
             "Verify set trace",
             "failed to verify set trace");
-    Assertions.assertEquals(expectedCount, count.trim());
+    assertEquals(expectedCount, count.trim());
   }
 
   void verifyGetTrace(String expectedCount) throws Exception {
@@ -304,7 +308,7 @@ final class CacheTest {
             true,
             "Verify get trace",
             "failed to verify get trace");
-    Assertions.assertEquals(expectedCount, count.trim());
+    assertEquals(expectedCount, count.trim());
   }
 
   // Polls a command until the expected result comes back
