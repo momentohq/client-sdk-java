@@ -16,22 +16,19 @@ import momento.sdk.exceptions.ClientSdkException;
 
 public final class Momento implements Closeable {
 
+  private static final String CONTROL_ENDPOINT_PREFIX = "control.";
+  private static final String CACHE_ENDPOINT_PREFIX = "cache.";
+
   private final String authToken;
+  private final String endpoint;
   private final ScsControlBlockingStub blockingStub;
   private final ManagedChannel channel;
 
-  public static Momento init(String authToken) {
-    if (authToken == null) {
-      throw new ClientSdkException("Auth Token is required to make a request.");
-    }
-    return new Momento(authToken);
-  }
-
-  private Momento(String authToken) {
+  private Momento(String authToken, String endPoint) {
     this.authToken = authToken;
-    // FIXME get endpoint from JWT claim
+    this.endpoint = endPoint;
     NettyChannelBuilder channelBuilder =
-        NettyChannelBuilder.forAddress("control.cell-alpha-dev.preprod.a.momentohq.com", 443);
+        NettyChannelBuilder.forAddress(CONTROL_ENDPOINT_PREFIX + endPoint, 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     List<ClientInterceptor> clientInterceptors = new ArrayList<>();
@@ -58,7 +55,7 @@ public final class Momento implements Closeable {
     checkCacheNameValid(cacheName);
     try {
       this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
-      return new Cache(this.authToken, cacheName);
+      return makeCacheClient(authToken, cacheName, endpoint);
     } catch (io.grpc.StatusRuntimeException e) {
       if (e.getStatus() == Status.ALREADY_EXISTS) {
         throw new CacheAlreadyExistsException(
@@ -72,7 +69,7 @@ public final class Momento implements Closeable {
 
   public Cache getCache(String cacheName) {
     checkCacheNameValid(cacheName);
-    return new Cache(this.authToken, cacheName);
+    return makeCacheClient(authToken, cacheName, endpoint);
   }
 
   private CreateCacheRequest buildCreateCacheRequest(String cacheName) {
@@ -85,7 +82,61 @@ public final class Momento implements Closeable {
     }
   }
 
+  private static Cache makeCacheClient(String authToken, String cacheName, String endpoint) {
+    return new Cache(authToken, cacheName, CACHE_ENDPOINT_PREFIX + endpoint);
+  }
+
   public void close() {
     this.channel.shutdown();
+  }
+
+  public static MomentoBuilder builder() {
+    return new MomentoBuilder();
+  }
+
+  // TODO: ParseJWT to determine the authToken
+  private static String extractEndpoint(String authToken) {
+    return null;
+  }
+
+  public static class MomentoBuilder {
+    private String authToken;
+    private String endPointOverride;
+
+    public MomentoBuilder authToken(String authToken) {
+      this.authToken = authToken;
+      return this;
+    }
+
+    /**
+     * Endpoint that will be used to perform Momento Cache Operations.
+     *
+     * @param endPointOverride
+     * @return
+     */
+    // TODO: Write a better public facing doc, this is basically a hosted zone for the cell against
+    // which the requests
+    // will be made.
+    public MomentoBuilder endPointOverride(String endPointOverride) {
+      this.endPointOverride = endPointOverride;
+      return this;
+    }
+
+    public Momento build() {
+      if (authToken == null || authToken.isEmpty()) {
+        throw new ClientSdkException("Auth Token is required");
+      }
+      // Endpoint must be either available in the authToken or must be provided via
+      // endPointOverride.
+      String endpoint =
+          endPointOverride != null && !endPointOverride.isEmpty()
+              ? endPointOverride
+              : extractEndpoint(authToken);
+
+      if (endpoint == null) {
+        throw new ClientSdkException("Endpoint for cache service is a required parameter.");
+      }
+      return new Momento(authToken, endpoint);
+    }
   }
 }
