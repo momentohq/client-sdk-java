@@ -31,7 +31,7 @@ class MomentoTest {
       Momento m =
           Momento.builder()
               .authToken(System.getenv("TEST_AUTH_TOKEN"))
-              .endPointOverride("cell-alpha-dev.preprod.a.momentohq.com")
+              .endpointOverride("cell-alpha-dev.preprod.a.momentohq.com")
               .build();
       Cache cache = m.createCache(System.getenv("TEST_CACHE_NAME"));
 

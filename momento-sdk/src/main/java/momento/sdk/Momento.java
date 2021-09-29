@@ -20,15 +20,15 @@ public final class Momento implements Closeable {
   private static final String CACHE_ENDPOINT_PREFIX = "cache.";
 
   private final String authToken;
-  private final String endpoint;
+  private final String hostedZone;
   private final ScsControlBlockingStub blockingStub;
   private final ManagedChannel channel;
 
-  private Momento(String authToken, String endPoint) {
+  private Momento(String authToken, String hostedZone) {
     this.authToken = authToken;
-    this.endpoint = endPoint;
+    this.hostedZone = hostedZone;
     NettyChannelBuilder channelBuilder =
-        NettyChannelBuilder.forAddress(CONTROL_ENDPOINT_PREFIX + endPoint, 443);
+        NettyChannelBuilder.forAddress(CONTROL_ENDPOINT_PREFIX + hostedZone, 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     List<ClientInterceptor> clientInterceptors = new ArrayList<>();
@@ -55,7 +55,7 @@ public final class Momento implements Closeable {
     checkCacheNameValid(cacheName);
     try {
       this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
-      return makeCacheClient(authToken, cacheName, endpoint);
+      return makeCacheClient(authToken, cacheName, hostedZone);
     } catch (io.grpc.StatusRuntimeException e) {
       if (e.getStatus() == Status.ALREADY_EXISTS) {
         throw new CacheAlreadyExistsException(
@@ -69,7 +69,7 @@ public final class Momento implements Closeable {
 
   public Cache getCache(String cacheName) {
     checkCacheNameValid(cacheName);
-    return makeCacheClient(authToken, cacheName, endpoint);
+    return makeCacheClient(authToken, cacheName, hostedZone);
   }
 
   private CreateCacheRequest buildCreateCacheRequest(String cacheName) {
@@ -101,7 +101,7 @@ public final class Momento implements Closeable {
 
   public static class MomentoBuilder {
     private String authToken;
-    private String endPointOverride;
+    private String endpointOverride;
 
     public MomentoBuilder authToken(String authToken) {
       this.authToken = authToken;
@@ -111,14 +111,14 @@ public final class Momento implements Closeable {
     /**
      * Endpoint that will be used to perform Momento Cache Operations.
      *
-     * @param endPointOverride
+     * @param endpointOverride
      * @return
      */
     // TODO: Write a better public facing doc, this is basically a hosted zone for the cell against
     // which the requests
     // will be made.
-    public MomentoBuilder endPointOverride(String endPointOverride) {
-      this.endPointOverride = endPointOverride;
+    public MomentoBuilder endpointOverride(String endpointOverride) {
+      this.endpointOverride = endpointOverride;
       return this;
     }
 
@@ -129,8 +129,8 @@ public final class Momento implements Closeable {
       // Endpoint must be either available in the authToken or must be provided via
       // endPointOverride.
       String endpoint =
-          endPointOverride != null && !endPointOverride.isEmpty()
-              ? endPointOverride
+          endpointOverride != null && !endpointOverride.isEmpty()
+              ? endpointOverride
               : extractEndpoint(authToken);
 
       if (endpoint == null) {
