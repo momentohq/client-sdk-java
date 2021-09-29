@@ -28,7 +28,11 @@ class MomentoTest {
   @org.junit.jupiter.api.Test
   void testHappyPath() {
     try {
-      Momento m = Momento.init(System.getenv("TEST_AUTH_TOKEN"));
+      Momento m =
+          Momento.builder()
+              .authToken(System.getenv("TEST_AUTH_TOKEN"))
+              .endpointOverride("cell-alpha-dev.preprod.a.momentohq.com")
+              .build();
       Cache cache = m.createCache(System.getenv("TEST_CACHE_NAME"));
 
       String key = java.util.UUID.randomUUID().toString();
