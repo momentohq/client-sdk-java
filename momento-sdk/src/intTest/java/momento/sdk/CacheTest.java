@@ -59,7 +59,7 @@ class CacheTest {
   Cache getCache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry) {
     String endpoint = System.getenv("TEST_ENDPOINT");
     if (endpoint == null) {
-      endpoint = "alpha.cacheservice.com";
+      endpoint = "cache.cell-alpha-dev.preprod.a.momentohq.com";
     }
 
     return new Cache(
