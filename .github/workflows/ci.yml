@@ -31,5 +31,5 @@ jobs:
       run: chmod +x gradlew
     - name: Build with Gradle
       run: ./gradlew clean build
-#    - name: Run integration tests
-#      run: ./gradlew integrationTest
+    - name: Run integration tests
+      run: ./gradlew integrationTest
