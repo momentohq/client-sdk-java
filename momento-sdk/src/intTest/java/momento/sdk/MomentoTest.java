@@ -3,17 +3,25 @@
  */
 package momento.sdk;
 
+import static momento.sdk.TestHelpers.DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.messages.ClientGetResponse;
 import momento.sdk.messages.ClientSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
-import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 
-class MomentoTest {
-  //  Cache cache;
+final class MomentoTest {
 
-  //  @org.junit.jupiter.api.BeforeAll
+  private String authToken;
+  private String cacheName;
+
+  @BeforeAll
   static void beforeAll() {
     if (System.getenv("TEST_AUTH_TOKEN") == null) {
       throw new IllegalArgumentException(
@@ -25,31 +33,40 @@ class MomentoTest {
     }
   }
 
-  @org.junit.jupiter.api.Test
+  @BeforeEach
+  void setup() {
+    this.authToken = System.getenv("TEST_AUTH_TOKEN");
+    this.cacheName = System.getenv("TEST_CACHE_NAME");
+  }
+
+  @Test
   void testHappyPath() {
+    Momento momento =
+        Momento.builder()
+            .authToken(authToken)
+            .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
+            .build();
+    Cache cache = getOrCreate(momento, cacheName);
+
+    String key = java.util.UUID.randomUUID().toString();
+
+    // Set Key sync
+    ClientSetResponse setRsp =
+        cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
+    assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
+
+    // Get Key that was just set
+    ClientGetResponse<ByteBuffer> rsp = cache.get(key);
+    assertEquals(MomentoCacheResult.Hit, rsp.getResult());
+    assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
+  }
+
+  // TODO: Update this to be recreated each time and add a separate test case for Already Exists
+  private static Cache getOrCreate(Momento momento, String cacheName) {
     try {
-      Momento m =
-          Momento.builder()
-              .authToken(System.getenv("TEST_AUTH_TOKEN"))
-              .endpointOverride("cell-alpha-dev.preprod.a.momentohq.com")
-              .build();
-      Cache cache = m.createCache(System.getenv("TEST_CACHE_NAME"));
-
-      String key = java.util.UUID.randomUUID().toString();
-
-      // Set Key sync
-      ClientSetResponse setRsp =
-          cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
-      Assertions.assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
-
-      // Get Key that was just set
-      ClientGetResponse<ByteBuffer> rsp = cache.get(key);
-
-      Assertions.assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-      Assertions.assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
-
-    } catch (java.io.IOException e) {
-      Assertions.fail(e);
+      return momento.createCache(cacheName);
+    } catch (CacheAlreadyExistsException e) {
+      return momento.getCache(cacheName);
     }
   }
 }

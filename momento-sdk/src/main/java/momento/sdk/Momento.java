@@ -57,7 +57,7 @@ public final class Momento implements Closeable {
       this.blockingStub.createCache(buildCreateCacheRequest(cacheName));
       return makeCacheClient(authToken, cacheName, hostedZone);
     } catch (io.grpc.StatusRuntimeException e) {
-      if (e.getStatus() == Status.ALREADY_EXISTS) {
+      if (e.getStatus().getCode() == Status.Code.ALREADY_EXISTS) {
         throw new CacheAlreadyExistsException(
             String.format("Cache with name %s already exists", cacheName));
       }
