@@ -1,8 +1,13 @@
 package momento.sdk.exceptions;
 
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import java.net.UnknownHostException;
 
 public final class CacheServiceExceptionMapper {
+
+  private static final String INTERNAL_SERVER_ERROR_MESSAGE =
+      "Unexpected exception occurred while trying to fulfill the request.";
 
   private CacheServiceExceptionMapper() {}
 
@@ -24,12 +29,26 @@ public final class CacheServiceExceptionMapper {
         case PERMISSION_DENIED:
           return new PermissionDeniedException(grpcException.getMessage());
 
+        case NOT_FOUND:
+          return new CacheNotFoundException(grpcException.getMessage());
+
         default:
-          return new InternalServerException(
-              "Unexpected exception occurred while trying to fulfill the request.");
+          if (isDnsUnreachable(grpcException)) {
+            return new ClientSdkException(
+                String.format(
+                    "Unable to reach request endpoint. Request failed with %s",
+                    grpcException.getMessage()));
+          }
+          return new InternalServerException(INTERNAL_SERVER_ERROR_MESSAGE);
       }
     }
 
     return new ClientSdkException("SDK Failed to process the request", e);
+  }
+
+  private static boolean isDnsUnreachable(StatusRuntimeException e) {
+    return e.getStatus().getCode() == Status.Code.UNAVAILABLE
+        && e.getCause() instanceof RuntimeException
+        && e.getCause().getCause() instanceof UnknownHostException;
   }
 }

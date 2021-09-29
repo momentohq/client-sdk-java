@@ -35,6 +35,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.net.ssl.SSLException;
+import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.messages.ClientGetResponse;
 import momento.sdk.messages.ClientSetResponse;
 
@@ -136,7 +138,7 @@ public final class Cache implements Closeable {
    * @return {@link ClientGetResponse} with the response object as a {@link java.nio.ByteBuffer}
    * @throws IOException if an error occurs opening input stream for response body.
    */
-  public ClientGetResponse<ByteBuffer> get(String key) throws IOException {
+  public ClientGetResponse<ByteBuffer> get(String key) {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       GetResponse rsp = blockingStub.get(buildGetRequest(key));
@@ -152,8 +154,7 @@ public final class Cache implements Closeable {
             theSpan.recordException(e);
             theSpan.setStatus(StatusCode.ERROR);
           });
-      // TODO - Yup I know this is ugly but we have work to do to handle excpetions properly.
-      throw e;
+      throw CacheServiceExceptionMapper.convert(e);
     } finally {
       span.ifPresent(theSpan -> theSpan.end(now()));
     }
@@ -170,7 +171,7 @@ public final class Cache implements Closeable {
    * @return {@link ClientSetResponse} with the result of the set operation
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
-  public ClientSetResponse set(String key, ByteBuffer value, int ttlSeconds) throws IOException {
+  public ClientSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
     Optional<Span> span = buildSpan("java-sdk-set-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
@@ -184,8 +185,7 @@ public final class Cache implements Closeable {
             theSpan.recordException(e);
             theSpan.setStatus(StatusCode.ERROR);
           });
-      // TODO - Yup I know this is ugly, but we have work to do to handle exceptions.
-      throw e;
+      throw CacheServiceExceptionMapper.convert(e);
     } finally {
       span.ifPresent(theSpan -> theSpan.end(now()));
     }
@@ -234,6 +234,7 @@ public final class Cache implements Closeable {
             scope.ifPresent(Scope::close);
           }
 
+          // TODO: Handle Exception Mapping
           @Override
           public void onFailure(Throwable e) {
             returnFuture.completeExceptionally(e);
@@ -264,8 +265,7 @@ public final class Cache implements Closeable {
    *     CompletionStage interface wrapping standard ClientSetResponse.
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
-  public CompletionStage<ClientSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds)
-      throws IOException {
+  public CompletionStage<ClientSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds) {
 
     Optional<Span> span = buildSpan("java-sdk-set-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
@@ -301,6 +301,7 @@ public final class Cache implements Closeable {
             scope.ifPresent(Scope::close);
           }
 
+          // TODO: Handle Exception Mapping
           @Override
           public void onFailure(Throwable e) {
             returnFuture.completeExceptionally(e); // bubble all errors up
@@ -330,12 +331,16 @@ public final class Cache implements Closeable {
         .build();
   }
 
-  private SetRequest buildSetRequest(String key, ByteBuffer value, int ttl) throws IOException {
-    return SetRequest.newBuilder()
-        .setCacheKey(ByteString.copyFrom(key, StandardCharsets.UTF_8))
-        .setCacheBody(ByteString.readFrom(new ByteArrayInputStream(value.array())))
-        .setTtlMilliseconds(ttl)
-        .build();
+  private SetRequest buildSetRequest(String key, ByteBuffer value, int ttl) {
+    try {
+      return SetRequest.newBuilder()
+          .setCacheKey(ByteString.copyFrom(key, StandardCharsets.UTF_8))
+          .setCacheBody(ByteString.readFrom(new ByteArrayInputStream(value.array())))
+          .setTtlMilliseconds(ttl)
+          .build();
+    } catch (IOException e) {
+      throw new ClientSdkException("Failed to create request.");
+    }
   }
 
   private Optional<Span> buildSpan(String spanName) {

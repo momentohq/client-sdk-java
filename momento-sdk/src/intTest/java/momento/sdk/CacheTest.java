@@ -3,8 +3,10 @@
  */
 package momento.sdk;
 
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static momento.sdk.TestHelpers.DEFAULT_CACHE_ENDPOINT;
+
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
 import io.opentelemetry.context.propagation.ContextPropagators;
@@ -13,26 +15,24 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletionStage;
-import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
+import momento.sdk.exceptions.CacheNotFoundException;
+import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.messages.ClientGetResponse;
 import momento.sdk.messages.ClientSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.Assertions;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 
-class CacheTest {
-  Cache cache;
+final class CacheTest {
+
+  private Cache cache;
 
   @BeforeAll
   static void beforeAll() {
@@ -48,7 +48,7 @@ class CacheTest {
 
   @BeforeEach
   void setUp() {
-    cache = getCache(Optional.empty());
+   cache = getCache(Optional.empty());
   }
 
   Cache getCache(Optional<OpenTelemetry> openTelemetry) {
@@ -59,7 +59,7 @@ class CacheTest {
   Cache getCache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry) {
     String endpoint = System.getenv("TEST_ENDPOINT");
     if (endpoint == null) {
-      endpoint = "alpha.cacheservice.com";
+      endpoint = TestHelpers.DEFAULT_CACHE_ENDPOINT;
     }
 
     return new Cache(
@@ -88,28 +88,22 @@ class CacheTest {
     verifyGetTrace("1");
   }
 
-  void testHappyPath(Cache cache) {
-    try {
-      String key = UUID.randomUUID().toString();
+  private static void testHappyPath(Cache cache) {
+    String key = UUID.randomUUID().toString();
 
-      // Set Key sync
-      ClientSetResponse setRsp =
-          cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
-      Assertions.assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
+    // Set Key sync
+    ClientSetResponse setRsp =
+        cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
+    assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
 
-      // Get Key that was just set
-      ClientGetResponse<ByteBuffer> rsp = cache.get(key);
-
-      Assertions.assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-      Assertions.assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
-
-    } catch (IOException e) {
-      Assertions.fail(e);
-    }
+    // Get Key that was just set
+    ClientGetResponse<ByteBuffer> rsp = cache.get(key);
+    assertEquals(MomentoCacheResult.Hit, rsp.getResult());
+    assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
   }
 
   @Test
-  void testAsyncClientHappyPath() {
+  void testAsyncClientHappyPath() throws Exception {
     testAsyncHappyPath(cache);
   }
 
@@ -125,28 +119,22 @@ class CacheTest {
     verifyGetTrace("1");
   }
 
-  void testAsyncHappyPath(Cache client) {
-    try {
-      String key = UUID.randomUUID().toString();
-      // Set Key Async
-      CompletionStage<ClientSetResponse> setRsp =
-          client.setAsync(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 10);
-      Assertions.assertEquals(
-          MomentoCacheResult.Ok, setRsp.toCompletableFuture().get().getResult());
+  private static void testAsyncHappyPath(Cache client) throws Exception {
+    String key = UUID.randomUUID().toString();
+    // Set Key Async
+    CompletionStage<ClientSetResponse> setRsp =
+        client.setAsync(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 10);
+    assertEquals(MomentoCacheResult.Ok, setRsp.toCompletableFuture().get().getResult());
 
-      // Get Key Async
-      ClientGetResponse<ByteBuffer> rsp = client.getAsync(key).toCompletableFuture().get();
+    // Get Key Async
+    ClientGetResponse<ByteBuffer> rsp = client.getAsync(key).toCompletableFuture().get();
 
-      Assertions.assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-      Assertions.assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
-
-    } catch (IOException | InterruptedException | ExecutionException e) {
-      Assertions.fail(e);
-    }
+    assertEquals(MomentoCacheResult.Hit, rsp.getResult());
+    assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
   }
 
   @Test
-  void testTtlHappyPath() {
+  void testTtlHappyPath() throws Exception {
     testTtlHappyPath(cache);
   }
 
@@ -162,25 +150,19 @@ class CacheTest {
     verifyGetTrace("1");
   }
 
-  void testTtlHappyPath(Cache client) {
-    try {
-      String key = UUID.randomUUID().toString();
+  private static void testTtlHappyPath(Cache client) throws Exception {
+    String key = UUID.randomUUID().toString();
 
-      // Set Key sync
-      ClientSetResponse setRsp =
-          client.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 1);
-      Assertions.assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
+    // Set Key sync
+    ClientSetResponse setRsp =
+        client.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 1);
+    assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
 
-      Thread.sleep(1500);
+    Thread.sleep(1500);
 
-      // Get Key that was just set
-      ClientGetResponse<ByteBuffer> rsp = client.get(key);
-
-      Assertions.assertEquals(MomentoCacheResult.Miss, rsp.getResult());
-
-    } catch (IOException | InterruptedException e) {
-      Assertions.fail(e);
-    }
+    // Get Key that was just set
+    ClientGetResponse<ByteBuffer> rsp = client.get(key);
+    assertEquals(MomentoCacheResult.Miss, rsp.getResult());
   }
 
   @Test
@@ -200,16 +182,11 @@ class CacheTest {
     verifyGetTrace("1");
   }
 
-  void testMissHappyPathInternal(Cache client) {
-    try {
-      // Get Key that was just set
-      ClientGetResponse<ByteBuffer> rsp = client.get(UUID.randomUUID().toString());
+  private static void testMissHappyPathInternal(Cache client) {
+    // Get Key that was just set
+    ClientGetResponse<ByteBuffer> rsp = client.get(UUID.randomUUID().toString());
 
-      Assertions.assertEquals(MomentoCacheResult.Miss, rsp.getResult());
-
-    } catch (IOException e) {
-      Assertions.fail(e);
-    }
+    assertEquals(MomentoCacheResult.Miss, rsp.getResult());
   }
 
   @Test
@@ -230,27 +207,39 @@ class CacheTest {
     verifyGetTrace("1");
   }
 
-  void testBadAuthToken(Cache badCredClient) {
+  private static void testBadAuthToken(Cache badCredClient) {
+    // Bad Auth for Get
+    assertThrows(PermissionDeniedException.class, () -> badCredClient.get("myCacheKey"));
 
-    try {
-      // Get Key that was just set
-      ClientGetResponse<ByteBuffer> rsp = badCredClient.get(UUID.randomUUID().toString());
-
-      Assertions.fail("expected PERMISSION_DENIED io.grpc.StatusRuntimeException");
-
-    } catch (IOException e) {
-      Assertions.fail(e);
-    } catch (io.grpc.StatusRuntimeException e) {
-
-      // Make sure we get permission denied error the way we would expected
-      Assertions.assertEquals(
-          new StatusRuntimeException(
-                  Status.PERMISSION_DENIED.withDescription("Malformed authorization token"))
-              .toString(),
-          e.toString());
-    }
+    // Bad Auth for Set
+    assertThrows(
+        PermissionDeniedException.class,
+        () ->
+            badCredClient.set(
+                "myCacheKey",
+                ByteBuffer.wrap("cache me if you can".getBytes(StandardCharsets.UTF_8)),
+                500));
   }
 
+  @Test
+  public void unreachableEndpoint_ThrowsException() {
+    Cache cache =
+        new Cache(
+            System.getenv("TEST_AUTH_TOKEN"),
+            System.getenv("TEST_CACHE_NAME"),
+            "nonexistent.preprod.a.momentohq.com");
+
+    assertThrows(ClientSdkException.class, () -> cache.get("key"));
+  }
+
+  @Disabled("TODO: Update to catch cache not ready and then do a get again to see not found.")
+  @Test
+  public void invalidCache_ThrowsNotFoundException() {
+    Cache cache =
+        getCache(System.getenv("TEST_AUTH_TOKEN"), UUID.randomUUID().toString(), Optional.empty());
+
+    assertThrows(CacheNotFoundException.class, () -> cache.get("key"));
+  }
   /** ================ HELPER FUNCTIONS ====================================== */
   OpenTelemetrySdk setOtelSDK() {
     String otelGwUrl = "0.0.0.0";
