@@ -203,7 +203,7 @@ final class CacheTest {
     testBadAuthToken(client);
     // To accommodate for delays in tracing logs to appear in docker
     Thread.sleep(1000);
-    verifySetTrace("0");
+    verifySetTrace("1");
     verifyGetTrace("1");
   }
 
