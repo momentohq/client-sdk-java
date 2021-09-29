@@ -3,9 +3,9 @@
  */
 package momento.sdk;
 
+import static momento.sdk.TestHelpers.DEFAULT_CACHE_ENDPOINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static momento.sdk.TestHelpers.DEFAULT_CACHE_ENDPOINT;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -48,7 +48,7 @@ final class CacheTest {
 
   @BeforeEach
   void setUp() {
-   cache = getCache(Optional.empty());
+    cache = getCache(Optional.empty());
   }
 
   Cache getCache(Optional<OpenTelemetry> openTelemetry) {
@@ -59,7 +59,7 @@ final class CacheTest {
   Cache getCache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry) {
     String endpoint = System.getenv("TEST_ENDPOINT");
     if (endpoint == null) {
-      endpoint = TestHelpers.DEFAULT_CACHE_ENDPOINT;
+      endpoint = DEFAULT_CACHE_ENDPOINT;
     }
 
     return new Cache(

@@ -3,12 +3,11 @@
  */
 package momento.sdk;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static momento.sdk.TestHelpers.DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.messages.ClientGetResponse;
 import momento.sdk.messages.ClientSetResponse;
