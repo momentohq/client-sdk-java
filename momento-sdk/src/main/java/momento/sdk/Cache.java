@@ -129,8 +129,8 @@ public final class Cache implements Closeable {
 
   /**
    * Returns a requested object from cache specified by passed key. This method is a blocking api
-   * call. Please use getAsync if you need a {@link
-   * java.util.concurrent.CompletionStage< CacheGetResponse >} returned instead.
+   * call. Please use getAsync if you need a {@link java.util.concurrent.CompletionStage<
+   * CacheGetResponse >} returned instead.
    *
    * @param key the key of item to fetch from cache
    * @return {@link CacheGetResponse} with the response object
@@ -158,8 +158,8 @@ public final class Cache implements Closeable {
 
   /**
    * Sets an object in cache by the passed key. This method is a blocking api call. Please use
-   * setAsync if you need a {@link java.util.concurrent.CompletionStage< CacheSetResponse >} returned
-   * instead.
+   * setAsync if you need a {@link java.util.concurrent.CompletionStage< CacheSetResponse >}
+   * returned instead.
    *
    * @param key the key of item to fetch from cache
    * @param value {@link ByteBuffer} of the value to set in cache
@@ -179,12 +179,14 @@ public final class Cache implements Closeable {
     return set(convert(key), convert(value), ttlSeconds);
   }
 
-  private momento.sdk.messages.CacheSetResponse set(ByteString key, ByteString value, int ttlSeconds) {
+  private momento.sdk.messages.CacheSetResponse set(
+      ByteString key, ByteString value, int ttlSeconds) {
     Optional<Span> span = buildSpan("java-sdk-set-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
 
-      momento.sdk.messages.CacheSetResponse response = new momento.sdk.messages.CacheSetResponse(rsp.getResult());
+      momento.sdk.messages.CacheSetResponse response =
+          new momento.sdk.messages.CacheSetResponse(rsp.getResult());
       span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
       return response;
     } catch (Exception e) {
@@ -232,7 +234,8 @@ public final class Cache implements Closeable {
         new FutureCallback<GetResponse>() {
           @Override
           public void onSuccess(GetResponse rsp) {
-            returnFuture.complete(new momento.sdk.messages.CacheGetResponse(rsp.getResult(), rsp.getCacheBody()));
+            returnFuture.complete(
+                new momento.sdk.messages.CacheGetResponse(rsp.getResult(), rsp.getCacheBody()));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
@@ -273,7 +276,8 @@ public final class Cache implements Closeable {
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
   // TODO: Update Async methods to support different input params.
-  public CompletionStage<momento.sdk.messages.CacheSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds) {
+  public CompletionStage<momento.sdk.messages.CacheSetResponse> setAsync(
+      String key, ByteBuffer value, int ttlSeconds) {
 
     Optional<Span> span = buildSpan("java-sdk-set-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
