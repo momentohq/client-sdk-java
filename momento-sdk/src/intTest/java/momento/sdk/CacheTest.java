@@ -101,9 +101,9 @@ final class CacheTest {
     assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
 
     // Get Key that was just set
-    ClientGetResponse<ByteBuffer> rsp = cache.get(key);
+    ClientGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-    assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
+    assertEquals("bar", rsp.toStringUtf8());
   }
 
   @Test
@@ -131,10 +131,10 @@ final class CacheTest {
     assertEquals(MomentoCacheResult.Ok, setRsp.toCompletableFuture().get().getResult());
 
     // Get Key Async
-    ClientGetResponse<ByteBuffer> rsp = client.getAsync(key).toCompletableFuture().get();
+    ClientGetResponse rsp = client.getAsync(key).toCompletableFuture().get();
 
     assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-    assertEquals("bar", StandardCharsets.US_ASCII.decode(rsp.getBody()).toString());
+    assertEquals("bar", rsp.toStringUtf8());
   }
 
   @Test
@@ -165,7 +165,7 @@ final class CacheTest {
     Thread.sleep(1500);
 
     // Get Key that was just set
-    ClientGetResponse<ByteBuffer> rsp = client.get(key);
+    ClientGetResponse rsp = client.get(key);
     assertEquals(MomentoCacheResult.Miss, rsp.getResult());
   }
 
@@ -188,7 +188,7 @@ final class CacheTest {
 
   private static void testMissHappyPathInternal(Cache client) {
     // Get Key that was just set
-    ClientGetResponse<ByteBuffer> rsp = client.get(UUID.randomUUID().toString());
+    ClientGetResponse rsp = client.get(UUID.randomUUID().toString());
 
     assertEquals(MomentoCacheResult.Miss, rsp.getResult());
   }

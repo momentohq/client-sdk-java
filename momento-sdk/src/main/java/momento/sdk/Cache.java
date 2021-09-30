@@ -24,7 +24,6 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.ImplicitContextKeyed;
 import io.opentelemetry.context.Scope;
-import java.io.ByteArrayInputStream;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -36,7 +35,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.net.ssl.SSLException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
-import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.messages.ClientGetResponse;
 import momento.sdk.messages.ClientSetResponse;
 
@@ -135,17 +133,15 @@ public final class Cache implements Closeable {
    * java.util.concurrent.CompletionStage<ClientGetResponse>} returned instead.
    *
    * @param key the key of item to fetch from cache
-   * @return {@link ClientGetResponse} with the response object as a {@link java.nio.ByteBuffer}
+   * @return {@link ClientGetResponse} with the response object
    * @throws IOException if an error occurs opening input stream for response body.
    */
-  public ClientGetResponse<ByteBuffer> get(String key) {
+  public ClientGetResponse get(String key) {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       GetResponse rsp = blockingStub.get(buildGetRequest(key));
-
-      ByteBuffer body = rsp.getCacheBody().asReadOnlyByteBuffer();
-      ClientGetResponse<java.nio.ByteBuffer> clientGetResponse =
-          new ClientGetResponse<>(rsp.getResult(), body);
+      ClientGetResponse clientGetResponse =
+          new ClientGetResponse(rsp.getResult(), rsp.getCacheBody());
       span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
       return clientGetResponse;
     } catch (Exception e) {
@@ -172,6 +168,18 @@ public final class Cache implements Closeable {
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
   public ClientSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
+    return set(convert(key), convert(value), ttlSeconds);
+  }
+
+  public ClientSetResponse set(String key, String value, int ttlSeconds) {
+    return set(convert(key), convert(value), ttlSeconds);
+  }
+
+  public ClientSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
+    return set(convert(key), convert(value), ttlSeconds);
+  }
+
+  private ClientSetResponse set(ByteString key, ByteString value, int ttlSeconds) {
     Optional<Span> span = buildSpan("java-sdk-set-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
@@ -200,15 +208,15 @@ public final class Cache implements Closeable {
    *     CompletionStage interface wrapping standard ClientResponse with response object as a {@link
    *     java.io.InputStream}.
    */
-  public CompletionStage<ClientGetResponse<ByteBuffer>> getAsync(String key) {
+  public CompletionStage<ClientGetResponse> getAsync(String key) {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
     ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
 
     // Build a CompletableFuture to return to caller
-    CompletableFuture<ClientGetResponse<ByteBuffer>> returnFuture =
-        new CompletableFuture<ClientGetResponse<ByteBuffer>>() {
+    CompletableFuture<ClientGetResponse> returnFuture =
+        new CompletableFuture<ClientGetResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -224,8 +232,7 @@ public final class Cache implements Closeable {
         new FutureCallback<GetResponse>() {
           @Override
           public void onSuccess(GetResponse rsp) {
-            ByteBuffer body = rsp.getCacheBody().asReadOnlyByteBuffer();
-            returnFuture.complete(new ClientGetResponse<>(rsp.getResult(), body));
+            returnFuture.complete(new ClientGetResponse(rsp.getResult(), rsp.getCacheBody()));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
@@ -265,6 +272,7 @@ public final class Cache implements Closeable {
    *     CompletionStage interface wrapping standard ClientSetResponse.
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
+  // TODO: Update Async methods to support different input params.
   public CompletionStage<ClientSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds) {
 
     Optional<Span> span = buildSpan("java-sdk-set-request");
@@ -272,7 +280,7 @@ public final class Cache implements Closeable {
 
     // Submit request to non-blocking stub
     ListenableFuture<SetResponse> rspFuture =
-        futureStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
+        futureStub.set(buildSetRequest(convert(key), convert(value), ttlSeconds * 1000));
 
     // Build a CompletableFuture to return to caller
     CompletableFuture<ClientSetResponse> returnFuture =
@@ -331,16 +339,24 @@ public final class Cache implements Closeable {
         .build();
   }
 
-  private SetRequest buildSetRequest(String key, ByteBuffer value, int ttl) {
-    try {
-      return SetRequest.newBuilder()
-          .setCacheKey(ByteString.copyFrom(key, StandardCharsets.UTF_8))
-          .setCacheBody(ByteString.readFrom(new ByteArrayInputStream(value.array())))
-          .setTtlMilliseconds(ttl)
-          .build();
-    } catch (IOException e) {
-      throw new ClientSdkException("Failed to create request.");
-    }
+  private SetRequest buildSetRequest(ByteString key, ByteString value, int ttl) {
+    return SetRequest.newBuilder()
+        .setCacheKey(key)
+        .setCacheBody(value)
+        .setTtlMilliseconds(ttl)
+        .build();
+  }
+
+  private ByteString convert(String stringToEncode) {
+    return ByteString.copyFromUtf8(stringToEncode);
+  }
+
+  private ByteString convert(byte[] bytes) {
+    return ByteString.copyFrom(bytes);
+  }
+
+  private ByteString convert(ByteBuffer byteBuffer) {
+    return ByteString.copyFrom(byteBuffer);
   }
 
   private Optional<Span> buildSpan(String spanName) {
