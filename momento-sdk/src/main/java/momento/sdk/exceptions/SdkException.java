@@ -5,7 +5,6 @@ public class SdkException extends RuntimeException {
 
   public SdkException(String message, Throwable cause) {
     super(message, cause);
-    this.initCause(cause);
   }
 
   public SdkException(String message) {
