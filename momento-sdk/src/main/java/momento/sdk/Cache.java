@@ -167,18 +167,18 @@ public final class Cache implements Closeable {
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
   public CacheSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
-    return set(convert(key), convert(value), ttlSeconds);
+    return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
   public CacheSetResponse set(String key, String value, int ttlSeconds) {
-    return set(convert(key), convert(value), ttlSeconds);
+    return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
   public CacheSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
-    return set(convert(key), convert(value), ttlSeconds);
+    return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
-  private CacheSetResponse set(ByteString key, ByteString value, int ttlSeconds) {
+  private CacheSetResponse sendSet(ByteString key, ByteString value, int ttlSeconds) {
     Optional<Span> span = buildSpan("java-sdk-set-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
