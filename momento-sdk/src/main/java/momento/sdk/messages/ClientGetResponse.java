@@ -1,12 +1,14 @@
 package momento.sdk.messages;
 
+import com.google.protobuf.ByteString;
 import grpc.cache_client.ECacheResult;
+import java.nio.ByteBuffer;
 
-public final class ClientGetResponse<T> extends BaseResponse {
-  private final T body;
+public final class ClientGetResponse extends BaseResponse {
+  private final ByteString body;
   private final ECacheResult result;
 
-  public ClientGetResponse(ECacheResult result, T body) {
+  public ClientGetResponse(ECacheResult result, ByteString body) {
     this.body = body;
     this.result = result;
   }
@@ -15,7 +17,20 @@ public final class ClientGetResponse<T> extends BaseResponse {
     return this.resultMapper(this.result);
   }
 
-  public T getBody() {
-    return body;
+  public byte[] asByteArray() {
+    return body.toByteArray();
+  }
+
+  public ByteBuffer asByteBuffer() {
+    return body.asReadOnlyByteBuffer();
+  }
+
+  /**
+   * Converts the value read from cache to a UTF-8 String
+   *
+   * @return
+   */
+  public String asStringUtf8() {
+    return body.toStringUtf8();
   }
 }
