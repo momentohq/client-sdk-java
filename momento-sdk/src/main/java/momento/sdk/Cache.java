@@ -136,12 +136,11 @@ public final class Cache implements Closeable {
    * @return {@link CacheGetResponse} with the response object
    * @throws IOException if an error occurs opening input stream for response body.
    */
-  public momento.sdk.messages.CacheGetResponse get(String key) {
+  public CacheGetResponse get(String key) {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       GetResponse rsp = blockingStub.get(buildGetRequest(key));
-      momento.sdk.messages.CacheGetResponse cacheGetResponse =
-          new momento.sdk.messages.CacheGetResponse(rsp.getResult(), rsp.getCacheBody());
+      CacheGetResponse cacheGetResponse = new CacheGetResponse(rsp.getResult(), rsp.getCacheBody());
       span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
       return cacheGetResponse;
     } catch (Exception e) {
@@ -167,26 +166,24 @@ public final class Cache implements Closeable {
    * @return {@link CacheSetResponse} with the result of the set operation
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
-  public momento.sdk.messages.CacheSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
+  public CacheSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
     return set(convert(key), convert(value), ttlSeconds);
   }
 
-  public momento.sdk.messages.CacheSetResponse set(String key, String value, int ttlSeconds) {
+  public CacheSetResponse set(String key, String value, int ttlSeconds) {
     return set(convert(key), convert(value), ttlSeconds);
   }
 
-  public momento.sdk.messages.CacheSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
+  public CacheSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
     return set(convert(key), convert(value), ttlSeconds);
   }
 
-  private momento.sdk.messages.CacheSetResponse set(
-      ByteString key, ByteString value, int ttlSeconds) {
+  private CacheSetResponse set(ByteString key, ByteString value, int ttlSeconds) {
     Optional<Span> span = buildSpan("java-sdk-set-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
 
-      momento.sdk.messages.CacheSetResponse response =
-          new momento.sdk.messages.CacheSetResponse(rsp.getResult());
+      CacheSetResponse response = new CacheSetResponse(rsp.getResult());
       span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
       return response;
     } catch (Exception e) {
@@ -210,15 +207,15 @@ public final class Cache implements Closeable {
    *     CompletionStage interface wrapping standard ClientResponse with response object as a {@link
    *     java.io.InputStream}.
    */
-  public CompletionStage<momento.sdk.messages.CacheGetResponse> getAsync(String key) {
+  public CompletionStage<CacheGetResponse> getAsync(String key) {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
     ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
 
     // Build a CompletableFuture to return to caller
-    CompletableFuture<momento.sdk.messages.CacheGetResponse> returnFuture =
-        new CompletableFuture<momento.sdk.messages.CacheGetResponse>() {
+    CompletableFuture<CacheGetResponse> returnFuture =
+        new CompletableFuture<CacheGetResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -234,8 +231,7 @@ public final class Cache implements Closeable {
         new FutureCallback<GetResponse>() {
           @Override
           public void onSuccess(GetResponse rsp) {
-            returnFuture.complete(
-                new momento.sdk.messages.CacheGetResponse(rsp.getResult(), rsp.getCacheBody()));
+            returnFuture.complete(new CacheGetResponse(rsp.getResult(), rsp.getCacheBody()));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
@@ -276,8 +272,7 @@ public final class Cache implements Closeable {
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
   // TODO: Update Async methods to support different input params.
-  public CompletionStage<momento.sdk.messages.CacheSetResponse> setAsync(
-      String key, ByteBuffer value, int ttlSeconds) {
+  public CompletionStage<CacheSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds) {
 
     Optional<Span> span = buildSpan("java-sdk-set-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
@@ -287,8 +282,8 @@ public final class Cache implements Closeable {
         futureStub.set(buildSetRequest(convert(key), convert(value), ttlSeconds * 1000));
 
     // Build a CompletableFuture to return to caller
-    CompletableFuture<momento.sdk.messages.CacheSetResponse> returnFuture =
-        new CompletableFuture<momento.sdk.messages.CacheSetResponse>() {
+    CompletableFuture<CacheSetResponse> returnFuture =
+        new CompletableFuture<CacheSetResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -304,7 +299,7 @@ public final class Cache implements Closeable {
         new FutureCallback<SetResponse>() {
           @Override
           public void onSuccess(SetResponse rsp) {
-            returnFuture.complete(new momento.sdk.messages.CacheSetResponse(rsp.getResult()));
+            returnFuture.complete(new CacheSetResponse(rsp.getResult()));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
