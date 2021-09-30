@@ -17,15 +17,15 @@ public final class ClientGetResponse extends BaseResponse {
     return this.resultMapper(this.result);
   }
 
-  public byte[] toByteArray() {
+  public byte[] asByteArray() {
     return body.toByteArray();
   }
 
-  public ByteBuffer toByteBuffer() {
+  public ByteBuffer asByteBuffer() {
     return body.asReadOnlyByteBuffer();
   }
 
-  public String toStringUtf8() {
+  public String asStringUtf8() {
     return body.toStringUtf8();
   }
 }

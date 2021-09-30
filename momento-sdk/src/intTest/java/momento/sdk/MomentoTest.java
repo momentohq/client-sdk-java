@@ -58,7 +58,7 @@ final class MomentoTest {
     // Get Key that was just set
     ClientGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-    assertEquals("bar", rsp.toStringUtf8());
+    assertEquals("bar", rsp.asStringUtf8());
   }
 
   // TODO: Update this to be recreated each time and add a separate test case for Already Exists

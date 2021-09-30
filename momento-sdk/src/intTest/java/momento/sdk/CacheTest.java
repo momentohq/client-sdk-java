@@ -103,7 +103,7 @@ final class CacheTest {
     // Get Key that was just set
     ClientGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-    assertEquals("bar", rsp.toStringUtf8());
+    assertEquals("bar", rsp.asStringUtf8());
   }
 
   @Test
@@ -134,7 +134,7 @@ final class CacheTest {
     ClientGetResponse rsp = client.getAsync(key).toCompletableFuture().get();
 
     assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-    assertEquals("bar", rsp.toStringUtf8());
+    assertEquals("bar", rsp.asStringUtf8());
   }
 
   @Test
