@@ -25,6 +25,11 @@ public final class ClientGetResponse extends BaseResponse {
     return body.asReadOnlyByteBuffer();
   }
 
+  /**
+   * Converts the value read from cache to a UTF-8 String
+   *
+   * @return
+   */
   public String asStringUtf8() {
     return body.toStringUtf8();
   }
