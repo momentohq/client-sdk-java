@@ -35,8 +35,8 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.net.ssl.SSLException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
-import momento.sdk.messages.ClientGetResponse;
-import momento.sdk.messages.ClientSetResponse;
+import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheSetResponse;
 
 /** Client to perform operations on cache. */
 // TODO: https://github.com/momentohq/client-sdk-java/issues/24 - constructors should be visible
@@ -129,21 +129,20 @@ public final class Cache implements Closeable {
 
   /**
    * Returns a requested object from cache specified by passed key. This method is a blocking api
-   * call. Please use getAsync if you need a {@link
-   * java.util.concurrent.CompletionStage<ClientGetResponse>} returned instead.
+   * call. Please use getAsync if you need a {@link java.util.concurrent.CompletionStage<
+   * CacheGetResponse >} returned instead.
    *
    * @param key the key of item to fetch from cache
-   * @return {@link ClientGetResponse} with the response object
+   * @return {@link CacheGetResponse} with the response object
    * @throws IOException if an error occurs opening input stream for response body.
    */
-  public ClientGetResponse get(String key) {
+  public CacheGetResponse get(String key) {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       GetResponse rsp = blockingStub.get(buildGetRequest(key));
-      ClientGetResponse clientGetResponse =
-          new ClientGetResponse(rsp.getResult(), rsp.getCacheBody());
+      CacheGetResponse cacheGetResponse = new CacheGetResponse(rsp.getResult(), rsp.getCacheBody());
       span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
-      return clientGetResponse;
+      return cacheGetResponse;
     } catch (Exception e) {
       span.ifPresent(
           theSpan -> {
@@ -158,33 +157,33 @@ public final class Cache implements Closeable {
 
   /**
    * Sets an object in cache by the passed key. This method is a blocking api call. Please use
-   * setAsync if you need a {@link java.util.concurrent.CompletionStage<ClientSetResponse>} returned
-   * instead.
+   * setAsync if you need a {@link java.util.concurrent.CompletionStage< CacheSetResponse >}
+   * returned instead.
    *
    * @param key the key of item to fetch from cache
    * @param value {@link ByteBuffer} of the value to set in cache
    * @param ttlSeconds the time for your object to live in cache in seconds.
-   * @return {@link ClientSetResponse} with the result of the set operation
+   * @return {@link CacheSetResponse} with the result of the set operation
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
-  public ClientSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
+  public CacheSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
     return set(convert(key), convert(value), ttlSeconds);
   }
 
-  public ClientSetResponse set(String key, String value, int ttlSeconds) {
+  public CacheSetResponse set(String key, String value, int ttlSeconds) {
     return set(convert(key), convert(value), ttlSeconds);
   }
 
-  public ClientSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
+  public CacheSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
     return set(convert(key), convert(value), ttlSeconds);
   }
 
-  private ClientSetResponse set(ByteString key, ByteString value, int ttlSeconds) {
+  private CacheSetResponse set(ByteString key, ByteString value, int ttlSeconds) {
     Optional<Span> span = buildSpan("java-sdk-set-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
 
-      ClientSetResponse response = new ClientSetResponse(rsp.getResult());
+      CacheSetResponse response = new CacheSetResponse(rsp.getResult());
       span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
       return response;
     } catch (Exception e) {
@@ -204,19 +203,19 @@ public final class Cache implements Closeable {
    * to better control concurrency of outbound cache get requests.
    *
    * @param key the key of item to fetch from cache.
-   * @return {@link CompletionStage<ClientGetResponse>} Returns a CompletableFuture as a
+   * @return {@link CompletionStage< CacheGetResponse >} Returns a CompletableFuture as a
    *     CompletionStage interface wrapping standard ClientResponse with response object as a {@link
    *     java.io.InputStream}.
    */
-  public CompletionStage<ClientGetResponse> getAsync(String key) {
+  public CompletionStage<CacheGetResponse> getAsync(String key) {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
     ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
 
     // Build a CompletableFuture to return to caller
-    CompletableFuture<ClientGetResponse> returnFuture =
-        new CompletableFuture<ClientGetResponse>() {
+    CompletableFuture<CacheGetResponse> returnFuture =
+        new CompletableFuture<CacheGetResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -232,7 +231,7 @@ public final class Cache implements Closeable {
         new FutureCallback<GetResponse>() {
           @Override
           public void onSuccess(GetResponse rsp) {
-            returnFuture.complete(new ClientGetResponse(rsp.getResult(), rsp.getCacheBody()));
+            returnFuture.complete(new CacheGetResponse(rsp.getResult(), rsp.getCacheBody()));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
@@ -268,12 +267,12 @@ public final class Cache implements Closeable {
    * @param key the key of item to fetch from cache.
    * @param value {@link ByteBuffer} of the value to set in cache
    * @param ttlSeconds the time for your object to live in cache in seconds.
-   * @return @{@link CompletionStage<ClientSetResponse>} Returns a CompletableFuture as a
+   * @return @{@link CompletionStage< CacheSetResponse >} Returns a CompletableFuture as a
    *     CompletionStage interface wrapping standard ClientSetResponse.
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
   // TODO: Update Async methods to support different input params.
-  public CompletionStage<ClientSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds) {
+  public CompletionStage<CacheSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds) {
 
     Optional<Span> span = buildSpan("java-sdk-set-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
@@ -283,8 +282,8 @@ public final class Cache implements Closeable {
         futureStub.set(buildSetRequest(convert(key), convert(value), ttlSeconds * 1000));
 
     // Build a CompletableFuture to return to caller
-    CompletableFuture<ClientSetResponse> returnFuture =
-        new CompletableFuture<ClientSetResponse>() {
+    CompletableFuture<CacheSetResponse> returnFuture =
+        new CompletableFuture<CacheSetResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -300,7 +299,7 @@ public final class Cache implements Closeable {
         new FutureCallback<SetResponse>() {
           @Override
           public void onSuccess(SetResponse rsp) {
-            returnFuture.complete(new ClientSetResponse(rsp.getResult()));
+            returnFuture.complete(new CacheSetResponse(rsp.getResult()));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);

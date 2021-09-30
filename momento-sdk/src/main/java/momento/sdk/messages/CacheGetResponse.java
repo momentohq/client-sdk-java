@@ -4,11 +4,11 @@ import com.google.protobuf.ByteString;
 import grpc.cache_client.ECacheResult;
 import java.nio.ByteBuffer;
 
-public final class ClientGetResponse extends BaseResponse {
+public final class CacheGetResponse extends BaseResponse {
   private final ByteString body;
   private final ECacheResult result;
 
-  public ClientGetResponse(ECacheResult result, ByteString body) {
+  public CacheGetResponse(ECacheResult result, ByteString body) {
     this.body = body;
     this.result = result;
   }
