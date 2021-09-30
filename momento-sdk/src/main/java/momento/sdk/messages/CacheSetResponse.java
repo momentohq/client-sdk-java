@@ -2,10 +2,10 @@ package momento.sdk.messages;
 
 import grpc.cache_client.ECacheResult;
 
-public final class ClientSetResponse extends BaseResponse {
+public final class CacheSetResponse extends BaseResponse {
   private final ECacheResult result;
 
-  public ClientSetResponse(ECacheResult result) {
+  public CacheSetResponse(ECacheResult result) {
     this.result = result;
   }
 

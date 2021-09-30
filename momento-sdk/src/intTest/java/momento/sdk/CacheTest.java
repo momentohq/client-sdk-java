@@ -25,8 +25,6 @@ import java.util.concurrent.TimeUnit;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.PermissionDeniedException;
-import momento.sdk.messages.ClientGetResponse;
-import momento.sdk.messages.ClientSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
@@ -96,12 +94,12 @@ final class CacheTest {
     String key = UUID.randomUUID().toString();
 
     // Set Key sync
-    ClientSetResponse setRsp =
+    momento.sdk.messages.CacheSetResponse setRsp =
         cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
     assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
 
     // Get Key that was just set
-    ClientGetResponse rsp = cache.get(key);
+    momento.sdk.messages.CacheGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.getResult());
     assertEquals("bar", rsp.asStringUtf8());
   }
@@ -126,12 +124,12 @@ final class CacheTest {
   private static void testAsyncHappyPath(Cache client) throws Exception {
     String key = UUID.randomUUID().toString();
     // Set Key Async
-    CompletionStage<ClientSetResponse> setRsp =
+    CompletionStage<momento.sdk.messages.CacheSetResponse> setRsp =
         client.setAsync(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 10);
     assertEquals(MomentoCacheResult.Ok, setRsp.toCompletableFuture().get().getResult());
 
     // Get Key Async
-    ClientGetResponse rsp = client.getAsync(key).toCompletableFuture().get();
+    momento.sdk.messages.CacheGetResponse rsp = client.getAsync(key).toCompletableFuture().get();
 
     assertEquals(MomentoCacheResult.Hit, rsp.getResult());
     assertEquals("bar", rsp.asStringUtf8());
@@ -158,14 +156,14 @@ final class CacheTest {
     String key = UUID.randomUUID().toString();
 
     // Set Key sync
-    ClientSetResponse setRsp =
+    momento.sdk.messages.CacheSetResponse setRsp =
         client.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 1);
     assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
 
     Thread.sleep(1500);
 
     // Get Key that was just set
-    ClientGetResponse rsp = client.get(key);
+    momento.sdk.messages.CacheGetResponse rsp = client.get(key);
     assertEquals(MomentoCacheResult.Miss, rsp.getResult());
   }
 
@@ -188,7 +186,7 @@ final class CacheTest {
 
   private static void testMissHappyPathInternal(Cache client) {
     // Get Key that was just set
-    ClientGetResponse rsp = client.get(UUID.randomUUID().toString());
+    momento.sdk.messages.CacheGetResponse rsp = client.get(UUID.randomUUID().toString());
 
     assertEquals(MomentoCacheResult.Miss, rsp.getResult());
   }

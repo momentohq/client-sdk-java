@@ -9,8 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
-import momento.sdk.messages.ClientGetResponse;
-import momento.sdk.messages.ClientSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -51,12 +49,12 @@ final class MomentoTest {
     String key = java.util.UUID.randomUUID().toString();
 
     // Set Key sync
-    ClientSetResponse setRsp =
+    momento.sdk.messages.CacheSetResponse setRsp =
         cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
     assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
 
     // Get Key that was just set
-    ClientGetResponse rsp = cache.get(key);
+    momento.sdk.messages.CacheGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.getResult());
     assertEquals("bar", rsp.asStringUtf8());
   }
