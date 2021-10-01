@@ -1,8 +1,7 @@
 package momento.sdk;
 
 import static momento.sdk.TestHelpers.DEFAULT_CACHE_ENDPOINT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -240,6 +239,19 @@ final class CacheTest {
         getCache(System.getenv("TEST_AUTH_TOKEN"), UUID.randomUUID().toString(), Optional.empty());
 
     assertThrows(CacheNotFoundException.class, () -> cache.get("key"));
+  }
+
+  @Test
+  public void setAndGetWithByteKeyValuesMustSucceed() {
+    byte[] key = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8);
+    byte[] value = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8);
+
+    CacheSetResponse setResponse = cache.set(key, value, 3);
+    assertEquals(setResponse.getResult(), MomentoCacheResult.Ok);
+
+    CacheGetResponse getResponse = cache.get(key);
+    assertEquals(getResponse.getResult(), MomentoCacheResult.Hit);
+    assertArrayEquals(value, getResponse.asByteArray());
   }
   /** ================ HELPER FUNCTIONS ====================================== */
   OpenTelemetrySdk setOtelSDK() {

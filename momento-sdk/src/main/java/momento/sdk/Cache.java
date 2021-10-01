@@ -27,7 +27,6 @@ import io.opentelemetry.context.Scope;
 import java.io.Closeable;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -137,6 +136,14 @@ public final class Cache implements Closeable {
    * @throws IOException if an error occurs opening input stream for response body.
    */
   public CacheGetResponse get(String key) {
+    return sendGet(convert(key));
+  }
+
+  public CacheGetResponse get(byte[] key) {
+    return sendGet(convert(key));
+  }
+
+  private CacheGetResponse sendGet(ByteString key) {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
       GetResponse rsp = blockingStub.get(buildGetRequest(key));
@@ -178,6 +185,9 @@ public final class Cache implements Closeable {
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
+  // Having this method named as set causes client side compilation issues, where the compiler
+  // requires a dependency
+  // on com.google.protobuf.ByteString
   private CacheSetResponse sendSet(ByteString key, ByteString value, int ttlSeconds) {
     Optional<Span> span = buildSpan("java-sdk-set-request");
     try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
@@ -211,7 +221,7 @@ public final class Cache implements Closeable {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
-    ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
+    ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(convert(key)));
 
     // Build a CompletableFuture to return to caller
     CompletableFuture<CacheGetResponse> returnFuture =
@@ -332,10 +342,8 @@ public final class Cache implements Closeable {
     this.channel.shutdown();
   }
 
-  private GetRequest buildGetRequest(String key) {
-    return GetRequest.newBuilder()
-        .setCacheKey(ByteString.copyFrom(key, StandardCharsets.UTF_8))
-        .build();
+  private GetRequest buildGetRequest(ByteString key) {
+    return GetRequest.newBuilder().setCacheKey(key).build();
   }
 
   private SetRequest buildSetRequest(ByteString key, ByteString value, int ttl) {
