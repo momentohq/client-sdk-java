@@ -13,6 +13,7 @@ import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
@@ -94,12 +95,12 @@ final class CacheTest {
     // Set Key sync
     CacheSetResponse setRsp =
         cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
-    assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
+    assertEquals(MomentoCacheResult.Ok, setRsp.result());
 
     // Get Key that was just set
     CacheGetResponse rsp = cache.get(key);
-    assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-    assertEquals("bar", rsp.asStringUtf8());
+    assertEquals(MomentoCacheResult.Hit, rsp.result());
+    assertEquals("bar", rsp.asStringUtf8().get());
   }
 
   @Test
@@ -124,13 +125,13 @@ final class CacheTest {
     // Set Key Async
     CompletionStage<CacheSetResponse> setRsp =
         client.setAsync(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 10);
-    assertEquals(MomentoCacheResult.Ok, setRsp.toCompletableFuture().get().getResult());
+    assertEquals(MomentoCacheResult.Ok, setRsp.toCompletableFuture().get().result());
 
     // Get Key Async
     CacheGetResponse rsp = client.getAsync(key).toCompletableFuture().get();
 
-    assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-    assertEquals("bar", rsp.asStringUtf8());
+    assertEquals(MomentoCacheResult.Hit, rsp.result());
+    assertEquals("bar", rsp.asStringUtf8().get());
   }
 
   @Test
@@ -156,13 +157,14 @@ final class CacheTest {
     // Set Key sync
     CacheSetResponse setRsp =
         client.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 1);
-    assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
+    assertEquals(MomentoCacheResult.Ok, setRsp.result());
 
     Thread.sleep(1500);
 
     // Get Key that was just set
     CacheGetResponse rsp = client.get(key);
-    assertEquals(MomentoCacheResult.Miss, rsp.getResult());
+    assertEquals(MomentoCacheResult.Miss, rsp.result());
+    assertFalse(rsp.asInputStream().isPresent());
   }
 
   @Test
@@ -186,7 +188,12 @@ final class CacheTest {
     // Get Key that was just set
     CacheGetResponse rsp = client.get(UUID.randomUUID().toString());
 
-    assertEquals(MomentoCacheResult.Miss, rsp.getResult());
+    assertEquals(MomentoCacheResult.Miss, rsp.result());
+    assertFalse(rsp.asInputStream().isPresent());
+    assertFalse(rsp.asByteArray().isPresent());
+    assertFalse(rsp.asByteBuffer().isPresent());
+    assertFalse(rsp.asStringUtf8().isPresent());
+    assertFalse(rsp.asString(Charset.defaultCharset()).isPresent());
   }
 
   @Test
@@ -247,11 +254,11 @@ final class CacheTest {
     byte[] value = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8);
 
     CacheSetResponse setResponse = cache.set(key, value, 3);
-    assertEquals(setResponse.getResult(), MomentoCacheResult.Ok);
+    assertEquals(setResponse.result(), MomentoCacheResult.Ok);
 
     CacheGetResponse getResponse = cache.get(key);
-    assertEquals(getResponse.getResult(), MomentoCacheResult.Hit);
-    assertArrayEquals(value, getResponse.asByteArray());
+    assertEquals(getResponse.result(), MomentoCacheResult.Hit);
+    assertArrayEquals(value, getResponse.asByteArray().get());
   }
   /** ================ HELPER FUNCTIONS ====================================== */
   OpenTelemetrySdk setOtelSDK() {

@@ -50,12 +50,12 @@ final class MomentoTest {
     // Set Key sync
     CacheSetResponse setRsp =
         cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
-    assertEquals(MomentoCacheResult.Ok, setRsp.getResult());
+    assertEquals(MomentoCacheResult.Ok, setRsp.result());
 
     // Get Key that was just set
     CacheGetResponse rsp = cache.get(key);
-    assertEquals(MomentoCacheResult.Hit, rsp.getResult());
-    assertEquals("bar", rsp.asStringUtf8());
+    assertEquals(MomentoCacheResult.Hit, rsp.result());
+    assertEquals("bar", rsp.asStringUtf8().get());
   }
 
   // TODO: Update this to be recreated each time and add a separate test case for Already Exists
