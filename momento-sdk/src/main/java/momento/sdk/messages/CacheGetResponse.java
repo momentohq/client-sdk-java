@@ -2,7 +2,10 @@ package momento.sdk.messages;
 
 import com.google.protobuf.ByteString;
 import grpc.cache_client.ECacheResult;
+import java.io.InputStream;
 import java.nio.ByteBuffer;
+import java.nio.charset.Charset;
+import java.util.Optional;
 
 public final class CacheGetResponse extends BaseResponse {
   private final ByteString body;
@@ -13,16 +16,22 @@ public final class CacheGetResponse extends BaseResponse {
     this.result = result;
   }
 
-  public MomentoCacheResult getResult() {
+  public MomentoCacheResult result() {
     return this.resultMapper(this.result);
   }
 
-  public byte[] asByteArray() {
-    return body.toByteArray();
+  public Optional<byte[]> asByteArray() {
+    if (result != ECacheResult.Hit) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(body.toByteArray());
   }
 
-  public ByteBuffer asByteBuffer() {
-    return body.asReadOnlyByteBuffer();
+  public Optional<ByteBuffer> asByteBuffer() {
+    if (result != ECacheResult.Hit) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(body.asReadOnlyByteBuffer());
   }
 
   /**
@@ -30,7 +39,25 @@ public final class CacheGetResponse extends BaseResponse {
    *
    * @return
    */
-  public String asStringUtf8() {
-    return body.toStringUtf8();
+  public Optional<String> asStringUtf8() {
+    if (result != ECacheResult.Hit) {
+      return Optional.empty();
+    }
+
+    return Optional.ofNullable(body.toStringUtf8());
+  }
+
+  public Optional<String> asString(Charset charset) {
+    if (result != ECacheResult.Hit) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(body.toString(charset));
+  }
+
+  public Optional<InputStream> asInputStream() {
+    if (result != ECacheResult.Hit) {
+      return Optional.empty();
+    }
+    return Optional.ofNullable(body.newInput());
   }
 }

@@ -9,7 +9,7 @@ public final class CacheSetResponse extends BaseResponse {
     this.result = result;
   }
 
-  public MomentoCacheResult getResult() {
+  public MomentoCacheResult result() {
     return this.resultMapper(this.result);
   }
 }
