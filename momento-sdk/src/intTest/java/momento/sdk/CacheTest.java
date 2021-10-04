@@ -28,7 +28,6 @@ import momento.sdk.messages.MomentoCacheResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 final class CacheTest {
@@ -198,54 +197,28 @@ final class CacheTest {
 
   @Test
   void testBadAuthToken() {
-    Cache badCredClient = getCache("BAD_TOKEN", "dummy", Optional.empty());
-    testBadAuthToken(badCredClient);
-  }
-
-  @Test
-  void testBadAuthTokenWithTracing() throws Exception {
-    startIntegrationTestOtel();
-    OpenTelemetrySdk openTelemetry = setOtelSDK();
-    Cache client = getCache("BAD_TOKEN", "dummy", Optional.of(openTelemetry));
-    testBadAuthToken(client);
-    // To accommodate for delays in tracing logs to appear in docker
-    Thread.sleep(1000);
-    verifySetTrace("1");
-    verifyGetTrace("1");
-  }
-
-  private static void testBadAuthToken(Cache badCredClient) {
-    // Bad Auth for Get
-    assertThrows(PermissionDeniedException.class, () -> badCredClient.get("myCacheKey"));
-
-    // Bad Auth for Set
     assertThrows(
-        PermissionDeniedException.class,
-        () ->
-            badCredClient.set(
-                "myCacheKey",
-                ByteBuffer.wrap("cache me if you can".getBytes(StandardCharsets.UTF_8)),
-                500));
+        PermissionDeniedException.class, () -> getCache("BAD_TOKEN", "dummy", Optional.empty()));
   }
 
   @Test
   public void unreachableEndpoint_ThrowsException() {
-    Cache cache =
-        new Cache(
-            System.getenv("TEST_AUTH_TOKEN"),
-            System.getenv("TEST_CACHE_NAME"),
-            "nonexistent.preprod.a.momentohq.com");
-
-    assertThrows(ClientSdkException.class, () -> cache.get("key"));
+    assertThrows(
+        ClientSdkException.class,
+        () ->
+            new Cache(
+                System.getenv("TEST_AUTH_TOKEN"),
+                System.getenv("TEST_CACHE_NAME"),
+                "nonexistent.preprod.a.momentohq.com"));
   }
 
-  @Disabled("TODO: Update to catch cache not ready and then do a get again to see not found.")
   @Test
   public void invalidCache_ThrowsNotFoundException() {
-    Cache cache =
-        getCache(System.getenv("TEST_AUTH_TOKEN"), UUID.randomUUID().toString(), Optional.empty());
-
-    assertThrows(CacheNotFoundException.class, () -> cache.get("key"));
+    assertThrows(
+        CacheNotFoundException.class,
+        () ->
+            getCache(
+                System.getenv("TEST_AUTH_TOKEN"), UUID.randomUUID().toString(), Optional.empty()));
   }
 
   @Test
