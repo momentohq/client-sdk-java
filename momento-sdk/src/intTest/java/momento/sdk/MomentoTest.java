@@ -61,9 +61,10 @@ final class MomentoTest {
   // TODO: Update this to be recreated each time and add a separate test case for Already Exists
   private static Cache getOrCreate(Momento momento, String cacheName) {
     try {
-      return momento.createCache(cacheName).cache();
+      momento.createCache(cacheName);
     } catch (CacheAlreadyExistsException e) {
-      return momento.getCache(cacheName);
+      // Just get Cache following a successful create
     }
+    return momento.getCache(cacheName);
   }
 }
