@@ -33,17 +33,20 @@ public final class CacheServiceExceptionMapper {
           return new CacheNotFoundException(grpcException.getMessage());
 
         default:
-          if (isDnsUnreachable(grpcException)) {
-            return new ClientSdkException(
-                String.format(
-                    "Unable to reach request endpoint. Request failed with %s",
-                    grpcException.getMessage()));
-          }
-          return new InternalServerException(INTERNAL_SERVER_ERROR_MESSAGE);
+          return convertUnhandledExceptions(grpcException);
       }
     }
 
     return new ClientSdkException("SDK Failed to process the request", e);
+  }
+
+  public static SdkException convertUnhandledExceptions(StatusRuntimeException e) {
+    if (isDnsUnreachable(e)) {
+      return new ClientSdkException(
+          String.format(
+              "Unable to reach request endpoint. Request failed with %s", e.getMessage()));
+    }
+    return new InternalServerException(INTERNAL_SERVER_ERROR_MESSAGE);
   }
 
   private static boolean isDnsUnreachable(StatusRuntimeException e) {

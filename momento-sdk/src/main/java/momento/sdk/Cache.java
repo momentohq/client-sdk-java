@@ -14,6 +14,8 @@ import grpc.cache_client.SetRequest;
 import grpc.cache_client.SetResponse;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
@@ -48,15 +50,6 @@ public final class Cache implements Closeable {
   private final Optional<Tracer> tracer;
 
   /**
-   * Builds an instance of {@link Cache} used to interact w/ SCS with a default endpoint.
-   *
-   * @param authToken Token to authenticate with Cache Service
-   */
-  public Cache(String authToken, String cacheName) {
-    this(authToken, cacheName, Optional.empty());
-  }
-
-  /**
    * Builds an instance of {@link Cache} that will interact with a specified endpoint
    *
    * @param authToken Token to authenticate with SCS
@@ -64,14 +57,6 @@ public final class Cache implements Closeable {
    */
   public Cache(String authToken, String cacheName, String endpoint) {
     this(authToken, cacheName, Optional.empty(), endpoint);
-  }
-
-  /**
-   * @param authToken Token to authenticate with SCS
-   * @param openTelemetry Open telemetry instance to hook into client traces
-   */
-  public Cache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry) {
-    this(authToken, cacheName, openTelemetry, "alpha.cacheservice.com");
   }
 
   /**
@@ -124,6 +109,35 @@ public final class Cache implements Closeable {
     this.futureStub = ScsGrpc.newFutureStub(channel);
     this.channel = channel;
     this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
+    waitTillReady();
+  }
+
+  private void waitTillReady() {
+    long start = System.currentTimeMillis();
+    long maxRetryDurationMillis = 5000;
+    long backoffDurationMillis = 5;
+    StatusRuntimeException lastRetriedException = null;
+
+    while (System.currentTimeMillis() - start < maxRetryDurationMillis) {
+      try {
+        // The key has no special meaning. Just any key string would work.
+        this.blockingStub.get(buildGetRequest(convert("000")));
+        return;
+      } catch (StatusRuntimeException e) {
+        if (e.getStatus().getCode() == Status.Code.UNKNOWN
+            || e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
+          try {
+            Thread.sleep(backoffDurationMillis);
+          } catch (InterruptedException t) {
+            throw CacheServiceExceptionMapper.convert(t);
+          }
+          lastRetriedException = e;
+        } else {
+          throw CacheServiceExceptionMapper.convert(e);
+        }
+      }
+    }
+    throw CacheServiceExceptionMapper.convertUnhandledExceptions(lastRetriedException);
   }
 
   /**
