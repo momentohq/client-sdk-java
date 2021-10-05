@@ -13,6 +13,7 @@ import java.util.List;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CreateCacheResponse;
 
 public final class Momento implements Closeable {
@@ -62,6 +63,11 @@ public final class Momento implements Closeable {
         throw new CacheAlreadyExistsException(
             String.format("Cache with name %s already exists", cacheName));
       }
+      if (e.getStatus().getCode() == Status.Code.INVALID_ARGUMENT) {
+        throw new InvalidArgumentException(
+                String.format("Invalid cache name %s, cache names must be non empty", cacheName)
+        );
+      }
       throw CacheServiceExceptionMapper.convert(e);
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
@@ -80,6 +86,9 @@ public final class Momento implements Closeable {
   private static void checkCacheNameValid(String cacheName) {
     if (cacheName == null) {
       throw new ClientSdkException("Cache Name is required.");
+    }
+    if (cacheName.trim().isEmpty()) {
+      throw new InvalidArgumentException("Cache Name must not be empty");
     }
   }
 
