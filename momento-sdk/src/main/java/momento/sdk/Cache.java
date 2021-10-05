@@ -129,7 +129,7 @@ public final class Cache implements Closeable {
           try {
             Thread.sleep(backoffDurationMillis);
           } catch (InterruptedException t) {
-            Thread.currentThread().interrupt();
+            throw CacheServiceExceptionMapper.convert(t);
           }
         } else {
           throw CacheServiceExceptionMapper.convert(e);
