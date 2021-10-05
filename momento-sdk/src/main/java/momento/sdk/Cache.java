@@ -115,10 +115,10 @@ public final class Cache implements Closeable {
 
   private void waitTillReady() {
     long start = System.currentTimeMillis();
-    long maxRetryDurationInMillis = 5000;
+    long maxRetryDurationMillis = 5000;
     long backoffDurationMillis = 10;
 
-    while (System.currentTimeMillis() - start < maxRetryDurationInMillis) {
+    while (System.currentTimeMillis() - start < maxRetryDurationMillis) {
       try {
         // The key has no special meaning. Just any key string would work.
         this.blockingStub.get(buildGetRequest(convert("000")));
@@ -136,9 +136,8 @@ public final class Cache implements Closeable {
         }
       }
     }
-      // TODO: Update the message string.
-      throw new InternalServerException("There was an internal error connecting to cache");
-
+    // TODO: Update the message string.
+    throw new InternalServerException("There was an internal error connecting to cache");
   }
 
   /**
