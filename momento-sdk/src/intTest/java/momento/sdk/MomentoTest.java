@@ -2,6 +2,7 @@ package momento.sdk;
 
 import static momento.sdk.TestHelpers.DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -10,7 +11,6 @@ import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -68,7 +68,7 @@ final class MomentoTest {
             .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
             .build();
 
-    Assertions.assertThrows(InvalidArgumentException.class, () -> getOrCreate(momento, "     "));
+    assertThrows(InvalidArgumentException.class, () -> getOrCreate(momento, "     "));
   }
 
   // TODO: Update this to be recreated each time and add a separate test case for Already Exists
