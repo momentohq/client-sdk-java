@@ -116,7 +116,7 @@ public final class Cache implements Closeable {
   private void waitTillReady() {
     long start = System.currentTimeMillis();
     long maxRetryDurationMillis = 5000;
-    long backoffDurationMillis = 10;
+    long backoffDurationMillis = 5;
 
     while (System.currentTimeMillis() - start < maxRetryDurationMillis) {
       try {
