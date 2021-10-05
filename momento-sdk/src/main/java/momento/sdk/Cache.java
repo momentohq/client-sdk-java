@@ -36,6 +36,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.net.ssl.SSLException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
@@ -113,30 +114,31 @@ public final class Cache implements Closeable {
   }
 
   private void waitTillReady() {
-    int totalNumAttempts = 5;
-    int retryIntervalMilliSeconds = 1000;
-    while (totalNumAttempts > 0) {
+    long start = System.currentTimeMillis();
+    long maxRetryDurationInMillis = 5000;
+    long backoffDurationMillis = 10;
+
+    while (System.currentTimeMillis() - start < maxRetryDurationInMillis) {
       try {
         // The key has no special meaning. Just any key string would work.
         this.blockingStub.get(buildGetRequest(convert("000")));
-        break;
+        return;
       } catch (StatusRuntimeException e) {
-        boolean lastAttempt = (--totalNumAttempts == 0);
-        boolean retryable =
-            !lastAttempt
-                && (e.getStatus().getCode() == Status.Code.UNKNOWN
-                    || e.getStatus().getCode() == Status.Code.UNAVAILABLE);
-        if (retryable) {
+        if (e.getStatus().getCode() == Status.Code.UNKNOWN
+            || e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
           try {
-            Thread.sleep(retryIntervalMilliSeconds);
+            Thread.sleep(backoffDurationMillis);
           } catch (InterruptedException t) {
-            // do nothing.
+            Thread.currentThread().interrupt();
           }
         } else {
           throw CacheServiceExceptionMapper.convert(e);
         }
       }
     }
+      // TODO: Update the message string.
+      throw new InternalServerException("There was an internal error connecting to cache");
+
   }
 
   /**
