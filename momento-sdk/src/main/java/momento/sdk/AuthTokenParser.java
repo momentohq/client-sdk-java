@@ -23,6 +23,7 @@ final class AuthTokenParser {
     }
   }
 
+  // https://github.com/jwtk/jjwt/issues/280
   private static String tokenWithOnlyHeaderAndClaims(String authToken) {
     String[] splitToken = authToken.split("\\.");
     if (splitToken == null || splitToken.length < 2) {
