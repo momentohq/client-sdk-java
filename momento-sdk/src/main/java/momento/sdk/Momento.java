@@ -65,8 +65,7 @@ public final class Momento implements Closeable {
       }
       if (e.getStatus().getCode() == Status.Code.INVALID_ARGUMENT) {
         throw new InvalidArgumentException(
-                String.format("Invalid cache name %s, cache names must be non empty", cacheName)
-        );
+            String.format("Invalid cache name %s, cache names must be non empty", cacheName));
       }
       throw CacheServiceExceptionMapper.convert(e);
     } catch (Exception e) {

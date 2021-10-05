@@ -63,10 +63,10 @@ final class MomentoTest {
   @Test
   void testInvalidCacheName() {
     Momento momento =
-            Momento.builder()
-                    .authToken(authToken)
-                    .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
-                    .build();
+        Momento.builder()
+            .authToken(authToken)
+            .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
+            .build();
 
     Assertions.assertThrows(InvalidArgumentException.class, () -> getOrCreate(momento, "     "));
   }
