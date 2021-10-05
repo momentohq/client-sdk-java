@@ -25,7 +25,7 @@ final class MomentoEndpointsResolver {
                     .orElseThrow(
                         () ->
                             new ClientSdkException(
-                                "Failed to determine endpoint from the auth token or an override")));
+                                "Failed to determine control endpoint from the auth token or an override")));
   }
 
   private static String getCacheEndpoint(
@@ -38,7 +38,7 @@ final class MomentoEndpointsResolver {
                     .orElseThrow(
                         () ->
                             new ClientSdkException(
-                                "Failed to determine endpoint from the auth token or an override")));
+                                "Failed to determine cache endpoint from the auth token or an override")));
   }
 
   private static Optional<String> controlEndpointFromHostedZone(Optional<String> hostedZone) {

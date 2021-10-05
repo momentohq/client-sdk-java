@@ -1,6 +1,8 @@
 package momento.sdk;
 
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Header;
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.Jwts;
 import java.util.Optional;
 import momento.sdk.exceptions.ClientSdkException;
 

@@ -1,6 +1,8 @@
 package momento.sdk;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import momento.sdk.exceptions.ClientSdkException;
 import org.junit.jupiter.api.Test;
