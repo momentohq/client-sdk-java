@@ -18,72 +18,29 @@ import momento.sdk.messages.CreateCacheResponse;
 
 public final class Momento implements Closeable {
 
-  private static final String CONTROL_ENDPOINT_PREFIX = "control.";
-  private static final String CACHE_ENDPOINT_PREFIX = "cache.";
-
   private final String authToken;
   private final ScsControlBlockingStub blockingStub;
   private final ManagedChannel channel;
-  private final String controlEndpoint;
-  private final String cacheEndpoint;
+  private final MomentoEndpointsResolver.MomentoEndpoints momentoEndpoints;
 
   private Momento(String authToken, Optional<String> hostedZoneOverride) {
 
     this.authToken = authToken;
+    this.momentoEndpoints = MomentoEndpointsResolver.resolve(authToken, hostedZoneOverride);
+    this.channel = setupConnection(momentoEndpoints, authToken);
+    this.blockingStub = ScsControlGrpc.newBlockingStub(channel);
+  }
 
-    AuthTokenParser.Claims claims = AuthTokenParser.parse(authToken);
-    controlEndpoint = getControlEndpoint(claims, hostedZoneOverride);
-    cacheEndpoint = getCacheEndpoint(claims, hostedZoneOverride);
-
-    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(controlEndpoint, 443);
+  private static ManagedChannel setupConnection(
+      MomentoEndpointsResolver.MomentoEndpoints momentoEndpoints, String authToken) {
+    NettyChannelBuilder channelBuilder =
+        NettyChannelBuilder.forAddress(momentoEndpoints.controlEndpoint(), 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new AuthInterceptor(authToken));
     channelBuilder.intercept(clientInterceptors);
-    ManagedChannel channel = channelBuilder.build();
-    this.blockingStub = ScsControlGrpc.newBlockingStub(channel);
-    this.channel = channel;
-  }
-
-  private static String getControlEndpoint(
-      AuthTokenParser.Claims claims, Optional<String> hostedZone) {
-    return controlEndpointFromHostedZone(hostedZone)
-        .orElseGet(
-            () ->
-                claims
-                    .controlEndpoint()
-                    .orElseThrow(
-                        () ->
-                            new ClientSdkException(
-                                "Failed to determine endpoint from the auth token or an override")));
-  }
-
-  private static String getCacheEndpoint(
-      AuthTokenParser.Claims claims, Optional<String> hostedZone) {
-    return cacheEndpointFromHostedZone(hostedZone)
-        .orElseGet(
-            () ->
-                claims
-                    .cacheEndpoint()
-                    .orElseThrow(
-                        () ->
-                            new ClientSdkException(
-                                "Failed to determine endpoint from the auth token or an override")));
-  }
-
-  private static Optional<String> controlEndpointFromHostedZone(Optional<String> hostedZone) {
-    if (hostedZone.isPresent()) {
-      return Optional.of(CONTROL_ENDPOINT_PREFIX + hostedZone.get());
-    }
-    return Optional.empty();
-  }
-
-  private static Optional<String> cacheEndpointFromHostedZone(Optional<String> hostedZone) {
-    if (hostedZone.isPresent()) {
-      return Optional.of(CACHE_ENDPOINT_PREFIX + hostedZone.get());
-    }
-    return Optional.empty();
+    return channelBuilder.build();
   }
 
   /**
@@ -116,7 +73,7 @@ public final class Momento implements Closeable {
 
   public Cache getCache(String cacheName) {
     checkCacheNameValid(cacheName);
-    return makeCacheClient(authToken, cacheName, cacheEndpoint);
+    return makeCacheClient(authToken, cacheName, momentoEndpoints.cacheEndpoint());
   }
 
   private CreateCacheRequest buildCreateCacheRequest(String cacheName) {

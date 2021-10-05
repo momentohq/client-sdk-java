@@ -6,6 +6,8 @@ import momento.sdk.exceptions.ClientSdkException;
 
 final class AuthTokenParser {
 
+  private AuthTokenParser() {}
+
   public static Claims parse(String authToken) {
     try {
       ensurePresent(authToken);
