@@ -36,7 +36,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionStage;
 import javax.net.ssl.SSLException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
-import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
@@ -117,6 +116,7 @@ public final class Cache implements Closeable {
     long start = System.currentTimeMillis();
     long maxRetryDurationMillis = 5000;
     long backoffDurationMillis = 5;
+    StatusRuntimeException lastRetriedException = null;
 
     while (System.currentTimeMillis() - start < maxRetryDurationMillis) {
       try {
@@ -131,13 +131,13 @@ public final class Cache implements Closeable {
           } catch (InterruptedException t) {
             throw CacheServiceExceptionMapper.convert(t);
           }
+          lastRetriedException = e;
         } else {
           throw CacheServiceExceptionMapper.convert(e);
         }
       }
     }
-    // TODO: Update the message string.
-    throw new InternalServerException("There was an internal error connecting to cache");
+    throw CacheServiceExceptionMapper.convertUnhandledExceptions(lastRetriedException);
   }
 
   /**
