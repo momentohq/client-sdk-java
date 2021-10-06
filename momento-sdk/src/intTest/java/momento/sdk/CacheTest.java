@@ -18,7 +18,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import java.util.concurrent.TimeUnit;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.ClientSdkException;
