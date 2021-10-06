@@ -46,27 +46,26 @@ final class MomentoTest {
 
   @Test
   void testHappyPath() {
-    Momento momento = Momento.builder().authToken(authToken).build();
+    Momento momento = Momento.builder(authToken).build();
     runHappyPathTest(momento, cacheName);
   }
 
   @Test
   void authTokenWithNoEndpointAndNoEndpointOverride_throwsException() {
     assertThrows(
-        ClientSdkException.class,
-        () -> Momento.builder().authToken(TEST_AUTH_TOKEN_NO_ENDPOINT).build());
+        ClientSdkException.class, () -> Momento.builder(TEST_AUTH_TOKEN_NO_ENDPOINT).build());
   }
 
   @Test
   void missingAuthToken_throwsException() {
-    assertThrows(ClientSdkException.class, () -> Momento.builder().build());
+    assertThrows(
+        ClientSdkException.class, () -> Momento.builder(TEST_AUTH_TOKEN_NO_ENDPOINT).build());
   }
 
   @Test
   void testInvalidCacheName() {
     Momento momento =
-        Momento.builder()
-            .authToken(authToken)
+        Momento.builder(TEST_AUTH_TOKEN_NO_ENDPOINT)
             .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
             .build();
 
@@ -76,8 +75,7 @@ final class MomentoTest {
   @Test
   void clientWithEndpointOverride_succeeds() {
     Momento momentoWithEndpointOverride =
-        Momento.builder()
-            .authToken(authToken)
+        Momento.builder(TEST_AUTH_TOKEN_NO_ENDPOINT)
             .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
             .build();
     runHappyPathTest(momentoWithEndpointOverride, cacheName);

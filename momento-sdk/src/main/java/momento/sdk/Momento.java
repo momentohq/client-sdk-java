@@ -94,28 +94,23 @@ public final class Momento implements Closeable {
     this.channel.shutdown();
   }
 
-  public static MomentoBuilder builder() {
-    return new MomentoBuilder();
+  public static MomentoBuilder builder(String authToken) {
+    return new MomentoBuilder(authToken);
   }
 
   public static class MomentoBuilder {
     private String authToken;
     private Optional<String> endpointOverride = Optional.empty();
 
-    public MomentoBuilder authToken(String authToken) {
+    public MomentoBuilder(String authToken) {
       this.authToken = authToken;
-      return this;
     }
 
     /**
      * Endpoint that will be used to perform Momento Cache Operations.
      *
-     * @param endpointOverride
-     * @return
+     * <p>This should be set only if Momento Team has provided you one.
      */
-    // TODO: Write a better public facing doc, this is basically a hosted zone for the cell against
-    // which the requests
-    // will be made.
     public MomentoBuilder endpointOverride(String endpointOverride) {
       this.endpointOverride = Optional.ofNullable(endpointOverride);
       return this;
