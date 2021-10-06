@@ -227,15 +227,32 @@ public final class Cache implements Closeable {
    * to better control concurrency of outbound cache get requests.
    *
    * @param key the key of item to fetch from cache.
+   * @return {@link CompletableFuture< CacheGetResponse >} Returns a CompletableFuture as a
+   *     CompletionStage interface wrapping standard ClientResponse with response object as a {@link
+   *     java.io.InputStream}.
+   */
+  public CompletableFuture<CacheGetResponse> getAsync(byte[] key) {
+    return sendAsyncGet(convert(key));
+  }
+
+  /**
+   * Returns CompletableStage of getting an item from SCS by passed key. Allows user of this clients
+   * to better control concurrency of outbound cache get requests.
+   *
+   * @param key the key of item to fetch from cache.
    * @return {@link CompletionStage< CacheGetResponse >} Returns a CompletableFuture as a
    *     CompletionStage interface wrapping standard ClientResponse with response object as a {@link
    *     java.io.InputStream}.
    */
-  public CompletionStage<CacheGetResponse> getAsync(String key) {
+  public CompletableFuture<CacheGetResponse> getAsync(String key) {
+    return sendAsyncGet(convert(key));
+  }
+
+  private CompletableFuture<CacheGetResponse> sendAsyncGet(ByteString key) {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
-    ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(convert(key)));
+    ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
 
     // Build a CompletableFuture to return to caller
     CompletableFuture<CacheGetResponse> returnFuture =
@@ -291,19 +308,32 @@ public final class Cache implements Closeable {
    * @param key the key of item to fetch from cache.
    * @param value {@link ByteBuffer} of the value to set in cache
    * @param ttlSeconds the time for your object to live in cache in seconds.
-   * @return @{@link CompletionStage< CacheSetResponse >} Returns a CompletableFuture as a
+   * @return @{@link CompletableFuture< CacheSetResponse >} Returns a CompletableFuture as a
    *     CompletionStage interface wrapping standard ClientSetResponse.
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
-  // TODO: Update Async methods to support different input params.
-  public CompletionStage<CacheSetResponse> setAsync(String key, ByteBuffer value, int ttlSeconds) {
+  public CompletableFuture<CacheSetResponse> setAsync(
+      String key, ByteBuffer value, int ttlSeconds) {
+    return sendSetAsync(convert(key), convert(value), ttlSeconds);
+  }
+
+  public CompletableFuture<CacheSetResponse> setAsync(byte[] key, byte[] value, int ttlSeconds) {
+    return sendSetAsync(convert(key), convert(value), ttlSeconds);
+  }
+
+  public CompletableFuture<CacheSetResponse> setAsync(String key, String value, int ttlSeconds) {
+    return sendSetAsync(convert(key), convert(value), ttlSeconds);
+  }
+
+  private CompletableFuture<CacheSetResponse> sendSetAsync(
+      ByteString key, ByteString value, int ttlSeconds) {
 
     Optional<Span> span = buildSpan("java-sdk-set-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     ListenableFuture<SetResponse> rspFuture =
-        futureStub.set(buildSetRequest(convert(key), convert(value), ttlSeconds * 1000));
+        futureStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
 
     // Build a CompletableFuture to return to caller
     CompletableFuture<CacheSetResponse> returnFuture =
