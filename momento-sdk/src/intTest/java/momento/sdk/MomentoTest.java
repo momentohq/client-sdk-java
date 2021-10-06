@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
@@ -19,6 +20,11 @@ final class MomentoTest {
 
   private String authToken;
   private String cacheName;
+
+  // These secrets have botched up signature section, so should be okay to have them in source
+  // control.
+  private static final String TEST_AUTH_TOKEN_NO_ENDPOINT =
+      "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiJ9.ZOgkTs";
 
   @BeforeAll
   static void beforeAll() {
@@ -58,6 +64,18 @@ final class MomentoTest {
     CacheGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.result());
     assertEquals("bar", rsp.asStringUtf8().get());
+  }
+
+  @Test
+  void authTokenWithNoEndpointAndNoEndpointOverride_throwsException() {
+    assertThrows(
+        ClientSdkException.class,
+        () -> Momento.builder().authToken(TEST_AUTH_TOKEN_NO_ENDPOINT).build());
+  }
+
+  @Test
+  void missingAuthToken_throwsException() {
+    assertThrows(ClientSdkException.class, () -> Momento.builder().build());
   }
 
   @Test

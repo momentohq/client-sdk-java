@@ -10,6 +10,7 @@ import io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
@@ -17,27 +18,29 @@ import momento.sdk.messages.CreateCacheResponse;
 
 public final class Momento implements Closeable {
 
-  private static final String CONTROL_ENDPOINT_PREFIX = "control.";
-  private static final String CACHE_ENDPOINT_PREFIX = "cache.";
-
   private final String authToken;
-  private final String hostedZone;
   private final ScsControlBlockingStub blockingStub;
   private final ManagedChannel channel;
+  private final MomentoEndpointsResolver.MomentoEndpoints momentoEndpoints;
 
-  private Momento(String authToken, String hostedZone) {
+  private Momento(String authToken, Optional<String> hostedZoneOverride) {
+
     this.authToken = authToken;
-    this.hostedZone = hostedZone;
+    this.momentoEndpoints = MomentoEndpointsResolver.resolve(authToken, hostedZoneOverride);
+    this.channel = setupConnection(momentoEndpoints, authToken);
+    this.blockingStub = ScsControlGrpc.newBlockingStub(channel);
+  }
+
+  private static ManagedChannel setupConnection(
+      MomentoEndpointsResolver.MomentoEndpoints momentoEndpoints, String authToken) {
     NettyChannelBuilder channelBuilder =
-        NettyChannelBuilder.forAddress(CONTROL_ENDPOINT_PREFIX + hostedZone, 443);
+        NettyChannelBuilder.forAddress(momentoEndpoints.controlEndpoint(), 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new AuthInterceptor(authToken));
     channelBuilder.intercept(clientInterceptors);
-    ManagedChannel channel = channelBuilder.build();
-    this.blockingStub = ScsControlGrpc.newBlockingStub(channel);
-    this.channel = channel;
+    return channelBuilder.build();
   }
 
   /**
@@ -70,7 +73,7 @@ public final class Momento implements Closeable {
 
   public Cache getCache(String cacheName) {
     checkCacheNameValid(cacheName);
-    return makeCacheClient(authToken, cacheName, hostedZone);
+    return makeCacheClient(authToken, cacheName, momentoEndpoints.cacheEndpoint());
   }
 
   private CreateCacheRequest buildCreateCacheRequest(String cacheName) {
@@ -84,7 +87,7 @@ public final class Momento implements Closeable {
   }
 
   private static Cache makeCacheClient(String authToken, String cacheName, String endpoint) {
-    return new Cache(authToken, cacheName, CACHE_ENDPOINT_PREFIX + endpoint);
+    return new Cache(authToken, cacheName, endpoint);
   }
 
   public void close() {
@@ -95,14 +98,9 @@ public final class Momento implements Closeable {
     return new MomentoBuilder();
   }
 
-  // TODO: ParseJWT to determine the authToken
-  private static String extractEndpoint(String authToken) {
-    return null;
-  }
-
   public static class MomentoBuilder {
     private String authToken;
-    private String endpointOverride;
+    private Optional<String> endpointOverride = Optional.empty();
 
     public MomentoBuilder authToken(String authToken) {
       this.authToken = authToken;
@@ -119,7 +117,7 @@ public final class Momento implements Closeable {
     // which the requests
     // will be made.
     public MomentoBuilder endpointOverride(String endpointOverride) {
-      this.endpointOverride = endpointOverride;
+      this.endpointOverride = Optional.ofNullable(endpointOverride);
       return this;
     }
 
@@ -127,17 +125,7 @@ public final class Momento implements Closeable {
       if (authToken == null || authToken.isEmpty()) {
         throw new ClientSdkException("Auth Token is required");
       }
-      // Endpoint must be either available in the authToken or must be provided via
-      // endPointOverride.
-      String endpoint =
-          endpointOverride != null && !endpointOverride.isEmpty()
-              ? endpointOverride
-              : extractEndpoint(authToken);
-
-      if (endpoint == null) {
-        throw new ClientSdkException("Endpoint for cache service is a required parameter.");
-      }
-      return new Momento(authToken, endpoint);
+      return new Momento(authToken, endpointOverride);
     }
   }
 }

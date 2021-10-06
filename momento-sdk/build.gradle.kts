@@ -6,6 +6,7 @@ plugins {
 }
 
 val opentelemetryVersion = rootProject.ext["opentelemetryVersion"]
+val jwtVersion = rootProject.ext["jwtVersion"]
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
@@ -15,6 +16,11 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-sdk:$opentelemetryVersion")
     implementation("io.opentelemetry:opentelemetry-exporter-otlp:$opentelemetryVersion")
     implementation("io.grpc:grpc-netty:${rootProject.ext["grpcVersion"]}")
+
+    // For Auth token
+    implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jwtVersion")
+    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jwtVersion")
 
     // Internal Deps -------------------
     implementation(project(":messages"))
