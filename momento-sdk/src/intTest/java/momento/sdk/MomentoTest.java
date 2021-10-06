@@ -77,7 +77,7 @@ final class MomentoTest {
   void missingAuthToken_throwsException() {
     assertThrows(ClientSdkException.class, () -> Momento.builder().build());
   }
-  
+
   @Test
   void testInvalidCacheName() {
     Momento momento =
