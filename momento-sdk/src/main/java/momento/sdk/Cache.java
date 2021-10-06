@@ -39,9 +39,6 @@ import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
 /** Client to perform operations on cache. */
-// TODO: https://github.com/momentohq/client-sdk-java/issues/24 - constructors should be visible
-// only in the package.
-// TODO: Also clean up the method and class comments
 public final class Cache implements Closeable {
   private final ScsGrpc.ScsBlockingStub blockingStub;
   private final ScsGrpc.ScsFutureStub futureStub;
@@ -54,7 +51,7 @@ public final class Cache implements Closeable {
    * @param authToken Token to authenticate with SCS
    * @param endpoint SCS endpoint to make api calls to
    */
-  public Cache(String authToken, String cacheName, String endpoint) {
+  Cache(String authToken, String cacheName, String endpoint) {
     this(authToken, cacheName, Optional.empty(), endpoint);
   }
 
@@ -65,7 +62,7 @@ public final class Cache implements Closeable {
    * @param openTelemetry Open telemetry instance to hook into client traces
    * @param endpoint SCS endpoint to make api calls to
    */
-  public Cache(
+  Cache(
       String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry, String endpoint) {
     this(authToken, cacheName, openTelemetry, endpoint, false);
   }
@@ -78,7 +75,7 @@ public final class Cache implements Closeable {
    * @param endpoint SCS endpoint to make api calls to
    * @param insecureSsl for overriding host validation
    */
-  public Cache(
+  Cache(
       String authToken,
       String cacheName,
       Optional<OpenTelemetry> openTelemetry,
