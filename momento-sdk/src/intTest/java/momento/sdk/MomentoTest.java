@@ -2,10 +2,12 @@ package momento.sdk;
 
 import static momento.sdk.TestHelpers.DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
@@ -56,6 +58,17 @@ final class MomentoTest {
     CacheGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.result());
     assertEquals("bar", rsp.asStringUtf8().get());
+  }
+
+  @Test
+  void testInvalidCacheName() {
+    Momento momento =
+        Momento.builder()
+            .authToken(authToken)
+            .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
+            .build();
+
+    assertThrows(InvalidArgumentException.class, () -> getOrCreate(momento, "     "));
   }
 
   // TODO: Update this to be recreated each time and add a separate test case for Already Exists

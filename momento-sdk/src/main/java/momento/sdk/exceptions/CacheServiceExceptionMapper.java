@@ -32,6 +32,9 @@ public final class CacheServiceExceptionMapper {
         case NOT_FOUND:
           return new CacheNotFoundException(grpcException.getMessage());
 
+        case INVALID_ARGUMENT:
+          return new InvalidArgumentException(grpcException.getMessage());
+
         default:
           return convertUnhandledExceptions(grpcException);
       }
