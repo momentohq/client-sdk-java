@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
@@ -75,6 +76,17 @@ final class MomentoTest {
   @Test
   void missingAuthToken_throwsException() {
     assertThrows(ClientSdkException.class, () -> Momento.builder().build());
+  }
+  
+  @Test
+  void testInvalidCacheName() {
+    Momento momento =
+        Momento.builder()
+            .authToken(authToken)
+            .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
+            .build();
+
+    assertThrows(InvalidArgumentException.class, () -> getOrCreate(momento, "     "));
   }
 
   // TODO: Update this to be recreated each time and add a separate test case for Already Exists
