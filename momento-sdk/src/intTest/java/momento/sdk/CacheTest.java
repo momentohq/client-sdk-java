@@ -17,7 +17,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.CompletionStage;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.ClientSdkException;
@@ -122,12 +122,12 @@ final class CacheTest {
   private static void testAsyncHappyPath(Cache client) throws Exception {
     String key = UUID.randomUUID().toString();
     // Set Key Async
-    CompletionStage<CacheSetResponse> setRsp =
+    CompletableFuture<CacheSetResponse> setRsp =
         client.setAsync(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 10);
-    assertEquals(MomentoCacheResult.Ok, setRsp.toCompletableFuture().get().result());
+    assertEquals(MomentoCacheResult.Ok, setRsp.get().result());
 
     // Get Key Async
-    CacheGetResponse rsp = client.getAsync(key).toCompletableFuture().get();
+    CacheGetResponse rsp = client.getAsync(key).get();
 
     assertEquals(MomentoCacheResult.Hit, rsp.result());
     assertEquals("bar", rsp.asStringUtf8().get());
