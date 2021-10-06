@@ -46,23 +46,8 @@ final class MomentoTest {
 
   @Test
   void testHappyPath() {
-    Momento momento =
-        Momento.builder()
-            .authToken(authToken)
-            .build();
-    Cache cache = getOrCreate(momento, cacheName);
-
-    String key = java.util.UUID.randomUUID().toString();
-
-    // Set Key sync
-    CacheSetResponse setRsp =
-        cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
-    assertEquals(MomentoCacheResult.Ok, setRsp.result());
-
-    // Get Key that was just set
-    CacheGetResponse rsp = cache.get(key);
-    assertEquals(MomentoCacheResult.Hit, rsp.result());
-    assertEquals("bar", rsp.asStringUtf8().get());
+    Momento momento = Momento.builder().authToken(authToken).build();
+    runHappyPathTest(momento, cacheName);
   }
 
   @Test
@@ -86,6 +71,32 @@ final class MomentoTest {
             .build();
 
     assertThrows(InvalidArgumentException.class, () -> getOrCreate(momento, "     "));
+  }
+
+  @Test
+  void clientWithEndpointOverride_succeeds() {
+    Momento momentoWithEndpointOverride =
+        Momento.builder()
+            .authToken(authToken)
+            .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
+            .build();
+    runHappyPathTest(momentoWithEndpointOverride, cacheName);
+  }
+
+  private static void runHappyPathTest(Momento momento, String cacheName) {
+    Cache cache = getOrCreate(momento, cacheName);
+
+    String key = java.util.UUID.randomUUID().toString();
+
+    // Set Key sync
+    CacheSetResponse setRsp =
+        cache.set(key, ByteBuffer.wrap("bar".getBytes(StandardCharsets.UTF_8)), 2);
+    assertEquals(MomentoCacheResult.Ok, setRsp.result());
+
+    // Get Key that was just set
+    CacheGetResponse rsp = cache.get(key);
+    assertEquals(MomentoCacheResult.Hit, rsp.result());
+    assertEquals("bar", rsp.asStringUtf8().get());
   }
 
   // TODO: Update this to be recreated each time and add a separate test case for Already Exists
