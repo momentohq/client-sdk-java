@@ -33,7 +33,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.CompletionStage;
 import javax.net.ssl.SSLException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.messages.CacheGetResponse;
@@ -227,9 +226,8 @@ public final class Cache implements Closeable {
    * to better control concurrency of outbound cache get requests.
    *
    * @param key the key of item to fetch from cache.
-   * @return {@link CompletableFuture< CacheGetResponse >} Returns a CompletableFuture as a
-   *     CompletionStage interface wrapping standard ClientResponse with response object as a {@link
-   *     java.io.InputStream}.
+   * @return {@link CompletableFuture< CacheGetResponse >} Returns a CompletableFuture wrapping
+   *     standard ClientResponse with response object as a {@link java.io.InputStream}.
    */
   public CompletableFuture<CacheGetResponse> getAsync(byte[] key) {
     return sendAsyncGet(convert(key));
@@ -240,9 +238,8 @@ public final class Cache implements Closeable {
    * to better control concurrency of outbound cache get requests.
    *
    * @param key the key of item to fetch from cache.
-   * @return {@link CompletionStage< CacheGetResponse >} Returns a CompletableFuture as a
-   *     CompletionStage interface wrapping standard ClientResponse with response object as a {@link
-   *     java.io.InputStream}.
+   * @return {@link CompletableFuture< CacheGetResponse >} Returns a CompletableFuture wrapping
+   *     standard ClientResponse with response object as a {@link java.io.InputStream}.
    */
   public CompletableFuture<CacheGetResponse> getAsync(String key) {
     return sendAsyncGet(convert(key));
