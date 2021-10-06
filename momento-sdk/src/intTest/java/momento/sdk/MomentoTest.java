@@ -49,7 +49,6 @@ final class MomentoTest {
     Momento momento =
         Momento.builder()
             .authToken(authToken)
-            .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
             .build();
     Cache cache = getOrCreate(momento, cacheName);
 
