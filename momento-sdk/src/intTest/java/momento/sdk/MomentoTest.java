@@ -1,14 +1,11 @@
 package momento.sdk;
 
 import static momento.sdk.TestHelpers.DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import momento.sdk.exceptions.CacheAlreadyExistsException;
-import momento.sdk.exceptions.ClientSdkException;
-import momento.sdk.exceptions.InvalidArgumentException;
+import momento.sdk.exceptions.*;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
@@ -81,6 +78,22 @@ final class MomentoTest {
             .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
             .build();
     runHappyPathTest(momentoWithEndpointOverride, cacheName);
+  }
+
+  @Test
+  void deleteCacheTest_succeeds() {
+    String cacheName = "deleteCacheTest_succeeds-" + Math.random();
+    Momento momentoWithEndpointOverride =
+        Momento.builder()
+            .authToken(authToken)
+            .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
+            .build();
+    momentoWithEndpointOverride.createCache(cacheName);
+    assertDoesNotThrow(() -> momentoWithEndpointOverride.getCache(cacheName));
+    momentoWithEndpointOverride.deleteCache(cacheName);
+
+    assertThrows(
+        CacheNotFoundException.class, () -> momentoWithEndpointOverride.getCache(cacheName));
   }
 
   private static void runHappyPathTest(Momento momento, String cacheName) {
