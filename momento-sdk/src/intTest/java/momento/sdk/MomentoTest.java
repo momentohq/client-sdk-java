@@ -67,14 +67,10 @@ final class MomentoTest {
   @Test
   void deleteCacheTest_succeeds() {
     String cacheName = "deleteCacheTest_succeeds-" + Math.random();
-    Momento momentoWithEndpointOverride =
-        Momento.builder(authToken).endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT).build();
-    momentoWithEndpointOverride.createCache(cacheName);
-    assertDoesNotThrow(() -> momentoWithEndpointOverride.getCache(cacheName));
-    momentoWithEndpointOverride.deleteCache(cacheName);
-
-    assertThrows(
-        CacheNotFoundException.class, () -> momentoWithEndpointOverride.getCache(cacheName));
+    Momento momento = Momento.builder(authToken).build();
+    momento.createCache(cacheName);
+    assertDoesNotThrow(() -> momento.getCache(cacheName));
+    momento.deleteCache(cacheName);
   }
 
   private static void runHappyPathTest(Momento momento, String cacheName) {
