@@ -233,6 +233,66 @@ final class CacheTest {
     assertEquals(getResponse.result(), MomentoCacheResult.Hit);
     assertArrayEquals(value, getResponse.asByteArray().get());
   }
+
+  @Test
+  public void nullKeyGet_throwsException() {
+    String nullKeyString = null;
+    assertThrows(ClientSdkException.class, () -> cache.get(nullKeyString));
+    assertThrows(ClientSdkException.class, () -> cache.getAsync(nullKeyString));
+
+    byte[] nullByteKey = null;
+    assertThrows(ClientSdkException.class, () -> cache.get(nullByteKey));
+    assertThrows(ClientSdkException.class, () -> cache.getAsync(nullByteKey));
+  }
+
+  @Test
+  public void nullKeySet_throwsException() {
+    String nullKeyString = null;
+    // Blocking String key set
+    assertThrows(ClientSdkException.class, () -> cache.set(nullKeyString, "hello", 10));
+    assertThrows(
+        ClientSdkException.class, () -> cache.set(nullKeyString, ByteBuffer.allocate(1), 10));
+    // Async String key set
+    assertThrows(ClientSdkException.class, () -> cache.setAsync(nullKeyString, "hello", 10));
+    assertThrows(
+        ClientSdkException.class, () -> cache.setAsync(nullKeyString, ByteBuffer.allocate(1), 10));
+
+    byte[] nullByteKey = null;
+    assertThrows(ClientSdkException.class, () -> cache.set(nullByteKey, new byte[] {0x00}, 10));
+    assertThrows(
+        ClientSdkException.class, () -> cache.setAsync(nullByteKey, new byte[] {0x00}, 10));
+  }
+
+  @Test
+  public void nullValueSet_throwsException() {
+    assertThrows(ClientSdkException.class, () -> cache.set("hello", (String) null, 10));
+    assertThrows(ClientSdkException.class, () -> cache.set("hello", (ByteBuffer) null, 10));
+    assertThrows(ClientSdkException.class, () -> cache.set(new byte[] {}, null, 10));
+
+    assertThrows(ClientSdkException.class, () -> cache.setAsync("hello", (String) null, 10));
+    assertThrows(ClientSdkException.class, () -> cache.setAsync("hello", (ByteBuffer) null, 10));
+    assertThrows(ClientSdkException.class, () -> cache.setAsync(new byte[] {}, null, 10));
+  }
+
+  @Test
+  public void ttlMustBePositive_throwsException() {
+    for (int i = -1; i <= 0; i++) {
+      final int j = i;
+      assertThrows(ClientSdkException.class, () -> cache.set("hello", "world", j));
+      assertThrows(ClientSdkException.class, () -> cache.set("hello", ByteBuffer.allocate(1), j));
+      assertThrows(ClientSdkException.class, () -> cache.set(new byte[] {}, new byte[] {}, j));
+    }
+
+    for (int i = -1; i <= 0; i++) {
+      final int j = i;
+
+      assertThrows(ClientSdkException.class, () -> cache.setAsync("hello", "", j));
+      assertThrows(
+          ClientSdkException.class, () -> cache.setAsync("hello", ByteBuffer.allocate(1), j));
+      assertThrows(ClientSdkException.class, () -> cache.setAsync(new byte[] {}, new byte[] {}, j));
+    }
+  }
+
   /** ================ HELPER FUNCTIONS ====================================== */
   OpenTelemetrySdk setOtelSDK() {
     String otelGwUrl = "0.0.0.0";

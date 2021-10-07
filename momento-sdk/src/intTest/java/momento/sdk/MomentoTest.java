@@ -5,7 +5,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import momento.sdk.exceptions.*;
+import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.CacheNotFoundException;
+import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
@@ -43,29 +45,14 @@ final class MomentoTest {
 
   @Test
   void testHappyPath() {
-    Momento momento = Momento.builder().authToken(authToken).build();
+    Momento momento = Momento.builder(authToken).build();
     runHappyPathTest(momento, cacheName);
-  }
-
-  @Test
-  void authTokenWithNoEndpointAndNoEndpointOverride_throwsException() {
-    assertThrows(
-        ClientSdkException.class,
-        () -> Momento.builder().authToken(TEST_AUTH_TOKEN_NO_ENDPOINT).build());
-  }
-
-  @Test
-  void missingAuthToken_throwsException() {
-    assertThrows(ClientSdkException.class, () -> Momento.builder().build());
   }
 
   @Test
   void testInvalidCacheName() {
     Momento momento =
-        Momento.builder()
-            .authToken(authToken)
-            .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
-            .build();
+        Momento.builder(authToken).endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT).build();
 
     assertThrows(InvalidArgumentException.class, () -> getOrCreate(momento, "     "));
   }
@@ -73,10 +60,7 @@ final class MomentoTest {
   @Test
   void clientWithEndpointOverride_succeeds() {
     Momento momentoWithEndpointOverride =
-        Momento.builder()
-            .authToken(authToken)
-            .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
-            .build();
+        Momento.builder(authToken).endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT).build();
     runHappyPathTest(momentoWithEndpointOverride, cacheName);
   }
 

@@ -35,6 +35,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import javax.net.ssl.SSLException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
@@ -146,10 +147,12 @@ public final class Cache implements Closeable {
    * @throws IOException if an error occurs opening input stream for response body.
    */
   public CacheGetResponse get(String key) {
+    ensureValidKey(key);
     return sendGet(convert(key));
   }
 
   public CacheGetResponse get(byte[] key) {
+    ensureValidKey(key);
     return sendGet(convert(key));
   }
 
@@ -184,14 +187,17 @@ public final class Cache implements Closeable {
    * @throws IOException if an error occurs opening ByteBuffer for request body.
    */
   public CacheSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
   public CacheSetResponse set(String key, String value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
   public CacheSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
@@ -227,6 +233,7 @@ public final class Cache implements Closeable {
    *     standard ClientResponse with response object as a {@link java.io.InputStream}.
    */
   public CompletableFuture<CacheGetResponse> getAsync(byte[] key) {
+    ensureValidKey(key);
     return sendAsyncGet(convert(key));
   }
 
@@ -239,6 +246,7 @@ public final class Cache implements Closeable {
    *     standard ClientResponse with response object as a {@link java.io.InputStream}.
    */
   public CompletableFuture<CacheGetResponse> getAsync(String key) {
+    ensureValidKey(key);
     return sendAsyncGet(convert(key));
   }
 
@@ -308,14 +316,17 @@ public final class Cache implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> setAsync(
       String key, ByteBuffer value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
   }
 
   public CompletableFuture<CacheSetResponse> setAsync(byte[] key, byte[] value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
   }
 
   public CompletableFuture<CacheSetResponse> setAsync(String key, String value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
   }
 
@@ -390,6 +401,25 @@ public final class Cache implements Closeable {
         .setCacheBody(value)
         .setTtlMilliseconds(ttl)
         .build();
+  }
+
+  private static void ensureValid(Object key, Object value, int ttlSeconds) {
+
+    ensureValidKey(key);
+
+    if (value == null) {
+      throw new ClientSdkException("A non-null value is required.");
+    }
+
+    if (ttlSeconds <= 0) {
+      throw new ClientSdkException("Item's time to live in Cache must be a positive integer.");
+    }
+  }
+
+  private static void ensureValidKey(Object key) {
+    if (key == null) {
+      throw new ClientSdkException("A non-null Key is required.");
+    }
   }
 
   private ByteString convert(String stringToEncode) {
