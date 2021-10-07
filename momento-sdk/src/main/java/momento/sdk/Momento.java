@@ -1,6 +1,7 @@
 package momento.sdk;
 
 import grpc.control_client.CreateCacheRequest;
+import grpc.control_client.DeleteCacheRequest;
 import grpc.control_client.ScsControlGrpc;
 import grpc.control_client.ScsControlGrpc.ScsControlBlockingStub;
 import io.grpc.ClientInterceptor;
@@ -12,9 +13,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.messages.CreateCacheResponse;
+import momento.sdk.messages.DeleteCacheResponse;
 
 public final class Momento implements Closeable {
 
@@ -71,6 +74,35 @@ public final class Momento implements Closeable {
     }
   }
 
+  /**
+   * Deletes a cache with provided name
+   *
+   * @param cacheName
+   * @return {@link DeleteCacheResponse} that allows consumers to perform cache operations
+   * @throws {@link momento.sdk.exceptions.PermissionDeniedException} - if provided authToken is
+   *     invalid <br>
+   *     {@link momento.sdk.exceptions.CacheNotFoundException} - if Cache with same name does not
+   *     exists <br>
+   *     {@link momento.sdk.exceptions.InternalServerException} - for any unexpected errors that
+   *     occur on the service side.<br>
+   *     {@link ClientSdkException} - for any client side errors
+   */
+  public DeleteCacheResponse deleteCache(String cacheName) {
+    checkCacheNameValid(cacheName);
+    try {
+      this.blockingStub.deleteCache(buildDeleteCacheRequest(cacheName));
+      return new DeleteCacheResponse();
+    } catch (io.grpc.StatusRuntimeException e) {
+      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
+        throw new CacheNotFoundException(
+            String.format("Cache with name %s doesn't exists", cacheName));
+      }
+      throw CacheServiceExceptionMapper.convert(e);
+    } catch (Exception e) {
+      throw CacheServiceExceptionMapper.convert(e);
+    }
+  }
+
   public Cache getCache(String cacheName) {
     checkCacheNameValid(cacheName);
     return makeCacheClient(authToken, cacheName, momentoEndpoints.cacheEndpoint());
@@ -78,6 +110,10 @@ public final class Momento implements Closeable {
 
   private CreateCacheRequest buildCreateCacheRequest(String cacheName) {
     return CreateCacheRequest.newBuilder().setCacheName(cacheName).build();
+  }
+
+  private DeleteCacheRequest buildDeleteCacheRequest(String cacheName) {
+    return DeleteCacheRequest.newBuilder().setCacheName(cacheName).build();
   }
 
   private static void checkCacheNameValid(String cacheName) {
