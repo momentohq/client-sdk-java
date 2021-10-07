@@ -68,8 +68,7 @@ final class MomentoTest {
   void deleteCacheTest_succeeds() {
     String cacheName = "deleteCacheTest_succeeds-" + Math.random();
     Momento momentoWithEndpointOverride =
-        Momento.builder()
-            .authToken(authToken)
+        Momento.builder(authToken)
             .endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT)
             .build();
     momentoWithEndpointOverride.createCache(cacheName);
