@@ -77,7 +77,6 @@ final class MomentoTest {
   void deleteForNonExistantCache_throwsNotFound() {
     String cacheName = "deleteCacheTest_failure-" + Math.random();
     Momento momento = Momento.builder(authToken).build();
-    momento.createCache(cacheName);
     assertThrows(CacheNotFoundException.class, () -> momento.deleteCache(cacheName));
   }
 
