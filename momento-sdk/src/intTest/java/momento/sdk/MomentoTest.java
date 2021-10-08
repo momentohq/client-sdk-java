@@ -1,7 +1,8 @@
 package momento.sdk;
 
 import static momento.sdk.TestHelpers.DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -69,7 +70,7 @@ final class MomentoTest {
     String cacheName = "deleteCacheTest_succeeds-" + Math.random();
     Momento momento = Momento.builder(authToken).build();
     momento.createCache(cacheName);
-    assertDoesNotThrow(() -> momento.getCache(cacheName));
+    momento.getCache(cacheName);
     momento.deleteCache(cacheName);
   }
 
