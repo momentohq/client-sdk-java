@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.messages.CreateCacheResponse;
@@ -89,6 +90,12 @@ public final class Momento implements Closeable {
     try {
       this.blockingStub.deleteCache(buildDeleteCacheRequest(cacheName));
       return new DeleteCacheResponse();
+    } catch (io.grpc.StatusRuntimeException e) {
+      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
+        throw new CacheNotFoundException(
+            String.format("Cache with name %s doesn't exist", cacheName));
+      }
+      throw CacheServiceExceptionMapper.convert(e);
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
     }
