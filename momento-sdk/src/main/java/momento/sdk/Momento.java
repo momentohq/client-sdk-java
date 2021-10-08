@@ -75,15 +75,10 @@ public final class Momento implements Closeable {
   }
 
   /**
-   * Deletes a cache with provided name
+   * Deletes a cache with the provided name
    *
    * @param cacheName
-   * @return {@link DeleteCacheResponse} that allows consumers to perform cache operations
-   * @throws {@link momento.sdk.exceptions.PermissionDeniedException} - if provided authToken is
-   *     invalid <br>
-   *     {@link momento.sdk.exceptions.InternalServerException} - for any unexpected errors that
-   *     occur on the service side.<br>
-   *     {@link ClientSdkException} - for any client side errors
+   * @return {@link DeleteCacheResponse}
    */
   public DeleteCacheResponse deleteCache(String cacheName) {
     checkCacheNameValid(cacheName);
