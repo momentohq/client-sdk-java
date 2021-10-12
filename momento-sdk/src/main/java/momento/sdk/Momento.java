@@ -96,6 +96,27 @@ public final class Momento implements Closeable {
     }
   }
 
+  /**
+   * Creates a client to interact with the given cache name.
+   *
+   * <p>If a cache with given name already exists then returns a client to interact with the cache.
+   * Otherwise, first creates a new Momento Cache and then returns a client to interact with the
+   * newly created cache.
+   *
+   * @param cacheName
+   * @return {@link Cache} client to perform operations against the Momento Cache with the provided
+   *     name.
+   */
+  public Cache createOrGetCache(String cacheName) {
+    checkCacheNameValid(cacheName);
+    try {
+      createCache(cacheName);
+    } catch (CacheAlreadyExistsException e) {
+      // This implies that cache with the given name already exists. Just create a client.
+    }
+    return getCache(cacheName);
+  }
+
   public Cache getCache(String cacheName) {
     checkCacheNameValid(cacheName);
     return makeCacheClient(authToken, cacheName, momentoEndpoints.cacheEndpoint());

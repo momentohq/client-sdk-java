@@ -6,7 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
-import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
@@ -55,7 +54,8 @@ final class MomentoTest {
     Momento momento =
         Momento.builder(authToken).endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT).build();
 
-    assertThrows(InvalidArgumentException.class, () -> getOrCreate(momento, "     "));
+    assertThrows(InvalidArgumentException.class, () -> momento.createCache("     "));
+    assertThrows(InvalidArgumentException.class, () -> momento.createOrGetCache("     "));
   }
 
   @Test
@@ -82,7 +82,7 @@ final class MomentoTest {
   }
 
   private static void runHappyPathTest(Momento momento, String cacheName) {
-    Cache cache = getOrCreate(momento, cacheName);
+    Cache cache = momento.createOrGetCache(cacheName);
 
     String key = java.util.UUID.randomUUID().toString();
 
@@ -95,15 +95,5 @@ final class MomentoTest {
     CacheGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.result());
     assertEquals("bar", rsp.asStringUtf8().get());
-  }
-
-  // TODO: Update this to be recreated each time and add a separate test case for Already Exists
-  private static Cache getOrCreate(Momento momento, String cacheName) {
-    try {
-      momento.createCache(cacheName);
-    } catch (CacheAlreadyExistsException e) {
-      // Just get Cache following a successful create
-    }
-    return momento.getCache(cacheName);
   }
 }
