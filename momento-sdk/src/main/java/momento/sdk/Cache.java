@@ -282,11 +282,9 @@ public final class Cache implements Closeable {
                 });
             scope.ifPresent(Scope::close);
           }
-
-          // TODO: Handle Exception Mapping
           @Override
           public void onFailure(Throwable e) {
-            returnFuture.completeExceptionally(e);
+            returnFuture.completeExceptionally(CacheServiceExceptionMapper.convert(e));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
@@ -366,11 +364,9 @@ public final class Cache implements Closeable {
                 });
             scope.ifPresent(Scope::close);
           }
-
-          // TODO: Handle Exception Mapping
           @Override
           public void onFailure(Throwable e) {
-            returnFuture.completeExceptionally(e); // bubble all errors up
+            returnFuture.completeExceptionally(CacheServiceExceptionMapper.convert(e)); // bubble all errors up
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
