@@ -223,8 +223,8 @@ final class CacheTest {
 
   @Test
   public void setAndGetWithByteKeyValuesMustSucceed() {
-    byte[] key = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8);
-    byte[] value = UUID.randomUUID().toString().getBytes(StandardCharsets.UTF_8);
+    byte[] key = {0x01, 0x02, 0x03, 0x04};
+    byte[] value = {0x05, 0x06, 0x07, 0x08};
 
     CacheSetResponse setResponse = cache.set(key, value, 3);
     assertEquals(setResponse.result(), MomentoCacheResult.Ok);
