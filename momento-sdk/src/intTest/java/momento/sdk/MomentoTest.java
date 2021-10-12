@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+
+import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
@@ -47,6 +49,13 @@ final class MomentoTest {
   void testHappyPath() {
     Momento momento = Momento.builder(authToken).build();
     runHappyPathTest(momento, cacheName);
+  }
+
+  @Test
+  void recreatingCacheWithSameName_throwsAlreadyExists() {
+    Momento momento = Momento.builder(authToken).build();
+    momento.createOrGetCache(cacheName);
+    assertThrows(CacheAlreadyExistsException.class, () -> momento.createCache(cacheName));
   }
 
   @Test
