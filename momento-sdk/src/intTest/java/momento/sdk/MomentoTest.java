@@ -53,7 +53,7 @@ final class MomentoTest {
   @Test
   void recreatingCacheWithSameName_throwsAlreadyExists() {
     Momento momento = Momento.builder(authToken).build();
-    momento.createOrGetCache(cacheName);
+    momento.getOrCreateCache(cacheName);
     assertThrows(CacheAlreadyExistsException.class, () -> momento.createCache(cacheName));
   }
 
@@ -63,7 +63,7 @@ final class MomentoTest {
         Momento.builder(authToken).endpointOverride(DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT).build();
 
     assertThrows(InvalidArgumentException.class, () -> momento.createCache("     "));
-    assertThrows(InvalidArgumentException.class, () -> momento.createOrGetCache("     "));
+    assertThrows(InvalidArgumentException.class, () -> momento.getOrCreateCache("     "));
   }
 
   @Test
@@ -90,7 +90,7 @@ final class MomentoTest {
   }
 
   private static void runHappyPathTest(Momento momento, String cacheName) {
-    Cache cache = momento.createOrGetCache(cacheName);
+    Cache cache = momento.getOrCreateCache(cacheName);
 
     String key = java.util.UUID.randomUUID().toString();
 
