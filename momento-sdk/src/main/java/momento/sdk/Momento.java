@@ -107,7 +107,8 @@ public final class Momento implements Closeable {
    * @return {@link Cache} client to perform operations against the Momento Cache with the provided
    *     name.
    */
-  public Cache createOrGetCache(String cacheName) {
+  public Cache getOrCreateCache(String cacheName) {
+    // TODO: Switch this to do a get first followed by Create
     checkCacheNameValid(cacheName);
     try {
       createCache(cacheName);
