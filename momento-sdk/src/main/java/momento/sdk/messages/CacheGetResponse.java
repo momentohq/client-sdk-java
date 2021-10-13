@@ -5,6 +5,7 @@ import grpc.cache_client.ECacheResult;
 import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 public final class CacheGetResponse extends BaseResponse {
@@ -20,14 +21,14 @@ public final class CacheGetResponse extends BaseResponse {
     return this.resultMapper(this.result);
   }
 
-  public Optional<byte[]> asByteArray() {
+  public Optional<byte[]> byteArray() {
     if (result != ECacheResult.Hit) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toByteArray());
   }
 
-  public Optional<ByteBuffer> asByteBuffer() {
+  public Optional<ByteBuffer> byteBuffer() {
     if (result != ECacheResult.Hit) {
       return Optional.empty();
     }
@@ -39,22 +40,18 @@ public final class CacheGetResponse extends BaseResponse {
    *
    * @return
    */
-  public Optional<String> asStringUtf8() {
-    if (result != ECacheResult.Hit) {
-      return Optional.empty();
-    }
-
-    return Optional.ofNullable(body.toStringUtf8());
+  public Optional<String> string() {
+    return string(StandardCharsets.UTF_8);
   }
 
-  public Optional<String> asString(Charset charset) {
+  public Optional<String> string(Charset charset) {
     if (result != ECacheResult.Hit) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toString(charset));
   }
 
-  public Optional<InputStream> asInputStream() {
+  public Optional<InputStream> inputStream() {
     if (result != ECacheResult.Hit) {
       return Optional.empty();
     }

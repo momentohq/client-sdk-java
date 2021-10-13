@@ -109,6 +109,7 @@ public final class Cache implements Closeable {
     waitTillReady();
   }
 
+  // TODO: Temporary measure for beta. This will not be required soon.
   private void waitTillReady() {
     long start = System.currentTimeMillis();
     long maxRetryDurationMillis = 5000;

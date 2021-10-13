@@ -99,7 +99,7 @@ final class CacheTest {
     // Get Key that was just set
     CacheGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.result());
-    assertEquals("bar", rsp.asStringUtf8().get());
+    assertEquals("bar", rsp.string().get());
   }
 
   @Test
@@ -130,7 +130,7 @@ final class CacheTest {
     CacheGetResponse rsp = client.getAsync(key).get();
 
     assertEquals(MomentoCacheResult.Hit, rsp.result());
-    assertEquals("bar", rsp.asStringUtf8().get());
+    assertEquals("bar", rsp.string().get());
   }
 
   @Test
@@ -163,7 +163,7 @@ final class CacheTest {
     // Get Key that was just set
     CacheGetResponse rsp = client.get(key);
     assertEquals(MomentoCacheResult.Miss, rsp.result());
-    assertFalse(rsp.asInputStream().isPresent());
+    assertFalse(rsp.inputStream().isPresent());
   }
 
   @Test
@@ -188,11 +188,11 @@ final class CacheTest {
     CacheGetResponse rsp = client.get(UUID.randomUUID().toString());
 
     assertEquals(MomentoCacheResult.Miss, rsp.result());
-    assertFalse(rsp.asInputStream().isPresent());
-    assertFalse(rsp.asByteArray().isPresent());
-    assertFalse(rsp.asByteBuffer().isPresent());
-    assertFalse(rsp.asStringUtf8().isPresent());
-    assertFalse(rsp.asString(Charset.defaultCharset()).isPresent());
+    assertFalse(rsp.inputStream().isPresent());
+    assertFalse(rsp.byteArray().isPresent());
+    assertFalse(rsp.byteBuffer().isPresent());
+    assertFalse(rsp.string().isPresent());
+    assertFalse(rsp.string(Charset.defaultCharset()).isPresent());
   }
 
   @Test
@@ -231,7 +231,7 @@ final class CacheTest {
 
     CacheGetResponse getResponse = cache.get(key);
     assertEquals(getResponse.result(), MomentoCacheResult.Hit);
-    assertArrayEquals(value, getResponse.asByteArray().get());
+    assertArrayEquals(value, getResponse.byteArray().get());
   }
 
   @Test
