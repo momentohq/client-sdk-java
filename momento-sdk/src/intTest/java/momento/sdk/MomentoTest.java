@@ -102,6 +102,6 @@ final class MomentoTest {
     // Get Key that was just set
     CacheGetResponse rsp = cache.get(key);
     assertEquals(MomentoCacheResult.Hit, rsp.result());
-    assertEquals("bar", rsp.asStringUtf8().get());
+    assertEquals("bar", rsp.string().get());
   }
 }
