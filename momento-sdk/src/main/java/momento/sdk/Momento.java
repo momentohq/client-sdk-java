@@ -100,9 +100,9 @@ public final class Momento implements Closeable {
    * Creates a builder to make a Cache client.
    *
    * @param cacheName - Name of the cache for the which the client will be built.
-   * @param defaultItemTtlSeconds - The default Time to live in seconds for the items that will be stored in
-   *     Cache. Default TTL can be overridden at individual items level at the time of storing them
-   *     in the cache.
+   * @param defaultItemTtlSeconds - The default Time to live in seconds for the items that will be
+   *     stored in Cache. Default TTL can be overridden at individual items level at the time of
+   *     storing them in the cache.
    * @return
    * @see CacheClientBuilder
    */
