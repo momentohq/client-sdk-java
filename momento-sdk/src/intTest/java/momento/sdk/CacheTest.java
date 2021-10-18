@@ -245,10 +245,10 @@ final class CacheTest {
     byte[] value = {0x05, 0x06, 0x07, 0x08};
 
     CacheSetResponse setResponse = cache.set(key, value, 3);
-    assertEquals(setResponse.result(), MomentoCacheResult.Ok);
+    assertEquals(MomentoCacheResult.Ok, setResponse.result());
 
     CacheGetResponse getResponse = cache.get(key);
-    assertEquals(getResponse.result(), MomentoCacheResult.Hit);
+    assertEquals(MomentoCacheResult.Hit, getResponse.result());
     assertArrayEquals(value, getResponse.byteArray().get());
   }
 
