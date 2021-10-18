@@ -2,9 +2,7 @@ package momento.sdk;
 
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 
-/**
- * Build a {@link Cache}
- */
+/** Build a {@link Cache} */
 public final class CacheClientBuilder {
 
   private final Momento momento;
@@ -29,6 +27,7 @@ public final class CacheClientBuilder {
 
   /**
    * Signal the builder to create a new Cache if one with the given name doesn't exist.
+   *
    * @return
    */
   public CacheClientBuilder createCacheIfDoesntExist() {
