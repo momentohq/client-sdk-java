@@ -97,30 +97,18 @@ public final class Momento implements Closeable {
   }
 
   /**
-   * Creates a client to interact with the given cache name.
+   * Creates a builder to make a Cache client.
    *
-   * <p>If a cache with given name already exists then returns a client to interact with the cache.
-   * Otherwise, first creates a new Momento Cache and then returns a client to interact with the
-   * newly created cache.
-   *
-   * @param cacheName
-   * @return {@link Cache} client to perform operations against the Momento Cache with the provided
-   *     name.
+   * @param cacheName - Name of the cache for the which the client will be built.
+   * @param ttlSeconds - The default Time to live in seconds for the items that will be stored in
+   *     Cache. Default TTL can be overridden at individual items level at the time of storing them
+   *     in the cache.
+   * @return
+   * @see CacheClientBuilder
    */
-  public Cache getOrCreateCache(String cacheName) {
-    // TODO: Switch this to do a get first followed by Create
-    checkCacheNameValid(cacheName);
-    try {
-      createCache(cacheName);
-    } catch (CacheAlreadyExistsException e) {
-      // This implies that cache with the given name already exists. Just create a client.
-    }
-    return getCache(cacheName);
-  }
-
-  public Cache getCache(String cacheName) {
-    checkCacheNameValid(cacheName);
-    return makeCacheClient(authToken, cacheName, momentoEndpoints.cacheEndpoint());
+  public CacheClientBuilder buildCache(String cacheName, int ttlSeconds) {
+    return new CacheClientBuilder(
+        this, authToken, cacheName, ttlSeconds, momentoEndpoints.cacheEndpoint());
   }
 
   private CreateCacheRequest buildCreateCacheRequest(String cacheName) {
@@ -131,14 +119,10 @@ public final class Momento implements Closeable {
     return DeleteCacheRequest.newBuilder().setCacheName(cacheName).build();
   }
 
-  private static void checkCacheNameValid(String cacheName) {
+  static void checkCacheNameValid(String cacheName) {
     if (cacheName == null) {
       throw new ClientSdkException("Cache Name is required.");
     }
-  }
-
-  private static Cache makeCacheClient(String authToken, String cacheName, String endpoint) {
-    return new Cache(authToken, cacheName, endpoint);
   }
 
   public void close() {
