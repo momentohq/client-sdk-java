@@ -1,3 +1,3 @@
 package momento.sdk.messages;
 
-public class DeleteCacheResponse {}
+public final class DeleteCacheResponse {}

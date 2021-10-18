@@ -100,15 +100,15 @@ public final class Momento implements Closeable {
    * Creates a builder to make a Cache client.
    *
    * @param cacheName - Name of the cache for the which the client will be built.
-   * @param ttlSeconds - The default Time to live in seconds for the items that will be stored in
+   * @param defaultItemTtlSeconds - The default Time to live in seconds for the items that will be stored in
    *     Cache. Default TTL can be overridden at individual items level at the time of storing them
    *     in the cache.
    * @return
    * @see CacheClientBuilder
    */
-  public CacheClientBuilder buildCache(String cacheName, int ttlSeconds) {
+  public CacheClientBuilder cacheBuilder(String cacheName, int defaultItemTtlSeconds) {
     return new CacheClientBuilder(
-        this, authToken, cacheName, ttlSeconds, momentoEndpoints.cacheEndpoint());
+        this, authToken, cacheName, defaultItemTtlSeconds, momentoEndpoints.cacheEndpoint());
   }
 
   private CreateCacheRequest buildCreateCacheRequest(String cacheName) {
