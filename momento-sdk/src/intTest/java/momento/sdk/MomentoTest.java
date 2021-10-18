@@ -65,7 +65,7 @@ final class MomentoTest {
     assertThrows(InvalidArgumentException.class, () -> momento.createCache("     "));
     assertThrows(
         InvalidArgumentException.class,
-        () -> momento.buildCache("     ", 2).createCacheIfDoesntExist());
+        () -> momento.buildCache("     ", 2).createCacheIfDoesntExist().build());
   }
 
   @Test
