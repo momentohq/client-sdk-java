@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
+import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
@@ -89,6 +90,12 @@ final class MomentoTest {
     String cacheName = "deleteCacheTest_failure-" + Math.random();
     Momento momento = Momento.builder(authToken).build();
     assertThrows(CacheNotFoundException.class, () -> momento.deleteCache(cacheName));
+  }
+
+  @Test
+  void nonPositiveTtl_throwsException() {
+    Momento momento = Momento.builder(authToken).build();
+    assertThrows(ClientSdkException.class, () -> momento.cacheBuilder(cacheName, -1).build());
   }
 
   private static void runHappyPathTest(Momento momento, String cacheName) {

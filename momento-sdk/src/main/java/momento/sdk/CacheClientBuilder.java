@@ -1,6 +1,7 @@
 package momento.sdk;
 
 import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.ClientSdkException;
 
 /** Build a {@link Cache} */
 public final class CacheClientBuilder {
@@ -36,6 +37,10 @@ public final class CacheClientBuilder {
   }
 
   public Cache build() {
+    if (defaultItemTtlSeconds <= 0) {
+      throw new ClientSdkException("Item's time to live in Cache must be a positive integer.");
+    }
+
     Momento.checkCacheNameValid(cacheName);
     if (createIfDoesntExist) {
       try {
