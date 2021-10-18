@@ -26,16 +26,13 @@ public final class CacheClientBuilder {
     this.endpoint = endpoint;
   }
 
-  /**
-   * Signal the builder to create a new Cache if one with the given name doesn't exist.
-   *
-   * @return
-   */
+  /** Signal the builder to create a new Cache if one with the given name doesn't exist. */
   public CacheClientBuilder createCacheIfDoesntExist() {
     this.createIfDoesntExist = true;
     return this;
   }
 
+  /** Cache client based on the properties set on the builder. */
   public Cache build() {
     if (defaultItemTtlSeconds <= 0) {
       throw new ClientSdkException("Item's time to live in Cache must be a positive integer.");

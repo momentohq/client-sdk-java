@@ -22,11 +22,6 @@ final class MomentoTest {
   private String authToken;
   private String cacheName;
 
-  // These secrets have botched up signature section, so should be okay to have them in source
-  // control.
-  private static final String TEST_AUTH_TOKEN_NO_ENDPOINT =
-      "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiJ9.ZOgkTs";
-
   @BeforeAll
   static void beforeAll() {
     if (System.getenv("TEST_AUTH_TOKEN") == null) {

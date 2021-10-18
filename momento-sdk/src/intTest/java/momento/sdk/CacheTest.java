@@ -33,7 +33,7 @@ import org.junit.jupiter.api.Test;
 final class CacheTest {
 
   private Cache cache;
-  private static final int DEFAULT_ITEM_TTL_SECONDS = 2;
+  private static final int DEFAULT_ITEM_TTL_SECONDS = 60;
 
   @BeforeAll
   static void beforeAll() {
