@@ -8,6 +8,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
+/** Response for a cache get operation */
 public final class CacheGetResponse extends BaseResponse {
   private final ByteString body;
   private final ECacheResult result;
@@ -17,10 +18,26 @@ public final class CacheGetResponse extends BaseResponse {
     this.result = result;
   }
 
+  /**
+   * Determine the result of the Get operation.
+   *
+   * <p>Only valid values are {@link MomentoCacheResult#Hit} and {@link MomentoCacheResult#Miss}.
+   *
+   * <p>The API may return other values in the time being but till then all statuses that are not
+   * {@link MomentoCacheResult#Hit} should be considered as Cache misses.
+   *
+   * @return The result of Cache Get Operation
+   */
   public MomentoCacheResult result() {
     return this.resultMapper(this.result);
   }
 
+  /**
+   * Value stored in the cache as a byte array.
+   *
+   * @return Value stored for the given key. {@link Optional#empty()} if the lookup resulted in a
+   *     cache miss.
+   */
   public Optional<byte[]> byteArray() {
     if (result != ECacheResult.Hit) {
       return Optional.empty();
@@ -28,6 +45,12 @@ public final class CacheGetResponse extends BaseResponse {
     return Optional.ofNullable(body.toByteArray());
   }
 
+  /**
+   * Value stored in the cache as a {@link ByteBuffer}.
+   *
+   * @return Value stored for the given key. {@link Optional#empty()} if the lookup resulted in a
+   *     cache miss.
+   */
   public Optional<ByteBuffer> byteBuffer() {
     if (result != ECacheResult.Hit) {
       return Optional.empty();
@@ -36,14 +59,22 @@ public final class CacheGetResponse extends BaseResponse {
   }
 
   /**
-   * Converts the value read from cache to a UTF-8 String
+   * Value stored in the cache as a UTF-8 {@link String}
    *
-   * @return
+   * @return Value stored for the given key. {@link Optional#empty()} if the lookup resulted in a
+   *     cache miss.
    */
   public Optional<String> string() {
     return string(StandardCharsets.UTF_8);
   }
 
+  /**
+   * Value stored in the cache as {@link String}.
+   *
+   * @param charset to express the bytes as String.
+   * @return Value stored for the given key. {@link Optional#empty()} if the lookup resulted in a
+   *     cache miss.
+   */
   public Optional<String> string(Charset charset) {
     if (result != ECacheResult.Hit) {
       return Optional.empty();
@@ -51,6 +82,12 @@ public final class CacheGetResponse extends BaseResponse {
     return Optional.ofNullable(body.toString(charset));
   }
 
+  /**
+   * Value as an {@link InputStream}
+   *
+   * @return Value stored for the given key. {@link Optional#empty()} if the lookup resulted in a
+   *     cache miss.
+   */
   public Optional<InputStream> inputStream() {
     if (result != ECacheResult.Hit) {
       return Optional.empty();

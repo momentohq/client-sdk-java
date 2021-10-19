@@ -49,14 +49,13 @@ public final class Momento implements Closeable {
   /**
    * Creates a cache with provided name
    *
-   * @param cacheName
+   * @param cacheName Name of the cache to be created.
    * @return The result of the create cache operation
-   * @throws {@link momento.sdk.exceptions.PermissionDeniedException} - if provided authToken is
-   *     invalid <br>
-   *     {@link CacheAlreadyExistsException} - if Cache with the same name exists <br>
-   *     {@link momento.sdk.exceptions.InternalServerException} - for any unexpected errors that
-   *     occur on the service side.<br>
-   *     {@link ClientSdkException} - for any client side errors
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws momento.sdk.exceptions.InvalidArgumentException
+   * @throws CacheAlreadyExistsException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @throws ClientSdkException when cacheName is null
    */
   public CreateCacheResponse createCache(String cacheName) {
     checkCacheNameValid(cacheName);
@@ -79,10 +78,10 @@ public final class Momento implements Closeable {
    *
    * @param cacheName The name of the cache to be deleted.
    * @return The result of the cache deletion operation.
-   * @throws {@link momento.sdk.exceptions.PermissionDeniedException} for invalid auth token {@link
-   *     CacheNotFoundException} when attempting to delete a cache that doesn't exist {@link
-   *     momento.sdk.exceptions.InternalServerException} for any unknown service exceptions {@link
-   *     ClientSdkException} when a null cache name is provided
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @throws ClientSdkException if the {@code cacheName} is null.
    */
   public DeleteCacheResponse deleteCache(String cacheName) {
     checkCacheNameValid(cacheName);
