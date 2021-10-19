@@ -163,21 +163,37 @@ public final class Cache implements Closeable {
   }
 
   /**
-   * Sets an object in cache by the passed key. This method is a blocking api call. Please use
-   * setAsync if you need a {@link java.util.concurrent.CompletionStage< CacheSetResponse >}
-   * returned instead.
+   * Sets the value in cache with a given Time To Live (TTL) seconds.
    *
-   * @param key the key of item to fetch from cache
-   * @param value {@link ByteBuffer} of the value to set in cache
-   * @param ttlSeconds the time for your object to live in cache in seconds.
-   * @return {@link CacheSetResponse} with the result of the set operation
-   * @throws IOException if an error occurs opening ByteBuffer for request body.
+   * <p>If a value for this key is already present it will be replaced by the new value provided
+   * here.
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link Momento#cacheBuilder(String, int)}
+   * @return Result of the set operation.
+   * @see Cache#set(String, ByteBuffer)
+   * @see Cache#setAsync(String, ByteBuffer, int)
    */
   public CacheSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
+  /**
+   * Sets the value in the cache. If a value for this key is already present it will be replaced by
+   * the new value provided here.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link Momento#cacheBuilder(String, int)}
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @return Result of the set operation.
+   * @see Cache#set(String, ByteBuffer, int)
+   * @see Cache#setAsync(String, ByteBuffer)
+   */
   public CacheSetResponse set(String key, ByteBuffer value) {
     return set(key, value, itemDefaultTtlSeconds);
   }
