@@ -19,6 +19,7 @@ import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.DeleteCacheResponse;
 
+/** Client to interact with Momento services. */
 public final class Momento implements Closeable {
 
   private final String authToken;
@@ -27,7 +28,6 @@ public final class Momento implements Closeable {
   private final MomentoEndpointsResolver.MomentoEndpoints momentoEndpoints;
 
   private Momento(String authToken, Optional<String> hostedZoneOverride) {
-
     this.authToken = authToken;
     this.momentoEndpoints = MomentoEndpointsResolver.resolve(authToken, hostedZoneOverride);
     this.channel = setupConnection(momentoEndpoints, authToken);
@@ -50,7 +50,7 @@ public final class Momento implements Closeable {
    * Creates a cache with provided name
    *
    * @param cacheName
-   * @return {@link CreateCacheResponse} that allows consumers to perform cache operations
+   * @return The result of the create cache operation
    * @throws {@link momento.sdk.exceptions.PermissionDeniedException} - if provided authToken is
    *     invalid <br>
    *     {@link CacheAlreadyExistsException} - if Cache with the same name exists <br>
@@ -75,10 +75,14 @@ public final class Momento implements Closeable {
   }
 
   /**
-   * Deletes a cache with the provided name
+   * Deletes a cache
    *
-   * @param cacheName
-   * @return {@link DeleteCacheResponse}
+   * @param cacheName The name of the cache to be deleted.
+   * @return The result of the cache deletion operation.
+   * @throws {@link momento.sdk.exceptions.PermissionDeniedException} for invalid auth token {@link
+   *     CacheNotFoundException} when attempting to delete a cache that doesn't exist {@link
+   *     momento.sdk.exceptions.InternalServerException} for any unknown service exceptions {@link
+   *     ClientSdkException} when a null cache name is provided
    */
   public DeleteCacheResponse deleteCache(String cacheName) {
     checkCacheNameValid(cacheName);
@@ -103,7 +107,6 @@ public final class Momento implements Closeable {
    * @param defaultItemTtlSeconds - The default Time to live in seconds for the items that will be
    *     stored in Cache. Default TTL can be overridden at individual items level at the time of
    *     storing them in the cache.
-   * @return
    * @see CacheClientBuilder
    */
   public CacheClientBuilder cacheBuilder(String cacheName, int defaultItemTtlSeconds) {
@@ -125,10 +128,17 @@ public final class Momento implements Closeable {
     }
   }
 
+  /** Shuts down the client. */
   public void close() {
     this.channel.shutdown();
   }
 
+  /**
+   * Builder to create a {@link Momento} client.
+   *
+   * @param authToken The authentication token required to authenticate with Momento Services.
+   * @return A builder to build the Momento Client
+   */
   public static MomentoBuilder builder(String authToken) {
     return new MomentoBuilder(authToken);
   }

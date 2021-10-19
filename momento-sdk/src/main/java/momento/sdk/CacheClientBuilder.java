@@ -32,7 +32,7 @@ public final class CacheClientBuilder {
     return this;
   }
 
-  /** Cache client based on the properties set on the builder. */
+  /** Builds {@link Cache} client based on the properties set on the builder. */
   public Cache build() {
     if (defaultItemTtlSeconds <= 0) {
       throw new ClientSdkException("Item's time to live in Cache must be a positive integer.");
