@@ -368,9 +368,17 @@ public final class Cache implements Closeable {
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
   }
 
+  public CompletableFuture<CacheSetResponse> setAsync(byte[] key, byte[] value) {
+    return setAsync(key, value, itemDefaultTtlSeconds);
+  }
+
   public CompletableFuture<CacheSetResponse> setAsync(String key, String value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
+  }
+
+  public CompletableFuture<CacheSetResponse> setAsync(String key, String value) {
+    return setAsync(key, value, itemDefaultTtlSeconds);
   }
 
   private CompletableFuture<CacheSetResponse> sendSetAsync(
