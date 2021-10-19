@@ -165,8 +165,7 @@ public final class Cache implements Closeable {
   /**
    * Sets the value in cache with a given Time To Live (TTL) seconds.
    *
-   * <p>If a value for this key is already present it will be replaced by the new value provided
-   * here.
+   * <p>If a value for this key is already present it will be replaced by the new value.
    *
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
@@ -183,7 +182,7 @@ public final class Cache implements Closeable {
 
   /**
    * Sets the value in the cache. If a value for this key is already present it will be replaced by
-   * the new value provided here.
+   * the new value.
    *
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
    * client - {@link Momento#cacheBuilder(String, int)}
@@ -198,11 +197,36 @@ public final class Cache implements Closeable {
     return set(key, value, itemDefaultTtlSeconds);
   }
 
+  /**
+   * Sets the value in cache with a given Time To Live (TTL) seconds.
+   *
+   * <p>If a value for this key is already present it will be replaced by the new value.
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link Momento#cacheBuilder(String, int)}
+   * @return Result of the set operation.
+   * @see Cache#set(String, String) 
+   * @see Cache#setAsync(String, String, int)
+   */
   public CacheSetResponse set(String key, String value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
+  /**
+   * Sets the value in the cache. If a value for this key is already present it will be replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link Momento#cacheBuilder(String, int)}
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @return Result of the set operation.
+   * @see Cache#set(String, String, int) 
+   */
   public CacheSetResponse set(String key, String value) {
     return set(key, value, itemDefaultTtlSeconds);
   }
