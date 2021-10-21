@@ -13,6 +13,7 @@ repositories {
 }
 
 java {
+    withSourcesJar()
     withJavadocJar()
 }
 
