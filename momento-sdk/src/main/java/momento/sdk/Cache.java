@@ -45,42 +45,27 @@ public final class Cache implements Closeable {
   private final ScsGrpc.ScsFutureStub futureStub;
   private final ManagedChannel channel;
   private final Optional<Tracer> tracer;
+  private final int itemDefaultTtlSeconds;
 
-  /**
-   * Builds an instance of {@link Cache} that will interact with a specified endpoint
-   *
-   * @param authToken Token to authenticate with SCS
-   * @param endpoint SCS endpoint to make api calls to
-   */
-  Cache(String authToken, String cacheName, String endpoint) {
-    this(authToken, cacheName, Optional.empty(), endpoint);
+  Cache(String authToken, String cacheName, String endpoint, int itemDefaultTtlSeconds) {
+    this(authToken, cacheName, Optional.empty(), endpoint, itemDefaultTtlSeconds);
   }
 
-  /**
-   * Builds an instance of {@link Cache} used to interact w/ SCS
-   *
-   * @param authToken Token to authenticate with SCS
-   * @param openTelemetry Open telemetry instance to hook into client traces
-   * @param endpoint SCS endpoint to make api calls to
-   */
-  Cache(
-      String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry, String endpoint) {
-    this(authToken, cacheName, openTelemetry, endpoint, false);
-  }
-
-  /**
-   * Builds an instance of {@link Cache} used to interact w/ SCS
-   *
-   * @param authToken Token to authenticate with SCS
-   * @param openTelemetry Open telemetry instance to hook into client traces
-   * @param endpoint SCS endpoint to make api calls to
-   * @param insecureSsl for overriding host validation
-   */
   Cache(
       String authToken,
       String cacheName,
       Optional<OpenTelemetry> openTelemetry,
       String endpoint,
+      int itemDefaultTtlSeconds) {
+    this(authToken, cacheName, openTelemetry, endpoint, itemDefaultTtlSeconds, false);
+  }
+
+  Cache(
+      String authToken,
+      String cacheName,
+      Optional<OpenTelemetry> openTelemetry,
+      String endpoint,
+      int itemDefaultTtlSeconds,
       boolean insecureSsl) {
     NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
 
@@ -106,6 +91,7 @@ public final class Cache implements Closeable {
     this.futureStub = ScsGrpc.newFutureStub(channel);
     this.channel = channel;
     this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
+    this.itemDefaultTtlSeconds = itemDefaultTtlSeconds;
     waitTillReady();
   }
 
@@ -192,14 +178,26 @@ public final class Cache implements Closeable {
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
+  public CacheSetResponse set(String key, ByteBuffer value) {
+    return set(key, value, itemDefaultTtlSeconds);
+  }
+
   public CacheSetResponse set(String key, String value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
+  public CacheSetResponse set(String key, String value) {
+    return set(key, value, itemDefaultTtlSeconds);
+  }
+
   public CacheSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
+  }
+
+  public CacheSetResponse set(byte[] key, byte[] value) {
+    return set(key, value, itemDefaultTtlSeconds);
   }
 
   // Having this method named as set causes client side compilation issues, where the compiler
@@ -321,14 +319,26 @@ public final class Cache implements Closeable {
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
   }
 
+  public CompletableFuture<CacheSetResponse> setAsync(String key, ByteBuffer value) {
+    return setAsync(key, value, itemDefaultTtlSeconds);
+  }
+
   public CompletableFuture<CacheSetResponse> setAsync(byte[] key, byte[] value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
   }
 
+  public CompletableFuture<CacheSetResponse> setAsync(byte[] key, byte[] value) {
+    return setAsync(key, value, itemDefaultTtlSeconds);
+  }
+
   public CompletableFuture<CacheSetResponse> setAsync(String key, String value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
+  }
+
+  public CompletableFuture<CacheSetResponse> setAsync(String key, String value) {
+    return setAsync(key, value, itemDefaultTtlSeconds);
   }
 
   private CompletableFuture<CacheSetResponse> sendSetAsync(

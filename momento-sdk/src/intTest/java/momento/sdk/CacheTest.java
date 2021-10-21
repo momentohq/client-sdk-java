@@ -33,6 +33,7 @@ import org.junit.jupiter.api.Test;
 final class CacheTest {
 
   private Cache cache;
+  private static final int DEFAULT_ITEM_TTL_SECONDS = 60;
 
   @BeforeAll
   static void beforeAll() {
@@ -48,22 +49,34 @@ final class CacheTest {
 
   @BeforeEach
   void setUp() {
-    cache = getCache(Optional.empty());
+    cache = getCache(Optional.empty(), DEFAULT_ITEM_TTL_SECONDS);
   }
 
-  Cache getCache(Optional<OpenTelemetry> openTelemetry) {
+  Cache getCache(Optional<OpenTelemetry> openTelemetry, int defaultItemTtlSeconds) {
     return getCache(
-        System.getenv("TEST_AUTH_TOKEN"), System.getenv("TEST_CACHE_NAME"), openTelemetry);
+        System.getenv("TEST_AUTH_TOKEN"),
+        System.getenv("TEST_CACHE_NAME"),
+        openTelemetry,
+        defaultItemTtlSeconds);
   }
 
-  Cache getCache(String authToken, String cacheName, Optional<OpenTelemetry> openTelemetry) {
+  Cache getCache(
+      String authToken,
+      String cacheName,
+      Optional<OpenTelemetry> openTelemetry,
+      int defaultItemTtlSeconds) {
     String endpoint = System.getenv("TEST_ENDPOINT");
     if (endpoint == null) {
       endpoint = DEFAULT_CACHE_ENDPOINT;
     }
 
     return new Cache(
-        authToken, cacheName, openTelemetry, endpoint, System.getenv("TEST_SSL_INSECURE") != null);
+        authToken,
+        cacheName,
+        openTelemetry,
+        endpoint,
+        defaultItemTtlSeconds,
+        System.getenv("TEST_SSL_INSECURE") != null);
   }
 
   @AfterEach
@@ -80,7 +93,7 @@ final class CacheTest {
   void testBlockingClientHappyPathWithTracing() throws Exception {
     startIntegrationTestOtel();
     OpenTelemetrySdk openTelemetry = setOtelSDK();
-    Cache client = getCache(Optional.of(openTelemetry));
+    Cache client = getCache(Optional.of(openTelemetry), DEFAULT_ITEM_TTL_SECONDS);
     testHappyPath(client);
     // To accommodate for delays in tracing logs to appear in docker
     Thread.sleep(1000);
@@ -111,7 +124,7 @@ final class CacheTest {
   void testAsyncClientHappyPathWithTracing() throws Exception {
     startIntegrationTestOtel();
     OpenTelemetrySdk openTelemetry = setOtelSDK();
-    Cache client = getCache(Optional.of(openTelemetry));
+    Cache client = getCache(Optional.of(openTelemetry), DEFAULT_ITEM_TTL_SECONDS);
     testAsyncHappyPath(client);
     // To accommodate for delays in tracing logs to appear in docker
     Thread.sleep(1000);
@@ -142,7 +155,7 @@ final class CacheTest {
   void testTtlHappyPathWithTracing() throws Exception {
     startIntegrationTestOtel();
     OpenTelemetrySdk openTelemetry = setOtelSDK();
-    Cache client = getCache(Optional.of(openTelemetry));
+    Cache client = getCache(Optional.of(openTelemetry), DEFAULT_ITEM_TTL_SECONDS);
     testTtlHappyPath(client);
     // To accommodate for delays in tracing logs to appear in docker
     Thread.sleep(1000);
@@ -175,7 +188,7 @@ final class CacheTest {
   void testMissHappyPathWithTracing() throws Exception {
     startIntegrationTestOtel();
     OpenTelemetrySdk openTelemetry = setOtelSDK();
-    Cache client = getCache(Optional.of(openTelemetry));
+    Cache client = getCache(Optional.of(openTelemetry), DEFAULT_ITEM_TTL_SECONDS);
     testMissHappyPathInternal(client);
     // To accommodate for delays in tracing logs to appear in docker
     Thread.sleep(1000);
@@ -198,7 +211,8 @@ final class CacheTest {
   @Test
   void testBadAuthToken() {
     assertThrows(
-        PermissionDeniedException.class, () -> getCache("BAD_TOKEN", "dummy", Optional.empty()));
+        PermissionDeniedException.class,
+        () -> getCache("BAD_TOKEN", "dummy", Optional.empty(), DEFAULT_ITEM_TTL_SECONDS));
   }
 
   @Test
@@ -209,7 +223,8 @@ final class CacheTest {
             new Cache(
                 System.getenv("TEST_AUTH_TOKEN"),
                 System.getenv("TEST_CACHE_NAME"),
-                "nonexistent.preprod.a.momentohq.com"));
+                "nonexistent.preprod.a.momentohq.com",
+                DEFAULT_ITEM_TTL_SECONDS));
   }
 
   @Test
@@ -218,7 +233,10 @@ final class CacheTest {
         CacheNotFoundException.class,
         () ->
             getCache(
-                System.getenv("TEST_AUTH_TOKEN"), UUID.randomUUID().toString(), Optional.empty()));
+                System.getenv("TEST_AUTH_TOKEN"),
+                UUID.randomUUID().toString(),
+                Optional.empty(),
+                DEFAULT_ITEM_TTL_SECONDS));
   }
 
   @Test
@@ -227,10 +245,10 @@ final class CacheTest {
     byte[] value = {0x05, 0x06, 0x07, 0x08};
 
     CacheSetResponse setResponse = cache.set(key, value, 3);
-    assertEquals(setResponse.result(), MomentoCacheResult.Ok);
+    assertEquals(MomentoCacheResult.Ok, setResponse.result());
 
     CacheGetResponse getResponse = cache.get(key);
-    assertEquals(getResponse.result(), MomentoCacheResult.Hit);
+    assertEquals(MomentoCacheResult.Hit, getResponse.result());
     assertArrayEquals(value, getResponse.byteArray().get());
   }
 
