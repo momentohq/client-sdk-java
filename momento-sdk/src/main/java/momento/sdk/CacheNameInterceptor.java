@@ -16,7 +16,7 @@ final class CacheNameInterceptor implements ClientInterceptor {
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
   private final String cacheName;
 
-  public CacheNameInterceptor(String inputCacheName) {
+  CacheNameInterceptor(String inputCacheName) {
     cacheName = inputCacheName;
   }
 

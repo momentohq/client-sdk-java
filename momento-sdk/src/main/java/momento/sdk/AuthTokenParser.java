@@ -10,7 +10,7 @@ final class AuthTokenParser {
 
   private AuthTokenParser() {}
 
-  public static Claims parse(String authToken) {
+  static Claims parse(String authToken) {
     try {
       ensurePresent(authToken);
       Jwt<Header, io.jsonwebtoken.Claims> parsed =
@@ -51,11 +51,11 @@ final class AuthTokenParser {
           Optional.ofNullable((String) claims.getOrDefault(CACHE_ENDPOINT_CLAIM_NAME, null));
     }
 
-    public Optional<String> controlEndpoint() {
+    Optional<String> controlEndpoint() {
       return controlEndpoint;
     }
 
-    public Optional<String> cacheEndpoint() {
+    Optional<String> cacheEndpoint() {
       return cacheEndpoint;
     }
   }

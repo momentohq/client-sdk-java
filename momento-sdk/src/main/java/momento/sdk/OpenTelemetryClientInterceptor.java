@@ -15,7 +15,7 @@ final class OpenTelemetryClientInterceptor implements ClientInterceptor {
 
   private final TextMapPropagator textFormat;
 
-  public OpenTelemetryClientInterceptor(OpenTelemetry openTelemetry) {
+  OpenTelemetryClientInterceptor(OpenTelemetry openTelemetry) {
     this.textFormat = openTelemetry.getPropagators().getTextMapPropagator();
   }
 

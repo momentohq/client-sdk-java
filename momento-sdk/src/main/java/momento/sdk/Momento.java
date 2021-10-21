@@ -106,7 +106,7 @@ public final class Momento implements Closeable {
    * @param defaultItemTtlSeconds - The default Time to live in seconds for the items that will be
    *     stored in Cache. Default TTL can be overridden at individual items level at the time of
    *     storing them in the cache.
-   * @return {@link CacheClientBuilder} to further vuild the {@link Cache} client.
+   * @return {@link CacheClientBuilder} to further build the {@link Cache} client.
    */
   public CacheClientBuilder cacheBuilder(String cacheName, int defaultItemTtlSeconds) {
     return new CacheClientBuilder(
@@ -142,24 +142,34 @@ public final class Momento implements Closeable {
     return new MomentoBuilder(authToken);
   }
 
+  /** Builder for {@link Momento} client */
   public static class MomentoBuilder {
     private String authToken;
     private Optional<String> endpointOverride = Optional.empty();
 
-    public MomentoBuilder(String authToken) {
+    private MomentoBuilder(String authToken) {
       this.authToken = authToken;
     }
 
     /**
-     * Endpoint that will be used to perform Momento Cache Operations.
+     * Override the endpoints used to perform operations.
      *
-     * <p>This should be set only if Momento Team has provided you one.
+     * <p>This parameter should only be set when Momento services team advises to. Any invalid
+     * values here would result in application failures.
+     *
+     * @param endpointOverride Endpoint for momento services.
      */
     public MomentoBuilder endpointOverride(String endpointOverride) {
       this.endpointOverride = Optional.ofNullable(endpointOverride);
       return this;
     }
 
+    /**
+     * Creates a {@link momento.sdk.Momento} client.
+     *
+     * @throws ClientSdkException for malformed auth tokens or other invalid data provided to
+     *     initialize the client.
+     */
     public Momento build() {
       if (authToken == null || authToken.isEmpty()) {
         throw new ClientSdkException("Auth Token is required");
