@@ -106,7 +106,7 @@ public final class Momento implements Closeable {
    * @param defaultItemTtlSeconds - The default Time to live in seconds for the items that will be
    *     stored in Cache. Default TTL can be overridden at individual items level at the time of
    *     storing them in the cache.
-   * @see CacheClientBuilder
+   * @return {@link CacheClientBuilder} to further vuild the {@link Cache} client.
    */
   public CacheClientBuilder cacheBuilder(String cacheName, int defaultItemTtlSeconds) {
     return new CacheClientBuilder(
