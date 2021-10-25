@@ -16,7 +16,7 @@ final class AuthInterceptor implements ClientInterceptor {
       Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
   private final String tokenValue;
 
-  public AuthInterceptor(String token) {
+  AuthInterceptor(String token) {
     tokenValue = token;
   }
 

@@ -27,7 +27,6 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.ImplicitContextKeyed;
 import io.opentelemetry.context.Scope;
 import java.io.Closeable;
-import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -125,19 +124,34 @@ public final class Cache implements Closeable {
   }
 
   /**
-   * Returns a requested object from cache specified by passed key. This method is a blocking api
-   * call. Please use getAsync if you need a {@link java.util.concurrent.CompletionStage<
-   * CacheGetResponse >} returned instead.
+   * Get the cache value stored for the given key.
    *
-   * @param key the key of item to fetch from cache
-   * @return {@link CacheGetResponse} with the response object
-   * @throws IOException if an error occurs opening input stream for response body.
+   * @param key The key to get
+   * @return {@link CacheGetResponse} containing the status of the get operation and the associated
+   *     value data.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#getAsync(String)
    */
   public CacheGetResponse get(String key) {
     ensureValidKey(key);
     return sendGet(convert(key));
   }
 
+  /**
+   * Get the cache value stored for the given key.
+   *
+   * @param key The key to get
+   * @return {@link CacheGetResponse} containing the status of the get operation and the associated
+   *     value data.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#getAsync(byte[])
+   */
   public CacheGetResponse get(byte[] key) {
     ensureValidKey(key);
     return sendGet(convert(key));
@@ -163,39 +177,130 @@ public final class Cache implements Closeable {
   }
 
   /**
-   * Sets an object in cache by the passed key. This method is a blocking api call. Please use
-   * setAsync if you need a {@link java.util.concurrent.CompletionStage< CacheSetResponse >}
-   * returned instead.
+   * Sets the value in cache with a given Time To Live (TTL) seconds.
    *
-   * @param key the key of item to fetch from cache
-   * @param value {@link ByteBuffer} of the value to set in cache
-   * @param ttlSeconds the time for your object to live in cache in seconds.
-   * @return {@link CacheSetResponse} with the result of the set operation
-   * @throws IOException if an error occurs opening ByteBuffer for request body.
+   * <p>If a value for this key is already present it will be replaced by the new value.
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link Momento#cacheBuilder(String, int)}
+   * @return Result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key, value is null or if ttlSeconds is less than or equal to zero
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#set(String, ByteBuffer)
+   * @see Cache#setAsync(String, ByteBuffer, int)
    */
   public CacheSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
+  /**
+   * Sets the value in the cache. If a value for this key is already present it will be replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link Momento#cacheBuilder(String, int)}
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @return Result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#set(String, ByteBuffer, int)
+   * @see Cache#setAsync(String, ByteBuffer)
+   */
   public CacheSetResponse set(String key, ByteBuffer value) {
     return set(key, value, itemDefaultTtlSeconds);
   }
 
+  /**
+   * Sets the value in cache with a given Time To Live (TTL) seconds.
+   *
+   * <p>If a value for this key is already present it will be replaced by the new value.
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link Momento#cacheBuilder(String, int)}
+   * @return Result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#set(String, String)
+   * @see Cache#setAsync(String, String, int)
+   */
   public CacheSetResponse set(String key, String value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
+  /**
+   * Sets the value in the cache. If a value for this key is already present it will be replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link Momento#cacheBuilder(String, int)}
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @return Result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#set(String, String, int)
+   * @see Cache#setAsync(String, String)
+   */
   public CacheSetResponse set(String key, String value) {
     return set(key, value, itemDefaultTtlSeconds);
   }
 
+  /**
+   * Sets the value in cache with a given Time To Live (TTL) seconds.
+   *
+   * <p>If a value for this key is already present it will be replaced by the new value.
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link Momento#cacheBuilder(String, int)}
+   * @return Result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#set(byte[], byte[])
+   * @see Cache#setAsync(byte[], byte[], int)
+   */
   public CacheSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSet(convert(key), convert(value), ttlSeconds);
   }
 
+  /**
+   * Sets the value in the cache. If a value for this key is already present it will be replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link Momento#cacheBuilder(String, int)}
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @return Result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#set(byte[], byte[], int)
+   * @see Cache#setAsync(byte[], byte[])
+   */
   public CacheSetResponse set(byte[] key, byte[] value) {
     return set(key, value, itemDefaultTtlSeconds);
   }
@@ -224,12 +329,16 @@ public final class Cache implements Closeable {
   }
 
   /**
-   * Returns CompletableStage of getting an item from SCS by passed key. Allows user of this clients
-   * to better control concurrency of outbound cache get requests.
+   * Get the cache value stored for the given key.
    *
-   * @param key the key of item to fetch from cache.
-   * @return {@link CompletableFuture< CacheGetResponse >} Returns a CompletableFuture wrapping
-   *     standard ClientResponse with response object as a {@link java.io.InputStream}.
+   * @param key The key to get
+   * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
+   *     associated value data.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#get(byte[])
    */
   public CompletableFuture<CacheGetResponse> getAsync(byte[] key) {
     ensureValidKey(key);
@@ -237,12 +346,16 @@ public final class Cache implements Closeable {
   }
 
   /**
-   * Returns CompletableStage of getting an item from SCS by passed key. Allows user of this clients
-   * to better control concurrency of outbound cache get requests.
+   * Get the cache value stored for the given key.
    *
-   * @param key the key of item to fetch from cache.
-   * @return {@link CompletableFuture< CacheGetResponse >} Returns a CompletableFuture wrapping
-   *     standard ClientResponse with response object as a {@link java.io.InputStream}.
+   * @param key The key to get
+   * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
+   *     associated value data.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#get(String)
    */
   public CompletableFuture<CacheGetResponse> getAsync(String key) {
     ensureValidKey(key);
@@ -303,15 +416,21 @@ public final class Cache implements Closeable {
   }
 
   /**
-   * Returns CompletableStage of setting an item in SCS by passed key. Allows user of these clients
-   * to better control concurrency of outbound cache set requests.
+   * Sets the value in cache with a given Time To Live (TTL) seconds.
    *
-   * @param key the key of item to fetch from cache.
-   * @param value {@link ByteBuffer} of the value to set in cache
-   * @param ttlSeconds the time for your object to live in cache in seconds.
-   * @return @{@link CompletableFuture< CacheSetResponse >} Returns a CompletableFuture as a
-   *     CompletionStage interface wrapping standard ClientSetResponse.
-   * @throws IOException if an error occurs opening ByteBuffer for request body.
+   * <p>If a value for this key is already present it will be replaced by the new value.
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link Momento#cacheBuilder(String, int)}
+   * @return Future containing the result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#setAsync(String, ByteBuffer)
+   * @see Cache#set(String, ByteBuffer, int)
    */
   public CompletableFuture<CacheSetResponse> setAsync(
       String key, ByteBuffer value, int ttlSeconds) {
@@ -319,24 +438,109 @@ public final class Cache implements Closeable {
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
   }
 
+  /**
+   * Sets the value in the cache. If a value for this key is already present it will be replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link Momento#cacheBuilder(String, int)}
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @return Future containing the result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#set(String, ByteBuffer)
+   * @see Cache#setAsync(String, ByteBuffer, int)
+   */
   public CompletableFuture<CacheSetResponse> setAsync(String key, ByteBuffer value) {
     return setAsync(key, value, itemDefaultTtlSeconds);
   }
 
+  /**
+   * Sets the value in cache with a given Time To Live (TTL) seconds.
+   *
+   * <p>If a value for this key is already present it will be replaced by the new value.
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link Momento#cacheBuilder(String, int)}
+   * @return Future containing the result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#setAsync(byte[], byte[])
+   * @see Cache#set(byte[], byte[], int)
+   */
   public CompletableFuture<CacheSetResponse> setAsync(byte[] key, byte[] value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
   }
 
+  /**
+   * Sets the value in the cache. If a value for this key is already present it will be replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link Momento#cacheBuilder(String, int)}
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @return Future containing the result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#setAsync(byte[], byte[], int)
+   * @see Cache#set(byte[], byte[])
+   */
   public CompletableFuture<CacheSetResponse> setAsync(byte[] key, byte[] value) {
     return setAsync(key, value, itemDefaultTtlSeconds);
   }
 
+  /**
+   * Sets the value in cache with a given Time To Live (TTL) seconds.
+   *
+   * <p>If a value for this key is already present it will be replaced by the new value.
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link Momento#cacheBuilder(String, int)}
+   * @return Future containing the result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#setAsync(String, String)
+   * @see Cache#set(String, String, int)
+   */
   public CompletableFuture<CacheSetResponse> setAsync(String key, String value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
     return sendSetAsync(convert(key), convert(value), ttlSeconds);
   }
 
+  /**
+   * Sets the value in the cache. If a value for this key is already present it will be replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link Momento#cacheBuilder(String, int)}
+   *
+   * @param key The key under which the value is to be added.
+   * @param value The value to be stored.
+   * @return Future containing the result of the set operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key or value is null
+   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @see Cache#setAsync(String, String, int)
+   * @see Cache#set(String, String)
+   */
   public CompletableFuture<CacheSetResponse> setAsync(String key, String value) {
     return setAsync(key, value, itemDefaultTtlSeconds);
   }
@@ -398,6 +602,7 @@ public final class Cache implements Closeable {
     return returnFuture;
   }
 
+  /** Shutdown the client. */
   public void close() {
     this.channel.shutdown();
   }

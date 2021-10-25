@@ -12,6 +12,11 @@ repositories {
     mavenCentral()
 }
 
+java {
+    withSourcesJar()
+    withJavadocJar()
+}
+
 configure<JavaPluginExtension> {
     sourceCompatibility = JavaVersion.VERSION_1_8
 }

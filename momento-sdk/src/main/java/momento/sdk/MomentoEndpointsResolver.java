@@ -8,7 +8,7 @@ final class MomentoEndpointsResolver {
   private static final String CONTROL_ENDPOINT_PREFIX = "control.";
   private static final String CACHE_ENDPOINT_PREFIX = "cache.";
 
-  public static MomentoEndpoints resolve(String authToken, Optional<String> hostedZone) {
+  static MomentoEndpoints resolve(String authToken, Optional<String> hostedZone) {
     AuthTokenParser.Claims claims = AuthTokenParser.parse(authToken);
     String controlEndpoint = getControlEndpoint(claims, hostedZone);
     String cacheEndpoint = getCacheEndpoint(claims, hostedZone);
@@ -64,11 +64,11 @@ final class MomentoEndpointsResolver {
       this.controlEndpoint = controlEndpoint;
     }
 
-    public String controlEndpoint() {
+    String controlEndpoint() {
       return this.controlEndpoint;
     }
 
-    public String cacheEndpoint() {
+    String cacheEndpoint() {
       return this.cacheEndpoint;
     }
   }

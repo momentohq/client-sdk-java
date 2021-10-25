@@ -19,6 +19,7 @@ import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.DeleteCacheResponse;
 
+/** Client to interact with Momento services. */
 public final class Momento implements Closeable {
 
   private final String authToken;
@@ -27,7 +28,6 @@ public final class Momento implements Closeable {
   private final MomentoEndpointsResolver.MomentoEndpoints momentoEndpoints;
 
   private Momento(String authToken, Optional<String> hostedZoneOverride) {
-
     this.authToken = authToken;
     this.momentoEndpoints = MomentoEndpointsResolver.resolve(authToken, hostedZoneOverride);
     this.channel = setupConnection(momentoEndpoints, authToken);
@@ -49,14 +49,13 @@ public final class Momento implements Closeable {
   /**
    * Creates a cache with provided name
    *
-   * @param cacheName
-   * @return {@link CreateCacheResponse} that allows consumers to perform cache operations
-   * @throws {@link momento.sdk.exceptions.PermissionDeniedException} - if provided authToken is
-   *     invalid <br>
-   *     {@link CacheAlreadyExistsException} - if Cache with the same name exists <br>
-   *     {@link momento.sdk.exceptions.InternalServerException} - for any unexpected errors that
-   *     occur on the service side.<br>
-   *     {@link ClientSdkException} - for any client side errors
+   * @param cacheName Name of the cache to be created.
+   * @return The result of the create cache operation
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws momento.sdk.exceptions.InvalidArgumentException
+   * @throws CacheAlreadyExistsException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @throws ClientSdkException when cacheName is null
    */
   public CreateCacheResponse createCache(String cacheName) {
     checkCacheNameValid(cacheName);
@@ -75,10 +74,14 @@ public final class Momento implements Closeable {
   }
 
   /**
-   * Deletes a cache with the provided name
+   * Deletes a cache
    *
-   * @param cacheName
-   * @return {@link DeleteCacheResponse}
+   * @param cacheName The name of the cache to be deleted.
+   * @return The result of the cache deletion operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws CacheNotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @throws ClientSdkException if the {@code cacheName} is null.
    */
   public DeleteCacheResponse deleteCache(String cacheName) {
     checkCacheNameValid(cacheName);
@@ -103,8 +106,7 @@ public final class Momento implements Closeable {
    * @param defaultItemTtlSeconds - The default Time to live in seconds for the items that will be
    *     stored in Cache. Default TTL can be overridden at individual items level at the time of
    *     storing them in the cache.
-   * @return
-   * @see CacheClientBuilder
+   * @return {@link CacheClientBuilder} to further build the {@link Cache} client.
    */
   public CacheClientBuilder cacheBuilder(String cacheName, int defaultItemTtlSeconds) {
     return new CacheClientBuilder(
@@ -125,32 +127,49 @@ public final class Momento implements Closeable {
     }
   }
 
+  /** Shuts down the client. */
   public void close() {
     this.channel.shutdown();
   }
 
+  /**
+   * Builder to create a {@link Momento} client.
+   *
+   * @param authToken The authentication token required to authenticate with Momento Services.
+   * @return A builder to build the Momento Client
+   */
   public static MomentoBuilder builder(String authToken) {
     return new MomentoBuilder(authToken);
   }
 
+  /** Builder for {@link Momento} client */
   public static class MomentoBuilder {
     private String authToken;
     private Optional<String> endpointOverride = Optional.empty();
 
-    public MomentoBuilder(String authToken) {
+    private MomentoBuilder(String authToken) {
       this.authToken = authToken;
     }
 
     /**
-     * Endpoint that will be used to perform Momento Cache Operations.
+     * Override the endpoints used to perform operations.
      *
-     * <p>This should be set only if Momento Team has provided you one.
+     * <p>This parameter should only be set when Momento services team advises to. Any invalid
+     * values here will result in application failures.
+     *
+     * @param endpointOverride Endpoint for momento services.
      */
     public MomentoBuilder endpointOverride(String endpointOverride) {
       this.endpointOverride = Optional.ofNullable(endpointOverride);
       return this;
     }
 
+    /**
+     * Creates a {@link momento.sdk.Momento} client.
+     *
+     * @throws ClientSdkException for malformed auth tokens or other invalid data provided to
+     *     initialize the client.
+     */
     public Momento build() {
       if (authToken == null || authToken.isEmpty()) {
         throw new ClientSdkException("Auth Token is required");
