@@ -155,7 +155,7 @@ public final class Momento implements Closeable {
      * Override the endpoints used to perform operations.
      *
      * <p>This parameter should only be set when Momento services team advises to. Any invalid
-     * values here would result in application failures.
+     * values here will result in application failures.
      *
      * @param endpointOverride Endpoint for momento services.
      */

@@ -21,10 +21,7 @@ public final class CacheGetResponse extends BaseResponse {
   /**
    * Determine the result of the Get operation.
    *
-   * <p>Only valid values are {@link MomentoCacheResult#Hit} and {@link MomentoCacheResult#Miss}.
-   *
-   * <p>The API may return other values in the time being but till then all statuses that are not
-   * {@link MomentoCacheResult#Hit} should be considered as Cache misses.
+   * <p>Valid values are {@link MomentoCacheResult#Hit} and {@link MomentoCacheResult#Miss}.
    *
    * @return The result of Cache Get Operation
    */
