@@ -18,7 +18,7 @@ public final class CacheServiceExceptionMapper {
    *
    * @param e
    */
-  public static SdkException convert(Exception e) {
+  public static SdkException convert(Throwable e) {
     if (e instanceof SdkException) {
       throw (SdkException) e;
     }
