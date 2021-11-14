@@ -89,7 +89,6 @@ public final class Cache implements Closeable {
     this.channel = channel;
     this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
     this.itemDefaultTtlSeconds = itemDefaultTtlSeconds;
-    testConnection();
   }
 
   private void testConnection() {

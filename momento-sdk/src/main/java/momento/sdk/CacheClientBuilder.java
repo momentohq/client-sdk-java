@@ -42,7 +42,7 @@ public final class CacheClientBuilder {
     Cache cache = null;
     try {
       cache = new Cache(authToken, cacheName, endpoint, defaultItemTtlSeconds);
-      return cache;
+      return cache.connect();
     } catch (CacheNotFoundException e) {
       if (!createIfDoesntExist) {
         throw e;
