@@ -14,8 +14,6 @@ import grpc.cache_client.SetRequest;
 import grpc.cache_client.SetResponse;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
@@ -91,36 +89,20 @@ public final class Cache implements Closeable {
     this.channel = channel;
     this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
     this.itemDefaultTtlSeconds = itemDefaultTtlSeconds;
-    waitTillReady();
+    testConnection();
   }
 
-  // TODO: Temporary measure for beta. This will not be required soon.
-  private void waitTillReady() {
-    long start = System.currentTimeMillis();
-    long maxRetryDurationMillis = 5000;
-    long backoffDurationMillis = 5;
-    StatusRuntimeException lastRetriedException = null;
-
-    while (System.currentTimeMillis() - start < maxRetryDurationMillis) {
-      try {
-        // The key has no special meaning. Just any key string would work.
-        this.blockingStub.get(buildGetRequest(convert("000")));
-        return;
-      } catch (StatusRuntimeException e) {
-        if (e.getStatus().getCode() == Status.Code.UNKNOWN
-            || e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-          try {
-            Thread.sleep(backoffDurationMillis);
-          } catch (InterruptedException t) {
-            throw CacheServiceExceptionMapper.convert(t);
-          }
-          lastRetriedException = e;
-        } else {
-          throw CacheServiceExceptionMapper.convert(e);
-        }
-      }
+  private void testConnection() {
+    try {
+      this.blockingStub.get(buildGetRequest(convert("000")));
+    } catch (Exception e) {
+      throw CacheServiceExceptionMapper.convert(e);
     }
-    throw CacheServiceExceptionMapper.convertUnhandledExceptions(lastRetriedException);
+  }
+
+  Cache connect() {
+    this.testConnection();
+    return this;
   }
 
   /**
