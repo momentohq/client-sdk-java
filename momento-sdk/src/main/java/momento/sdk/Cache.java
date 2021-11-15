@@ -91,6 +91,16 @@ public final class Cache implements Closeable {
     this.itemDefaultTtlSeconds = itemDefaultTtlSeconds;
   }
 
+  // Runs a get using the provided cache name and the auth token.
+  // An alternate approach may be to just make this call in the constructor itself. However, if the construction fails,
+  // there will be grpc channel and related resources that may need a manual cleanup. Having an explicit connect, allows
+  // consumers to set up a connection to the service via constructor and then an explicit connect method to make sure
+  // that the connection parameters for the cache itself work.
+  Cache connect() {
+    this.testConnection();
+    return this;
+  }
+
   private void testConnection() {
     try {
       this.blockingStub.get(buildGetRequest(convert("000")));
@@ -99,10 +109,7 @@ public final class Cache implements Closeable {
     }
   }
 
-  Cache connect() {
-    this.testConnection();
-    return this;
-  }
+
 
   /**
    * Get the cache value stored for the given key.

@@ -57,7 +57,7 @@ final class CacheTest {
         System.getenv("TEST_AUTH_TOKEN"),
         System.getenv("TEST_CACHE_NAME"),
         openTelemetry,
-        defaultItemTtlSeconds);
+        defaultItemTtlSeconds).connect();
   }
 
   Cache getCache(
@@ -76,7 +76,7 @@ final class CacheTest {
         openTelemetry,
         endpoint,
         defaultItemTtlSeconds,
-        System.getenv("TEST_SSL_INSECURE") != null);
+        System.getenv("TEST_SSL_INSECURE") != null).connect();
   }
 
   @AfterEach
@@ -224,7 +224,7 @@ final class CacheTest {
                 System.getenv("TEST_AUTH_TOKEN"),
                 System.getenv("TEST_CACHE_NAME"),
                 "nonexistent.preprod.a.momentohq.com",
-                DEFAULT_ITEM_TTL_SECONDS));
+                DEFAULT_ITEM_TTL_SECONDS).connect());
   }
 
   @Test
