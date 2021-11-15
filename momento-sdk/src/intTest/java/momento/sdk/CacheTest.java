@@ -54,10 +54,11 @@ final class CacheTest {
 
   Cache getCache(Optional<OpenTelemetry> openTelemetry, int defaultItemTtlSeconds) {
     return getCache(
-        System.getenv("TEST_AUTH_TOKEN"),
-        System.getenv("TEST_CACHE_NAME"),
-        openTelemetry,
-        defaultItemTtlSeconds).connect();
+            System.getenv("TEST_AUTH_TOKEN"),
+            System.getenv("TEST_CACHE_NAME"),
+            openTelemetry,
+            defaultItemTtlSeconds)
+        .connect();
   }
 
   Cache getCache(
@@ -71,12 +72,13 @@ final class CacheTest {
     }
 
     return new Cache(
-        authToken,
-        cacheName,
-        openTelemetry,
-        endpoint,
-        defaultItemTtlSeconds,
-        System.getenv("TEST_SSL_INSECURE") != null).connect();
+            authToken,
+            cacheName,
+            openTelemetry,
+            endpoint,
+            defaultItemTtlSeconds,
+            System.getenv("TEST_SSL_INSECURE") != null)
+        .connect();
   }
 
   @AfterEach
@@ -221,10 +223,11 @@ final class CacheTest {
         ClientSdkException.class,
         () ->
             new Cache(
-                System.getenv("TEST_AUTH_TOKEN"),
-                System.getenv("TEST_CACHE_NAME"),
-                "nonexistent.preprod.a.momentohq.com",
-                DEFAULT_ITEM_TTL_SECONDS).connect());
+                    System.getenv("TEST_AUTH_TOKEN"),
+                    System.getenv("TEST_CACHE_NAME"),
+                    "nonexistent.preprod.a.momentohq.com",
+                    DEFAULT_ITEM_TTL_SECONDS)
+                .connect());
   }
 
   @Test
