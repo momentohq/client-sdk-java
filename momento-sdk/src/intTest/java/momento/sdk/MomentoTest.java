@@ -104,14 +104,12 @@ final class MomentoTest {
 
   @Test
   void createCacheViaBuilder_succeeds() {
-    try (Momento momento = Momento.builder(authToken).build()) {
-      String cacheName = UUID.randomUUID().toString();
-      try (Cache cache = momento.cacheBuilder(cacheName, 60).createCacheIfDoesntExist().build()) {
-        cache.set("key", "value");
-        assertEquals("value", cache.get("key").string().get());
-      }
-      momento.deleteCache(cacheName);
-    }
+    Momento momento = Momento.builder(authToken).build();
+    String cacheName = UUID.randomUUID().toString();
+    Cache cache = momento.cacheBuilder(cacheName, 60).createCacheIfDoesntExist().build();
+    cache.set("key", "value");
+    assertEquals("value", cache.get("key").string().get());
+    momento.deleteCache(cacheName);
   }
 
   private static void runHappyPathTest(Momento momento, String cacheName) {
