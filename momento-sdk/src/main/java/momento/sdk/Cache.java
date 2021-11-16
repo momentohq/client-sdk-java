@@ -14,8 +14,6 @@ import grpc.cache_client.SetRequest;
 import grpc.cache_client.SetResponse;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.grpc.netty.GrpcSslContexts;
 import io.grpc.netty.NettyChannelBuilder;
 import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
@@ -66,8 +64,20 @@ public final class Cache implements Closeable {
       String endpoint,
       int itemDefaultTtlSeconds,
       boolean insecureSsl) {
-    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
+    this.channel = setupChannel(endpoint, authToken, cacheName, insecureSsl, openTelemetry);
+    this.blockingStub = ScsGrpc.newBlockingStub(channel);
+    this.futureStub = ScsGrpc.newFutureStub(channel);
+    this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
+    this.itemDefaultTtlSeconds = itemDefaultTtlSeconds;
+  }
 
+  private ManagedChannel setupChannel(
+      String endpoint,
+      String authToken,
+      String cacheName,
+      boolean insecureSsl,
+      Optional<OpenTelemetry> openTelemetry) {
+    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
     if (insecureSsl) {
       try {
         channelBuilder.sslContext(
@@ -86,41 +96,33 @@ public final class Cache implements Closeable {
             clientInterceptors.add(new OpenTelemetryClientInterceptor(theOpenTelemetry)));
     channelBuilder.intercept(clientInterceptors);
     ManagedChannel channel = channelBuilder.build();
-    this.blockingStub = ScsGrpc.newBlockingStub(channel);
-    this.futureStub = ScsGrpc.newFutureStub(channel);
-    this.channel = channel;
-    this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
-    this.itemDefaultTtlSeconds = itemDefaultTtlSeconds;
-    waitTillReady();
+    return channel;
   }
 
-  // TODO: Temporary measure for beta. This will not be required soon.
-  private void waitTillReady() {
-    long start = System.currentTimeMillis();
-    long maxRetryDurationMillis = 5000;
-    long backoffDurationMillis = 5;
-    StatusRuntimeException lastRetriedException = null;
+  // Runs a get using the provided cache name and the auth token.
+  //
+  // An alternate approach would be to make this call during construction itself. That however, may
+  // cause Cache object construction to fail and leave behind open grpc channels. Eventually those
+  // would be garbage collected.
+  //
+  // The separation between opening a grpc channel vs performing operations against the Momento
+  // Cache construct allows SDK builders a better control to manage objects. This is particularly
+  // useful for getOrCreateCache calls. Doing a get first is desirable as our data plane can take
+  // more load as compared to the control plane. However, if a cache doesn't exist the constructor
+  // may end up failing and then upon cache creation using the control plane a new server connection
+  // would have to establish. This paradigm is a minor but desirable optimization to prevent opening
+  // multiple channels and incurring the cost.
+  Cache connect() {
+    this.testConnection();
+    return this;
+  }
 
-    while (System.currentTimeMillis() - start < maxRetryDurationMillis) {
-      try {
-        // The key has no special meaning. Just any key string would work.
-        this.blockingStub.get(buildGetRequest(convert("000")));
-        return;
-      } catch (StatusRuntimeException e) {
-        if (e.getStatus().getCode() == Status.Code.UNKNOWN
-            || e.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-          try {
-            Thread.sleep(backoffDurationMillis);
-          } catch (InterruptedException t) {
-            throw CacheServiceExceptionMapper.convert(t);
-          }
-          lastRetriedException = e;
-        } else {
-          throw CacheServiceExceptionMapper.convert(e);
-        }
-      }
+  private void testConnection() {
+    try {
+      this.blockingStub.get(buildGetRequest(convert("000")));
+    } catch (Exception e) {
+      throw CacheServiceExceptionMapper.convert(e);
     }
-    throw CacheServiceExceptionMapper.convertUnhandledExceptions(lastRetriedException);
   }
 
   /**

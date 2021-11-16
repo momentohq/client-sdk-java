@@ -1,6 +1,6 @@
 package momento.sdk;
 
-import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.ClientSdkException;
 
 /** Build a {@link Cache} */
@@ -39,12 +39,19 @@ public final class CacheClientBuilder {
     }
 
     Momento.checkCacheNameValid(cacheName);
-    if (createIfDoesntExist) {
-      try {
-        momento.createCache(cacheName);
-      } catch (CacheAlreadyExistsException e) {
+    Cache cache = null;
+    try {
+      cache = new Cache(authToken, cacheName, endpoint, defaultItemTtlSeconds);
+      return cache.connect();
+    } catch (CacheNotFoundException e) {
+      if (!createIfDoesntExist) {
+        throw e;
       }
     }
-    return new Cache(authToken, cacheName, endpoint, defaultItemTtlSeconds);
+
+    // Create since the cache is not found and the request is to create it.
+    momento.createCache(cacheName);
+    // Use the same cache object as previously constructed.
+    return cache.connect();
   }
 }

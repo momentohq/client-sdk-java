@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.util.UUID;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.ClientSdkException;
@@ -91,6 +92,24 @@ final class MomentoTest {
   void nonPositiveTtl_throwsException() {
     Momento momento = Momento.builder(authToken).build();
     assertThrows(ClientSdkException.class, () -> momento.cacheBuilder(cacheName, -1).build());
+  }
+
+  @Test
+  void buildingCacheClientForNonExistentCache_throwsException() {
+    Momento momento = Momento.builder(authToken).build();
+    assertThrows(
+        CacheNotFoundException.class,
+        () -> momento.cacheBuilder(UUID.randomUUID().toString(), 60).build());
+  }
+
+  @Test
+  void createCacheViaBuilder_succeeds() {
+    Momento momento = Momento.builder(authToken).build();
+    String cacheName = UUID.randomUUID().toString();
+    Cache cache = momento.cacheBuilder(cacheName, 60).createCacheIfDoesntExist().build();
+    cache.set("key", "value");
+    assertEquals("value", cache.get("key").string().get());
+    momento.deleteCache(cacheName);
   }
 
   private static void runHappyPathTest(Momento momento, String cacheName) {
