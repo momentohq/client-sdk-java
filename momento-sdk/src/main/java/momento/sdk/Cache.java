@@ -64,8 +64,20 @@ public final class Cache implements Closeable {
       String endpoint,
       int itemDefaultTtlSeconds,
       boolean insecureSsl) {
-    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
+    this.channel = setupChannel(endpoint, authToken, cacheName, insecureSsl, openTelemetry);
+    this.blockingStub = ScsGrpc.newBlockingStub(channel);
+    this.futureStub = ScsGrpc.newFutureStub(channel);
+    this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
+    this.itemDefaultTtlSeconds = itemDefaultTtlSeconds;
+  }
 
+  private ManagedChannel setupChannel(
+      String endpoint,
+      String authToken,
+      String cacheName,
+      boolean insecureSsl,
+      Optional<OpenTelemetry> openTelemetry) {
+    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
     if (insecureSsl) {
       try {
         channelBuilder.sslContext(
@@ -84,21 +96,22 @@ public final class Cache implements Closeable {
             clientInterceptors.add(new OpenTelemetryClientInterceptor(theOpenTelemetry)));
     channelBuilder.intercept(clientInterceptors);
     ManagedChannel channel = channelBuilder.build();
-    this.blockingStub = ScsGrpc.newBlockingStub(channel);
-    this.futureStub = ScsGrpc.newFutureStub(channel);
-    this.channel = channel;
-    this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
-    this.itemDefaultTtlSeconds = itemDefaultTtlSeconds;
+    return channel;
   }
 
   // Runs a get using the provided cache name and the auth token.
-  // An alternate approach may be to just make this call in the constructor itself. However, if the
-  // construction fails,
-  // there will be grpc channel and related resources that may need a manual cleanup. Having an
-  // explicit connect, allows
-  // consumers to set up a connection to the service via constructor and then an explicit connect
-  // method to make sure
-  // that the connection parameters for the cache itself work.
+  //
+  // An alternate approach would be to make this call during construction itself. That however, may
+  // cause Cache object construction to fail and leave behind open grpc channels. Eventually those
+  // would be garbage collected.
+  //
+  // The separation between opening a grpc channel vs performing operations against the Momento
+  // Cache construct allows SDK builders a better control to manage objects. This is particularly
+  // useful for getOrCreateCache calls. Doing a get first is desirable as our data plane can take
+  // more load as compared to the control plane. However, if a cache doesn't exist the constructor
+  // may end up failing and then upon cache creation using the control plane a new server connection
+  // would have to establish. This paradigm is a minor but desirable optimization to prevent opening
+  // multiple channels and incurring the cost.
   Cache connect() {
     this.testConnection();
     return this;
