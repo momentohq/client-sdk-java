@@ -1,19 +1,17 @@
 package momento.sdk;
 
 import static momento.sdk.TestHelpers.DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.InvalidArgumentException;
-import momento.sdk.messages.CacheGetResponse;
-import momento.sdk.messages.CacheSetResponse;
-import momento.sdk.messages.MomentoCacheResult;
+import momento.sdk.messages.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -110,6 +108,25 @@ final class MomentoTest {
     cache.set("key", "value");
     assertEquals("value", cache.get("key").string().get());
     momento.deleteCache(cacheName);
+  }
+
+  @Test
+  void listCachesMustIncludeCreatedCache() {
+    Momento momento = Momento.builder(authToken).build();
+    String cacheName = UUID.randomUUID().toString();
+    momento.createCache(cacheName);
+    try {
+      ListCachesResponse response = momento.listCaches(ListCachesRequest.builder().build());
+      assertTrue(response.caches().size() >= 1);
+      assertTrue(
+          response.caches().stream()
+              .map(CacheInfo::name)
+              .collect(Collectors.toSet())
+              .contains(cacheName));
+    } finally {
+      // cleanup
+      momento.deleteCache(cacheName);
+    }
   }
 
   private static void runHappyPathTest(Momento momento, String cacheName) {

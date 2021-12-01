@@ -16,8 +16,7 @@ import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
-import momento.sdk.messages.CreateCacheResponse;
-import momento.sdk.messages.DeleteCacheResponse;
+import momento.sdk.messages.*;
 
 /** Client to interact with Momento services. */
 public final class Momento implements Closeable {
@@ -99,6 +98,15 @@ public final class Momento implements Closeable {
     }
   }
 
+  /** Lists all caches for the provided auth token. */
+  public ListCachesResponse listCaches(ListCachesRequest request) {
+    try {
+      return convert(this.blockingStub.listCaches(convert(request)));
+    } catch (Exception e) {
+      throw CacheServiceExceptionMapper.convert(e);
+    }
+  }
+
   /**
    * Creates a builder to make a Cache client.
    *
@@ -119,6 +127,28 @@ public final class Momento implements Closeable {
 
   private DeleteCacheRequest buildDeleteCacheRequest(String cacheName) {
     return DeleteCacheRequest.newBuilder().setCacheName(cacheName).build();
+  }
+
+  private grpc.control_client.ListCachesRequest convert(ListCachesRequest request) {
+    return grpc.control_client.ListCachesRequest.newBuilder()
+        .setNextToken(request.nextPageToken().orElse(""))
+        .build();
+  }
+
+  private ListCachesResponse convert(grpc.control_client.ListCachesResponse response) {
+    List<CacheInfo> caches = new ArrayList<>();
+    for (grpc.control_client.Cache cache : response.getCacheList()) {
+      caches.add(convert(cache));
+    }
+    Optional<String> nextPageToken =
+        response.getNextToken() == null || response.getNextToken().isEmpty()
+            ? Optional.empty()
+            : Optional.of(response.getNextToken());
+    return new ListCachesResponse(caches, nextPageToken);
+  }
+
+  private CacheInfo convert(grpc.control_client.Cache cache) {
+    return new CacheInfo(cache.getCacheName());
   }
 
   static void checkCacheNameValid(String cacheName) {
