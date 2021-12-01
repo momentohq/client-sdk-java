@@ -1,7 +1,9 @@
 package momento.sdk;
 
 import static momento.sdk.TestHelpers.DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
@@ -11,7 +13,12 @@ import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.InvalidArgumentException;
-import momento.sdk.messages.*;
+import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheInfo;
+import momento.sdk.messages.CacheSetResponse;
+import momento.sdk.messages.ListCachesRequest;
+import momento.sdk.messages.ListCachesResponse;
+import momento.sdk.messages.MomentoCacheResult;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

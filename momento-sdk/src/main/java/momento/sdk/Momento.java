@@ -16,7 +16,11 @@ import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
-import momento.sdk.messages.*;
+import momento.sdk.messages.CacheInfo;
+import momento.sdk.messages.CreateCacheResponse;
+import momento.sdk.messages.DeleteCacheResponse;
+import momento.sdk.messages.ListCachesRequest;
+import momento.sdk.messages.ListCachesResponse;
 
 /** Client to interact with Momento services. */
 public final class Momento implements Closeable {
