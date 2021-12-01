@@ -24,7 +24,7 @@ public final class ListCachesRequest {
 
   public static class ListCachesRequestBuilder {
 
-    private Optional<String> nextPageToken;
+    private Optional<String> nextPageToken = Optional.empty();
 
     public ListCachesRequestBuilder nextPageToken(Optional<String> nextPageToken) {
       Optional<String> nextPageTokenOpt = nextPageToken == null ? Optional.empty() : nextPageToken;
