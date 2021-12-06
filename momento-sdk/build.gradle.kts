@@ -24,6 +24,8 @@ dependencies {
 
     // Internal Deps -------------------
     implementation(project(":messages"))
+
+    implementation("org.apache.commons:commons-lang3:3.0")
 }
 
 spotless {

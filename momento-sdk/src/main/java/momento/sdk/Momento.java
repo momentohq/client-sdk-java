@@ -21,6 +21,7 @@ import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.DeleteCacheResponse;
 import momento.sdk.messages.ListCachesRequest;
 import momento.sdk.messages.ListCachesResponse;
+import org.apache.commons.lang3.StringUtils;
 
 /** Client to interact with Momento services. */
 public final class Momento implements Closeable {
@@ -145,7 +146,7 @@ public final class Momento implements Closeable {
       caches.add(convert(cache));
     }
     Optional<String> nextPageToken =
-        response.getNextToken() == null || response.getNextToken().isEmpty()
+        StringUtils.isEmpty(response.getNextToken())
             ? Optional.empty()
             : Optional.of(response.getNextToken());
     return new ListCachesResponse(caches, nextPageToken);
@@ -205,7 +206,7 @@ public final class Momento implements Closeable {
      *     initialize the client.
      */
     public Momento build() {
-      if (authToken == null || authToken.isEmpty()) {
+      if (StringUtils.isEmpty(authToken)) {
         throw new ClientSdkException("Auth Token is required");
       }
       return new Momento(authToken, endpointOverride);
