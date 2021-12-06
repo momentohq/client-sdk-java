@@ -2,6 +2,7 @@ package momento.sdk;
 
 import static momento.sdk.TestHelpers.DEFAULT_MOMENTO_HOSTED_ZONE_ENDPOINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -130,6 +131,7 @@ final class MomentoTest {
               .map(CacheInfo::name)
               .collect(Collectors.toSet())
               .contains(cacheName));
+      assertFalse(response.nextPageToken().isPresent());
     } finally {
       // cleanup
       momento.deleteCache(cacheName);
