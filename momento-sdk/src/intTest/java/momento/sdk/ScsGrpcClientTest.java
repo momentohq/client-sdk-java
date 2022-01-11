@@ -4,6 +4,7 @@ import static momento.sdk.TestHelpers.DEFAULT_CACHE_ENDPOINT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.google.protobuf.ByteString;
 import io.opentelemetry.api.trace.propagation.W3CTraceContextPropagator;
@@ -18,6 +19,7 @@ import java.nio.charset.Charset;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.ClientSdkException;
@@ -118,25 +120,36 @@ final class ScsGrpcClientTest {
   @Test
   void badTokenThrowsPermissionDenied() {
     ScsGrpcClient target = new ScsGrpcClient("bad_token", endpoint);
-    assertThrows(
-        PermissionDeniedException.class, () -> target.sendGet(cacheName, ByteString.EMPTY).get());
+    ExecutionException e =
+        assertThrows(
+            ExecutionException.class, () -> target.sendGet(cacheName, ByteString.EMPTY).get());
+    assertTrue(e.getCause() instanceof PermissionDeniedException);
   }
 
   @Test
   public void unreachableEndpointThrowsException() {
     ScsGrpcClient target = new ScsGrpcClient(authToken, "unknown.momentohq.com");
-    assertThrows(ClientSdkException.class, () -> target.sendGet(cacheName, ByteString.EMPTY).get());
+    ExecutionException e =
+        assertThrows(
+            ExecutionException.class, () -> target.sendGet(cacheName, ByteString.EMPTY).get());
+    assertTrue(e.getCause() instanceof ClientSdkException);
   }
 
   @Test
   public void nonExistentCacheNameThrowsNotFoundOnGetOrSet() {
     ScsGrpcClient target = new ScsGrpcClient(authToken, endpoint);
     String cacheName = UUID.randomUUID().toString();
-    assertThrows(
-        CacheNotFoundException.class, () -> target.sendGet(cacheName, ByteString.EMPTY).get());
-    assertThrows(
-        CacheNotFoundException.class,
-        () -> target.sendSet(cacheName, ByteString.EMPTY, ByteString.EMPTY, 10).get());
+
+    ExecutionException setException =
+        assertThrows(
+            ExecutionException.class, () -> target.sendGet(cacheName, ByteString.EMPTY).get());
+    assertTrue(setException.getCause() instanceof CacheNotFoundException);
+
+    ExecutionException getException =
+        assertThrows(
+            ExecutionException.class,
+            () -> target.sendSet(cacheName, ByteString.EMPTY, ByteString.EMPTY, 10).get());
+    assertTrue(getException.getCause() instanceof CacheNotFoundException);
   }
 
   private void runSetAndGetWithHitTest(ScsGrpcClient target) throws Exception {
