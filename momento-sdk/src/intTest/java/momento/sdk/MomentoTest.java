@@ -101,20 +101,22 @@ final class MomentoTest {
   }
 
   @Test
-  void buildingCacheClientForNonExistentCache_throwsException() {
+  public void createsNewCacheWhenCreateFlagSet() {
     Momento momento = Momento.builder(authToken).build();
-    assertThrows(
-        CacheNotFoundException.class,
-        () -> momento.cacheBuilder(UUID.randomUUID().toString(), 60).build());
-  }
+    String key = UUID.randomUUID().toString();
+    String value = UUID.randomUUID().toString();
 
-  @Test
-  void createCacheViaBuilder_succeeds() {
-    Momento momento = Momento.builder(authToken).build();
     String cacheName = UUID.randomUUID().toString();
-    Cache cache = momento.cacheBuilder(cacheName, 60).createCacheIfDoesntExist().build();
-    cache.set("key", "value");
-    assertEquals("value", cache.get("key").string().get());
+    Cache cache = momento.cacheBuilder(cacheName, 60).build();
+    // Ensures doesn't exist
+    assertThrows(CacheNotFoundException.class, () -> cache.get("hello"));
+
+    // Created Cache
+    Cache createdCache = momento.cacheBuilder(cacheName, 60).createCacheIfDoesntExist().build();
+    createdCache.set(key, value);
+    assertEquals(value, createdCache.get(key).string().get());
+
+    // Cleanup
     momento.deleteCache(cacheName);
   }
 

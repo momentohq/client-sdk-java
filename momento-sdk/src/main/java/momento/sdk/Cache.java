@@ -1,102 +1,27 @@
 package momento.sdk;
 
-import static java.time.Instant.now;
-
-import com.google.common.util.concurrent.FutureCallback;
-import com.google.common.util.concurrent.Futures;
-import com.google.common.util.concurrent.ListenableFuture;
-import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import grpc.cache_client.GetRequest;
-import grpc.cache_client.GetResponse;
-import grpc.cache_client.ScsGrpc;
-import grpc.cache_client.SetRequest;
-import grpc.cache_client.SetResponse;
-import io.grpc.ClientInterceptor;
-import io.grpc.ManagedChannel;
-import io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.NettyChannelBuilder;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.ImplicitContextKeyed;
-import io.opentelemetry.context.Scope;
-import java.io.Closeable;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import javax.net.ssl.SSLException;
+import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.SdkException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
 /** Client to perform operations on cache. */
-public final class Cache implements Closeable {
-  private final ScsGrpc.ScsBlockingStub blockingStub;
-  private final ScsGrpc.ScsFutureStub futureStub;
-  private final ManagedChannel channel;
-  private final Optional<Tracer> tracer;
+public final class Cache {
+
+  private final String cacheName;
   private final int itemDefaultTtlSeconds;
+  private final ScsGrpcClient scsGrpcClient;
 
-  Cache(String authToken, String cacheName, String endpoint, int itemDefaultTtlSeconds) {
-    this(authToken, cacheName, Optional.empty(), endpoint, itemDefaultTtlSeconds);
-  }
-
-  Cache(
-      String authToken,
-      String cacheName,
-      Optional<OpenTelemetry> openTelemetry,
-      String endpoint,
-      int itemDefaultTtlSeconds) {
-    this(authToken, cacheName, openTelemetry, endpoint, itemDefaultTtlSeconds, false);
-  }
-
-  Cache(
-      String authToken,
-      String cacheName,
-      Optional<OpenTelemetry> openTelemetry,
-      String endpoint,
-      int itemDefaultTtlSeconds,
-      boolean insecureSsl) {
-    this.channel = setupChannel(endpoint, authToken, cacheName, insecureSsl, openTelemetry);
-    this.blockingStub = ScsGrpc.newBlockingStub(channel);
-    this.futureStub = ScsGrpc.newFutureStub(channel);
-    this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
+  Cache(String cacheName, int itemDefaultTtlSeconds, ScsGrpcClient scsGrpcClient) {
+    this.cacheName = cacheName;
     this.itemDefaultTtlSeconds = itemDefaultTtlSeconds;
-  }
-
-  private ManagedChannel setupChannel(
-      String endpoint,
-      String authToken,
-      String cacheName,
-      boolean insecureSsl,
-      Optional<OpenTelemetry> openTelemetry) {
-    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
-    if (insecureSsl) {
-      try {
-        channelBuilder.sslContext(
-            GrpcSslContexts.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build());
-      } catch (SSLException e) {
-        throw new RuntimeException("Unable to use insecure trust manager", e);
-      }
-    }
-    channelBuilder.useTransportSecurity();
-    channelBuilder.disableRetry();
-    List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(new AuthInterceptor(authToken));
-    clientInterceptors.add(new CacheNameInterceptor(cacheName));
-    openTelemetry.ifPresent(
-        theOpenTelemetry ->
-            clientInterceptors.add(new OpenTelemetryClientInterceptor(theOpenTelemetry)));
-    channelBuilder.intercept(clientInterceptors);
-    ManagedChannel channel = channelBuilder.build();
-    return channel;
+    this.scsGrpcClient = scsGrpcClient;
   }
 
   // Runs a get using the provided cache name and the auth token.
@@ -119,7 +44,7 @@ public final class Cache implements Closeable {
 
   private void testConnection() {
     try {
-      this.blockingStub.get(buildGetRequest(convert("000")));
+      this.get(UUID.randomUUID().toString());
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
     }
@@ -139,7 +64,7 @@ public final class Cache implements Closeable {
    */
   public CacheGetResponse get(String key) {
     ensureValidKey(key);
-    return sendGet(convert(key));
+    return sendBlockingGet(convert(key));
   }
 
   /**
@@ -156,26 +81,7 @@ public final class Cache implements Closeable {
    */
   public CacheGetResponse get(byte[] key) {
     ensureValidKey(key);
-    return sendGet(convert(key));
-  }
-
-  private CacheGetResponse sendGet(ByteString key) {
-    Optional<Span> span = buildSpan("java-sdk-get-request");
-    try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
-      GetResponse rsp = blockingStub.get(buildGetRequest(key));
-      CacheGetResponse cacheGetResponse = new CacheGetResponse(rsp.getResult(), rsp.getCacheBody());
-      span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
-      return cacheGetResponse;
-    } catch (Exception e) {
-      span.ifPresent(
-          theSpan -> {
-            theSpan.recordException(e);
-            theSpan.setStatus(StatusCode.ERROR);
-          });
-      throw CacheServiceExceptionMapper.convert(e);
-    } finally {
-      span.ifPresent(theSpan -> theSpan.end(now()));
-    }
+    return sendBlockingGet(convert(key));
   }
 
   /**
@@ -197,7 +103,7 @@ public final class Cache implements Closeable {
    */
   public CacheSetResponse set(String key, ByteBuffer value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
-    return sendSet(convert(key), convert(value), ttlSeconds);
+    return sendBlockingSet(convert(key), convert(value), ttlSeconds);
   }
 
   /**
@@ -240,7 +146,7 @@ public final class Cache implements Closeable {
    */
   public CacheSetResponse set(String key, String value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
-    return sendSet(convert(key), convert(value), ttlSeconds);
+    return sendBlockingSet(convert(key), convert(value), ttlSeconds);
   }
 
   /**
@@ -283,7 +189,7 @@ public final class Cache implements Closeable {
    */
   public CacheSetResponse set(byte[] key, byte[] value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
-    return sendSet(convert(key), convert(value), ttlSeconds);
+    return sendBlockingSet(convert(key), convert(value), ttlSeconds);
   }
 
   /**
@@ -307,26 +213,19 @@ public final class Cache implements Closeable {
     return set(key, value, itemDefaultTtlSeconds);
   }
 
-  // Having this method named as set causes client side compilation issues, where the compiler
-  // requires a dependency
-  // on com.google.protobuf.ByteString
-  private CacheSetResponse sendSet(ByteString key, ByteString value, int ttlSeconds) {
-    Optional<Span> span = buildSpan("java-sdk-set-request");
-    try (Scope ignored = (span.map(ImplicitContextKeyed::makeCurrent).orElse(null))) {
-      SetResponse rsp = blockingStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
+  private CacheGetResponse sendBlockingGet(ByteString key) {
+    try {
+      return scsGrpcClient.sendGet(cacheName, key).get();
+    } catch (Throwable t) {
+      throw handleExceptionally(t);
+    }
+  }
 
-      CacheSetResponse response = new CacheSetResponse(rsp.getResult());
-      span.ifPresent(theSpan -> theSpan.setStatus(StatusCode.OK));
-      return response;
-    } catch (Exception e) {
-      span.ifPresent(
-          theSpan -> {
-            theSpan.recordException(e);
-            theSpan.setStatus(StatusCode.ERROR);
-          });
-      throw CacheServiceExceptionMapper.convert(e);
-    } finally {
-      span.ifPresent(theSpan -> theSpan.end(now()));
+  private CacheSetResponse sendBlockingSet(ByteString key, ByteString value, int itemTtlSeconds) {
+    try {
+      return scsGrpcClient.sendSet(cacheName, key, value, itemTtlSeconds).get();
+    } catch (Throwable t) {
+      throw handleExceptionally(t);
     }
   }
 
@@ -344,7 +243,7 @@ public final class Cache implements Closeable {
    */
   public CompletableFuture<CacheGetResponse> getAsync(byte[] key) {
     ensureValidKey(key);
-    return sendAsyncGet(convert(key));
+    return scsGrpcClient.sendGet(cacheName, convert(key));
   }
 
   /**
@@ -361,59 +260,7 @@ public final class Cache implements Closeable {
    */
   public CompletableFuture<CacheGetResponse> getAsync(String key) {
     ensureValidKey(key);
-    return sendAsyncGet(convert(key));
-  }
-
-  private CompletableFuture<CacheGetResponse> sendAsyncGet(ByteString key) {
-    Optional<Span> span = buildSpan("java-sdk-get-request");
-    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
-    // Submit request to non-blocking stub
-    ListenableFuture<GetResponse> rspFuture = futureStub.get(buildGetRequest(key));
-
-    // Build a CompletableFuture to return to caller
-    CompletableFuture<CacheGetResponse> returnFuture =
-        new CompletableFuture<CacheGetResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
-
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<GetResponse>() {
-          @Override
-          public void onSuccess(GetResponse rsp) {
-            returnFuture.complete(new CacheGetResponse(rsp.getResult(), rsp.getCacheBody()));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
-          }
-
-          @Override
-          public void onFailure(Throwable e) {
-            returnFuture.completeExceptionally(CacheServiceExceptionMapper.convert(e));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
-          }
-        },
-        MoreExecutors
-            .directExecutor()); // Execute on same thread that called execute on CompletionStage
-    // returned
-
-    return returnFuture;
+    return scsGrpcClient.sendGet(cacheName, convert(key));
   }
 
   /**
@@ -436,7 +283,7 @@ public final class Cache implements Closeable {
   public CompletableFuture<CacheSetResponse> setAsync(
       String key, ByteBuffer value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
-    return sendSetAsync(convert(key), convert(value), ttlSeconds);
+    return scsGrpcClient.sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
   /**
@@ -479,7 +326,7 @@ public final class Cache implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> setAsync(byte[] key, byte[] value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
-    return sendSetAsync(convert(key), convert(value), ttlSeconds);
+    return scsGrpcClient.sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
   /**
@@ -522,7 +369,7 @@ public final class Cache implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> setAsync(String key, String value, int ttlSeconds) {
     ensureValid(key, value, ttlSeconds);
-    return sendSetAsync(convert(key), convert(value), ttlSeconds);
+    return scsGrpcClient.sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
   /**
@@ -544,80 +391,6 @@ public final class Cache implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> setAsync(String key, String value) {
     return setAsync(key, value, itemDefaultTtlSeconds);
-  }
-
-  private CompletableFuture<CacheSetResponse> sendSetAsync(
-      ByteString key, ByteString value, int ttlSeconds) {
-
-    Optional<Span> span = buildSpan("java-sdk-set-request");
-    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
-
-    // Submit request to non-blocking stub
-    ListenableFuture<SetResponse> rspFuture =
-        futureStub.set(buildSetRequest(key, value, ttlSeconds * 1000));
-
-    // Build a CompletableFuture to return to caller
-    CompletableFuture<CacheSetResponse> returnFuture =
-        new CompletableFuture<CacheSetResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
-
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<SetResponse>() {
-          @Override
-          public void onSuccess(SetResponse rsp) {
-            returnFuture.complete(new CacheSetResponse(rsp.getResult()));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
-          }
-
-          @Override
-          public void onFailure(Throwable e) {
-            returnFuture.completeExceptionally(
-                CacheServiceExceptionMapper.convert(e)); // bubble all errors up
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
-          }
-        },
-        MoreExecutors
-            .directExecutor()); // Execute on same thread that called execute on CompletionStage
-    // returned
-
-    return returnFuture;
-  }
-
-  /** Shutdown the client. */
-  public void close() {
-    this.channel.shutdown();
-  }
-
-  private GetRequest buildGetRequest(ByteString key) {
-    return GetRequest.newBuilder().setCacheKey(key).build();
-  }
-
-  private SetRequest buildSetRequest(ByteString key, ByteString value, int ttl) {
-    return SetRequest.newBuilder()
-        .setCacheKey(key)
-        .setCacheBody(value)
-        .setTtlMilliseconds(ttl)
-        .build();
   }
 
   private static void ensureValid(Object key, Object value, int ttlSeconds) {
@@ -651,14 +424,10 @@ public final class Cache implements Closeable {
     return ByteString.copyFrom(byteBuffer);
   }
 
-  private Optional<Span> buildSpan(String spanName) {
-    // TODO - We should change this logic so can pass in parent span so returned span becomes a sub
-    // span of a parent span.
-    return tracer.map(
-        t ->
-            t.spanBuilder(spanName)
-                .setSpanKind(SpanKind.CLIENT)
-                .setStartTimestamp(now())
-                .startSpan());
+  private static SdkException handleExceptionally(Throwable t) {
+    if (t instanceof ExecutionException) {
+      return CacheServiceExceptionMapper.convert(t.getCause());
+    }
+    return CacheServiceExceptionMapper.convert(t);
   }
 }

@@ -27,15 +27,18 @@ import org.apache.commons.lang3.StringUtils;
 public final class Momento implements Closeable {
 
   private final String authToken;
+  // TODO: Add future stub
   private final ScsControlBlockingStub blockingStub;
   private final ManagedChannel channel;
   private final MomentoEndpointsResolver.MomentoEndpoints momentoEndpoints;
+  private final ScsGrpcClient scsGrpcClient;
 
   private Momento(String authToken, Optional<String> hostedZoneOverride) {
     this.authToken = authToken;
     this.momentoEndpoints = MomentoEndpointsResolver.resolve(authToken, hostedZoneOverride);
     this.channel = setupConnection(momentoEndpoints, authToken);
     this.blockingStub = ScsControlGrpc.newBlockingStub(channel);
+    this.scsGrpcClient = new ScsGrpcClient(authToken, momentoEndpoints.cacheEndpoint());
   }
 
   private static ManagedChannel setupConnection(
@@ -122,8 +125,7 @@ public final class Momento implements Closeable {
    * @return {@link CacheClientBuilder} to further build the {@link Cache} client.
    */
   public CacheClientBuilder cacheBuilder(String cacheName, int defaultItemTtlSeconds) {
-    return new CacheClientBuilder(
-        this, authToken, cacheName, defaultItemTtlSeconds, momentoEndpoints.cacheEndpoint());
+    return new CacheClientBuilder(this, cacheName, defaultItemTtlSeconds);
   }
 
   private CreateCacheRequest buildCreateCacheRequest(String cacheName) {
@@ -162,9 +164,14 @@ public final class Momento implements Closeable {
     }
   }
 
+  ScsGrpcClient getScsClient() {
+    return scsGrpcClient;
+  }
+
   /** Shuts down the client. */
   public void close() {
-    this.channel.shutdown();
+    channel.shutdown();
+    scsGrpcClient.close();
   }
 
   /**
