@@ -27,6 +27,7 @@ import io.opentelemetry.api.trace.StatusCode;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.ImplicitContextKeyed;
 import io.opentelemetry.context.Scope;
+import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -36,7 +37,8 @@ import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
-final class ScsGrpcClient implements AutoCloseable {
+/** Grpc wrapper responsible for maintaining Stubs, Channels to the Scs Service backend */
+final class ScsGrpcClient implements Closeable {
 
   private static final Metadata.Key<String> CACHE_NAME_KEY =
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
