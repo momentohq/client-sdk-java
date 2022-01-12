@@ -17,12 +17,14 @@ public final class CacheClientBuilder {
     this.defaultItemTtlSeconds = defaultItemTtlSeconds;
   }
 
-  /** Signal the builder to create a new Cache if one with the given name doesn't exist.
-   *  This parameter should be used judiciously. Using this parameter, makes a test call to the backend to determine if
-   *  the cache exists or not. So,if builder is used in a hot path with this parameter SET, additional latencies will be
-   *  incurred. For production use cases, the recommendation is to create caches using
-   *  {@link Momento#createCache(String)} operation prior to performing operations.
-   * */
+  /**
+   * Signal the builder to create a new Cache if one with the given name doesn't exist. This
+   * parameter should be used judiciously. Using this parameter, makes a test call to the backend to
+   * determine if the cache exists or not. So,if builder is used in a hot path with this parameter
+   * SET, additional latencies will be incurred. For production use cases, the recommendation is to
+   * create caches using {@link Momento#createCache(String)} operation prior to performing
+   * operations.
+   */
   public CacheClientBuilder createCacheIfDoesntExist() {
     this.createIfDoesntExist = true;
     return this;

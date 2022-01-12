@@ -11,7 +11,7 @@ import momento.sdk.exceptions.SdkException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
-/** Entity that represents a named Momento Cache.*/
+/** Entity that represents a named Momento Cache. */
 public final class Cache {
 
   private final String cacheName;
