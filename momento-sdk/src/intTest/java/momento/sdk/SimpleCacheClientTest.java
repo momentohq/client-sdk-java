@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/** Just includes a happy test path that interacts with both control and data plane clients. */
 final class SimpleCacheClientTest extends BaseTestClass {
 
   private static final int DEFAULT_TTL_SECONDS = 60;

@@ -23,6 +23,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+/** Tests with Blocking APIs. */
 final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
   private static final int DEFAULT_ITEM_TTL_SECONDS = 60;
