@@ -10,7 +10,7 @@ import java.util.Optional;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
-import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.ValidationException;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.DeleteCacheResponse;
@@ -99,7 +99,7 @@ final class ScsControlClient implements Closeable {
 
   private static void checkCacheNameValid(String cacheName) {
     if (cacheName == null) {
-      throw new ClientSdkException("Cache Name is required.");
+      throw new ValidationException("Cache Name is required.");
     }
   }
 

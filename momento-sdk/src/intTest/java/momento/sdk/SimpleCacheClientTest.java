@@ -1,8 +1,10 @@
 package momento.sdk;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.UUID;
+import momento.sdk.exceptions.ValidationException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
@@ -29,7 +31,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
   }
 
   @Test
-  void createCacheGetSetValuesAndDeleteCache() {
+  public void createCacheGetSetValuesAndDeleteCache() {
     String cacheName = UUID.randomUUID().toString();
     String key = UUID.randomUUID().toString();
     String value = UUID.randomUUID().toString();
@@ -46,5 +48,12 @@ final class SimpleCacheClientTest extends BaseTestClass {
     assertEquals(MomentoCacheResult.Miss, getForKeyInSomeOtherCache.result());
 
     target.deleteCache(cacheName);
+  }
+
+  @Test
+  public void throwsExceptionWhenClientUsesNegativeDefaultTtl() {
+    assertThrows(
+        ValidationException.class,
+        () -> SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), -1).build());
   }
 }

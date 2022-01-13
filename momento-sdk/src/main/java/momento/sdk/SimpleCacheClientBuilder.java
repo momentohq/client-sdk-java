@@ -1,6 +1,7 @@
 package momento.sdk;
 
 import java.util.Optional;
+import momento.sdk.exceptions.ValidationException;
 
 /** Builder for {@link momento.sdk.SimpleCacheClient} */
 public final class SimpleCacheClientBuilder {
@@ -14,6 +15,9 @@ public final class SimpleCacheClientBuilder {
   }
 
   public SimpleCacheClient build() {
+    if (itemDefaultTtlSeconds < 0) {
+      throw new ValidationException("Item's time to live in Cache cannot be negative.");
+    }
     return new SimpleCacheClient(authToken, itemDefaultTtlSeconds, Optional.empty());
   }
 }
