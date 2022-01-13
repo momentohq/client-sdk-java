@@ -10,6 +10,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * Manager responsible for GRPC channels and stubs for the Data Plane.
+ *
+ * <p>The business layer, will get request stubs from this layer. This keeps the two layers
+ * independent and any future pooling of channels can happen exclusively in the manager without
+ * impacting the API business logic.
+ */
 final class ScsDataGrpcStubsManager implements Closeable {
 
   private final ManagedChannel channel;

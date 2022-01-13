@@ -15,6 +15,7 @@ import momento.sdk.messages.DeleteCacheResponse;
 import momento.sdk.messages.ListCachesRequest;
 import momento.sdk.messages.ListCachesResponse;
 
+/** Client to perform operations against the Simple Cache Service */
 public final class SimpleCacheClient implements Closeable {
 
   private final ScsControlClient scsControlClient;

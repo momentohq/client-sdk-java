@@ -33,7 +33,7 @@ import momento.sdk.exceptions.SdkException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
-/** Grpc wrapper responsible for maintaining Stubs, Channels to the Scs Service backend */
+/** Client for interacting with Scs Data plane. */
 final class ScsDataClient implements Closeable {
 
   private static final Metadata.Key<String> CACHE_NAME_KEY =

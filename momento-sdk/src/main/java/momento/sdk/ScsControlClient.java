@@ -18,6 +18,7 @@ import momento.sdk.messages.ListCachesRequest;
 import momento.sdk.messages.ListCachesResponse;
 import org.apache.commons.lang3.StringUtils;
 
+/** Client for interacting with Scs Control Plane. */
 final class ScsControlClient implements Closeable {
 
   private final ScsControlGrpcStubsManager controlGrpcStubsManager;
@@ -26,18 +27,7 @@ final class ScsControlClient implements Closeable {
     this.controlGrpcStubsManager = new ScsControlGrpcStubsManager(authToken, endpoint);
   }
 
-  /**
-   * Creates a cache with provided name
-   *
-   * @param cacheName Name of the cache to be created.
-   * @return The result of the create cache operation
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws momento.sdk.exceptions.InvalidArgumentException
-   * @throws CacheAlreadyExistsException
-   * @throws momento.sdk.exceptions.InternalServerException
-   * @throws ClientSdkException when cacheName is null
-   */
-  public CreateCacheResponse createCache(String cacheName) {
+  CreateCacheResponse createCache(String cacheName) {
     checkCacheNameValid(cacheName);
     try {
       controlGrpcStubsManager.getBlockingStub().createCache(buildCreateCacheRequest(cacheName));
@@ -53,17 +43,7 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-  /**
-   * Deletes a cache
-   *
-   * @param cacheName The name of the cache to be deleted.
-   * @return The result of the cache deletion operation.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws CacheNotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   * @throws ClientSdkException if the {@code cacheName} is null.
-   */
-  public DeleteCacheResponse deleteCache(String cacheName) {
+  DeleteCacheResponse deleteCache(String cacheName) {
     checkCacheNameValid(cacheName);
     try {
       controlGrpcStubsManager.getBlockingStub().deleteCache(buildDeleteCacheRequest(cacheName));
@@ -79,8 +59,7 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-  /** Lists all caches for the provided auth token. */
-  public ListCachesResponse listCaches(ListCachesRequest request) {
+  ListCachesResponse listCaches(ListCachesRequest request) {
     try {
       return convert(controlGrpcStubsManager.getBlockingStub().listCaches(convert(request)));
     } catch (Exception e) {
