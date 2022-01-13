@@ -13,13 +13,8 @@ import grpc.cache_client.GetResponse;
 import grpc.cache_client.ScsGrpc;
 import grpc.cache_client.SetRequest;
 import grpc.cache_client.SetResponse;
-import io.grpc.ClientInterceptor;
-import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
-import io.grpc.netty.GrpcSslContexts;
-import io.grpc.netty.NettyChannelBuilder;
 import io.grpc.stub.MetadataUtils;
-import io.netty.handler.ssl.util.InsecureTrustManagerFactory;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.SpanKind;
@@ -28,76 +23,175 @@ import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.ImplicitContextKeyed;
 import io.opentelemetry.context.Scope;
 import java.io.Closeable;
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import javax.net.ssl.SSLException;
+import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.SdkException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
 /** Grpc wrapper responsible for maintaining Stubs, Channels to the Scs Service backend */
-final class ScsGrpcClient implements Closeable {
+final class ScsDataClient implements Closeable {
 
   private static final Metadata.Key<String> CACHE_NAME_KEY =
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
 
-  private final ScsGrpc.ScsFutureStub futureStub;
-  private final ManagedChannel channel;
   private final Optional<Tracer> tracer;
+  private int itemDefaultTtlSeconds;
+  private ScsDataGrpcStubsManager scsDataGrpcStubsManager;
 
-  ScsGrpcClient(String authToken, String endpoint) {
-    this(authToken, endpoint, Optional.empty());
-  }
-
-  ScsGrpcClient(String authToken, String endpoint, Optional<OpenTelemetry> openTelemetry) {
-    this(authToken, endpoint, openTelemetry, false);
-  }
-
-  ScsGrpcClient(
+  ScsDataClient(
       String authToken,
       String endpoint,
-      Optional<OpenTelemetry> openTelemetry,
-      boolean insecureSsl) {
-    this.channel = setupChannel(authToken, endpoint, openTelemetry, insecureSsl);
-    ScsGrpc.ScsBlockingStub stub = ScsGrpc.newBlockingStub(channel);
-    this.futureStub = ScsGrpc.newFutureStub(channel);
+      int defaultTtlSeconds,
+      Optional<OpenTelemetry> openTelemetry) {
     this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
+    this.itemDefaultTtlSeconds = defaultTtlSeconds;
+    this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(authToken, endpoint, openTelemetry);
   }
 
-  private ManagedChannel setupChannel(
-      String authToken,
-      String endpoint,
-      Optional<OpenTelemetry> openTelemetry,
-      boolean insecureSsl) {
-    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
-    if (insecureSsl) {
-      try {
-        channelBuilder.sslContext(
-            GrpcSslContexts.forClient().trustManager(InsecureTrustManagerFactory.INSTANCE).build());
-      } catch (SSLException e) {
-        throw new RuntimeException("Unable to use insecure trust manager", e);
-      }
+  CacheGetResponse get(String cacheName, String key) {
+    ensureValidKey(key);
+    return sendBlockingGet(cacheName, convert(key));
+  }
+
+  CacheGetResponse get(String cacheName, byte[] key) {
+    ensureValidKey(key);
+    return sendBlockingGet(cacheName, convert(key));
+  }
+
+  CacheSetResponse set(String cacheName, String key, ByteBuffer value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
+    return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
+  }
+
+  CacheSetResponse set(String cacheName, String key, ByteBuffer value) {
+    return set(cacheName, key, value, itemDefaultTtlSeconds);
+  }
+
+  CacheSetResponse set(String cacheName, String key, String value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
+    return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
+  }
+
+  CacheSetResponse set(String cacheName, String key, String value) {
+    return set(cacheName, key, value, itemDefaultTtlSeconds);
+  }
+
+  CacheSetResponse set(String cacheName, byte[] key, byte[] value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
+    return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
+  }
+
+  CacheSetResponse set(String cacheName, byte[] key, byte[] value) {
+    return set(cacheName, key, value, itemDefaultTtlSeconds);
+  }
+
+  CompletableFuture<CacheGetResponse> getAsync(String cacheName, byte[] key) {
+    ensureValidKey(key);
+    return sendGet(cacheName, convert(key));
+  }
+
+  CompletableFuture<CacheGetResponse> getAsync(String cacheName, String key) {
+    ensureValidKey(key);
+    return sendGet(cacheName, convert(key));
+  }
+
+  CompletableFuture<CacheSetResponse> setAsync(
+      String cacheName, String key, ByteBuffer value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
+    return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+  }
+
+  CompletableFuture<CacheSetResponse> setAsync(String cacheName, String key, ByteBuffer value) {
+    return setAsync(cacheName, key, value, itemDefaultTtlSeconds);
+  }
+
+  CompletableFuture<CacheSetResponse> setAsync(
+      String cacheName, byte[] key, byte[] value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
+    return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+  }
+
+  CompletableFuture<CacheSetResponse> setAsync(String cacheName, byte[] key, byte[] value) {
+    return setAsync(cacheName, key, value, itemDefaultTtlSeconds);
+  }
+
+  CompletableFuture<CacheSetResponse> setAsync(
+      String cacheName, String key, String value, int ttlSeconds) {
+    ensureValid(key, value, ttlSeconds);
+    return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+  }
+
+  CompletableFuture<CacheSetResponse> setAsync(String cacheName, String key, String value) {
+    return setAsync(cacheName, key, value, itemDefaultTtlSeconds);
+  }
+
+  private static void ensureValid(Object key, Object value, int ttlSeconds) {
+
+    ensureValidKey(key);
+
+    if (value == null) {
+      throw new ClientSdkException("A non-null value is required.");
     }
-    channelBuilder.useTransportSecurity();
-    channelBuilder.disableRetry();
-    List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(new AuthInterceptor(authToken));
-    openTelemetry.ifPresent(
-        theOpenTelemetry ->
-            clientInterceptors.add(new OpenTelemetryClientInterceptor(theOpenTelemetry)));
-    channelBuilder.intercept(clientInterceptors);
-    ManagedChannel channel = channelBuilder.build();
-    return channel;
+
+    if (ttlSeconds <= 0) {
+      throw new ClientSdkException("Item's time to live in Cache must be a positive integer.");
+    }
   }
 
-  CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
+  private static void ensureValidKey(Object key) {
+    if (key == null) {
+      throw new ClientSdkException("A non-null Key is required.");
+    }
+  }
+
+  private ByteString convert(String stringToEncode) {
+    return ByteString.copyFromUtf8(stringToEncode);
+  }
+
+  private ByteString convert(byte[] bytes) {
+    return ByteString.copyFrom(bytes);
+  }
+
+  private ByteString convert(ByteBuffer byteBuffer) {
+    return ByteString.copyFrom(byteBuffer);
+  }
+
+  private static SdkException handleExceptionally(Throwable t) {
+    if (t instanceof ExecutionException) {
+      return CacheServiceExceptionMapper.convert(t.getCause());
+    }
+    return CacheServiceExceptionMapper.convert(t);
+  }
+
+  private CacheGetResponse sendBlockingGet(String cacheName, ByteString key) {
+    try {
+      return sendGet(cacheName, key).get();
+    } catch (Throwable t) {
+      throw handleExceptionally(t);
+    }
+  }
+
+  private CacheSetResponse sendBlockingSet(
+      String cacheName, ByteString key, ByteString value, int itemTtlSeconds) {
+    try {
+      return sendSet(cacheName, key, value, itemTtlSeconds).get();
+    } catch (Throwable t) {
+      throw handleExceptionally(t);
+    }
+  }
+
+  private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
+    checkCacheNameValid(cacheName);
     Optional<Span> span = buildSpan("java-sdk-get-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
     ListenableFuture<GetResponse> rspFuture =
-        withCacheNameHeader(futureStub, cacheName).get(buildGetRequest(key));
+        withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName).get(buildGetRequest(key));
 
     // Build a CompletableFuture to return to caller
     CompletableFuture<CacheGetResponse> returnFuture =
@@ -145,15 +239,15 @@ final class ScsGrpcClient implements Closeable {
     return returnFuture;
   }
 
-  CompletableFuture<CacheSetResponse> sendSet(
+  private CompletableFuture<CacheSetResponse> sendSet(
       String cacheName, ByteString key, ByteString value, int ttlSeconds) {
-
+    checkCacheNameValid(cacheName);
     Optional<Span> span = buildSpan("java-sdk-set-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     ListenableFuture<SetResponse> rspFuture =
-        withCacheNameHeader(futureStub, cacheName)
+        withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
             .set(buildSetRequest(key, value, ttlSeconds * 1000));
 
     // Build a CompletableFuture to return to caller
@@ -233,8 +327,14 @@ final class ScsGrpcClient implements Closeable {
                 .startSpan());
   }
 
+  private static void checkCacheNameValid(String cacheName) {
+    if (cacheName == null) {
+      throw new ClientSdkException("Cache Name is required.");
+    }
+  }
+
   @Override
   public void close() {
-    channel.shutdown();
+    scsDataGrpcStubsManager.close();
   }
 }
