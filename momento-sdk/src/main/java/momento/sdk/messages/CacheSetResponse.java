@@ -59,6 +59,7 @@ public final class CacheSetResponse extends BaseResponse {
    * Value set in the cache as {@link String}.
    *
    * @param charset to express the bytes as String.
+   * @return Value set for the given key.
    */
   public Optional<String> string(Charset charset) {
     return Optional.ofNullable(value.toString(charset));
@@ -67,7 +68,7 @@ public final class CacheSetResponse extends BaseResponse {
   /**
    * Value as an {@link InputStream}
    *
-   * @return Value stored for the given key.
+   * @return Value set for the given key.
    */
   public Optional<InputStream> inputStream() {
     return Optional.ofNullable(value.newInput());

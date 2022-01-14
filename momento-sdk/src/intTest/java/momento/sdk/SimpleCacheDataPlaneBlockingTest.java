@@ -5,15 +5,15 @@ import static momento.sdk.OtelTestHelpers.startIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.stopIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.verifyGetTrace;
 import static momento.sdk.OtelTestHelpers.verifySetTrace;
+import static momento.sdk.ScsDataTestHelper.assertSetResponse;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
-import java.nio.ByteBuffer;
+import java.io.IOException;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 import momento.sdk.exceptions.CacheNotFoundException;
@@ -44,7 +44,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
   }
 
   @Test
-  void getReturnsHitAfterSet() {
+  void getReturnsHitAfterSet() throws IOException {
     runSetAndGetWithHitTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
   }
 
@@ -134,56 +134,13 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     assertArrayEquals(value, getResponse.byteArray().get());
   }
 
-  @Test
-  public void setResponseIncludesStringValue() {
-    String key = UUID.randomUUID().toString();
-    String value = UUID.randomUUID().toString();
-    SimpleCacheClient cache =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
-    assertEquals(Optional.of(value), setResponse.string());
-  }
-
-  @Test
-  public void setResponseIncludesByteArrayValue() {
-    String key = UUID.randomUUID().toString();
-    String value = UUID.randomUUID().toString();
-    SimpleCacheClient cache =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
-    assertEquals(
-        new String(value.getBytes(StandardCharsets.UTF_8)),
-        new String(setResponse.byteArray().get(), StandardCharsets.UTF_8));
-  }
-
-  @Test
-  public void setResponseIncludesByteBufferValue() {
-    String key = UUID.randomUUID().toString();
-    String value = UUID.randomUUID().toString();
-    SimpleCacheClient cache =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
-    assertEquals(Optional.of(ByteBuffer.wrap(value.getBytes())), setResponse.byteBuffer());
-  }
-
-  @Test
-  public void setResponseIncludesInputStreamValue() {
-    String key = UUID.randomUUID().toString();
-    String value = UUID.randomUUID().toString();
-    SimpleCacheClient cache =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
-    assertEquals(
-        setResponse.inputStream().get().getClass().getSimpleName(), "ByteArrayInputStream");
-  }
-
-  private void runSetAndGetWithHitTest(SimpleCacheClient target) {
+  private void runSetAndGetWithHitTest(SimpleCacheClient target) throws IOException {
     String key = UUID.randomUUID().toString();
     String value = UUID.randomUUID().toString();
 
     // Successful Set
     CacheSetResponse setResponse = target.set(cacheName, key, value);
-    assertEquals(MomentoCacheResult.Ok, setResponse.result());
+    assertSetResponse(value, setResponse);
 
     // Successful Get with Hit
     CacheGetResponse getResponse = target.get(cacheName, key);
