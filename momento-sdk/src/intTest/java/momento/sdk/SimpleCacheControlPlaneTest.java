@@ -8,9 +8,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
-import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.PermissionDeniedException;
+import momento.sdk.exceptions.ValidationException;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.ListCachesRequest;
 import momento.sdk.messages.ListCachesResponse;
@@ -69,7 +69,12 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   @Test
   public void throwsInvalidArgumentForEmptyCacheName() {
     assertThrows(InvalidArgumentException.class, () -> target.createCache("     "));
-    assertThrows(ClientSdkException.class, () -> target.createCache(null));
+  }
+
+  @Test
+  public void throwsValidationExceptionForNullCacheName() {
+    assertThrows(ValidationException.class, () -> target.createCache(null));
+    assertThrows(ValidationException.class, () -> target.deleteCache(null));
   }
 
   @Test

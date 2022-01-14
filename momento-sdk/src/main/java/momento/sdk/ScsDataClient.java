@@ -28,8 +28,8 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
-import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.exceptions.ValidationException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
@@ -135,17 +135,17 @@ final class ScsDataClient implements Closeable {
     ensureValidKey(key);
 
     if (value == null) {
-      throw new ClientSdkException("A non-null value is required.");
+      throw new ValidationException("A non-null value is required.");
     }
 
-    if (ttlSeconds <= 0) {
-      throw new ClientSdkException("Item's time to live in Cache must be a positive integer.");
+    if (ttlSeconds < 0) {
+      throw new ValidationException("Item's time to live in Cache cannot be negative.");
     }
   }
 
   private static void ensureValidKey(Object key) {
     if (key == null) {
-      throw new ClientSdkException("A non-null Key is required.");
+      throw new ValidationException("A non-null Key is required.");
     }
   }
 
@@ -329,7 +329,7 @@ final class ScsDataClient implements Closeable {
 
   private static void checkCacheNameValid(String cacheName) {
     if (cacheName == null) {
-      throw new ClientSdkException("Cache Name is required.");
+      throw new ValidationException("Cache Name is required.");
     }
   }
 

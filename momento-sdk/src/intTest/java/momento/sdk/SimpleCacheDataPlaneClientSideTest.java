@@ -78,28 +78,20 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
   }
 
   @Test
-  public void ttlMustBePositiveThrowsException() {
-    for (int i = -1; i <= 0; i++) {
-      final int j = i;
-      assertThrows(ClientSdkException.class, () -> client.set(cacheName, "hello", "world", j));
-      assertThrows(
-          ClientSdkException.class,
-          () -> client.set(cacheName, "hello", ByteBuffer.allocate(1), j));
-      assertThrows(
-          ClientSdkException.class, () -> client.set(cacheName, new byte[] {}, new byte[] {}, j));
-    }
+  public void ttlMustNotBeNegativeThrowsException() {
+    assertThrows(ClientSdkException.class, () -> client.set(cacheName, "hello", "world", -1));
+    assertThrows(
+        ClientSdkException.class, () -> client.set(cacheName, "hello", ByteBuffer.allocate(1), -1));
+    assertThrows(
+        ClientSdkException.class, () -> client.set(cacheName, new byte[] {}, new byte[] {}, -1));
 
-    for (int i = -1; i <= 0; i++) {
-      final int j = i;
-
-      assertThrows(ClientSdkException.class, () -> client.setAsync(cacheName, "hello", "", j));
-      assertThrows(
-          ClientSdkException.class,
-          () -> client.setAsync(cacheName, "hello", ByteBuffer.allocate(1), j));
-      assertThrows(
-          ClientSdkException.class,
-          () -> client.setAsync(cacheName, new byte[] {}, new byte[] {}, j));
-    }
+    assertThrows(ClientSdkException.class, () -> client.setAsync(cacheName, "hello", "", -1));
+    assertThrows(
+        ClientSdkException.class,
+        () -> client.setAsync(cacheName, "hello", ByteBuffer.allocate(1), -1));
+    assertThrows(
+        ClientSdkException.class,
+        () -> client.setAsync(cacheName, new byte[] {}, new byte[] {}, -1));
   }
 
   @Test
