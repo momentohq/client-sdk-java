@@ -11,7 +11,9 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -124,6 +126,49 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
     ExecutionException getException =
         assertThrows(ExecutionException.class, () -> target.setAsync(cacheName, "", "", 10).get());
     assertTrue(getException.getCause() instanceof CacheNotFoundException);
+  }
+
+  @Test
+  public void setResponseIncludesStringValue() {
+    String key = UUID.randomUUID().toString();
+    String value = UUID.randomUUID().toString();
+    SimpleCacheClient cache =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
+    CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
+    assertEquals(Optional.of(value), setResponse.string());
+  }
+
+  @Test
+  public void setResponseIncludesByteArrayValue() {
+    String key = UUID.randomUUID().toString();
+    String value = UUID.randomUUID().toString();
+    SimpleCacheClient cache =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
+    CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
+    assertEquals(
+        new String(value.getBytes(StandardCharsets.UTF_8)),
+        new String(setResponse.byteArray().get(), StandardCharsets.UTF_8));
+  }
+
+  @Test
+  public void setResponseIncludesByteBufferValue() {
+    String key = UUID.randomUUID().toString();
+    String value = UUID.randomUUID().toString();
+    SimpleCacheClient cache =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
+    CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
+    assertEquals(Optional.of(ByteBuffer.wrap(value.getBytes())), setResponse.byteBuffer());
+  }
+
+  @Test
+  public void setResponseIncludesInputStreamValue() {
+    String key = UUID.randomUUID().toString();
+    String value = UUID.randomUUID().toString();
+    SimpleCacheClient cache =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
+    CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
+    assertEquals(
+        setResponse.inputStream().get().getClass().getSimpleName(), "ByteArrayInputStream");
   }
 
   private void runSetAndGetWithHitTest(SimpleCacheClient target) throws Exception {
