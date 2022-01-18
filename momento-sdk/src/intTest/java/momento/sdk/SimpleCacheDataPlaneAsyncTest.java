@@ -5,6 +5,7 @@ import static momento.sdk.OtelTestHelpers.startIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.stopIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.verifyGetTrace;
 import static momento.sdk.OtelTestHelpers.verifySetTrace;
+import static momento.sdk.ScsDataTestHelper.assertSetResponse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -132,7 +133,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
 
     // Successful Set
     CompletableFuture<CacheSetResponse> setResponse = target.setAsync(cacheName, key, value);
-    assertEquals(MomentoCacheResult.Ok, setResponse.get().result());
+    assertSetResponse(value, setResponse.get());
 
     // Successful Get with Hit
     CompletableFuture<CacheGetResponse> getResponse = target.getAsync(cacheName, key);

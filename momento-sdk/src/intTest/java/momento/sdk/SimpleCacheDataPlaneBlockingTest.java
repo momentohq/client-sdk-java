@@ -5,12 +5,14 @@ import static momento.sdk.OtelTestHelpers.startIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.stopIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.verifyGetTrace;
 import static momento.sdk.OtelTestHelpers.verifySetTrace;
+import static momento.sdk.ScsDataTestHelper.assertSetResponse;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
+import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Optional;
 import java.util.UUID;
@@ -42,7 +44,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
   }
 
   @Test
-  void getReturnsHitAfterSet() {
+  void getReturnsHitAfterSet() throws IOException {
     runSetAndGetWithHitTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
   }
 
@@ -132,13 +134,13 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     assertArrayEquals(value, getResponse.byteArray().get());
   }
 
-  private void runSetAndGetWithHitTest(SimpleCacheClient target) {
+  private void runSetAndGetWithHitTest(SimpleCacheClient target) throws IOException {
     String key = UUID.randomUUID().toString();
     String value = UUID.randomUUID().toString();
 
     // Successful Set
     CacheSetResponse setResponse = target.set(cacheName, key, value);
-    assertEquals(MomentoCacheResult.Ok, setResponse.result());
+    assertSetResponse(value, setResponse);
 
     // Successful Get with Hit
     CacheGetResponse getResponse = target.get(cacheName, key);
