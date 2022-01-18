@@ -11,7 +11,7 @@ import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
 import org.apache.commons.io.IOUtils;
 
-public class ScsDataTestHelper {
+final class ScsDataTestHelper {
   private ScsDataTestHelper() {}
 
   static void assertSetResponse(String expectedValue, CacheSetResponse setResponse)
