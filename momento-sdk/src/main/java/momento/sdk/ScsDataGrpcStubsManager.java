@@ -9,8 +9,6 @@ import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.TimeUnit;
-import momento.sdk.exceptions.CacheServiceExceptionMapper;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Data Plane.
