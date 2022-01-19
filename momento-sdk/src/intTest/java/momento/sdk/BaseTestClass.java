@@ -19,14 +19,10 @@ class BaseTestClass {
   }
 
   private static void ensureTestCacheExists() {
-    SimpleCacheClient client =
-        SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), 10).build();
-    try {
+    try (SimpleCacheClient client = SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), 10).build()) {
       client.createCache(System.getenv("TEST_CACHE_NAME"));
     } catch (CacheAlreadyExistsException e) {
       // do nothing. Cache already exists.
-    } finally {
-      client.close();
     }
   }
 }
