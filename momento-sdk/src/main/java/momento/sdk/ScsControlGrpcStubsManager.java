@@ -43,10 +43,6 @@ final class ScsControlGrpcStubsManager implements Closeable {
 
   @Override
   public void close() {
-    try {
-      channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
-    } catch (InterruptedException e) {
-      throw CacheServiceExceptionMapper.convert(e);
-    }
+    channel.shutdown();
   }
 }
