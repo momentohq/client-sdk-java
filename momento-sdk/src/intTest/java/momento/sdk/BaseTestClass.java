@@ -25,6 +25,8 @@ class BaseTestClass {
       client.createCache(System.getenv("TEST_CACHE_NAME"));
     } catch (CacheAlreadyExistsException e) {
       // do nothing. Cache already exists.
+    } finally {
+      client.close();
     }
   }
 }

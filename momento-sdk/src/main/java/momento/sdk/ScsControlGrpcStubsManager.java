@@ -7,6 +7,8 @@ import io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
+import momento.sdk.exceptions.CacheServiceExceptionMapper;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Control Plane.
@@ -41,6 +43,10 @@ final class ScsControlGrpcStubsManager implements Closeable {
 
   @Override
   public void close() {
-    channel.shutdown();
+    try {
+      channel.shutdown().awaitTermination(5, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      throw CacheServiceExceptionMapper.convert(e);
+    }
   }
 }

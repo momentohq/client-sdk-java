@@ -379,5 +379,6 @@ public final class SimpleCacheClient implements Closeable {
   @Override
   public void close() {
     scsControlClient.close();
+    scsDataClient.close();
   }
 }
