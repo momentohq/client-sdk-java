@@ -137,7 +137,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
 
     // Successful Get with Hit
     CompletableFuture<CacheGetResponse> getResponse = target.getAsync(cacheName, key);
-    assertEquals(MomentoCacheResult.Hit, getResponse.get().result());
+    assertEquals(MomentoCacheResult.HIT, getResponse.get().result());
     assertEquals(value, getResponse.get().string().get());
   }
 
@@ -151,7 +151,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
 
     // Get Key that was just set
     CompletableFuture<CacheGetResponse> rsp = target.getAsync(cacheName, key);
-    assertEquals(MomentoCacheResult.Miss, rsp.get().result());
+    assertEquals(MomentoCacheResult.MISS, rsp.get().result());
     assertFalse(rsp.get().string().isPresent());
   }
 
@@ -161,7 +161,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
         target.getAsync(cacheName, UUID.randomUUID().toString());
 
     CacheGetResponse rsp = rsFuture.get();
-    assertEquals(MomentoCacheResult.Miss, rsp.result());
+    assertEquals(MomentoCacheResult.MISS, rsp.result());
     assertFalse(rsp.inputStream().isPresent());
     assertFalse(rsp.byteArray().isPresent());
     assertFalse(rsp.byteBuffer().isPresent());

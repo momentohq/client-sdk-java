@@ -40,11 +40,11 @@ final class SimpleCacheClientTest extends BaseTestClass {
     CacheSetResponse response = target.set(cacheName, key, value);
 
     CacheGetResponse getResponse = target.get(cacheName, key);
-    assertEquals(MomentoCacheResult.Hit, getResponse.result());
+    assertEquals(MomentoCacheResult.HIT, getResponse.result());
     assertEquals(value, getResponse.string().get());
 
     CacheGetResponse getForKeyInSomeOtherCache = target.get(System.getenv("TEST_CACHE_NAME"), key);
-    assertEquals(MomentoCacheResult.Miss, getForKeyInSomeOtherCache.result());
+    assertEquals(MomentoCacheResult.MISS, getForKeyInSomeOtherCache.result());
 
     target.deleteCache(cacheName);
   }

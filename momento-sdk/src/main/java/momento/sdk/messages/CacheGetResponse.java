@@ -22,7 +22,7 @@ public final class CacheGetResponse {
   /**
    * Determine the result of the Get operation.
    *
-   * <p>Valid values are {@link MomentoCacheResult#Hit} and {@link MomentoCacheResult#Miss}.
+   * <p>Valid values are {@link MomentoCacheResult#HIT} and {@link MomentoCacheResult#MISS}.
    *
    * @return The result of Cache Get Operation
    */
@@ -37,7 +37,7 @@ public final class CacheGetResponse {
    *     cache miss.
    */
   public Optional<byte[]> byteArray() {
-    if (result != MomentoCacheResult.Hit) {
+    if (result != MomentoCacheResult.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toByteArray());
@@ -50,7 +50,7 @@ public final class CacheGetResponse {
    *     cache miss.
    */
   public Optional<ByteBuffer> byteBuffer() {
-    if (result != MomentoCacheResult.Hit) {
+    if (result != MomentoCacheResult.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.asReadOnlyByteBuffer());
@@ -74,7 +74,7 @@ public final class CacheGetResponse {
    *     cache miss.
    */
   public Optional<String> string(Charset charset) {
-    if (result != MomentoCacheResult.Hit) {
+    if (result != MomentoCacheResult.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toString(charset));
@@ -87,7 +87,7 @@ public final class CacheGetResponse {
    *     cache miss.
    */
   public Optional<InputStream> inputStream() {
-    if (result != MomentoCacheResult.Hit) {
+    if (result != MomentoCacheResult.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.newInput());
@@ -96,9 +96,9 @@ public final class CacheGetResponse {
   private static MomentoCacheResult convert(ECacheResult result) {
     switch (result) {
       case Hit:
-        return MomentoCacheResult.Hit;
+        return MomentoCacheResult.HIT;
       case Miss:
-        return MomentoCacheResult.Miss;
+        return MomentoCacheResult.MISS;
       default:
         throw new InternalServerException(
             String.format(
