@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import momento.sdk.exceptions.InternalServerException;
 
 /** Response for a cache get operation */
 public final class CacheGetResponse {
@@ -15,7 +16,7 @@ public final class CacheGetResponse {
 
   public CacheGetResponse(ECacheResult result, ByteString body) {
     this.body = body;
-    this.result = MomentoCacheResult.from(result);
+    this.result = convert(result);
   }
 
   /**
@@ -90,5 +91,19 @@ public final class CacheGetResponse {
       return Optional.empty();
     }
     return Optional.ofNullable(body.newInput());
+  }
+
+  private static MomentoCacheResult convert(ECacheResult result) {
+    switch (result) {
+      case Hit:
+        return MomentoCacheResult.Hit;
+      case Miss:
+        return MomentoCacheResult.Miss;
+      default:
+        throw new InternalServerException(
+            String.format(
+                "Unexpected exception occurred while trying to fulfill the request. Found unsupported Cache result: %s",
+                result));
+    }
   }
 }
