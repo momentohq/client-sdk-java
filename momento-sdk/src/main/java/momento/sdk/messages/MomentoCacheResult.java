@@ -7,15 +7,9 @@ import momento.sdk.exceptions.InternalServerException;
 public enum MomentoCacheResult {
 
   /** Status if an item was found in Cache. */
-  Hit(ECacheResult.Hit),
+  Hit,
   /** Status if an item was not found in Cache. */
-  Miss(ECacheResult.Miss);
-
-  private int result;
-
-  MomentoCacheResult(grpc.cache_client.ECacheResult num) {
-    this.result = num.getNumber();
-  }
+  Miss;
 
   static MomentoCacheResult from(ECacheResult result) {
     switch (result) {

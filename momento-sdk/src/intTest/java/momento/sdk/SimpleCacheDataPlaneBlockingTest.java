@@ -127,7 +127,6 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     SimpleCacheClient cache =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
     CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
-    assertEquals(MomentoCacheResult.Ok, setResponse.result());
 
     CacheGetResponse getResponse = cache.get(cacheName, key);
     assertEquals(MomentoCacheResult.Hit, getResponse.result());
@@ -153,7 +152,6 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
     // Set Key sync
     CacheSetResponse setRsp = target.set(cacheName, key, "", 1);
-    assertEquals(MomentoCacheResult.Ok, setRsp.result());
 
     Thread.sleep(1500);
 

@@ -38,7 +38,6 @@ final class SimpleCacheClientTest extends BaseTestClass {
 
     target.createCache(cacheName);
     CacheSetResponse response = target.set(cacheName, key, value);
-    assertEquals(MomentoCacheResult.Ok, response.result());
 
     CacheGetResponse getResponse = target.get(cacheName, key);
     assertEquals(MomentoCacheResult.Hit, getResponse.result());
