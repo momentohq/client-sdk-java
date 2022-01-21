@@ -9,13 +9,13 @@ import java.nio.charset.StandardCharsets;
 import java.util.Optional;
 
 /** Response for a cache get operation */
-public final class CacheGetResponse extends BaseResponse {
+public final class CacheGetResponse {
   private final ByteString body;
-  private final ECacheResult result;
+  private final MomentoCacheResult result;
 
   public CacheGetResponse(ECacheResult result, ByteString body) {
     this.body = body;
-    this.result = result;
+    this.result = MomentoCacheResult.from(result);
   }
 
   /**
@@ -26,7 +26,7 @@ public final class CacheGetResponse extends BaseResponse {
    * @return The result of Cache Get Operation
    */
   public MomentoCacheResult result() {
-    return this.resultMapper(this.result);
+    return result;
   }
 
   /**
@@ -36,7 +36,7 @@ public final class CacheGetResponse extends BaseResponse {
    *     cache miss.
    */
   public Optional<byte[]> byteArray() {
-    if (result != ECacheResult.Hit) {
+    if (result != MomentoCacheResult.Hit) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toByteArray());
@@ -49,7 +49,7 @@ public final class CacheGetResponse extends BaseResponse {
    *     cache miss.
    */
   public Optional<ByteBuffer> byteBuffer() {
-    if (result != ECacheResult.Hit) {
+    if (result != MomentoCacheResult.Hit) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.asReadOnlyByteBuffer());
@@ -73,7 +73,7 @@ public final class CacheGetResponse extends BaseResponse {
    *     cache miss.
    */
   public Optional<String> string(Charset charset) {
-    if (result != ECacheResult.Hit) {
+    if (result != MomentoCacheResult.Hit) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toString(charset));
@@ -86,7 +86,7 @@ public final class CacheGetResponse extends BaseResponse {
    *     cache miss.
    */
   public Optional<InputStream> inputStream() {
-    if (result != ECacheResult.Hit) {
+    if (result != MomentoCacheResult.Hit) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.newInput());
