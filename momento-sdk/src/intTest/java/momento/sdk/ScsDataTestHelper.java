@@ -8,7 +8,6 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
 import momento.sdk.messages.CacheSetResponse;
-import momento.sdk.messages.MomentoCacheResult;
 import org.apache.commons.io.IOUtils;
 
 final class ScsDataTestHelper {
@@ -16,7 +15,6 @@ final class ScsDataTestHelper {
 
   static void assertSetResponse(String expectedValue, CacheSetResponse setResponse)
       throws IOException {
-    assertEquals(MomentoCacheResult.Ok, setResponse.result());
     assertEquals(expectedValue, setResponse.string().get());
     assertArrayEquals(expectedValue.getBytes(), setResponse.byteArray().get());
     assertEquals(ByteBuffer.wrap(expectedValue.getBytes()), setResponse.byteBuffer().get());

@@ -268,7 +268,7 @@ final class ScsDataClient implements Closeable {
         new FutureCallback<SetResponse>() {
           @Override
           public void onSuccess(SetResponse rsp) {
-            returnFuture.complete(new CacheSetResponse(rsp.getResult(), value));
+            returnFuture.complete(new CacheSetResponse(value));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);

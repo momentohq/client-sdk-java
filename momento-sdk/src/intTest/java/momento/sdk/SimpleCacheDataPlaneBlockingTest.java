@@ -127,10 +127,9 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     SimpleCacheClient cache =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
     CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
-    assertEquals(MomentoCacheResult.Ok, setResponse.result());
 
     CacheGetResponse getResponse = cache.get(cacheName, key);
-    assertEquals(MomentoCacheResult.Hit, getResponse.result());
+    assertEquals(MomentoCacheResult.HIT, getResponse.result());
     assertArrayEquals(value, getResponse.byteArray().get());
   }
 
@@ -144,7 +143,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
     // Successful Get with Hit
     CacheGetResponse getResponse = target.get(cacheName, key);
-    assertEquals(MomentoCacheResult.Hit, getResponse.result());
+    assertEquals(MomentoCacheResult.HIT, getResponse.result());
     assertEquals(value, getResponse.string().get());
   }
 
@@ -153,13 +152,12 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
     // Set Key sync
     CacheSetResponse setRsp = target.set(cacheName, key, "", 1);
-    assertEquals(MomentoCacheResult.Ok, setRsp.result());
 
     Thread.sleep(1500);
 
     // Get Key that was just set
     CacheGetResponse rsp = target.get(cacheName, key);
-    assertEquals(MomentoCacheResult.Miss, rsp.result());
+    assertEquals(MomentoCacheResult.MISS, rsp.result());
     assertFalse(rsp.string().isPresent());
   }
 
@@ -167,7 +165,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     // Get Key that was just set
     CacheGetResponse rsp = target.get(cacheName, UUID.randomUUID().toString());
 
-    assertEquals(MomentoCacheResult.Miss, rsp.result());
+    assertEquals(MomentoCacheResult.MISS, rsp.result());
     assertFalse(rsp.inputStream().isPresent());
     assertFalse(rsp.byteArray().isPresent());
     assertFalse(rsp.byteBuffer().isPresent());

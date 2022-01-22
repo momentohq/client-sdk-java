@@ -7,26 +7,27 @@ import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.Optional;
+import momento.sdk.exceptions.InternalServerException;
 
 /** Response for a cache get operation */
-public final class CacheGetResponse extends BaseResponse {
+public final class CacheGetResponse {
   private final ByteString body;
-  private final ECacheResult result;
+  private final MomentoCacheResult result;
 
   public CacheGetResponse(ECacheResult result, ByteString body) {
     this.body = body;
-    this.result = result;
+    this.result = convert(result);
   }
 
   /**
    * Determine the result of the Get operation.
    *
-   * <p>Valid values are {@link MomentoCacheResult#Hit} and {@link MomentoCacheResult#Miss}.
+   * <p>Valid values are {@link MomentoCacheResult#HIT} and {@link MomentoCacheResult#MISS}.
    *
    * @return The result of Cache Get Operation
    */
   public MomentoCacheResult result() {
-    return this.resultMapper(this.result);
+    return result;
   }
 
   /**
@@ -36,7 +37,7 @@ public final class CacheGetResponse extends BaseResponse {
    *     cache miss.
    */
   public Optional<byte[]> byteArray() {
-    if (result != ECacheResult.Hit) {
+    if (result != MomentoCacheResult.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toByteArray());
@@ -49,7 +50,7 @@ public final class CacheGetResponse extends BaseResponse {
    *     cache miss.
    */
   public Optional<ByteBuffer> byteBuffer() {
-    if (result != ECacheResult.Hit) {
+    if (result != MomentoCacheResult.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.asReadOnlyByteBuffer());
@@ -73,7 +74,7 @@ public final class CacheGetResponse extends BaseResponse {
    *     cache miss.
    */
   public Optional<String> string(Charset charset) {
-    if (result != ECacheResult.Hit) {
+    if (result != MomentoCacheResult.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toString(charset));
@@ -86,9 +87,23 @@ public final class CacheGetResponse extends BaseResponse {
    *     cache miss.
    */
   public Optional<InputStream> inputStream() {
-    if (result != ECacheResult.Hit) {
+    if (result != MomentoCacheResult.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.newInput());
+  }
+
+  private static MomentoCacheResult convert(ECacheResult result) {
+    switch (result) {
+      case Hit:
+        return MomentoCacheResult.HIT;
+      case Miss:
+        return MomentoCacheResult.MISS;
+      default:
+        throw new InternalServerException(
+            String.format(
+                "Unexpected exception occurred while trying to fulfill the request. Found unsupported Cache result: %s",
+                result));
+    }
   }
 }
