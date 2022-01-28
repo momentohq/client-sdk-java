@@ -5,7 +5,6 @@ import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Optional;
 
 /** Result of the set operation on Cache. */
 public final class CacheSetResponse {
