@@ -17,7 +17,7 @@ final class ScsDataTestHelper {
       throws IOException {
     assertEquals(expectedValue, setResponse.string());
     assertArrayEquals(expectedValue.getBytes(), setResponse.byteArray());
-    assertEquals(ByteBuffer.wrap(expectedValue.getBytes()), setResponse.byteBuffer().get());
+    assertEquals(ByteBuffer.wrap(expectedValue.getBytes()), setResponse.byteBuffer());
     assertTrue(
         IOUtils.contentEquals(
             IOUtils.toInputStream(expectedValue, StandardCharsets.UTF_8),
