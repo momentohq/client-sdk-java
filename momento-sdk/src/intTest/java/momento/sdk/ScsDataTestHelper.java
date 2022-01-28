@@ -15,12 +15,12 @@ final class ScsDataTestHelper {
 
   static void assertSetResponse(String expectedValue, CacheSetResponse setResponse)
       throws IOException {
-    assertEquals(expectedValue, setResponse.string().get());
-    assertArrayEquals(expectedValue.getBytes(), setResponse.byteArray().get());
+    assertEquals(expectedValue, setResponse.string());
+    assertArrayEquals(expectedValue.getBytes(), setResponse.byteArray());
     assertEquals(ByteBuffer.wrap(expectedValue.getBytes()), setResponse.byteBuffer().get());
     assertTrue(
         IOUtils.contentEquals(
             IOUtils.toInputStream(expectedValue, StandardCharsets.UTF_8),
-            setResponse.inputStream().get()));
+            setResponse.inputStream()));
   }
 }

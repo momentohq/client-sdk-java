@@ -20,8 +20,8 @@ public final class CacheSetResponse {
    *
    * @return Value set for the given key.
    */
-  public Optional<byte[]> byteArray() {
-    return Optional.ofNullable(value.toByteArray());
+  public byte[] byteArray() {
+    return value.toByteArray();
   }
 
   /**
@@ -29,8 +29,8 @@ public final class CacheSetResponse {
    *
    * @return Value set for the given key.
    */
-  public Optional<ByteBuffer> byteBuffer() {
-    return Optional.ofNullable(value.asReadOnlyByteBuffer());
+  public ByteBuffer byteBuffer() {
+    return value.asReadOnlyByteBuffer();
   }
 
   /**
@@ -38,7 +38,7 @@ public final class CacheSetResponse {
    *
    * @return Value set for the given key.
    */
-  public Optional<String> string() {
+  public String string() {
     return string(StandardCharsets.UTF_8);
   }
 
@@ -48,8 +48,8 @@ public final class CacheSetResponse {
    * @param charset to express the bytes as String.
    * @return Value set for the given key.
    */
-  public Optional<String> string(Charset charset) {
-    return Optional.ofNullable(value.toString(charset));
+  public String string(Charset charset) {
+    return value.toString(charset);
   }
 
   /**
@@ -57,7 +57,7 @@ public final class CacheSetResponse {
    *
    * @return Value set for the given key.
    */
-  public Optional<InputStream> inputStream() {
-    return Optional.ofNullable(value.newInput());
+  public InputStream inputStream() {
+    return value.newInput();
   }
 }
