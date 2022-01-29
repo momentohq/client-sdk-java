@@ -2,6 +2,7 @@ package momento.sdk.messages;
 
 import java.util.List;
 import java.util.Optional;
+import momento.sdk.SimpleCacheClient;
 
 /** Response object for list of caches. */
 public final class ListCachesResponse {
@@ -21,10 +22,9 @@ public final class ListCachesResponse {
   /**
    * Next Page Token returned by Simple Cache Service along with the list of caches.
    *
-   * <p>If nextPageToken().isPresent(), then this token must be provided in the next {@link
-   * ListCachesRequest} to continue paginating through the list. This is done by setting the value
-   * in {@link
-   * momento.sdk.messages.ListCachesRequest.ListCachesRequestBuilder#nextPageToken(Optional)}
+   * <p>If nextPageToken().isPresent(), then this token must be provided in the next call to
+   * continue paginating through the list. This is done by setting the value in {@link
+   * SimpleCacheClient#listCaches(Optional)}
    *
    * <p>When not present, there are no more caches to return.
    */

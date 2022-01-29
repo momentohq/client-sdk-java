@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.CacheAlreadyExistsException;
@@ -12,7 +13,6 @@ import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.exceptions.ValidationException;
 import momento.sdk.messages.CacheInfo;
-import momento.sdk.messages.ListCachesRequest;
 import momento.sdk.messages.ListCachesResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -48,11 +48,30 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   }
 
   @Test
-  public void listsCachesSuccessfully() {
+  public void listsCachesSuccessfullyHandlesNullToken() {
     String cacheName = UUID.randomUUID().toString();
     target.createCache(cacheName);
     try {
-      ListCachesResponse response = target.listCaches(ListCachesRequest.builder().build());
+      ListCachesResponse response = target.listCaches(null);
+      assertTrue(response.caches().size() >= 1);
+      assertTrue(
+          response.caches().stream()
+              .map(CacheInfo::name)
+              .collect(Collectors.toSet())
+              .contains(cacheName));
+      assertFalse(response.nextPageToken().isPresent());
+    } finally {
+      // cleanup
+      target.deleteCache(cacheName);
+    }
+  }
+
+  @Test
+  public void listsCachesSuccessfullyHandlesEmptyToken() {
+    String cacheName = UUID.randomUUID().toString();
+    target.createCache(cacheName);
+    try {
+      ListCachesResponse response = target.listCaches(Optional.empty());
       assertTrue(response.caches().size() >= 1);
       assertTrue(
           response.caches().stream()
@@ -95,8 +114,6 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
     assertThrows(PermissionDeniedException.class, () -> target.createCache(cacheName));
 
     assertThrows(PermissionDeniedException.class, () -> target.deleteCache(cacheName));
-    assertThrows(
-        PermissionDeniedException.class,
-        () -> target.listCaches(ListCachesRequest.builder().build()));
+    assertThrows(PermissionDeniedException.class, () -> target.listCaches(Optional.empty()));
   }
 }
