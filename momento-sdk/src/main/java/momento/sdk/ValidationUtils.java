@@ -2,6 +2,8 @@ package momento.sdk;
 
 import momento.sdk.exceptions.InvalidArgumentException;
 
+// Should rely on server for all validations. However, there are some that cannot be delegated and
+// instead fail in grpc client, like providing null inputs or a negative ttl.
 final class ValidationUtils {
 
   static final String CACHE_ITEM_TTL_CANNOT_BE_NEGATIVE = "Cache item TTL cannot be negative.";

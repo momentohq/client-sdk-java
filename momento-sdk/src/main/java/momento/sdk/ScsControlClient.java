@@ -4,13 +4,11 @@ import static momento.sdk.ValidationUtils.checkCacheNameValid;
 
 import grpc.control_client.CreateCacheRequest;
 import grpc.control_client.DeleteCacheRequest;
-import io.grpc.Status;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
-import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.DeleteCacheResponse;
@@ -41,11 +39,6 @@ final class ScsControlClient implements Closeable {
     try {
       controlGrpcStubsManager.getBlockingStub().deleteCache(buildDeleteCacheRequest(cacheName));
       return new DeleteCacheResponse();
-    } catch (io.grpc.StatusRuntimeException e) {
-      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
-        throw new NotFoundException(String.format("Cache with name %s doesn't exist", cacheName));
-      }
-      throw CacheServiceExceptionMapper.convert(e);
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
     }
