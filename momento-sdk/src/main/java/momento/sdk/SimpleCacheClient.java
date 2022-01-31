@@ -5,9 +5,10 @@ import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import momento.sdk.exceptions.CacheAlreadyExistsException;
-import momento.sdk.exceptions.CacheNotFoundException;
+import momento.sdk.exceptions.AlreadyExistsException;
+import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
@@ -40,8 +41,8 @@ public final class SimpleCacheClient implements Closeable {
    * @param cacheName Name of the cache to be created.
    * @return The result of the create cache operation
    * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws momento.sdk.exceptions.InvalidArgumentException
-   * @throws CacheAlreadyExistsException
+   * @throws BadRequestException
+   * @throws AlreadyExistsException
    * @throws momento.sdk.exceptions.InternalServerException
    * @throws ClientSdkException when cacheName is null
    */
@@ -55,7 +56,7 @@ public final class SimpleCacheClient implements Closeable {
    * @param cacheName The name of the cache to be deleted.
    * @return The result of the cache deletion operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    * @throws ClientSdkException if the {@code cacheName} is null.
    */
@@ -90,7 +91,7 @@ public final class SimpleCacheClient implements Closeable {
    *     value data.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheGetResponse get(String cacheName, String key) {
@@ -106,7 +107,7 @@ public final class SimpleCacheClient implements Closeable {
    *     value data.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheGetResponse get(String cacheName, byte[] key) {
@@ -126,7 +127,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key, value is null or if ttlSeconds is less than or equal to zero
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheSetResponse set(String cacheName, String key, ByteBuffer value, int ttlSeconds) {
@@ -146,7 +147,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheSetResponse set(String cacheName, String key, ByteBuffer value) {
@@ -165,7 +166,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheSetResponse set(String cacheName, String key, String value, int ttlSeconds) {
@@ -185,7 +186,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheSetResponse set(String cacheName, String key, String value) {
@@ -205,7 +206,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheSetResponse set(String cacheName, byte[] key, byte[] value, int ttlSeconds) {
@@ -225,7 +226,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheSetResponse set(String cacheName, byte[] key, byte[] value) {
@@ -241,7 +242,7 @@ public final class SimpleCacheClient implements Closeable {
    *     associated value data.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheGetResponse> getAsync(String cacheName, byte[] key) {
@@ -257,7 +258,7 @@ public final class SimpleCacheClient implements Closeable {
    *     associated value data.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheGetResponse> getAsync(String cacheName, String key) {
@@ -277,7 +278,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> setAsync(
@@ -298,7 +299,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> setAsync(
@@ -319,7 +320,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> setAsync(
@@ -340,7 +341,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> setAsync(String cacheName, byte[] key, byte[] value) {
@@ -360,7 +361,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> setAsync(
@@ -381,7 +382,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null
-   * @throws momento.sdk.exceptions.CacheNotFoundException
+   * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> setAsync(String cacheName, String key, String value) {

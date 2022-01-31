@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.UUID;
-import momento.sdk.exceptions.ValidationException;
+import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.MomentoCacheResult;
@@ -52,7 +52,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
   @Test
   public void throwsExceptionWhenClientUsesNegativeDefaultTtl() {
     assertThrows(
-        ValidationException.class,
+        InvalidArgumentException.class,
         () -> SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), -1).build());
   }
 }

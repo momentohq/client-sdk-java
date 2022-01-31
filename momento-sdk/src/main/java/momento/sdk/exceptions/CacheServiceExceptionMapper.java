@@ -6,6 +6,7 @@ import java.net.UnknownHostException;
 
 public final class CacheServiceExceptionMapper {
 
+  private static final String SDK_FAILED_TO_PROCESS_THE_REQUEST = "SDK Failed to process the request.";
   private static final String INTERNAL_SERVER_ERROR_MESSAGE =
       "Unexpected exception occurred while trying to fulfill the request.";
 
@@ -26,21 +27,52 @@ public final class CacheServiceExceptionMapper {
     if (e instanceof io.grpc.StatusRuntimeException) {
       StatusRuntimeException grpcException = (StatusRuntimeException) e;
       switch (grpcException.getStatus().getCode()) {
+        case INVALID_ARGUMENT:
+          // fall through
+        case UNIMPLEMENTED:
+          // fall through
+        case OUT_OF_RANGE:
+          // fall through
+        case FAILED_PRECONDITION:
+          return new BadRequestException(grpcException.getMessage());
+
+        case CANCELLED:
+          return new CancellationException(grpcException.getMessage());
+
+        case DEADLINE_EXCEEDED:
+          return new TimeoutException(grpcException.getMessage());
+
         case PERMISSION_DENIED:
           return new PermissionDeniedException(grpcException.getMessage());
 
+        case UNAUTHENTICATED:
+          return new AuthenticationException(grpcException.getMessage());
+
+        case RESOURCE_EXHAUSTED:
+          return new LimitExceededException(grpcException.getMessage());
+
         case NOT_FOUND:
-          return new CacheNotFoundException(grpcException.getMessage());
+          return new NotFoundException(grpcException.getMessage());
 
-        case INVALID_ARGUMENT:
-          return new InvalidArgumentException(grpcException.getMessage());
+        case ALREADY_EXISTS:
+          return new AlreadyExistsException(grpcException.getMessage());
 
+        case UNKNOWN:
+          // fall through
+        case ABORTED:
+          // fall through
+        case INTERNAL:
+          // fall through
+        case UNAVAILABLE:
+          // fall through
+        case DATA_LOSS:
+          // fall through
         default:
           return convertUnhandledExceptions(grpcException);
       }
     }
 
-    return new ClientSdkException("SDK Failed to process the request", e);
+    return new ClientSdkException(SDK_FAILED_TO_PROCESS_THE_REQUEST, e);
   }
 
   public static SdkException convertUnhandledExceptions(StatusRuntimeException e) {

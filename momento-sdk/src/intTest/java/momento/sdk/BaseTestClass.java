@@ -1,6 +1,6 @@
 package momento.sdk;
 
-import momento.sdk.exceptions.CacheAlreadyExistsException;
+import momento.sdk.exceptions.AlreadyExistsException;
 import org.junit.jupiter.api.BeforeAll;
 
 class BaseTestClass {
@@ -22,7 +22,7 @@ class BaseTestClass {
     try (SimpleCacheClient client =
         SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), 10).build()) {
       client.createCache(System.getenv("TEST_CACHE_NAME"));
-    } catch (CacheAlreadyExistsException e) {
+    } catch (AlreadyExistsException e) {
       // do nothing. Cache already exists.
     }
   }

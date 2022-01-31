@@ -1,6 +1,6 @@
 package momento.sdk.exceptions;
 
-/** Service rejected the request as the authentication credentials presented are invalid. */
+/** Exception when the provided credentials did not have permissions to execute an operation. */
 public class PermissionDeniedException extends CacheServiceException {
 
   public PermissionDeniedException(String message) {

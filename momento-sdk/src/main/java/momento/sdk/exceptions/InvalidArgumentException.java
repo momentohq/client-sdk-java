@@ -1,7 +1,11 @@
 package momento.sdk.exceptions;
 
-/** Represents exceptions thrown when invalid parameters are passed to the Cache Service */
-public class InvalidArgumentException extends CacheServiceException {
+/** Exception when SDK client side validation fails. */
+public class InvalidArgumentException extends ClientSdkException {
+  public InvalidArgumentException(String message, Throwable cause) {
+    super(message, cause);
+  }
+
   public InvalidArgumentException(String message) {
     super(message);
   }

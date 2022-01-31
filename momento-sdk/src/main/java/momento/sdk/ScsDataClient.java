@@ -2,6 +2,9 @@ package momento.sdk;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static java.time.Instant.now;
+import static momento.sdk.ValidationUtils.checkCacheNameValid;
+import static momento.sdk.ValidationUtils.ensureValidCacheSet;
+import static momento.sdk.ValidationUtils.ensureValidKey;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -29,7 +32,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.SdkException;
-import momento.sdk.exceptions.ValidationException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
@@ -64,7 +66,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CacheSetResponse set(String cacheName, String key, ByteBuffer value, int ttlSeconds) {
-    ensureValid(key, value, ttlSeconds);
+    ensureValidCacheSet(key, value, ttlSeconds);
     return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
@@ -73,7 +75,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CacheSetResponse set(String cacheName, String key, String value, int ttlSeconds) {
-    ensureValid(key, value, ttlSeconds);
+    ensureValidCacheSet(key, value, ttlSeconds);
     return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
@@ -82,7 +84,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CacheSetResponse set(String cacheName, byte[] key, byte[] value, int ttlSeconds) {
-    ensureValid(key, value, ttlSeconds);
+    ensureValidCacheSet(key, value, ttlSeconds);
     return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
@@ -102,7 +104,7 @@ final class ScsDataClient implements Closeable {
 
   CompletableFuture<CacheSetResponse> setAsync(
       String cacheName, String key, ByteBuffer value, int ttlSeconds) {
-    ensureValid(key, value, ttlSeconds);
+    ensureValidCacheSet(key, value, ttlSeconds);
     return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
@@ -112,7 +114,7 @@ final class ScsDataClient implements Closeable {
 
   CompletableFuture<CacheSetResponse> setAsync(
       String cacheName, byte[] key, byte[] value, int ttlSeconds) {
-    ensureValid(key, value, ttlSeconds);
+    ensureValidCacheSet(key, value, ttlSeconds);
     return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
@@ -122,31 +124,12 @@ final class ScsDataClient implements Closeable {
 
   CompletableFuture<CacheSetResponse> setAsync(
       String cacheName, String key, String value, int ttlSeconds) {
-    ensureValid(key, value, ttlSeconds);
+    ensureValidCacheSet(key, value, ttlSeconds);
     return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
   CompletableFuture<CacheSetResponse> setAsync(String cacheName, String key, String value) {
     return setAsync(cacheName, key, value, itemDefaultTtlSeconds);
-  }
-
-  private static void ensureValid(Object key, Object value, int ttlSeconds) {
-
-    ensureValidKey(key);
-
-    if (value == null) {
-      throw new ValidationException("A non-null value is required.");
-    }
-
-    if (ttlSeconds < 0) {
-      throw new ValidationException("Item's time to live in Cache cannot be negative.");
-    }
-  }
-
-  private static void ensureValidKey(Object key) {
-    if (key == null) {
-      throw new ValidationException("A non-null Key is required.");
-    }
   }
 
   private ByteString convert(String stringToEncode) {
@@ -325,12 +308,6 @@ final class ScsDataClient implements Closeable {
                 .setSpanKind(SpanKind.CLIENT)
                 .setStartTimestamp(now())
                 .startSpan());
-  }
-
-  private static void checkCacheNameValid(String cacheName) {
-    if (cacheName == null) {
-      throw new ValidationException("Cache Name is required.");
-    }
   }
 
   @Override
