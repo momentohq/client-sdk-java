@@ -12,7 +12,6 @@ import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.DeleteCacheResponse;
-import momento.sdk.messages.ListCachesRequest;
 import momento.sdk.messages.ListCachesResponse;
 
 /** Client to perform operations against the Simple Cache Service */
@@ -64,9 +63,22 @@ public final class SimpleCacheClient implements Closeable {
     return scsControlClient.deleteCache(cacheName);
   }
 
-  /** Lists all caches for the provided auth token. */
-  public ListCachesResponse listCaches(ListCachesRequest request) {
-    return scsControlClient.listCaches(request);
+  /**
+   * Lists all caches for the provided auth token.
+   *
+   * <pre>{@code
+   * Optional<String> nextPageToken = Optional.empty();
+   * do {
+   *     ListCachesResponse response = simpleCacheClient.listCaches(nextToken);
+   *
+   *     // Your code here to use the response
+   *
+   *     nextPageToken = response.nextPageToken();
+   * } while(nextPageToken.isPresent());
+   * }</pre>
+   */
+  public ListCachesResponse listCaches(Optional<String> nextToken) {
+    return scsControlClient.listCaches(nextToken);
   }
 
   /**

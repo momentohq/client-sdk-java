@@ -14,7 +14,6 @@ import momento.sdk.exceptions.ValidationException;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.DeleteCacheResponse;
-import momento.sdk.messages.ListCachesRequest;
 import momento.sdk.messages.ListCachesResponse;
 import org.apache.commons.lang3.StringUtils;
 
@@ -59,9 +58,9 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-  ListCachesResponse listCaches(ListCachesRequest request) {
+  ListCachesResponse listCaches(Optional<String> nextToken) {
     try {
-      return convert(controlGrpcStubsManager.getBlockingStub().listCaches(convert(request)));
+      return convert(controlGrpcStubsManager.getBlockingStub().listCaches(convert(nextToken)));
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
     }
@@ -75,10 +74,9 @@ final class ScsControlClient implements Closeable {
     return DeleteCacheRequest.newBuilder().setCacheName(cacheName).build();
   }
 
-  private static grpc.control_client.ListCachesRequest convert(ListCachesRequest request) {
-    return grpc.control_client.ListCachesRequest.newBuilder()
-        .setNextToken(request.nextPageToken().orElse(""))
-        .build();
+  private static grpc.control_client.ListCachesRequest convert(Optional<String> nextToken) {
+    String grpcNextToken = nextToken == null || !nextToken.isPresent() ? "" : nextToken.get();
+    return grpc.control_client.ListCachesRequest.newBuilder().setNextToken(grpcNextToken).build();
   }
 
   private static ListCachesResponse convert(grpc.control_client.ListCachesResponse response) {
