@@ -6,7 +6,8 @@ import java.net.UnknownHostException;
 
 public final class CacheServiceExceptionMapper {
 
-  private static final String SDK_FAILED_TO_PROCESS_THE_REQUEST = "SDK Failed to process the request.";
+  private static final String SDK_FAILED_TO_PROCESS_THE_REQUEST =
+      "SDK Failed to process the request.";
   private static final String INTERNAL_SERVER_ERROR_MESSAGE =
       "Unexpected exception occurred while trying to fulfill the request.";
 
