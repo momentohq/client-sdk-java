@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import momento.sdk.exceptions.CacheNotFoundException;
+import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
@@ -120,11 +120,11 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
 
     ExecutionException setException =
         assertThrows(ExecutionException.class, () -> target.getAsync(cacheName, "").get());
-    assertTrue(setException.getCause() instanceof CacheNotFoundException);
+    assertTrue(setException.getCause() instanceof NotFoundException);
 
     ExecutionException getException =
         assertThrows(ExecutionException.class, () -> target.setAsync(cacheName, "", "", 10).get());
-    assertTrue(getException.getCause() instanceof CacheNotFoundException);
+    assertTrue(getException.getCause() instanceof NotFoundException);
   }
 
   private void runSetAndGetWithHitTest(SimpleCacheClient target) throws Exception {

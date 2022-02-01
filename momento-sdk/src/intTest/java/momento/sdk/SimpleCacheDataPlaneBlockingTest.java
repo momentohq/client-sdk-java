@@ -16,7 +16,7 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Optional;
 import java.util.UUID;
-import momento.sdk.exceptions.CacheNotFoundException;
+import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
@@ -115,9 +115,9 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
     String cacheName = UUID.randomUUID().toString();
 
-    assertThrows(CacheNotFoundException.class, () -> target.get(cacheName, ""));
+    assertThrows(NotFoundException.class, () -> target.get(cacheName, ""));
 
-    assertThrows(CacheNotFoundException.class, () -> target.set(cacheName, "", "", 10));
+    assertThrows(NotFoundException.class, () -> target.set(cacheName, "", "", 10));
   }
 
   @Test

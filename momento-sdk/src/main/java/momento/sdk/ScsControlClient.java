@@ -1,16 +1,14 @@
 package momento.sdk;
 
+import static momento.sdk.ValidationUtils.checkCacheNameValid;
+
 import grpc.control_client.CreateCacheRequest;
 import grpc.control_client.DeleteCacheRequest;
-import io.grpc.Status;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import momento.sdk.exceptions.CacheAlreadyExistsException;
-import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
-import momento.sdk.exceptions.ValidationException;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.DeleteCacheResponse;
@@ -31,12 +29,6 @@ final class ScsControlClient implements Closeable {
     try {
       controlGrpcStubsManager.getBlockingStub().createCache(buildCreateCacheRequest(cacheName));
       return new CreateCacheResponse();
-    } catch (io.grpc.StatusRuntimeException e) {
-      if (e.getStatus().getCode() == Status.Code.ALREADY_EXISTS) {
-        throw new CacheAlreadyExistsException(
-            String.format("Cache with name %s already exists", cacheName));
-      }
-      throw CacheServiceExceptionMapper.convert(e);
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
     }
@@ -47,12 +39,6 @@ final class ScsControlClient implements Closeable {
     try {
       controlGrpcStubsManager.getBlockingStub().deleteCache(buildDeleteCacheRequest(cacheName));
       return new DeleteCacheResponse();
-    } catch (io.grpc.StatusRuntimeException e) {
-      if (e.getStatus().getCode() == Status.Code.NOT_FOUND) {
-        throw new CacheNotFoundException(
-            String.format("Cache with name %s doesn't exist", cacheName));
-      }
-      throw CacheServiceExceptionMapper.convert(e);
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
     }
@@ -93,12 +79,6 @@ final class ScsControlClient implements Closeable {
 
   private static CacheInfo convert(grpc.control_client.Cache cache) {
     return new CacheInfo(cache.getCacheName());
-  }
-
-  private static void checkCacheNameValid(String cacheName) {
-    if (cacheName == null) {
-      throw new ValidationException("Cache Name is required.");
-    }
   }
 
   @Override

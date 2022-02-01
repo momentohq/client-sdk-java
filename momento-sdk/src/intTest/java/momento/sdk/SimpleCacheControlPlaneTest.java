@@ -7,11 +7,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import momento.sdk.exceptions.CacheAlreadyExistsException;
-import momento.sdk.exceptions.CacheNotFoundException;
+import momento.sdk.exceptions.AlreadyExistsException;
+import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.InvalidArgumentException;
+import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.PermissionDeniedException;
-import momento.sdk.exceptions.ValidationException;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.ListCachesResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -38,13 +38,13 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   @Test
   public void throwsAlreadyExistsWhenCreatingExistingCache() {
     String existingCache = System.getenv("TEST_CACHE_NAME");
-    assertThrows(CacheAlreadyExistsException.class, () -> target.createCache(existingCache));
+    assertThrows(AlreadyExistsException.class, () -> target.createCache(existingCache));
   }
 
   @Test
   public void throwsNotFoundWhenDeletingUnknownCache() {
     String doesNotExistCache = UUID.randomUUID().toString();
-    assertThrows(CacheNotFoundException.class, () -> target.deleteCache(doesNotExistCache));
+    assertThrows(NotFoundException.class, () -> target.deleteCache(doesNotExistCache));
   }
 
   @Test
@@ -87,22 +87,22 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
 
   @Test
   public void throwsInvalidArgumentForEmptyCacheName() {
-    assertThrows(InvalidArgumentException.class, () -> target.createCache("     "));
+    assertThrows(BadRequestException.class, () -> target.createCache("     "));
   }
 
   @Test
   public void throwsValidationExceptionForNullCacheName() {
-    assertThrows(ValidationException.class, () -> target.createCache(null));
-    assertThrows(ValidationException.class, () -> target.deleteCache(null));
+    assertThrows(InvalidArgumentException.class, () -> target.createCache(null));
+    assertThrows(InvalidArgumentException.class, () -> target.deleteCache(null));
   }
 
   @Test
   public void deleteSucceeds() {
     String cacheName = UUID.randomUUID().toString();
     target.createCache(cacheName);
-    assertThrows(CacheAlreadyExistsException.class, () -> target.createCache(cacheName));
+    assertThrows(AlreadyExistsException.class, () -> target.createCache(cacheName));
     target.deleteCache(cacheName);
-    assertThrows(CacheNotFoundException.class, () -> target.deleteCache(cacheName));
+    assertThrows(NotFoundException.class, () -> target.deleteCache(cacheName));
   }
 
   @Test
