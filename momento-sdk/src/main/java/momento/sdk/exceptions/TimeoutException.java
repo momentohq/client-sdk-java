@@ -1,6 +1,7 @@
 package momento.sdk.exceptions;
 
-public class TimeoutException extends CacheServiceException {
+/** Requested operation did not complete in allotted time. */
+public class TimeoutException extends MomentoServiceException {
   public TimeoutException(String message) {
     super(message);
   }
