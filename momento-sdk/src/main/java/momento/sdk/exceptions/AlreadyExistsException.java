@@ -1,9 +1,9 @@
 package momento.sdk.exceptions;
 
 /**
- * An exception to indicate that a another cache with same name already exists for this requester.
+ * An exception thrown when a resource already exists.
  */
-public class AlreadyExistsException extends CacheServiceException {
+public class AlreadyExistsException extends MomentoServiceException {
 
   public AlreadyExistsException(String message) {
     super(message);
