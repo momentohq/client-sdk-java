@@ -7,7 +7,7 @@ import java.util.UUID;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
-import momento.sdk.messages.MomentoCacheResult;
+import momento.sdk.messages.CacheGetStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,11 +40,11 @@ final class SimpleCacheClientTest extends BaseTestClass {
     CacheSetResponse response = target.set(cacheName, key, value);
 
     CacheGetResponse getResponse = target.get(cacheName, key);
-    assertEquals(MomentoCacheResult.HIT, getResponse.result());
+    assertEquals(CacheGetStatus.HIT, getResponse.status());
     assertEquals(value, getResponse.string().get());
 
     CacheGetResponse getForKeyInSomeOtherCache = target.get(System.getenv("TEST_CACHE_NAME"), key);
-    assertEquals(MomentoCacheResult.MISS, getForKeyInSomeOtherCache.result());
+    assertEquals(CacheGetStatus.MISS, getForKeyInSomeOtherCache.status());
 
     target.deleteCache(cacheName);
   }

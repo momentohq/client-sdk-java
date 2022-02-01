@@ -12,22 +12,22 @@ import momento.sdk.exceptions.InternalServerException;
 /** Response for a cache get operation */
 public final class CacheGetResponse {
   private final ByteString body;
-  private final MomentoCacheResult result;
+  private final CacheGetStatus status;
 
-  public CacheGetResponse(ECacheResult result, ByteString body) {
+  public CacheGetResponse(ECacheResult status, ByteString body) {
     this.body = body;
-    this.result = convert(result);
+    this.status = convert(status);
   }
 
   /**
    * Determine the result of the Get operation.
    *
-   * <p>Valid values are {@link MomentoCacheResult#HIT} and {@link MomentoCacheResult#MISS}.
+   * <p>Valid values are {@link CacheGetStatus#HIT} and {@link CacheGetStatus#MISS}.
    *
    * @return The result of Cache Get Operation
    */
-  public MomentoCacheResult result() {
-    return result;
+  public CacheGetStatus status() {
+    return status;
   }
 
   /**
@@ -37,7 +37,7 @@ public final class CacheGetResponse {
    *     cache miss.
    */
   public Optional<byte[]> byteArray() {
-    if (result != MomentoCacheResult.HIT) {
+    if (status != CacheGetStatus.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toByteArray());
@@ -50,7 +50,7 @@ public final class CacheGetResponse {
    *     cache miss.
    */
   public Optional<ByteBuffer> byteBuffer() {
-    if (result != MomentoCacheResult.HIT) {
+    if (status != CacheGetStatus.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.asReadOnlyByteBuffer());
@@ -74,7 +74,7 @@ public final class CacheGetResponse {
    *     cache miss.
    */
   public Optional<String> string(Charset charset) {
-    if (result != MomentoCacheResult.HIT) {
+    if (status != CacheGetStatus.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.toString(charset));
@@ -87,18 +87,18 @@ public final class CacheGetResponse {
    *     cache miss.
    */
   public Optional<InputStream> inputStream() {
-    if (result != MomentoCacheResult.HIT) {
+    if (status != CacheGetStatus.HIT) {
       return Optional.empty();
     }
     return Optional.ofNullable(body.newInput());
   }
 
-  private static MomentoCacheResult convert(ECacheResult result) {
+  private static CacheGetStatus convert(ECacheResult result) {
     switch (result) {
       case Hit:
-        return MomentoCacheResult.HIT;
+        return CacheGetStatus.HIT;
       case Miss:
-        return MomentoCacheResult.MISS;
+        return CacheGetStatus.MISS;
       default:
         throw new InternalServerException(
             String.format(
