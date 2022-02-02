@@ -102,7 +102,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
   }
 
   @Test
-  void badTokenThrowsPermissionDenied() {
+  void badTokenThrowsAuthenticationException() {
     String badToken =
         "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
     SimpleCacheClient target =

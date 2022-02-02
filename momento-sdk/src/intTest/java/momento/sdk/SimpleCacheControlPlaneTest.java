@@ -106,7 +106,7 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   }
 
   @Test
-  public void throwsPemissionDeniedForBadToken() {
+  public void throwsAuthenticationExceptionForBadToken() {
     String cacheName = UUID.randomUUID().toString();
     String badToken =
         "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
