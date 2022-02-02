@@ -16,8 +16,8 @@ import java.io.IOException;
 import java.nio.charset.Charset;
 import java.util.Optional;
 import java.util.UUID;
+import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
@@ -101,12 +101,12 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
   }
 
   @Test
-  public void badTokenThrowsPermissionDenied() {
+  public void badTokenThrowsAuthenticationException() {
     String badToken =
         "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
     SimpleCacheClient target =
         SimpleCacheClient.builder(badToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    assertThrows(PermissionDeniedException.class, () -> target.get(cacheName, ""));
+    assertThrows(AuthenticationException.class, () -> target.get(cacheName, ""));
   }
 
   @Test
