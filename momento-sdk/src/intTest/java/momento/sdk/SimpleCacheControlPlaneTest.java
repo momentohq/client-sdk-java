@@ -8,10 +8,10 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.AlreadyExistsException;
+import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.ListCachesResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -111,9 +111,9 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
     String badToken =
         "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
     SimpleCacheClient target = SimpleCacheClient.builder(badToken, 10).build();
-    assertThrows(PermissionDeniedException.class, () -> target.createCache(cacheName));
+    assertThrows(AuthenticationException.class, () -> target.createCache(cacheName));
 
-    assertThrows(PermissionDeniedException.class, () -> target.deleteCache(cacheName));
-    assertThrows(PermissionDeniedException.class, () -> target.listCaches(Optional.empty()));
+    assertThrows(AuthenticationException.class, () -> target.deleteCache(cacheName));
+    assertThrows(AuthenticationException.class, () -> target.listCaches(Optional.empty()));
   }
 }

@@ -17,8 +17,8 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
@@ -109,7 +109,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
         SimpleCacheClient.builder(badToken, DEFAULT_ITEM_TTL_SECONDS).build();
     ExecutionException e =
         assertThrows(ExecutionException.class, () -> target.getAsync(cacheName, "").get());
-    assertTrue(e.getCause() instanceof PermissionDeniedException);
+    assertTrue(e.getCause() instanceof AuthenticationException);
   }
 
   @Test
