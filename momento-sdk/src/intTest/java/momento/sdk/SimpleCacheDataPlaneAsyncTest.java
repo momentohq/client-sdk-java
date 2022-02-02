@@ -20,8 +20,8 @@ import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
-import momento.sdk.messages.MomentoCacheResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -137,7 +137,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
 
     // Successful Get with Hit
     CompletableFuture<CacheGetResponse> getResponse = target.getAsync(cacheName, key);
-    assertEquals(MomentoCacheResult.HIT, getResponse.get().result());
+    assertEquals(CacheGetStatus.HIT, getResponse.get().status());
     assertEquals(value, getResponse.get().string().get());
   }
 
@@ -151,7 +151,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
 
     // Get Key that was just set
     CompletableFuture<CacheGetResponse> rsp = target.getAsync(cacheName, key);
-    assertEquals(MomentoCacheResult.MISS, rsp.get().result());
+    assertEquals(CacheGetStatus.MISS, rsp.get().status());
     assertFalse(rsp.get().string().isPresent());
   }
 
@@ -161,7 +161,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
         target.getAsync(cacheName, UUID.randomUUID().toString());
 
     CacheGetResponse rsp = rsFuture.get();
-    assertEquals(MomentoCacheResult.MISS, rsp.result());
+    assertEquals(CacheGetStatus.MISS, rsp.status());
     assertFalse(rsp.inputStream().isPresent());
     assertFalse(rsp.byteArray().isPresent());
     assertFalse(rsp.byteBuffer().isPresent());

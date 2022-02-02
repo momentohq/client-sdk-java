@@ -19,8 +19,8 @@ import java.util.UUID;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.PermissionDeniedException;
 import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
-import momento.sdk.messages.MomentoCacheResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -129,7 +129,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
 
     CacheGetResponse getResponse = cache.get(cacheName, key);
-    assertEquals(MomentoCacheResult.HIT, getResponse.result());
+    assertEquals(CacheGetStatus.HIT, getResponse.status());
     assertArrayEquals(value, getResponse.byteArray().get());
   }
 
@@ -143,7 +143,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
     // Successful Get with Hit
     CacheGetResponse getResponse = target.get(cacheName, key);
-    assertEquals(MomentoCacheResult.HIT, getResponse.result());
+    assertEquals(CacheGetStatus.HIT, getResponse.status());
     assertEquals(value, getResponse.string().get());
   }
 
@@ -157,7 +157,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
     // Get Key that was just set
     CacheGetResponse rsp = target.get(cacheName, key);
-    assertEquals(MomentoCacheResult.MISS, rsp.result());
+    assertEquals(CacheGetStatus.MISS, rsp.status());
     assertFalse(rsp.string().isPresent());
   }
 
@@ -165,7 +165,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     // Get Key that was just set
     CacheGetResponse rsp = target.get(cacheName, UUID.randomUUID().toString());
 
-    assertEquals(MomentoCacheResult.MISS, rsp.result());
+    assertEquals(CacheGetStatus.MISS, rsp.status());
     assertFalse(rsp.inputStream().isPresent());
     assertFalse(rsp.byteArray().isPresent());
     assertFalse(rsp.byteBuffer().isPresent());
