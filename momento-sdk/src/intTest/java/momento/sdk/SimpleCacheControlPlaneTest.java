@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -23,11 +24,12 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   private static final int DEFAULT_TTL_SECONDS = 60;
 
   private SimpleCacheClient target;
+  private String authToken;
 
   @BeforeEach
   void setup() {
-    target =
-        SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), DEFAULT_TTL_SECONDS).build();
+    authToken = System.getenv("TEST_AUTH_TOKEN");
+    target = SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS).build();
   }
 
   @AfterEach
@@ -115,5 +117,33 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
 
     assertThrows(AuthenticationException.class, () -> target.deleteCache(cacheName));
     assertThrows(AuthenticationException.class, () -> target.listCaches(Optional.empty()));
+  }
+
+  @Test
+  public void throwsInvalidArgumentForZeroRequestTimeout() {
+    assertThrows(
+        InvalidArgumentException.class,
+        () ->
+            SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
+                .requestTimeout(Duration.ofMillis(0))
+                .build());
+  }
+
+  @Test
+  public void throwsInvalidArgumentForNegativeRequestTimeout() {
+    assertThrows(
+        InvalidArgumentException.class,
+        () ->
+            SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
+                .requestTimeout(Duration.ofMillis(-1))
+                .build());
+  }
+
+  @Test
+  public void throwsInvalidArgumentForNullRequestTimeout() {
+    assertThrows(
+        InvalidArgumentException.class,
+        () ->
+            SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS).requestTimeout(null).build());
   }
 }

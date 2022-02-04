@@ -27,6 +27,7 @@ import io.opentelemetry.context.ImplicitContextKeyed;
 import io.opentelemetry.context.Scope;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -49,10 +50,12 @@ final class ScsDataClient implements Closeable {
       String authToken,
       String endpoint,
       int defaultTtlSeconds,
-      Optional<OpenTelemetry> openTelemetry) {
+      Optional<OpenTelemetry> openTelemetry,
+      Optional<Duration> requestTimeout) {
     this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
     this.itemDefaultTtlSeconds = defaultTtlSeconds;
-    this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(authToken, endpoint, openTelemetry);
+    this.scsDataGrpcStubsManager =
+        new ScsDataGrpcStubsManager(authToken, endpoint, openTelemetry, requestTimeout);
   }
 
   CacheGetResponse get(String cacheName, String key) {
