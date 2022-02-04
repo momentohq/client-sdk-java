@@ -13,12 +13,14 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
+import momento.sdk.exceptions.TimeoutException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
@@ -128,6 +130,31 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
     ExecutionException getException =
         assertThrows(ExecutionException.class, () -> target.setAsync(cacheName, "", "", 10).get());
     assertTrue(getException.getCause() instanceof NotFoundException);
+  }
+
+  @Test
+  public void getWithShortTimeoutThrowsException() {
+    try (SimpleCacheClient client =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
+            .requestTimeout(Duration.ofMillis(1))
+            .build()) {
+      ExecutionException e =
+          assertThrows(ExecutionException.class, () -> client.getAsync("cache", "key").get());
+      assertTrue(e.getCause() instanceof TimeoutException);
+    }
+  }
+
+  @Test
+  public void setWithShortTimeoutThrowsException() {
+    try (SimpleCacheClient client =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
+            .requestTimeout(Duration.ofMillis(1))
+            .build()) {
+      ExecutionException e =
+          assertThrows(
+              ExecutionException.class, () -> client.setAsync("cache", "key", "value").get());
+      assertTrue(e.getCause() instanceof TimeoutException);
+    }
   }
 
   private void runSetAndGetWithHitTest(SimpleCacheClient target) throws Exception {

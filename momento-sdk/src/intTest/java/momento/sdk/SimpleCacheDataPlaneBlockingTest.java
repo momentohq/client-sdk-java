@@ -14,10 +14,12 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
+import momento.sdk.exceptions.TimeoutException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
@@ -134,6 +136,26 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     CacheGetResponse getResponse = cache.get(cacheName, key);
     assertEquals(CacheGetStatus.HIT, getResponse.status());
     assertArrayEquals(value, getResponse.byteArray().get());
+  }
+
+  @Test
+  public void getWithShortTimeoutThrowsException() {
+    try (SimpleCacheClient client =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
+            .requestTimeout(Duration.ofMillis(1))
+            .build()) {
+      assertThrows(TimeoutException.class, () -> client.get("cache", "key"));
+    }
+  }
+
+  @Test
+  public void setWithShortTimeoutThrowsException() {
+    try (SimpleCacheClient client =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
+            .requestTimeout(Duration.ofMillis(1))
+            .build()) {
+      assertThrows(TimeoutException.class, () -> client.set("cache", "key", "value"));
+    }
   }
 
   private void runSetAndGetWithHitTest(SimpleCacheClient target) throws IOException {
