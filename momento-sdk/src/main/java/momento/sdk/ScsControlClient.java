@@ -2,8 +2,11 @@ package momento.sdk;
 
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
 
-import grpc.control_client.CreateCacheRequest;
-import grpc.control_client.DeleteCacheRequest;
+import grpc.control_client._Cache;
+import grpc.control_client._CreateCacheRequest;
+import grpc.control_client._DeleteCacheRequest;
+import grpc.control_client._ListCachesRequest;
+import grpc.control_client._ListCachesResponse;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,22 +55,22 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-  private static CreateCacheRequest buildCreateCacheRequest(String cacheName) {
-    return CreateCacheRequest.newBuilder().setCacheName(cacheName).build();
+  private static _CreateCacheRequest buildCreateCacheRequest(String cacheName) {
+    return _CreateCacheRequest.newBuilder().setCacheName(cacheName).build();
   }
 
-  private static DeleteCacheRequest buildDeleteCacheRequest(String cacheName) {
-    return DeleteCacheRequest.newBuilder().setCacheName(cacheName).build();
+  private static _DeleteCacheRequest buildDeleteCacheRequest(String cacheName) {
+    return _DeleteCacheRequest.newBuilder().setCacheName(cacheName).build();
   }
 
-  private static grpc.control_client.ListCachesRequest convert(Optional<String> nextToken) {
+  private static _ListCachesRequest convert(Optional<String> nextToken) {
     String grpcNextToken = nextToken == null || !nextToken.isPresent() ? "" : nextToken.get();
-    return grpc.control_client.ListCachesRequest.newBuilder().setNextToken(grpcNextToken).build();
+    return _ListCachesRequest.newBuilder().setNextToken(grpcNextToken).build();
   }
 
-  private static ListCachesResponse convert(grpc.control_client.ListCachesResponse response) {
+  private static ListCachesResponse convert(_ListCachesResponse response) {
     List<CacheInfo> caches = new ArrayList<>();
-    for (grpc.control_client.Cache cache : response.getCacheList()) {
+    for (_Cache cache : response.getCacheList()) {
       caches.add(convert(cache));
     }
     Optional<String> nextPageToken =
@@ -77,7 +80,7 @@ final class ScsControlClient implements Closeable {
     return new ListCachesResponse(caches, nextPageToken);
   }
 
-  private static CacheInfo convert(grpc.control_client.Cache cache) {
+  private static CacheInfo convert(_Cache cache) {
     return new CacheInfo(cache.getCacheName());
   }
 

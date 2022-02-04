@@ -11,11 +11,11 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import grpc.cache_client.GetRequest;
-import grpc.cache_client.GetResponse;
 import grpc.cache_client.ScsGrpc;
-import grpc.cache_client.SetRequest;
-import grpc.cache_client.SetResponse;
+import grpc.cache_client._GetRequest;
+import grpc.cache_client._GetResponse;
+import grpc.cache_client._SetRequest;
+import grpc.cache_client._SetResponse;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
 import io.opentelemetry.api.OpenTelemetry;
@@ -173,7 +173,7 @@ final class ScsDataClient implements Closeable {
     Optional<Span> span = buildSpan("java-sdk-get-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
-    ListenableFuture<GetResponse> rspFuture =
+    ListenableFuture<_GetResponse> rspFuture =
         withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName).get(buildGetRequest(key));
 
     // Build a CompletableFuture to return to caller
@@ -191,9 +191,9 @@ final class ScsDataClient implements Closeable {
     // Convert returned ListenableFuture to CompletableFuture
     Futures.addCallback(
         rspFuture,
-        new FutureCallback<GetResponse>() {
+        new FutureCallback<_GetResponse>() {
           @Override
-          public void onSuccess(GetResponse rsp) {
+          public void onSuccess(_GetResponse rsp) {
             returnFuture.complete(new CacheGetResponse(rsp.getResult(), rsp.getCacheBody()));
             span.ifPresent(
                 theSpan -> {
@@ -229,7 +229,7 @@ final class ScsDataClient implements Closeable {
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
-    ListenableFuture<SetResponse> rspFuture =
+    ListenableFuture<_SetResponse> rspFuture =
         withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
             .set(buildSetRequest(key, value, ttlSeconds * 1000));
 
@@ -248,9 +248,9 @@ final class ScsDataClient implements Closeable {
     // Convert returned ListenableFuture to CompletableFuture
     Futures.addCallback(
         rspFuture,
-        new FutureCallback<SetResponse>() {
+        new FutureCallback<_SetResponse>() {
           @Override
-          public void onSuccess(SetResponse rsp) {
+          public void onSuccess(_SetResponse rsp) {
             returnFuture.complete(new CacheSetResponse(value));
             span.ifPresent(
                 theSpan -> {
@@ -287,12 +287,12 @@ final class ScsDataClient implements Closeable {
     return MetadataUtils.attachHeaders(stub, header);
   }
 
-  private GetRequest buildGetRequest(ByteString key) {
-    return GetRequest.newBuilder().setCacheKey(key).build();
+  private _GetRequest buildGetRequest(ByteString key) {
+    return _GetRequest.newBuilder().setCacheKey(key).build();
   }
 
-  private SetRequest buildSetRequest(ByteString key, ByteString value, int ttl) {
-    return SetRequest.newBuilder()
+  private _SetRequest buildSetRequest(ByteString key, ByteString value, int ttl) {
+    return _SetRequest.newBuilder()
         .setCacheKey(key)
         .setCacheBody(value)
         .setTtlMilliseconds(ttl)
