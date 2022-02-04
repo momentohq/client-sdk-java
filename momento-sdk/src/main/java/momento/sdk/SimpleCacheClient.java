@@ -3,6 +3,7 @@ package momento.sdk;
 import io.opentelemetry.api.OpenTelemetry;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.AlreadyExistsException;
@@ -22,13 +23,20 @@ public final class SimpleCacheClient implements Closeable {
   private final ScsDataClient scsDataClient;
 
   SimpleCacheClient(
-      String authToken, int itemDefaultTtlSeconds, Optional<OpenTelemetry> telemetryOptional) {
+      String authToken,
+      int itemDefaultTtlSeconds,
+      Optional<OpenTelemetry> telemetryOptional,
+      Optional<Duration> requestTimeout) {
     MomentoEndpointsResolver.MomentoEndpoints endpoints =
         MomentoEndpointsResolver.resolve(authToken, Optional.empty());
     this.scsControlClient = new ScsControlClient(authToken, endpoints.controlEndpoint());
     this.scsDataClient =
         new ScsDataClient(
-            authToken, endpoints.cacheEndpoint(), itemDefaultTtlSeconds, telemetryOptional);
+            authToken,
+            endpoints.cacheEndpoint(),
+            itemDefaultTtlSeconds,
+            telemetryOptional,
+            requestTimeout);
   }
 
   public static SimpleCacheClientBuilder builder(String authToken, int itemDefaultTtlSeconds) {

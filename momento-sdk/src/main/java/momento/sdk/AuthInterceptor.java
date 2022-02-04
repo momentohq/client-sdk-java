@@ -9,12 +9,14 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
+import java.time.Duration;
 
 final class AuthInterceptor implements ClientInterceptor {
 
   private static final Metadata.Key<String> AUTH_HEADER_KEY =
       Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
   private final String tokenValue;
+  private Duration duration;
 
   AuthInterceptor(String token) {
     tokenValue = token;

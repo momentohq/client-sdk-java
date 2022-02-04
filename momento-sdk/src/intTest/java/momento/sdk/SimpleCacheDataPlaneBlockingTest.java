@@ -54,7 +54,8 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     OpenTelemetrySdk openTelemetry = setOtelSDK();
 
     runSetAndGetWithHitTest(
-        new SimpleCacheClient(authToken, DEFAULT_ITEM_TTL_SECONDS, Optional.of(openTelemetry)));
+        new SimpleCacheClient(
+            authToken, DEFAULT_ITEM_TTL_SECONDS, Optional.of(openTelemetry), Optional.empty()));
 
     // To accommodate for delays in tracing logs to appear in docker
     Thread.sleep(1000);
@@ -73,7 +74,8 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     OpenTelemetrySdk openTelemetry = setOtelSDK();
 
     runMissTest(
-        new SimpleCacheClient(authToken, DEFAULT_ITEM_TTL_SECONDS, Optional.of(openTelemetry)));
+        new SimpleCacheClient(
+            authToken, DEFAULT_ITEM_TTL_SECONDS, Optional.of(openTelemetry), Optional.empty()));
 
     // To accommodate for delays in tracing logs to appear in docker
     Thread.sleep(1000);
@@ -92,7 +94,8 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     OpenTelemetrySdk openTelemetry = setOtelSDK();
 
     runTtlTest(
-        new SimpleCacheClient(authToken, DEFAULT_ITEM_TTL_SECONDS, Optional.of(openTelemetry)));
+        new SimpleCacheClient(
+            authToken, DEFAULT_ITEM_TTL_SECONDS, Optional.of(openTelemetry), Optional.empty()));
 
     // To accommodate for delays in tracing logs to appear in docker
     Thread.sleep(1000);

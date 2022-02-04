@@ -2,13 +2,16 @@ package momento.sdk;
 
 import grpc.cache_client.ScsGrpc;
 import io.grpc.ClientInterceptor;
+import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.NettyChannelBuilder;
 import io.opentelemetry.api.OpenTelemetry;
 import java.io.Closeable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Data Plane.
@@ -19,13 +22,21 @@ import java.util.Optional;
  */
 final class ScsDataGrpcStubsManager implements Closeable {
 
+  private static final Duration DEFAULT_DEADLINE = Duration.ofSeconds(5);
+
   private final ManagedChannel channel;
   private final ScsGrpc.ScsFutureStub futureStub;
 
   ScsDataGrpcStubsManager(
-      String authToken, String endpoint, Optional<OpenTelemetry> openTelemetry) {
+      String authToken,
+      String endpoint,
+      Optional<OpenTelemetry> openTelemetry,
+      Optional<Duration> requestTimeout) {
+    Duration deadline = requestTimeout.orElse(DEFAULT_DEADLINE);
     this.channel = setupChannel(authToken, endpoint, openTelemetry);
-    this.futureStub = ScsGrpc.newFutureStub(channel);
+    this.futureStub =
+        ScsGrpc.newFutureStub(channel)
+            .withDeadline(Deadline.after(deadline.getSeconds(), TimeUnit.SECONDS));
   }
 
   private static ManagedChannel setupChannel(
