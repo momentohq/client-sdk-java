@@ -145,6 +145,17 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
   }
 
   @Test
+  public void allowEmptyKeyValues() throws Exception {
+    try(SimpleCacheClient client = SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+      String emptyKey = "";
+      String emptyValue = "";
+      client.setAsync(cacheName, emptyKey, emptyValue).get();
+      CacheGetResponse response = client.getAsync(cacheName, emptyKey).get();
+      assertEquals(emptyValue, response.string().get());
+    }
+  }
+
+  @Test
   public void setWithShortTimeoutThrowsException() {
     try (SimpleCacheClient client =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)

@@ -131,7 +131,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     byte[] value = {0x05, 0x06, 0x07, 0x08};
     SimpleCacheClient cache =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    CacheSetResponse setResponse = cache.set(cacheName, key, value, 60);
+    cache.set(cacheName, key, value, 60);
 
     CacheGetResponse getResponse = cache.get(cacheName, key);
     assertEquals(CacheGetStatus.HIT, getResponse.status());
@@ -155,6 +155,17 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
             .requestTimeout(Duration.ofMillis(1))
             .build()) {
       assertThrows(TimeoutException.class, () -> client.set("cache", "key", "value"));
+    }
+  }
+
+  @Test
+  public void allowEmptyKeyValues() {
+    try(SimpleCacheClient client = SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+      String emptyKey = "";
+      String emptyValue = "";
+      client.set(cacheName, emptyKey, emptyValue);
+      CacheGetResponse response = client.get(cacheName, emptyKey);
+      assertEquals(emptyValue, response.string().get());
     }
   }
 
