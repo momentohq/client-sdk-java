@@ -190,7 +190,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     // Set Key sync
     CacheSetResponse setRsp = target.set(cacheName, key, "", 1);
 
-    Thread.sleep(1500);
+    Thread.sleep(2000);
 
     // Get Key that was just set
     CacheGetResponse rsp = target.get(cacheName, key);

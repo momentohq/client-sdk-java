@@ -189,7 +189,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
     // Set Key sync
     CompletableFuture<CacheSetResponse> setRsp = target.setAsync(cacheName, key, "", 1);
 
-    Thread.sleep(1500);
+    Thread.sleep(2000);
 
     // Get Key that was just set
     CompletableFuture<CacheGetResponse> rsp = target.getAsync(cacheName, key);
