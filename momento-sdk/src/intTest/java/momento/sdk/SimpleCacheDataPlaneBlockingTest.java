@@ -160,7 +160,8 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
   @Test
   public void allowEmptyKeyValues() {
-    try(SimpleCacheClient client = SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+    try (SimpleCacheClient client =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       String emptyKey = "";
       String emptyValue = "";
       client.set(cacheName, emptyKey, emptyValue);
