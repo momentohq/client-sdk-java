@@ -45,7 +45,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
   private String BAD_DATA_PLANE_JWT =
       JWT_HEADER_BASE64
           + "."
-          + JWT_PAYLOAD_BAD_CONTROL_PLANE_BASE64
+          + JWT_PAYLOAD_BAD_DATA_PLANE_BASE64
           + "."
           + JWT_INVALID_SIGNATURE_BASE64;
 
