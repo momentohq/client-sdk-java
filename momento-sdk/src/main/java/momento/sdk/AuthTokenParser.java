@@ -4,7 +4,8 @@ import io.jsonwebtoken.Header;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import java.util.Optional;
-import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.InvalidArgumentException;
+import org.apache.commons.lang3.StringUtils;
 
 final class AuthTokenParser {
 
@@ -17,13 +18,13 @@ final class AuthTokenParser {
           Jwts.parserBuilder().build().parseClaimsJwt(tokenWithOnlyHeaderAndClaims(authToken));
       return new Claims(parsed.getBody());
     } catch (Exception e) {
-      throw new ClientSdkException("Failed to parse Auth Token", e);
+      throw new InvalidArgumentException("Failed to parse Auth Token", e);
     }
   }
 
   private static void ensurePresent(String authToken) {
-    if (authToken == null || authToken.isEmpty()) {
-      throw new IllegalArgumentException("Malformed Auth Token.");
+    if (StringUtils.isEmpty(authToken)) {
+      throw new InvalidArgumentException("Malformed Auth Token.");
     }
   }
 
@@ -31,7 +32,7 @@ final class AuthTokenParser {
   private static String tokenWithOnlyHeaderAndClaims(String authToken) {
     String[] splitToken = authToken.split("\\.");
     if (splitToken == null || splitToken.length < 2) {
-      throw new IllegalArgumentException("Malformed Auth Token");
+      throw new InvalidArgumentException("Malformed Auth Token");
     }
     return splitToken[0] + "." + splitToken[1] + ".";
   }

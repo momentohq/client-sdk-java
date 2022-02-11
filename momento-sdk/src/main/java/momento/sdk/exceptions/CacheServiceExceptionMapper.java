@@ -78,7 +78,7 @@ public final class CacheServiceExceptionMapper {
 
   public static SdkException convertUnhandledExceptions(StatusRuntimeException e) {
     if (isDnsUnreachable(e)) {
-      return new ClientSdkException(
+      return new InternalServerException(
           String.format(
               "Unable to reach request endpoint. Request failed with %s", e.getMessage()));
     }
