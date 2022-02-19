@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.InvalidArgumentException;
 import org.junit.jupiter.api.Test;
 
 final class AuthTokenParserTest {
@@ -32,17 +32,17 @@ final class AuthTokenParserTest {
 
   @Test
   public void throwExceptionWhenAuthTokenEmptyOrNull() {
-    assertThrows(ClientSdkException.class, () -> AuthTokenParser.parse(null));
-    assertThrows(ClientSdkException.class, () -> AuthTokenParser.parse("   "));
+    assertThrows(InvalidArgumentException.class, () -> AuthTokenParser.parse(null));
+    assertThrows(InvalidArgumentException.class, () -> AuthTokenParser.parse("   "));
   }
 
   @Test
   public void throwExceptionForInvalidClaimsToken() {
-    assertThrows(ClientSdkException.class, () -> AuthTokenParser.parse("abcd.effh.jdjjdjdj"));
+    assertThrows(InvalidArgumentException.class, () -> AuthTokenParser.parse("abcd.effh.jdjjdjdj"));
   }
 
   @Test
   public void throwExceptionForMalformedToken() {
-    assertThrows(ClientSdkException.class, () -> AuthTokenParser.parse("abcd"));
+    assertThrows(InvalidArgumentException.class, () -> AuthTokenParser.parse("abcd"));
   }
 }
