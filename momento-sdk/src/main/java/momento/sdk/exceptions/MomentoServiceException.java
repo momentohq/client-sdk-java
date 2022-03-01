@@ -6,4 +6,8 @@ public class MomentoServiceException extends SdkException {
   public MomentoServiceException(String message) {
     super(message);
   }
+
+  public MomentoServiceException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

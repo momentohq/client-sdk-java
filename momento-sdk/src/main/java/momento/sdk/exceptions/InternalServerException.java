@@ -6,4 +6,8 @@ public class InternalServerException extends MomentoServiceException {
   public InternalServerException(String message) {
     super(message);
   }
+
+  public InternalServerException(String message, Throwable cause) {
+    super(message, cause);
+  }
 }

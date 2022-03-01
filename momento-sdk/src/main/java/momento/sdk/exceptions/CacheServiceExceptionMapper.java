@@ -82,7 +82,7 @@ public final class CacheServiceExceptionMapper {
           String.format(
               "Unable to reach request endpoint. Request failed with %s", e.getMessage()));
     }
-    return new InternalServerException(INTERNAL_SERVER_ERROR_MESSAGE);
+    return new InternalServerException(INTERNAL_SERVER_ERROR_MESSAGE, e);
   }
 
   private static boolean isDnsUnreachable(StatusRuntimeException e) {
