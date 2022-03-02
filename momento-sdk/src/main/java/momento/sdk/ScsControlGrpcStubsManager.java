@@ -4,7 +4,7 @@ import grpc.control_client.ScsControlGrpc;
 import io.grpc.ClientInterceptor;
 import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;

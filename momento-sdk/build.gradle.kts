@@ -16,7 +16,7 @@ dependencies {
     implementation("io.opentelemetry:opentelemetry-api:$opentelemetryVersion")
     implementation("io.opentelemetry:opentelemetry-sdk:$opentelemetryVersion")
     implementation("io.opentelemetry:opentelemetry-exporter-otlp:$opentelemetryVersion")
-    implementation("io.grpc:grpc-netty:${rootProject.ext["grpcVersion"]}")
+    implementation("io.grpc:grpc-netty-shaded:${rootProject.ext["grpcVersion"]}")
 
     // For Auth token
     implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
