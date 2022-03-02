@@ -4,7 +4,7 @@ import grpc.cache_client.ScsGrpc;
 import io.grpc.ClientInterceptor;
 import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
-import io.grpc.netty.NettyChannelBuilder;
+import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.opentelemetry.api.OpenTelemetry;
 import java.io.Closeable;
 import java.time.Duration;
