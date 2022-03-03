@@ -2,7 +2,6 @@ package momento.sdk;
 
 import grpc.control_client.ScsControlGrpc;
 import io.grpc.ClientInterceptor;
-import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
@@ -27,9 +26,7 @@ final class ScsControlGrpcStubsManager implements Closeable {
 
   ScsControlGrpcStubsManager(String authToken, String endpoint) {
     this.channel = setupConnection(authToken, endpoint);
-    this.controlBlockingStub =
-        ScsControlGrpc.newBlockingStub(channel)
-            .withDeadline(Deadline.after(DEADLINE.getSeconds(), TimeUnit.SECONDS));
+    this.controlBlockingStub = ScsControlGrpc.newBlockingStub(channel);
   }
 
   private static ManagedChannel setupConnection(String authToken, String endpoint) {
@@ -42,8 +39,18 @@ final class ScsControlGrpcStubsManager implements Closeable {
     return channelBuilder.build();
   }
 
+  /**
+   * Returns a stub with appropriate deadlines.
+   *
+   * <p>Each stub is deliberately decorated with Deadline. Deadlines work differently than timeouts.
+   * When a deadline is set on a stub, it simply means that once the stub is created it must be used
+   * before the deadline expires. Hence, the stub returned from here should never be cached and the
+   * safest behavior is for clients to request a new stub each time.
+   *
+   * <p>more information: https://github.com/grpc/grpc-java/issues/1495
+   */
   ScsControlGrpc.ScsControlBlockingStub getBlockingStub() {
-    return controlBlockingStub;
+    return controlBlockingStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);
   }
 
   @Override
