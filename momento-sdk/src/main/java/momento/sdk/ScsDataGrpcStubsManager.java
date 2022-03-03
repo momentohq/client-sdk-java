@@ -2,7 +2,6 @@ package momento.sdk;
 
 import grpc.cache_client.ScsGrpc;
 import io.grpc.ClientInterceptor;
-import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import io.opentelemetry.api.OpenTelemetry;
@@ -26,17 +25,16 @@ final class ScsDataGrpcStubsManager implements Closeable {
 
   private final ManagedChannel channel;
   private final ScsGrpc.ScsFutureStub futureStub;
+  private final Duration deadline;
 
   ScsDataGrpcStubsManager(
       String authToken,
       String endpoint,
       Optional<OpenTelemetry> openTelemetry,
       Optional<Duration> requestTimeout) {
-    Duration deadline = requestTimeout.orElse(DEFAULT_DEADLINE);
+    this.deadline = requestTimeout.orElse(DEFAULT_DEADLINE);
     this.channel = setupChannel(authToken, endpoint, openTelemetry);
-    this.futureStub =
-        ScsGrpc.newFutureStub(channel)
-            .withDeadline(Deadline.after(deadline.getSeconds(), TimeUnit.SECONDS));
+    this.futureStub = ScsGrpc.newFutureStub(channel);
   }
 
   private static ManagedChannel setupChannel(
@@ -55,7 +53,7 @@ final class ScsDataGrpcStubsManager implements Closeable {
   }
 
   ScsGrpc.ScsFutureStub getStub() {
-    return futureStub;
+    return futureStub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
   }
 
   @Override

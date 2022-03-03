@@ -2,7 +2,6 @@ package momento.sdk;
 
 import grpc.control_client.ScsControlGrpc;
 import io.grpc.ClientInterceptor;
-import io.grpc.Deadline;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
@@ -27,9 +26,7 @@ final class ScsControlGrpcStubsManager implements Closeable {
 
   ScsControlGrpcStubsManager(String authToken, String endpoint) {
     this.channel = setupConnection(authToken, endpoint);
-    this.controlBlockingStub =
-        ScsControlGrpc.newBlockingStub(channel)
-            .withDeadline(Deadline.after(DEADLINE.getSeconds(), TimeUnit.SECONDS));
+    this.controlBlockingStub = ScsControlGrpc.newBlockingStub(channel);
   }
 
   private static ManagedChannel setupConnection(String authToken, String endpoint) {
@@ -43,7 +40,7 @@ final class ScsControlGrpcStubsManager implements Closeable {
   }
 
   ScsControlGrpc.ScsControlBlockingStub getBlockingStub() {
-    return controlBlockingStub;
+    return controlBlockingStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);
   }
 
   @Override
