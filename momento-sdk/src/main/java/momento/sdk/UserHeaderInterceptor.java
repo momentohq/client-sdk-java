@@ -10,13 +10,15 @@ import io.grpc.ForwardingClientCall;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 
-final class AuthInterceptor implements ClientInterceptor {
+final class UserHeaderInterceptor implements ClientInterceptor {
 
   private static final Metadata.Key<String> AUTH_HEADER_KEY =
       Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
+  private static final Metadata.Key<String> SDK_AGENT_KEY =
+      Metadata.Key.of("Agent", ASCII_STRING_MARSHALLER);
   private final String tokenValue;
 
-  AuthInterceptor(String token) {
+  UserHeaderInterceptor(String token) {
     tokenValue = token;
   }
 
@@ -27,7 +29,9 @@ final class AuthInterceptor implements ClientInterceptor {
         channel.newCall(methodDescriptor, callOptions)) {
       @Override
       public void start(Listener<RespT> listener, Metadata metadata) {
+        String sdkVersion = this.getClass().getPackage().getImplementationVersion();
         metadata.put(AUTH_HEADER_KEY, tokenValue);
+        metadata.put(SDK_AGENT_KEY, sdkVersion);
         super.start(listener, metadata);
       }
     };

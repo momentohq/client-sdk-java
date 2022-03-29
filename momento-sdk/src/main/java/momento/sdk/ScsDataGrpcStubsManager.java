@@ -43,7 +43,7 @@ final class ScsDataGrpcStubsManager implements Closeable {
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(new AuthInterceptor(authToken));
+    clientInterceptors.add(new UserHeaderInterceptor(authToken));
     openTelemetry.ifPresent(
         theOpenTelemetry ->
             clientInterceptors.add(new OpenTelemetryClientInterceptor(theOpenTelemetry)));

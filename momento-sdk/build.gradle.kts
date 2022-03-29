@@ -35,3 +35,10 @@ spotless {
         googleJavaFormat("1.11.0")
     }
 }
+
+// Modifying the JAR manifest so that can access release version in code
+tasks.withType<Jar> {
+    manifest {
+        attributes["Implementation-Version"] = findProperty("version") as String
+    }
+}
