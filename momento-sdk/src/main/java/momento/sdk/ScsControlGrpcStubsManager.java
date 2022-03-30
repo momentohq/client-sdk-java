@@ -34,7 +34,7 @@ final class ScsControlGrpcStubsManager implements Closeable {
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(new AuthInterceptor(authToken));
+    clientInterceptors.add(new UserHeaderInterceptor(authToken));
     channelBuilder.intercept(clientInterceptors);
     return channelBuilder.build();
   }
