@@ -17,6 +17,8 @@ final class UserHeaderInterceptor implements ClientInterceptor {
   private static final Metadata.Key<String> SDK_AGENT_KEY =
       Metadata.Key.of("Agent", ASCII_STRING_MARSHALLER);
   private final String tokenValue;
+  private final String sdkVersion = String.format("java:%s", this.getClass().getPackage().getImplementationVersion());
+  private volatile static boolean isUserAgentSent = false;
 
   UserHeaderInterceptor(String token) {
     tokenValue = token;
@@ -29,9 +31,11 @@ final class UserHeaderInterceptor implements ClientInterceptor {
         channel.newCall(methodDescriptor, callOptions)) {
       @Override
       public void start(Listener<RespT> listener, Metadata metadata) {
-        String sdkVersion = this.getClass().getPackage().getImplementationVersion();
         metadata.put(AUTH_HEADER_KEY, tokenValue);
-        metadata.put(SDK_AGENT_KEY, sdkVersion);
+        if (!isUserAgentSent) {
+          metadata.put(SDK_AGENT_KEY, sdkVersion);
+          isUserAgentSent = true;
+        }
         super.start(listener, metadata);
       }
     };
