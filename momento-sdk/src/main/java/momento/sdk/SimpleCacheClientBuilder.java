@@ -8,10 +8,10 @@ import momento.sdk.exceptions.InvalidArgumentException;
 public final class SimpleCacheClientBuilder {
 
   private final String authToken;
-  private final int itemDefaultTtlSeconds;
+  private final long itemDefaultTtlSeconds;
   private Optional<Duration> requestTimeout = Optional.empty();
 
-  SimpleCacheClientBuilder(String authToken, int itemTtlDefaultSeconds) {
+  SimpleCacheClientBuilder(String authToken, long itemTtlDefaultSeconds) {
     this.authToken = authToken;
     ValidationUtils.ensureValidTtl(itemTtlDefaultSeconds);
     this.itemDefaultTtlSeconds = itemTtlDefaultSeconds;

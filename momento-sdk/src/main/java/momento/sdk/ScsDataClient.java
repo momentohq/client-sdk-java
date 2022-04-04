@@ -43,13 +43,13 @@ final class ScsDataClient implements Closeable {
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
 
   private final Optional<Tracer> tracer;
-  private int itemDefaultTtlSeconds;
+  private long itemDefaultTtlSeconds;
   private ScsDataGrpcStubsManager scsDataGrpcStubsManager;
 
   ScsDataClient(
       String authToken,
       String endpoint,
-      int defaultTtlSeconds,
+      long defaultTtlSeconds,
       Optional<OpenTelemetry> openTelemetry,
       Optional<Duration> requestTimeout) {
     this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
@@ -68,7 +68,7 @@ final class ScsDataClient implements Closeable {
     return sendBlockingGet(cacheName, convert(key));
   }
 
-  CacheSetResponse set(String cacheName, String key, ByteBuffer value, int ttlSeconds) {
+  CacheSetResponse set(String cacheName, String key, ByteBuffer value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
@@ -77,7 +77,7 @@ final class ScsDataClient implements Closeable {
     return set(cacheName, key, value, itemDefaultTtlSeconds);
   }
 
-  CacheSetResponse set(String cacheName, String key, String value, int ttlSeconds) {
+  CacheSetResponse set(String cacheName, String key, String value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
@@ -86,7 +86,7 @@ final class ScsDataClient implements Closeable {
     return set(cacheName, key, value, itemDefaultTtlSeconds);
   }
 
-  CacheSetResponse set(String cacheName, byte[] key, byte[] value, int ttlSeconds) {
+  CacheSetResponse set(String cacheName, byte[] key, byte[] value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
@@ -106,7 +106,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetResponse> setAsync(
-      String cacheName, String key, ByteBuffer value, int ttlSeconds) {
+      String cacheName, String key, ByteBuffer value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
@@ -116,7 +116,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetResponse> setAsync(
-      String cacheName, byte[] key, byte[] value, int ttlSeconds) {
+      String cacheName, byte[] key, byte[] value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
@@ -126,7 +126,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetResponse> setAsync(
-      String cacheName, String key, String value, int ttlSeconds) {
+      String cacheName, String key, String value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
@@ -163,7 +163,7 @@ final class ScsDataClient implements Closeable {
   }
 
   private CacheSetResponse sendBlockingSet(
-      String cacheName, ByteString key, ByteString value, int itemTtlSeconds) {
+      String cacheName, ByteString key, ByteString value, long itemTtlSeconds) {
     try {
       return sendSet(cacheName, key, value, itemTtlSeconds).get();
     } catch (Throwable t) {
@@ -226,7 +226,7 @@ final class ScsDataClient implements Closeable {
   }
 
   private CompletableFuture<CacheSetResponse> sendSet(
-      String cacheName, ByteString key, ByteString value, int ttlSeconds) {
+      String cacheName, ByteString key, ByteString value, long ttlSeconds) {
     checkCacheNameValid(cacheName);
     Optional<Span> span = buildSpan("java-sdk-set-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
@@ -294,7 +294,7 @@ final class ScsDataClient implements Closeable {
     return _GetRequest.newBuilder().setCacheKey(key).build();
   }
 
-  private _SetRequest buildSetRequest(ByteString key, ByteString value, int ttl) {
+  private _SetRequest buildSetRequest(ByteString key, ByteString value, long ttl) {
     return _SetRequest.newBuilder()
         .setCacheKey(key)
         .setCacheBody(value)
