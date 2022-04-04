@@ -24,7 +24,7 @@ public final class SimpleCacheClient implements Closeable {
 
   SimpleCacheClient(
       String authToken,
-      int itemDefaultTtlSeconds,
+      long itemDefaultTtlSeconds,
       Optional<OpenTelemetry> telemetryOptional,
       Optional<Duration> requestTimeout) {
     MomentoEndpointsResolver.MomentoEndpoints endpoints =
@@ -39,7 +39,7 @@ public final class SimpleCacheClient implements Closeable {
             requestTimeout);
   }
 
-  public static SimpleCacheClientBuilder builder(String authToken, int itemDefaultTtlSeconds) {
+  public static SimpleCacheClientBuilder builder(String authToken, long itemDefaultTtlSeconds) {
     return new SimpleCacheClientBuilder(authToken, itemDefaultTtlSeconds);
   }
 
@@ -131,14 +131,14 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
    * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, int)}
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
    * @return Result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key, value is null or if ttlSeconds is less than or equal to zero
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CacheSetResponse set(String cacheName, String key, ByteBuffer value, int ttlSeconds) {
+  public CacheSetResponse set(String cacheName, String key, ByteBuffer value, long ttlSeconds) {
     return scsDataClient.set(cacheName, key, value, ttlSeconds);
   }
 
@@ -147,7 +147,7 @@ public final class SimpleCacheClient implements Closeable {
    * the new value.
    *
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link SimpleCacheClient#builder(String, int)}
+   * client - {@link SimpleCacheClient#builder(String, long)}
    *
    * @param cacheName Name of the cache to store the item in
    * @param key The key under which the value is to be added.
@@ -170,14 +170,14 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
    * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, int)}
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
    * @return Result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CacheSetResponse set(String cacheName, String key, String value, int ttlSeconds) {
+  public CacheSetResponse set(String cacheName, String key, String value, long ttlSeconds) {
     return scsDataClient.set(cacheName, key, value, ttlSeconds);
   }
 
@@ -186,7 +186,7 @@ public final class SimpleCacheClient implements Closeable {
    * the new value.
    *
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link SimpleCacheClient#builder(String, int)}
+   * client - {@link SimpleCacheClient#builder(String, long)}
    *
    * @param cacheName Name of the cache to store the item in
    * @param key The key under which the value is to be added.
@@ -210,14 +210,14 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
    * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, int)}
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
    * @return Result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CacheSetResponse set(String cacheName, byte[] key, byte[] value, int ttlSeconds) {
+  public CacheSetResponse set(String cacheName, byte[] key, byte[] value, long ttlSeconds) {
     return scsDataClient.set(cacheName, key, value, ttlSeconds);
   }
 
@@ -226,7 +226,7 @@ public final class SimpleCacheClient implements Closeable {
    * the new value.
    *
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link SimpleCacheClient#builder(String, int)}
+   * client - {@link SimpleCacheClient#builder(String, long)}
    *
    * @param cacheName Name of the cache to store the item in
    * @param key The key under which the value is to be added.
@@ -282,7 +282,7 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
    * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, int)}
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
    * @return Future containing the result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
@@ -290,7 +290,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> setAsync(
-      String cacheName, String key, ByteBuffer value, int ttlSeconds) {
+      String cacheName, String key, ByteBuffer value, long ttlSeconds) {
     return scsDataClient.setAsync(cacheName, key, value, ttlSeconds);
   }
 
@@ -299,7 +299,7 @@ public final class SimpleCacheClient implements Closeable {
    * the new value.
    *
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link SimpleCacheClient#builder(String, int)}
+   * client - {@link SimpleCacheClient#builder(String, long)}
    *
    * @param cacheName Name of the cache to store the item in
    * @param key The key under which the value is to be added.
@@ -324,7 +324,7 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
    * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, int)}
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
    * @return Future containing the result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
@@ -332,7 +332,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> setAsync(
-      String cacheName, byte[] key, byte[] value, int ttlSeconds) {
+      String cacheName, byte[] key, byte[] value, long ttlSeconds) {
     return scsDataClient.setAsync(cacheName, key, value, ttlSeconds);
   }
 
@@ -341,7 +341,7 @@ public final class SimpleCacheClient implements Closeable {
    * the new value.
    *
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link SimpleCacheClient#builder(String, int)}
+   * client - {@link SimpleCacheClient#builder(String, long)}
    *
    * @param cacheName Name of the cache to store the item in
    * @param key The key under which the value is to be added.
@@ -365,7 +365,7 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
    * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, int)}
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
    * @return Future containing the result of the set operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
@@ -373,7 +373,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> setAsync(
-      String cacheName, String key, String value, int ttlSeconds) {
+      String cacheName, String key, String value, long ttlSeconds) {
     return scsDataClient.setAsync(cacheName, key, value, ttlSeconds);
   }
 
@@ -382,7 +382,7 @@ public final class SimpleCacheClient implements Closeable {
    * the new value.
    *
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link SimpleCacheClient#builder(String, int)}
+   * client - {@link SimpleCacheClient#builder(String, long)}
    *
    * @param cacheName Name of the cache to store the item in
    * @param key The key under which the value is to be added.

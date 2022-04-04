@@ -19,7 +19,7 @@ final class ValidationUtils {
     }
   }
 
-  static void ensureValidCacheSet(Object key, Object value, int ttlSeconds) {
+  static void ensureValidCacheSet(Object key, Object value, long ttlSeconds) {
     ensureValidKey(key);
     if (value == null) {
       throw new InvalidArgumentException(A_NON_NULL_VALUE_IS_REQUIRED);
@@ -33,7 +33,7 @@ final class ValidationUtils {
     }
   }
 
-  static void ensureValidTtl(int ttlSeconds) {
+  static void ensureValidTtl(long ttlSeconds) {
     if (ttlSeconds < 0) {
       throw new InvalidArgumentException(CACHE_ITEM_TTL_CANNOT_BE_NEGATIVE);
     }
