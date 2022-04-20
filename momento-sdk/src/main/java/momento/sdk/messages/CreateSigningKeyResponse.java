@@ -3,8 +3,8 @@ package momento.sdk.messages;
 import java.util.Date;
 
 public class CreateSigningKeyResponse {
-  public CreateSigningKeyResponse(String userId, String endpoint, String key, Date expiresAt) {
-    this.keyId = userId;
+  public CreateSigningKeyResponse(String keyId, String endpoint, String key, Date expiresAt) {
+    this.keyId = keyId;
     this.endpoint = endpoint;
     this.key = key;
     this.expiresAt = expiresAt;
