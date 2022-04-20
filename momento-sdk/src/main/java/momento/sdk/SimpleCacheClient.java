@@ -24,7 +24,6 @@ public final class SimpleCacheClient implements Closeable {
 
   private final ScsControlClient scsControlClient;
   private final ScsDataClient scsDataClient;
-  private final String subject;
 
   SimpleCacheClient(
       String authToken,
@@ -41,7 +40,6 @@ public final class SimpleCacheClient implements Closeable {
             itemDefaultTtlSeconds,
             telemetryOptional,
             requestTimeout);
-    this.subject = AuthTokenParser.parse(authToken).subject();
   }
 
   public static SimpleCacheClientBuilder builder(String authToken, long itemDefaultTtlSeconds) {
@@ -106,7 +104,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws ClientSdkException if the {@code ttlMinutes} is invalid.
    */
   public CreateSigningKeyResponse createSigningKey(int ttlMinutes) {
-    return scsControlClient.createSigningKey(ttlMinutes, this.subject, scsDataClient.getEndpoint());
+    return scsControlClient.createSigningKey(ttlMinutes, scsDataClient.getEndpoint());
   }
 
   /**

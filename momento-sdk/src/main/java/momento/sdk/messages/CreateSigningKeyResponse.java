@@ -4,14 +4,14 @@ import java.util.Date;
 
 public class CreateSigningKeyResponse {
   public CreateSigningKeyResponse(String userId, String endpoint, String key, Date expiresAt) {
-    this.userId = userId;
+    this.keyId = userId;
     this.endpoint = endpoint;
     this.key = key;
     this.expiresAt = expiresAt;
   }
 
-  public String getUserId() {
-    return userId;
+  public String getKeyId() {
+    return keyId;
   }
 
   public String getEndpoint() {
@@ -26,7 +26,7 @@ public class CreateSigningKeyResponse {
     return expiresAt;
   }
 
-  private final String userId;
+  private final String keyId;
   private final String endpoint;
   private final String key;
   private final Date expiresAt;

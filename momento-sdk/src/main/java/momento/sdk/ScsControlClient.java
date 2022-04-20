@@ -3,6 +3,8 @@ package momento.sdk;
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
 import static momento.sdk.ValidationUtils.ensureValidTtlMinutes;
 
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import grpc.control_client._Cache;
 import grpc.control_client._CreateCacheRequest;
 import grpc.control_client._CreateSigningKeyRequest;
@@ -70,14 +72,13 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-  CreateSigningKeyResponse createSigningKey(int ttlMinutes, String subject, String endpoint) {
+  CreateSigningKeyResponse createSigningKey(int ttlMinutes, String endpoint) {
     ensureValidTtlMinutes(ttlMinutes);
     try {
       return convert(
           controlGrpcStubsManager
               .getBlockingStub()
               .createSigningKey(buildCreateSigningKeyRequest(ttlMinutes)),
-          subject,
           endpoint);
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
@@ -157,9 +158,11 @@ final class ScsControlClient implements Closeable {
   }
 
   private static CreateSigningKeyResponse convert(
-      _CreateSigningKeyResponse response, String subject, String endpoint) {
+      _CreateSigningKeyResponse response, String endpoint) {
+    JsonObject jsonObject = JsonParser.parseString(response.getKey()).getAsJsonObject();
+    String keyId = jsonObject.get("kid").getAsString();
     return new CreateSigningKeyResponse(
-        subject, endpoint, response.getKey(), new Date(response.getExpiresAt() * 1000));
+        keyId, endpoint, response.getKey(), new Date(response.getExpiresAt() * 1000));
   }
 
   @Override

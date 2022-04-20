@@ -43,9 +43,11 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
 
   @Test
   public void createListRevokeSigningKeyWorks() {
+    CreateSigningKeyResponse createSigningKeyResponse = target.createSigningKey(30);
     ListSigningKeysResponse listSigningKeysResponse = target.listSigningKeys(null);
     assertTrue(listSigningKeysResponse.signingKeys().size() > 0);
     for (SigningKey signingKey : listSigningKeysResponse.signingKeys()) {
+      assertEquals(createSigningKeyResponse.getKeyId(), signingKey.getKeyId());
       target.revokeSigningKey(signingKey.getKeyId());
     }
     listSigningKeysResponse = target.listSigningKeys(null);
