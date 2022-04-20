@@ -61,11 +61,11 @@ final class ScsControlClient implements Closeable {
     }
   }
 
+
   ListCachesResponse listCaches(Optional<String> nextToken) {
     try {
-      String grpcNextToken = nextToken == null || !nextToken.isPresent() ? "" : nextToken.get();
       _ListCachesRequest request =
-          _ListCachesRequest.newBuilder().setNextToken(grpcNextToken).build();
+          _ListCachesRequest.newBuilder().setNextToken(nextToken(nextToken)).build();
       return convert(controlGrpcStubsManager.getBlockingStub().listCaches(request));
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
@@ -98,9 +98,8 @@ final class ScsControlClient implements Closeable {
 
   ListSigningKeysResponse listSigningKeys(Optional<String> nextToken, String endpoint) {
     try {
-      String grpcNextToken = nextToken == null || nextToken.isEmpty() ? "" : nextToken.get();
       _ListSigningKeysRequest request =
-          _ListSigningKeysRequest.newBuilder().setNextToken(grpcNextToken).build();
+          _ListSigningKeysRequest.newBuilder().setNextToken(nextToken(nextToken)).build();
       return convert(controlGrpcStubsManager.getBlockingStub().listSigningKeys(request), endpoint);
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
@@ -133,6 +132,10 @@ final class ScsControlClient implements Closeable {
             ? Optional.empty()
             : Optional.of(response.getNextToken());
     return new ListCachesResponse(caches, nextPageToken);
+  }
+
+  private static String nextToken(Optional<String> nextToken) {
+    return nextToken.isEmpty() ? "" : nextToken.get();
   }
 
   private static CacheInfo convert(_Cache cache) {
