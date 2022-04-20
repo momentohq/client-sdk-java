@@ -61,7 +61,6 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-
   ListCachesResponse listCaches(Optional<String> nextToken) {
     try {
       _ListCachesRequest request =
