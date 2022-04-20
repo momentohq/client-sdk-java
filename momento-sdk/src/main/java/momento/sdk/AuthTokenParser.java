@@ -41,15 +41,18 @@ final class AuthTokenParser {
 
     private static final String CONTROL_ENDPOINT_CLAIM_NAME = "cp";
     private static final String CACHE_ENDPOINT_CLAIM_NAME = "c";
+    private static final String SUBJECT_CLAIM_NAME = "sub";
 
     private Optional<String> controlEndpoint;
     private Optional<String> cacheEndpoint;
+    private Optional<String> subject;
 
     private Claims(io.jsonwebtoken.Claims claims) {
       controlEndpoint =
           Optional.ofNullable((String) claims.getOrDefault(CONTROL_ENDPOINT_CLAIM_NAME, null));
       cacheEndpoint =
           Optional.ofNullable((String) claims.getOrDefault(CACHE_ENDPOINT_CLAIM_NAME, null));
+      subject = Optional.ofNullable((String) claims.getOrDefault(SUBJECT_CLAIM_NAME, null));
     }
 
     Optional<String> controlEndpoint() {
@@ -58,6 +61,10 @@ final class AuthTokenParser {
 
     Optional<String> cacheEndpoint() {
       return cacheEndpoint;
+    }
+
+    String subject() {
+      return subject.orElse(null);
     }
   }
 }

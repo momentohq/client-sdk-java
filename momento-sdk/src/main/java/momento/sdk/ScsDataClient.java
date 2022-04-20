@@ -45,6 +45,7 @@ final class ScsDataClient implements Closeable {
   private final Optional<Tracer> tracer;
   private long itemDefaultTtlSeconds;
   private ScsDataGrpcStubsManager scsDataGrpcStubsManager;
+  private final String endpoint;
 
   ScsDataClient(
       String authToken,
@@ -56,6 +57,11 @@ final class ScsDataClient implements Closeable {
     this.itemDefaultTtlSeconds = defaultTtlSeconds;
     this.scsDataGrpcStubsManager =
         new ScsDataGrpcStubsManager(authToken, endpoint, openTelemetry, requestTimeout);
+    this.endpoint = endpoint;
+  }
+
+  public String getEndpoint() {
+    return endpoint;
   }
 
   CacheGetResponse get(String cacheName, String key) {

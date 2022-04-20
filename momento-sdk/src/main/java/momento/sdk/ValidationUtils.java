@@ -10,6 +10,7 @@ final class ValidationUtils {
   static final String A_NON_NULL_KEY_IS_REQUIRED = "A non-null key is required.";
   static final String A_NON_NULL_VALUE_IS_REQUIRED = "A non-null value is required.";
   static final String CACHE_NAME_IS_REQUIRED = "Cache name is required.";
+  static final String SIGNING_KEY_TTL_CANNOT_BE_NEGATIVE = "Signing key TTL cannot be negative.";
 
   ValidationUtils() {}
 
@@ -36,6 +37,12 @@ final class ValidationUtils {
   static void ensureValidTtl(long ttlSeconds) {
     if (ttlSeconds < 0) {
       throw new InvalidArgumentException(CACHE_ITEM_TTL_CANNOT_BE_NEGATIVE);
+    }
+  }
+
+  static void ensureValidTtlMinutes(int ttlMinutes) {
+    if (ttlMinutes < 0) {
+      throw new InvalidArgumentException(SIGNING_KEY_TTL_CANNOT_BE_NEGATIVE);
     }
   }
 }
