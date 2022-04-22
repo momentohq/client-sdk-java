@@ -134,7 +134,7 @@ final class ScsControlClient implements Closeable {
   }
 
   private static String nextToken(Optional<String> nextToken) {
-    return nextToken.isEmpty() ? "" : nextToken.get();
+    return nextToken == null || !nextToken.isPresent() ? "" : nextToken.get();
   }
 
   private static CacheInfo convert(_Cache cache) {
