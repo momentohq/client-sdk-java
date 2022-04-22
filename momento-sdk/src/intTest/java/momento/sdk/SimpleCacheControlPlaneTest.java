@@ -1,6 +1,5 @@
 package momento.sdk;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,13 +44,16 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   public void createListRevokeSigningKeyWorks() {
     CreateSigningKeyResponse createSigningKeyResponse = target.createSigningKey(30);
     ListSigningKeysResponse listSigningKeysResponse = target.listSigningKeys(null);
-    assertTrue(listSigningKeysResponse.signingKeys().size() > 0);
-    for (SigningKey signingKey : listSigningKeysResponse.signingKeys()) {
-      assertEquals(createSigningKeyResponse.getKeyId(), signingKey.getKeyId());
-      target.revokeSigningKey(signingKey.getKeyId());
-    }
+    assertTrue(
+        listSigningKeysResponse.signingKeys().stream()
+            .map(SigningKey::getKeyId)
+            .anyMatch(keyId -> createSigningKeyResponse.getKeyId().equals(keyId)));
+    target.revokeSigningKey(createSigningKeyResponse.getKeyId());
     listSigningKeysResponse = target.listSigningKeys(null);
-    assertEquals(0, listSigningKeysResponse.signingKeys().size());
+    assertFalse(
+        listSigningKeysResponse.signingKeys().stream()
+            .map(SigningKey::getKeyId)
+            .anyMatch(keyId -> createSigningKeyResponse.getKeyId().equals(keyId)));
   }
 
   @Test
