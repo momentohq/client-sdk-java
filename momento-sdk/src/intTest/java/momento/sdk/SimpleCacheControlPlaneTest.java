@@ -14,7 +14,10 @@ import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.messages.CacheInfo;
+import momento.sdk.messages.CreateSigningKeyResponse;
 import momento.sdk.messages.ListCachesResponse;
+import momento.sdk.messages.ListSigningKeysResponse;
+import momento.sdk.messages.SigningKey;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,6 +38,22 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   @AfterEach
   void tearDown() {
     target.close();
+  }
+
+  @Test
+  public void createListRevokeSigningKeyWorks() {
+    CreateSigningKeyResponse createSigningKeyResponse = target.createSigningKey(30);
+    ListSigningKeysResponse listSigningKeysResponse = target.listSigningKeys(null);
+    assertTrue(
+        listSigningKeysResponse.signingKeys().stream()
+            .map(SigningKey::getKeyId)
+            .anyMatch(keyId -> createSigningKeyResponse.getKeyId().equals(keyId)));
+    target.revokeSigningKey(createSigningKeyResponse.getKeyId());
+    listSigningKeysResponse = target.listSigningKeys(null);
+    assertFalse(
+        listSigningKeysResponse.signingKeys().stream()
+            .map(SigningKey::getKeyId)
+            .anyMatch(keyId -> createSigningKeyResponse.getKeyId().equals(keyId)));
   }
 
   @Test
