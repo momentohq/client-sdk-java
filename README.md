@@ -74,7 +74,6 @@ Add our mvn repository to your `pom.xml` file and sdk as a dependency
 </project>
 ```
 ## Using Momento
-Go ahead and start caching data in your project!
 
 ```java
 public class MomentoCacheApplication {
@@ -99,10 +98,6 @@ public class MomentoCacheApplication {
     }
 }
 ```
-
-## More examples
-
-Check out our [Examples Repo](https://github.com/momentohq/client-sdk-examples) for more advanced sdk usage examples.
 
 ## Contributing
 
