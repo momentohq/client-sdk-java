@@ -10,14 +10,7 @@ import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.messages.CacheGetResponse;
-import momento.sdk.messages.CacheSetResponse;
-import momento.sdk.messages.CreateCacheResponse;
-import momento.sdk.messages.CreateSigningKeyResponse;
-import momento.sdk.messages.DeleteCacheResponse;
-import momento.sdk.messages.ListCachesResponse;
-import momento.sdk.messages.ListSigningKeysResponse;
-import momento.sdk.messages.RevokeSigningKeyResponse;
+import momento.sdk.messages.*;
 
 /** Client to perform operations against the Simple Cache Service */
 public final class SimpleCacheClient implements Closeable {
@@ -178,6 +171,36 @@ public final class SimpleCacheClient implements Closeable {
   }
 
   /**
+   * Delete the cache value stored for the given key.
+   *
+   * @param cacheName Name of the cache to delete value from
+   * @param key The key to delete
+   * @return {@link CacheDeleteResponse}
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key is null
+   * @throws NotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   */
+  public CacheDeleteResponse delete(String cacheName, String key) {
+    return scsDataClient.delete(cacheName, key);
+  }
+
+  /**
+   * Delete the cache value stored for the given key.
+   *
+   * @param cacheName Name of the cache to delete value from
+   * @param key The key to delete
+   * @return {@link CacheDeleteResponse}
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key is null
+   * @throws NotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   */
+  public CacheDeleteResponse delete(String cacheName, byte[] key) {
+    return scsDataClient.delete(cacheName, key);
+  }
+
+  /**
    * Sets the value in cache with a given Time To Live (TTL) seconds.
    *
    * <p>If a value for this key is already present it will be replaced by the new value.
@@ -325,6 +348,36 @@ public final class SimpleCacheClient implements Closeable {
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheGetResponse> getAsync(String cacheName, String key) {
+    return scsDataClient.getAsync(cacheName, key);
+  }
+
+  /**
+   * Delete the value stored in Momento cache.
+   *
+   * @param cacheName Name of the cache to delete the item from
+   * @param key The key to delete
+   * @return Future with {@link CacheDeleteResponse}
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key is null
+   * @throws NotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   */
+  public CompletableFuture<CacheDeleteResponse> deleteAsync(String cacheName, String key) {
+    return scsDataClient.deleteAsync(cacheName, key);
+  }
+
+  /**
+   * Delete the value stored in Momento cache.
+   *
+   * @param cacheName Name of the cache to delete the item from
+   * @param key The key to delete
+   * @return Future with {@link CacheDeleteResponse}
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws ClientSdkException if key is null
+   * @throws NotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   */
+  public CompletableFuture<CacheGetResponse> deleteAsync(String cacheName, byte[] key) {
     return scsDataClient.getAsync(cacheName, key);
   }
 

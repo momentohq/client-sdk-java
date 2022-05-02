@@ -11,11 +11,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import grpc.cache_client.ScsGrpc;
-import grpc.cache_client._GetRequest;
-import grpc.cache_client._GetResponse;
-import grpc.cache_client._SetRequest;
-import grpc.cache_client._SetResponse;
+import grpc.cache_client.*;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
 import io.opentelemetry.api.OpenTelemetry;
@@ -33,6 +29,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 
@@ -74,6 +71,16 @@ final class ScsDataClient implements Closeable {
     return sendBlockingGet(cacheName, convert(key));
   }
 
+  CacheDeleteResponse delete(String cacheName, String key) {
+    ensureValidKey(key);
+    return sendBlockingDelete(cacheName, convert(key));
+  }
+
+  CacheDeleteResponse delete(String cacheName, byte[] key) {
+    ensureValidKey(key);
+    return sendBlockingDelete(cacheName, convert(key));
+  }
+
   CacheSetResponse set(String cacheName, String key, ByteBuffer value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
@@ -109,6 +116,16 @@ final class ScsDataClient implements Closeable {
   CompletableFuture<CacheGetResponse> getAsync(String cacheName, String key) {
     ensureValidKey(key);
     return sendGet(cacheName, convert(key));
+  }
+
+  CompletableFuture<CacheDeleteResponse> deleteAsync(String cacheName, byte[] key) {
+    ensureValidKey(key);
+    return sendDelete(cacheName, convert(key));
+  }
+
+  CompletableFuture<CacheDeleteResponse> deleteAsync(String cacheName, String key) {
+    ensureValidKey(key);
+    return sendDelete(cacheName, convert(key));
   }
 
   CompletableFuture<CacheSetResponse> setAsync(
@@ -163,6 +180,14 @@ final class ScsDataClient implements Closeable {
   private CacheGetResponse sendBlockingGet(String cacheName, ByteString key) {
     try {
       return sendGet(cacheName, key).get();
+    } catch (Throwable t) {
+      throw handleExceptionally(t);
+    }
+  }
+
+  private CacheDeleteResponse sendBlockingDelete(String cacheName, ByteString key) {
+    try {
+      return sendDelete(cacheName, key).get();
     } catch (Throwable t) {
       throw handleExceptionally(t);
     }
@@ -226,6 +251,60 @@ final class ScsDataClient implements Closeable {
         },
         MoreExecutors
             .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheDeleteResponse> sendDelete(String cacheName, ByteString key) {
+    checkCacheNameValid(cacheName);
+    Optional<Span> span = buildSpan("java-sdk-delete-request");
+    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+    // Submit request to non-blocking stub
+    ListenableFuture<_DeleteResponse> rspFuture =
+            withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName).delete(buildDeleteRequest(key));
+
+    // Build a CompletableFuture to return to caller
+    CompletableFuture<CacheDeleteResponse> returnFuture =
+            new CompletableFuture<CacheDeleteResponse>() {
+              @Override
+              public boolean cancel(boolean mayInterruptIfRunning) {
+                // propagate cancel to the listenable future if called on returned completable future
+                boolean result = rspFuture.cancel(mayInterruptIfRunning);
+                super.cancel(mayInterruptIfRunning);
+                return result;
+              }
+            };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+            rspFuture,
+            new FutureCallback<_DeleteResponse>() {
+              @Override
+              public void onSuccess(_DeleteResponse rsp) {
+                returnFuture.complete(new CacheDeleteResponse());
+                span.ifPresent(
+                        theSpan -> {
+                          theSpan.setStatus(StatusCode.OK);
+                          theSpan.end(now());
+                        });
+                scope.ifPresent(Scope::close);
+              }
+
+              @Override
+              public void onFailure(Throwable e) {
+                returnFuture.completeExceptionally(CacheServiceExceptionMapper.convert(e));
+                span.ifPresent(
+                        theSpan -> {
+                          theSpan.setStatus(StatusCode.ERROR);
+                          theSpan.recordException(e);
+                          theSpan.end(now());
+                        });
+                scope.ifPresent(Scope::close);
+              }
+            },
+            MoreExecutors
+                    .directExecutor()); // Execute on same thread that called execute on CompletionStage
     // returned
 
     return returnFuture;
@@ -298,6 +377,10 @@ final class ScsDataClient implements Closeable {
 
   private _GetRequest buildGetRequest(ByteString key) {
     return _GetRequest.newBuilder().setCacheKey(key).build();
+  }
+
+  private _DeleteRequest buildDeleteRequest(ByteString key) {
+    return _DeleteRequest.newBuilder().setCacheKey(key).build();
   }
 
   private _SetRequest buildSetRequest(ByteString key, ByteString value, long ttl) {
