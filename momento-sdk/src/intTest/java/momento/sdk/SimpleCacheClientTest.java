@@ -9,7 +9,6 @@ import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.InvalidArgumentException;
-import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;

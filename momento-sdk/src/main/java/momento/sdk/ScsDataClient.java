@@ -11,13 +11,13 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import grpc.cache_client._DeleteResponse;
+import grpc.cache_client.ScsGrpc;
 import grpc.cache_client._DeleteRequest;
+import grpc.cache_client._DeleteResponse;
 import grpc.cache_client._GetRequest;
 import grpc.cache_client._GetResponse;
 import grpc.cache_client._SetRequest;
 import grpc.cache_client._SetResponse;
-import grpc.cache_client.ScsGrpc;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
 import io.opentelemetry.api.OpenTelemetry;
@@ -268,49 +268,50 @@ final class ScsDataClient implements Closeable {
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
     ListenableFuture<_DeleteResponse> rspFuture =
-            withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName).delete(buildDeleteRequest(key));
+        withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
+            .delete(buildDeleteRequest(key));
 
     // Build a CompletableFuture to return to caller
     CompletableFuture<CacheDeleteResponse> returnFuture =
-            new CompletableFuture<CacheDeleteResponse>() {
-              @Override
-              public boolean cancel(boolean mayInterruptIfRunning) {
-                // propagate cancel to the listenable future if called on returned completable future
-                boolean result = rspFuture.cancel(mayInterruptIfRunning);
-                super.cancel(mayInterruptIfRunning);
-                return result;
-              }
-            };
+        new CompletableFuture<CacheDeleteResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
 
     // Convert returned ListenableFuture to CompletableFuture
     Futures.addCallback(
-            rspFuture,
-            new FutureCallback<_DeleteResponse>() {
-              @Override
-              public void onSuccess(_DeleteResponse rsp) {
-                returnFuture.complete(new CacheDeleteResponse());
-                span.ifPresent(
-                        theSpan -> {
-                          theSpan.setStatus(StatusCode.OK);
-                          theSpan.end(now());
-                        });
-                scope.ifPresent(Scope::close);
-              }
+        rspFuture,
+        new FutureCallback<_DeleteResponse>() {
+          @Override
+          public void onSuccess(_DeleteResponse rsp) {
+            returnFuture.complete(new CacheDeleteResponse());
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.OK);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
 
-              @Override
-              public void onFailure(Throwable e) {
-                returnFuture.completeExceptionally(CacheServiceExceptionMapper.convert(e));
-                span.ifPresent(
-                        theSpan -> {
-                          theSpan.setStatus(StatusCode.ERROR);
-                          theSpan.recordException(e);
-                          theSpan.end(now());
-                        });
-                scope.ifPresent(Scope::close);
-              }
-            },
-            MoreExecutors
-                    .directExecutor()); // Execute on same thread that called execute on CompletionStage
+          @Override
+          public void onFailure(Throwable e) {
+            returnFuture.completeExceptionally(CacheServiceExceptionMapper.convert(e));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
     // returned
 
     return returnFuture;

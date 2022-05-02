@@ -44,7 +44,8 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
   public void nullKeyDeleteThrowsException() {
     String nullKeyString = null;
     assertThrows(InvalidArgumentException.class, () -> client.delete(cacheName, nullKeyString));
-    assertThrows(InvalidArgumentException.class, () -> client.deleteAsync(cacheName, nullKeyString));
+    assertThrows(
+        InvalidArgumentException.class, () -> client.deleteAsync(cacheName, nullKeyString));
 
     byte[] nullByteKey = null;
     assertThrows(InvalidArgumentException.class, () -> client.delete(cacheName, nullByteKey));

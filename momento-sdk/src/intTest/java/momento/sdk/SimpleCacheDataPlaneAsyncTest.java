@@ -159,7 +159,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
   @Test
   public void deleteAsyncHappyPath() throws Exception {
     try (SimpleCacheClient client =
-                 SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       String key = "key";
       String value = "value";
       client.setAsync(cacheName, key, value).get();
