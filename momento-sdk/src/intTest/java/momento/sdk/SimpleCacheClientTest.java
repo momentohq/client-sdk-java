@@ -61,7 +61,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
   }
 
   @Test
-  public void createCacheGetSetValuesAndDeleteCache() {
+  public void createCacheGetSetDeleteValuesAndDeleteCache() {
     String cacheName = UUID.randomUUID().toString();
     String key = UUID.randomUUID().toString();
     String value = UUID.randomUUID().toString();
@@ -72,6 +72,10 @@ final class SimpleCacheClientTest extends BaseTestClass {
     CacheGetResponse getResponse = target.get(cacheName, key);
     assertEquals(CacheGetStatus.HIT, getResponse.status());
     assertEquals(value, getResponse.string().get());
+
+    target.delete(cacheName, key);
+    CacheGetResponse getAfterDeleteResponse = target.get(cacheName, key);
+    assertEquals(CacheGetStatus.MISS, getAfterDeleteResponse.status());
 
     CacheGetResponse getForKeyInSomeOtherCache = target.get(System.getenv("TEST_CACHE_NAME"), key);
     assertEquals(CacheGetStatus.MISS, getForKeyInSomeOtherCache.status());

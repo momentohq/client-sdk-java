@@ -126,7 +126,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
   }
 
   @Test
-  public void setAndGetWithByteKeyValuesMustSucceed() {
+  public void setGetDeleteWithByteKeyValuesMustSucceed() {
     byte[] key = {0x01, 0x02, 0x03, 0x04};
     byte[] value = {0x05, 0x06, 0x07, 0x08};
     SimpleCacheClient cache =
@@ -136,6 +136,9 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     CacheGetResponse getResponse = cache.get(cacheName, key);
     assertEquals(CacheGetStatus.HIT, getResponse.status());
     assertArrayEquals(value, getResponse.byteArray().get());
+    cache.delete(cacheName, key);
+    CacheGetResponse getAfterDeleteResponse = cache.get(cacheName, key);
+    assertEquals(CacheGetStatus.MISS, getAfterDeleteResponse.status());
   }
 
   @Test

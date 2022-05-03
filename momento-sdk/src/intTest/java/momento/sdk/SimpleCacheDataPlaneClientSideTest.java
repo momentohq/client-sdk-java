@@ -41,6 +41,18 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
   }
 
   @Test
+  public void nullKeyDeleteThrowsException() {
+    String nullKeyString = null;
+    assertThrows(InvalidArgumentException.class, () -> client.delete(cacheName, nullKeyString));
+    assertThrows(
+        InvalidArgumentException.class, () -> client.deleteAsync(cacheName, nullKeyString));
+
+    byte[] nullByteKey = null;
+    assertThrows(InvalidArgumentException.class, () -> client.delete(cacheName, nullByteKey));
+    assertThrows(InvalidArgumentException.class, () -> client.deleteAsync(cacheName, nullByteKey));
+  }
+
+  @Test
   public void nullKeySetThrowsException() {
     String nullKeyString = null;
     // Blocking String key set
@@ -108,9 +120,11 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
   @Test
   public void nullCacheNameThrowsException() {
     assertThrows(InvalidArgumentException.class, () -> client.get(null, ""));
+    assertThrows(InvalidArgumentException.class, () -> client.delete(null, ""));
     assertThrows(InvalidArgumentException.class, () -> client.set(null, "", "", 10));
 
     assertThrows(InvalidArgumentException.class, () -> client.getAsync(null, "").get());
+    assertThrows(InvalidArgumentException.class, () -> client.deleteAsync(null, "").get());
     assertThrows(InvalidArgumentException.class, () -> client.setAsync(null, "", "", 10).get());
   }
 }
