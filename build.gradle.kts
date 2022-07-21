@@ -1,5 +1,5 @@
-ext["grpcVersion"] = "1.39.0"
-ext["protobufVersion"] = "3.17.3"
+ext["grpcVersion"] = "1.47.0"
+ext["protobufVersion"] = "3.21.2"
 ext["opentelemetryVersion"] = "1.4.1"
 ext["jwtVersion"] = "0.11.2"
 
