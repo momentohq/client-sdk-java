@@ -37,3 +37,38 @@ jobs:
       run: ./gradlew clean build
     - name: Run integration tests
       run: ./gradlew integrationTest
+
+  build-examples:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup repo
+        uses: actions/checkout@v2
+
+      - name: Set up JDK 16
+        uses: actions/setup-java@v2
+        with:
+          java-version: 16
+          distribution: "adopt"
+
+      - name: Grant execute permission for gradlew
+        run: |
+          pushd examples
+            chmod +x gradlew
+          popd
+      - name: Build with Gradle
+        id: validation
+        continue-on-error: true
+        run: |
+          pushd examples
+            ./gradlew clean build
+          popd
+      - name: Send CI failure mail
+        if: ${{ steps.validation.outcome == 'failure' }}
+        uses: momentohq/standards-and-practices/github-actions/error-email-action@gh-actions-v1
+        with:
+          username: ${{secrets.MOMENTO_ROBOT_GMAIL_USERNAME}}
+          password: ${{secrets.MOMENTO_ROBOT_GMAIL_PASSWORD}}
+      - name: Flag Job Failure
+        if: ${{ steps.validation.outcome == 'failure' }}
+        run: exit 1
