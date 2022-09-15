@@ -30,3 +30,18 @@ build
 
 *.iml
 .idea
+
+# Ignore Gradle project-specific cache directory
+examples/.gradle
+
+# Ignore Gradle build output directory
+examples/build
+
+# Ignore IDE
+examples/.idea
+examples/.project
+examples/.settings
+examples/lib/.settings
+examples/lib/.classpath
+examples/lib/.project
+examples/lib/bin
