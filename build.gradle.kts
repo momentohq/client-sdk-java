@@ -1,6 +1,6 @@
 ext["grpcVersion"] = "1.47.0"
 ext["protobufVersion"] = "3.21.2"
-ext["opentelemetryVersion"] = "1.4.1"
+ext["opentelemetryVersion"] = "1.5.0"
 ext["jwtVersion"] = "0.11.2"
 
 allprojects {
