@@ -12,10 +12,8 @@ dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("commons-io:commons-io:2.11.0")
 
-    platform("io.opentelemetry:opentelemetry-bom:$opentelemetryVersion")
-    implementation("io.opentelemetry:opentelemetry-api:$opentelemetryVersion")
-    implementation("io.opentelemetry:opentelemetry-sdk:$opentelemetryVersion")
-    implementation("io.opentelemetry:opentelemetry-exporter-otlp:$opentelemetryVersion")
+    implementation(platform("io.opentelemetry:opentelemetry-bom:$opentelemetryVersion"))
+    implementation("io.opentelemetry:opentelemetry-api")
     implementation("io.grpc:grpc-netty-shaded:${rootProject.ext["grpcVersion"]}")
 
     // For Auth token
@@ -27,6 +25,9 @@ dependencies {
     implementation(project(":messages"))
 
     implementation("org.apache.commons:commons-lang3:3.0")
+
+    testImplementation("io.opentelemetry:opentelemetry-sdk:$opentelemetryVersion")
+    testImplementation("io.opentelemetry:opentelemetry-exporter-otlp:$opentelemetryVersion")
 }
 
 spotless {
