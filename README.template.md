@@ -10,10 +10,9 @@
 
 ### Installation
 
-**Gradle**
+Gradle
 
 Add our mvn repository to your `gradle.build.kts` file and sdk as a dependency
-
 
 ```kotlin
 buildscript {
@@ -29,7 +28,7 @@ buildscript {
 }
 ```
 
-**Maven**
+Maven
 
 Add our mvn repository to your `pom.xml` file and sdk as a dependency
 
