@@ -8,6 +8,11 @@
 - At least the java 8 run time installed
 - mvn or gradle for downloading the sdk
 
+### Examples
+
+Ready to dive right in? Just check out the [examples](./examples/README.md) directory for complete, working examples of
+how to use the SDK.
+
 ### Installation
 
 Gradle
@@ -65,5 +70,11 @@ Here is a quickstart you can use in your own project:
 ```kotlin
 {{ usageExampleCode }}
 ```
+
+### Error Handling
+Coming soon
+
+### Tuning
+Coming soon
 
 {{ ossFooter }}
