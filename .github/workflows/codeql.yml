@@ -24,6 +24,11 @@ jobs:
   analyze:
     name: Analyze
     runs-on: ubuntu-latest
+    
+    env:
+      TEST_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      TEST_CACHE_NAME: dummy
+
     permissions:
       actions: read
       contents: read
@@ -33,12 +38,12 @@ jobs:
       fail-fast: false
       matrix:
         language: [ 'java' ]
-        # CodeQL supports [ 'cpp', 'csharp', 'go', 'java', 'javascript', 'python', 'ruby' ]
-        # Learn more about CodeQL language support at https://aka.ms/codeql-docs/language-support
 
     steps:
-    - name: Checkout repository
-      uses: actions/checkout@v3
+    - uses: actions/checkout@v2
+      with:
+        token: ${{ secrets.MOMENTO_MACHINE_USER_GITHUB_TOKEN }}
+        submodules: true
 
     # Initializes the CodeQL tools for scanning.
     - name: Initialize CodeQL
