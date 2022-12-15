@@ -81,7 +81,7 @@ public final class SimpleCacheClient implements Closeable {
    * Flushes the contents of the cache.
    *
    * @param cacheName The name of the cache to be flushed.
-   * @return The result of the cache deletion operation.
+   * @return The result of the cache flush operation.
    * @throws momento.sdk.exceptions.PermissionDeniedException
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
