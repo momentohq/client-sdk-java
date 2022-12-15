@@ -10,6 +10,7 @@ import grpc.control_client._CreateCacheRequest;
 import grpc.control_client._CreateSigningKeyRequest;
 import grpc.control_client._CreateSigningKeyResponse;
 import grpc.control_client._DeleteCacheRequest;
+import grpc.control_client._FlushCacheRequest;
 import grpc.control_client._ListCachesRequest;
 import grpc.control_client._ListCachesResponse;
 import grpc.control_client._ListSigningKeysRequest;
@@ -26,6 +27,7 @@ import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
 import momento.sdk.messages.DeleteCacheResponse;
+import momento.sdk.messages.FlushCacheResponse;
 import momento.sdk.messages.ListCachesResponse;
 import momento.sdk.messages.ListSigningKeysResponse;
 import momento.sdk.messages.RevokeSigningKeyResponse;
@@ -56,6 +58,16 @@ final class ScsControlClient implements Closeable {
     try {
       controlGrpcStubsManager.getBlockingStub().deleteCache(buildDeleteCacheRequest(cacheName));
       return new DeleteCacheResponse();
+    } catch (Exception e) {
+      throw CacheServiceExceptionMapper.convert(e);
+    }
+  }
+
+  FlushCacheResponse flushCache(String cacheName) {
+    checkCacheNameValid(cacheName);
+    try {
+      controlGrpcStubsManager.getBlockingStub().flushCache(buildFlushCacheRequest(cacheName));
+      return new FlushCacheResponse();
     } catch (Exception e) {
       throw CacheServiceExceptionMapper.convert(e);
     }
@@ -111,6 +123,10 @@ final class ScsControlClient implements Closeable {
 
   private static _DeleteCacheRequest buildDeleteCacheRequest(String cacheName) {
     return _DeleteCacheRequest.newBuilder().setCacheName(cacheName).build();
+  }
+
+  private static _FlushCacheRequest buildFlushCacheRequest(String cacheName) {
+    return _FlushCacheRequest.newBuilder().setCacheName(cacheName).build();
   }
 
   private static _CreateSigningKeyRequest buildCreateSigningKeyRequest(int ttlMinutes) {
