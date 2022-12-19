@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.InvalidArgumentException;
+import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
@@ -107,6 +108,16 @@ final class SimpleCacheClientTest extends BaseTestClass {
     } finally {
       target.deleteCache(cacheName);
     }
+  }
+
+  @Test
+  public void shouldThrowNotFoundWhenCacheToFlushDoesNotExist() {
+    assertThrows(NotFoundException.class, () -> target.flushCache("non-existent-cache"));
+  }
+
+  @Test
+  public void shouldThrowIllegalArgWhenCacheNameToFlushIsInvalid() {
+    assertThrows(InvalidArgumentException.class, () -> target.flushCache(null));
   }
 
   @Test
