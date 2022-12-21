@@ -16,6 +16,7 @@ import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
 import momento.sdk.messages.DeleteCacheResponse;
+import momento.sdk.messages.FlushCacheResponse;
 import momento.sdk.messages.ListCachesResponse;
 import momento.sdk.messages.ListSigningKeysResponse;
 import momento.sdk.messages.RevokeSigningKeyResponse;
@@ -74,6 +75,20 @@ public final class SimpleCacheClient implements Closeable {
    */
   public DeleteCacheResponse deleteCache(String cacheName) {
     return scsControlClient.deleteCache(cacheName);
+  }
+
+  /**
+   * Flushes the contents of the cache.
+   *
+   * @param cacheName The name of the cache to be flushed.
+   * @return The result of the cache flush operation.
+   * @throws momento.sdk.exceptions.PermissionDeniedException
+   * @throws NotFoundException
+   * @throws momento.sdk.exceptions.InternalServerException
+   * @throws ClientSdkException if the {@code cacheName} is null.
+   */
+  public FlushCacheResponse flushCache(String cacheName) {
+    return scsControlClient.flushCache(cacheName);
   }
 
   /**

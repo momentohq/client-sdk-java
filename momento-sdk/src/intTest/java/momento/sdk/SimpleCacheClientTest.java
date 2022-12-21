@@ -4,11 +4,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.Duration;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.InvalidArgumentException;
+import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
@@ -81,6 +83,41 @@ final class SimpleCacheClientTest extends BaseTestClass {
     assertEquals(CacheGetStatus.MISS, getForKeyInSomeOtherCache.status());
 
     target.deleteCache(cacheName);
+  }
+
+  @Test
+  public void shouldFlushCacheContents() {
+    String cacheName = UUID.randomUUID().toString();
+    String key = UUID.randomUUID().toString();
+    String value = UUID.randomUUID().toString();
+    long ttl1HourInSeconds = Duration.ofHours(1).getSeconds();
+
+    target.createCache(cacheName);
+    try {
+      target.set(cacheName, key, value, ttl1HourInSeconds);
+      CacheGetResponse getResponse = target.get(cacheName, key);
+      assertEquals(CacheGetStatus.HIT, getResponse.status());
+      assertEquals(value, getResponse.string().get());
+
+      // Execute Flush
+      target.flushCache(cacheName);
+
+      // Verify that previously set key is now a MISS
+      CacheGetResponse getResponseAfterFlush = target.get(cacheName, key);
+      assertEquals(CacheGetStatus.MISS, getResponseAfterFlush.status());
+    } finally {
+      target.deleteCache(cacheName);
+    }
+  }
+
+  @Test
+  public void shouldThrowNotFoundWhenCacheToFlushDoesNotExist() {
+    assertThrows(NotFoundException.class, () -> target.flushCache("non-existent-cache"));
+  }
+
+  @Test
+  public void shouldThrowIllegalArgWhenCacheNameToFlushIsInvalid() {
+    assertThrows(InvalidArgumentException.class, () -> target.flushCache(null));
   }
 
   @Test
