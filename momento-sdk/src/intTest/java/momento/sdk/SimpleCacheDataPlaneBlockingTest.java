@@ -6,14 +6,11 @@ import static momento.sdk.OtelTestHelpers.stopIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.verifyGetTrace;
 import static momento.sdk.OtelTestHelpers.verifySetTrace;
 import static momento.sdk.ScsDataTestHelper.assertSetResponse;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.io.IOException;
-import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
@@ -21,7 +18,6 @@ import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.TimeoutException;
 import momento.sdk.messages.CacheGetResponse;
-import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,48 +102,64 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
   }
 
   @Test
-  public void badTokenThrowsAuthenticationException() {
-    String badToken =
-        "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
-    SimpleCacheClient target =
-        SimpleCacheClient.builder(badToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    assertThrows(AuthenticationException.class, () -> target.get(cacheName, ""));
+  public void badTokenReturnsAuthenticationError() {
+    final String badToken =
+        "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5"
+            + "wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEub"
+            + "W9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
+    try (final SimpleCacheClient client =
+        SimpleCacheClient.builder(badToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+
+      final CacheGetResponse response = client.get(cacheName, "");
+      assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
+      assertThat(((CacheGetResponse.Error) response).exception())
+          .isInstanceOf(AuthenticationException.class);
+    }
   }
 
   @Test
-  public void nonExistentCacheNameThrowsNotFoundOnGetOrSet() {
-    SimpleCacheClient target =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    String cacheName = UUID.randomUUID().toString();
+  public void nonExistentCacheNameReturnsErrorOnGetOrSet() {
+    try (final SimpleCacheClient client =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+      final String cacheName = UUID.randomUUID().toString();
 
-    assertThrows(NotFoundException.class, () -> target.get(cacheName, ""));
+      final CacheGetResponse response = client.get(cacheName, "");
+      assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
+      assertThat(((CacheGetResponse.Error) response).exception())
+          .isInstanceOf(NotFoundException.class);
 
-    assertThrows(NotFoundException.class, () -> target.set(cacheName, "", "", 10));
+      assertThrows(NotFoundException.class, () -> client.set(cacheName, "", "", 10));
+    }
   }
 
   @Test
   public void setGetDeleteWithByteKeyValuesMustSucceed() {
-    byte[] key = {0x01, 0x02, 0x03, 0x04};
-    byte[] value = {0x05, 0x06, 0x07, 0x08};
-    SimpleCacheClient cache =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    cache.set(cacheName, key, value, 60);
+    final byte[] key = {0x01, 0x02, 0x03, 0x04};
+    final byte[] value = {0x05, 0x06, 0x07, 0x08};
+    try (final SimpleCacheClient cache =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+      cache.set(cacheName, key, value, 60);
 
-    CacheGetResponse getResponse = cache.get(cacheName, key);
-    assertEquals(CacheGetStatus.HIT, getResponse.status());
-    assertArrayEquals(value, getResponse.byteArray().get());
-    cache.delete(cacheName, key);
-    CacheGetResponse getAfterDeleteResponse = cache.get(cacheName, key);
-    assertEquals(CacheGetStatus.MISS, getAfterDeleteResponse.status());
+      final CacheGetResponse getResponse = cache.get(cacheName, key);
+      assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
+      assertThat(((CacheGetResponse.Hit) getResponse).byteArray()).isEqualTo(value);
+
+      cache.delete(cacheName, key);
+      final CacheGetResponse getAfterDeleteResponse = cache.get(cacheName, key);
+      assertThat(getAfterDeleteResponse).isInstanceOf(CacheGetResponse.Miss.class);
+    }
   }
 
   @Test
-  public void getWithShortTimeoutThrowsException() {
-    try (SimpleCacheClient client =
+  public void getWithShortTimeoutReturnsError() {
+    try (final SimpleCacheClient client =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
             .requestTimeout(Duration.ofMillis(1))
             .build()) {
-      assertThrows(TimeoutException.class, () -> client.get("cache", "key"));
+      final CacheGetResponse response = client.get("cache", "key");
+      assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
+      assertThat(((CacheGetResponse.Error) response).exception())
+          .isInstanceOf(TimeoutException.class);
     }
   }
 
@@ -163,53 +175,47 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
   @Test
   public void allowEmptyKeyValues() {
-    try (SimpleCacheClient client =
+    try (final SimpleCacheClient client =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
-      String emptyKey = "";
-      String emptyValue = "";
+      final String emptyKey = "";
+      final String emptyValue = "";
       client.set(cacheName, emptyKey, emptyValue);
-      CacheGetResponse response = client.get(cacheName, emptyKey);
-      assertEquals(emptyValue, response.string().get());
+      final CacheGetResponse response = client.get(cacheName, emptyKey);
+      assertThat(response).isInstanceOf(CacheGetResponse.Hit.class);
+      assertThat(((CacheGetResponse.Hit) response).string()).isEqualTo(emptyValue);
     }
   }
 
   private void runSetAndGetWithHitTest(SimpleCacheClient target) throws IOException {
-    String key = UUID.randomUUID().toString();
-    String value = UUID.randomUUID().toString();
+    final String key = UUID.randomUUID().toString();
+    final String value = UUID.randomUUID().toString();
 
     // Successful Set
-    CacheSetResponse setResponse = target.set(cacheName, key, value);
+    final CacheSetResponse setResponse = target.set(cacheName, key, value);
     assertSetResponse(value, setResponse);
 
     // Successful Get with Hit
-    CacheGetResponse getResponse = target.get(cacheName, key);
-    assertEquals(CacheGetStatus.HIT, getResponse.status());
-    assertEquals(value, getResponse.string().get());
+    final CacheGetResponse getResponse = target.get(cacheName, key);
+    assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) getResponse).string()).isEqualTo(value);
   }
 
   private void runTtlTest(SimpleCacheClient target) throws Exception {
-    String key = UUID.randomUUID().toString();
+    final String key = UUID.randomUUID().toString();
 
     // Set Key sync
-    CacheSetResponse setRsp = target.set(cacheName, key, "", 1);
+    target.set(cacheName, key, "", 1);
 
     Thread.sleep(2000);
 
     // Get Key that was just set
-    CacheGetResponse rsp = target.get(cacheName, key);
-    assertEquals(CacheGetStatus.MISS, rsp.status());
-    assertFalse(rsp.string().isPresent());
+    final CacheGetResponse rsp = target.get(cacheName, key);
+    assertThat(rsp).isInstanceOf(CacheGetResponse.Miss.class);
   }
 
   private void runMissTest(SimpleCacheClient target) {
-    // Get Key that was just set
-    CacheGetResponse rsp = target.get(cacheName, UUID.randomUUID().toString());
-
-    assertEquals(CacheGetStatus.MISS, rsp.status());
-    assertFalse(rsp.inputStream().isPresent());
-    assertFalse(rsp.byteArray().isPresent());
-    assertFalse(rsp.byteBuffer().isPresent());
-    assertFalse(rsp.string().isPresent());
-    assertFalse(rsp.string(Charset.defaultCharset()).isPresent());
+    // Get Key that was not set
+    final CacheGetResponse rsp = target.get(cacheName, UUID.randomUUID().toString());
+    assertThat(rsp).isInstanceOf(CacheGetResponse.Miss.class);
   }
 }

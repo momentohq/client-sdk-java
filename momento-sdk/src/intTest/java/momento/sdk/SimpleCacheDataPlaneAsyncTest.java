@@ -6,13 +6,11 @@ import static momento.sdk.OtelTestHelpers.stopIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.verifyGetTrace;
 import static momento.sdk.OtelTestHelpers.verifySetTrace;
 import static momento.sdk.ScsDataTestHelper.assertSetResponse;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
-import java.nio.charset.Charset;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.UUID;
@@ -22,7 +20,6 @@ import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.TimeoutException;
 import momento.sdk.messages.CacheGetResponse;
-import momento.sdk.messages.CacheGetStatus;
 import momento.sdk.messages.CacheSetResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -107,67 +104,79 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
   }
 
   @Test
-  void badTokenThrowsAuthenticationException() {
-    String badToken =
-        "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
-    SimpleCacheClient target =
-        SimpleCacheClient.builder(badToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    ExecutionException e =
-        assertThrows(ExecutionException.class, () -> target.getAsync(cacheName, "").get());
-    assertTrue(e.getCause() instanceof AuthenticationException);
+  void badTokenReturnsAuthenticationError() {
+    final String badToken =
+        "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5"
+            + "wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEub"
+            + "W9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
+    try (final SimpleCacheClient client =
+        SimpleCacheClient.builder(badToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+
+      final CacheGetResponse response = client.getAsync(cacheName, "").join();
+      assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
+      assertThat(((CacheGetResponse.Error) response).exception())
+          .isInstanceOf(AuthenticationException.class);
+    }
   }
 
   @Test
-  public void nonExistentCacheNameThrowsNotFoundOnGetOrSet() {
-    SimpleCacheClient target =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
-    String cacheName = UUID.randomUUID().toString();
+  public void nonExistentCacheNameReturnsErrorOnGetOrSet() {
+    try (final SimpleCacheClient client =
+        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+      final String cacheName = UUID.randomUUID().toString();
 
-    ExecutionException setException =
-        assertThrows(ExecutionException.class, () -> target.getAsync(cacheName, "").get());
-    assertTrue(setException.getCause() instanceof NotFoundException);
+      final CacheGetResponse response = client.getAsync(cacheName, "").join();
+      assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
+      assertThat(((CacheGetResponse.Error) response).exception())
+          .isInstanceOf(NotFoundException.class);
 
-    ExecutionException getException =
-        assertThrows(ExecutionException.class, () -> target.setAsync(cacheName, "", "", 10).get());
-    assertTrue(getException.getCause() instanceof NotFoundException);
+      ExecutionException getException =
+          assertThrows(
+              ExecutionException.class, () -> client.setAsync(cacheName, "", "", 10).get());
+      assertTrue(getException.getCause() instanceof NotFoundException);
+    }
   }
 
   @Test
-  public void getWithShortTimeoutThrowsException() {
-    try (SimpleCacheClient client =
+  public void getWithShortTimeoutReturnsError() {
+    try (final SimpleCacheClient client =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
             .requestTimeout(Duration.ofMillis(1))
             .build()) {
-      ExecutionException e =
-          assertThrows(ExecutionException.class, () -> client.getAsync("cache", "key").get());
-      assertTrue(e.getCause() instanceof TimeoutException);
+
+      final CacheGetResponse response = client.getAsync("cache", "key").join();
+      assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
+      assertThat(((CacheGetResponse.Error) response).exception())
+          .isInstanceOf(TimeoutException.class);
     }
   }
 
   @Test
   public void allowEmptyKeyValues() throws Exception {
-    try (SimpleCacheClient client =
+    try (final SimpleCacheClient client =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
-      String emptyKey = "";
-      String emptyValue = "";
+      final String emptyKey = "";
+      final String emptyValue = "";
       client.setAsync(cacheName, emptyKey, emptyValue).get();
-      CacheGetResponse response = client.getAsync(cacheName, emptyKey).get();
-      assertEquals(emptyValue, response.string().get());
+      final CacheGetResponse response = client.getAsync(cacheName, emptyKey).get();
+      assertThat(response).isInstanceOf(CacheGetResponse.Hit.class);
+      assertThat(((CacheGetResponse.Hit) response).string()).isEqualTo(emptyValue);
     }
   }
 
   @Test
   public void deleteAsyncHappyPath() throws Exception {
-    try (SimpleCacheClient client =
+    try (final SimpleCacheClient client =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
-      String key = "key";
-      String value = "value";
+      final String key = "key";
+      final String value = "value";
       client.setAsync(cacheName, key, value).get();
-      CacheGetResponse getResponse = client.getAsync(cacheName, key).get();
-      assertEquals(CacheGetStatus.HIT, getResponse.status());
+      final CacheGetResponse getResponse = client.getAsync(cacheName, key).get();
+      assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
+      assertThat(((CacheGetResponse.Hit) getResponse).string()).isEqualTo(value);
       client.deleteAsync(cacheName, key).get();
-      CacheGetResponse getAfterDeleteResponse = client.getAsync(cacheName, key).get();
-      assertEquals(CacheGetStatus.MISS, getAfterDeleteResponse.status());
+      final CacheGetResponse getAfterDeleteResponse = client.getAsync(cacheName, key).get();
+      assertThat(getAfterDeleteResponse).isInstanceOf(CacheGetResponse.Miss.class);
     }
   }
 
@@ -185,44 +194,36 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
   }
 
   private void runSetAndGetWithHitTest(SimpleCacheClient target) throws Exception {
-    String key = UUID.randomUUID().toString();
-    String value = UUID.randomUUID().toString();
+    final String key = UUID.randomUUID().toString();
+    final String value = UUID.randomUUID().toString();
 
     // Successful Set
-    CompletableFuture<CacheSetResponse> setResponse = target.setAsync(cacheName, key, value);
+    final CompletableFuture<CacheSetResponse> setResponse = target.setAsync(cacheName, key, value);
     assertSetResponse(value, setResponse.get());
 
     // Successful Get with Hit
-    CompletableFuture<CacheGetResponse> getResponse = target.getAsync(cacheName, key);
-    assertEquals(CacheGetStatus.HIT, getResponse.get().status());
-    assertEquals(value, getResponse.get().string().get());
+    final CacheGetResponse getResponse = target.getAsync(cacheName, key).get();
+    assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) getResponse).string()).isEqualTo(value);
   }
 
   private void runTtlTest(SimpleCacheClient target) throws Exception {
-    String key = UUID.randomUUID().toString();
+    final String key = UUID.randomUUID().toString();
 
     // Set Key sync
-    CompletableFuture<CacheSetResponse> setRsp = target.setAsync(cacheName, key, "", 1);
+    target.setAsync(cacheName, key, "", 1);
 
     Thread.sleep(2000);
 
     // Get Key that was just set
-    CompletableFuture<CacheGetResponse> rsp = target.getAsync(cacheName, key);
-    assertEquals(CacheGetStatus.MISS, rsp.get().status());
-    assertFalse(rsp.get().string().isPresent());
+    final CacheGetResponse rsp = target.getAsync(cacheName, key).get();
+    assertThat(rsp).isInstanceOf(CacheGetResponse.Miss.class);
   }
 
   private void runMissTest(SimpleCacheClient target) throws Exception {
-    // Get Key that was just set
-    CompletableFuture<CacheGetResponse> rsFuture =
-        target.getAsync(cacheName, UUID.randomUUID().toString());
-
-    CacheGetResponse rsp = rsFuture.get();
-    assertEquals(CacheGetStatus.MISS, rsp.status());
-    assertFalse(rsp.inputStream().isPresent());
-    assertFalse(rsp.byteArray().isPresent());
-    assertFalse(rsp.byteBuffer().isPresent());
-    assertFalse(rsp.string().isPresent());
-    assertFalse(rsp.string(Charset.defaultCharset()).isPresent());
+    // Get key that was not set
+    final CacheGetResponse response =
+        target.getAsync(cacheName, UUID.randomUUID().toString()).get();
+    assertThat(response).isInstanceOf(CacheGetResponse.Miss.class);
   }
 }
