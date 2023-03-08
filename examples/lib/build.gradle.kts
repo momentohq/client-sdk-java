@@ -19,11 +19,15 @@ repositories {
 }
 
 dependencies {
-    implementation("momento.sandbox:momento-sdk:0.18.0")
+    // This is gross but most of gradle's cross-project dependency stuff doesn't work since examples isn't
+    // a sub-module of the sdk project.
+    implementation(files("../../momento-sdk/build/libs/momento-sdk.jar"))
 
     // Use JUnit Jupiter for testing.
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
 }
+
+tasks.register("prepareKotlinBuildScriptModel"){}
 
 spotless {
     java {

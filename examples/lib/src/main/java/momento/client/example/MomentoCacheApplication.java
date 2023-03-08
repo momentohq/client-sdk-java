@@ -29,10 +29,33 @@ public class MomentoCacheApplication {
 
       System.out.println(String.format("Getting value for key=`%s`", KEY));
 
-      CacheGetResponse getResponse = simpleCacheClient.get(CACHE_NAME, KEY);
-      System.out.println(String.format("Lookup resulted in: `%s`", getResponse.status()));
-      System.out.println(
-          String.format("Looked up value=`%s`", getResponse.string().orElse("NOT FOUND")));
+      { // Java 8 style
+        final CacheGetResponse getResponse = simpleCacheClient.getAsync(CACHE_NAME, KEY).join();
+        if (getResponse instanceof CacheGetResponse.Hit) {
+          final CacheGetResponse.Hit hit = (CacheGetResponse.Hit) getResponse;
+          System.out.println("Hit! Found value: " + hit.valueString());
+        } else if (getResponse instanceof CacheGetResponse.Miss) {
+          System.out.println("Miss!");
+        } else if (getResponse instanceof CacheGetResponse.Error) {
+          final CacheGetResponse.Error error = (CacheGetResponse.Error) getResponse;
+          System.out.println("Error encountered: " + error.exception().toString());
+        } else {
+          System.out.println("Unknown response type.");
+        }
+      }
+
+      { // Java 14 style
+        final CacheGetResponse getResponse = simpleCacheClient.getAsync(CACHE_NAME, KEY).join();
+        if (getResponse instanceof CacheGetResponse.Hit hit) {
+          System.out.println("Hit! Found value: " + hit.valueString());
+        } else if (getResponse instanceof CacheGetResponse.Miss) {
+          System.out.println("Miss!");
+        } else if (getResponse instanceof CacheGetResponse.Error error) {
+          System.out.println("Error encountered: " + error.exception().toString());
+        } else {
+          System.out.println("Unknown response type.");
+        }
+      }
     }
     printEndBanner();
   }
