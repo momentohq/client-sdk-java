@@ -26,10 +26,8 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
-import momento.sdk.exceptions.SdkException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
@@ -41,8 +39,8 @@ final class ScsDataClient implements Closeable {
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
 
   private final Optional<Tracer> tracer;
-  private long itemDefaultTtlSeconds;
-  private ScsDataGrpcStubsManager scsDataGrpcStubsManager;
+  private final long itemDefaultTtlSeconds;
+  private final ScsDataGrpcStubsManager scsDataGrpcStubsManager;
   private final String endpoint;
 
   ScsDataClient(
@@ -60,53 +58,6 @@ final class ScsDataClient implements Closeable {
 
   public String getEndpoint() {
     return endpoint;
-  }
-
-  CacheGetResponse get(String cacheName, String key) {
-    ensureValidKey(key);
-    return sendBlockingGet(cacheName, convert(key));
-  }
-
-  CacheGetResponse get(String cacheName, byte[] key) {
-    ensureValidKey(key);
-    return sendBlockingGet(cacheName, convert(key));
-  }
-
-  CacheDeleteResponse delete(String cacheName, String key) {
-    ensureValidKey(key);
-    return sendBlockingDelete(cacheName, convert(key));
-  }
-
-  CacheDeleteResponse delete(String cacheName, byte[] key) {
-    ensureValidKey(key);
-    return sendBlockingDelete(cacheName, convert(key));
-  }
-
-  CacheSetResponse set(String cacheName, String key, ByteBuffer value, long ttlSeconds) {
-    ensureValidCacheSet(key, value, ttlSeconds);
-    return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
-  }
-
-  CacheSetResponse set(String cacheName, String key, ByteBuffer value) {
-    return set(cacheName, key, value, itemDefaultTtlSeconds);
-  }
-
-  CacheSetResponse set(String cacheName, String key, String value, long ttlSeconds) {
-    ensureValidCacheSet(key, value, ttlSeconds);
-    return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
-  }
-
-  CacheSetResponse set(String cacheName, String key, String value) {
-    return set(cacheName, key, value, itemDefaultTtlSeconds);
-  }
-
-  CacheSetResponse set(String cacheName, byte[] key, byte[] value, long ttlSeconds) {
-    ensureValidCacheSet(key, value, ttlSeconds);
-    return sendBlockingSet(cacheName, convert(key), convert(value), ttlSeconds);
-  }
-
-  CacheSetResponse set(String cacheName, byte[] key, byte[] value) {
-    return set(cacheName, key, value, itemDefaultTtlSeconds);
   }
 
   CompletableFuture<CacheGetResponse> getAsync(String cacheName, byte[] key) {
@@ -169,38 +120,6 @@ final class ScsDataClient implements Closeable {
 
   private ByteString convert(ByteBuffer byteBuffer) {
     return ByteString.copyFrom(byteBuffer);
-  }
-
-  private static SdkException handleExceptionally(Throwable t) {
-    if (t instanceof ExecutionException) {
-      return CacheServiceExceptionMapper.convert(t.getCause());
-    }
-    return CacheServiceExceptionMapper.convert(t);
-  }
-
-  private CacheGetResponse sendBlockingGet(String cacheName, ByteString key) {
-    try {
-      return sendGet(cacheName, key).get();
-    } catch (Throwable t) {
-      throw handleExceptionally(t);
-    }
-  }
-
-  private CacheDeleteResponse sendBlockingDelete(String cacheName, ByteString key) {
-    try {
-      return sendDelete(cacheName, key).get();
-    } catch (Throwable t) {
-      throw handleExceptionally(t);
-    }
-  }
-
-  private CacheSetResponse sendBlockingSet(
-      String cacheName, ByteString key, ByteString value, long itemTtlSeconds) {
-    try {
-      return sendSet(cacheName, key, value, itemTtlSeconds).get();
-    } catch (Throwable t) {
-      throw handleExceptionally(t);
-    }
   }
 
   private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {

@@ -164,185 +164,12 @@ public final class SimpleCacheClient implements Closeable {
   /**
    * Get the cache value stored for the given key.
    *
-   * @param cacheName Name of the cache to get value from
-   * @param key The key to get
-   * @return {@link CacheGetResponse} containing the status of the get operation and the associated
-   *     value data.
-   */
-  public CacheGetResponse get(String cacheName, String key) {
-    return scsDataClient.get(cacheName, key);
-  }
-
-  /**
-   * Get the cache value stored for the given key.
-   *
-   * @param cacheName Name of the cache to get value from
-   * @param key The key to get
-   * @return {@link CacheGetResponse} containing the status of the get operation and the associated
-   *     value data.
-   */
-  public CacheGetResponse get(String cacheName, byte[] key) {
-    return scsDataClient.get(cacheName, key);
-  }
-
-  /**
-   * Delete the cache value stored for the given key.
-   *
-   * @param cacheName Name of the cache to delete value from
-   * @param key The key to delete
-   * @return {@link CacheDeleteResponse}
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key is null
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   */
-  public CacheDeleteResponse delete(String cacheName, String key) {
-    return scsDataClient.delete(cacheName, key);
-  }
-
-  /**
-   * Delete the cache value stored for the given key.
-   *
-   * @param cacheName Name of the cache to delete value from
-   * @param key The key to delete
-   * @return {@link CacheDeleteResponse}
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key is null
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   */
-  public CacheDeleteResponse delete(String cacheName, byte[] key) {
-    return scsDataClient.delete(cacheName, key);
-  }
-
-  /**
-   * Sets the value in cache with a given Time To Live (TTL) seconds.
-   *
-   * <p>If a value for this key is already present it will be replaced by the new value.
-   *
-   * @param cacheName Name of the cache to store the item in
-   * @param key The key under which the value is to be added.
-   * @param value The value to be stored.
-   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
-   * @return Result of the set operation.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key, value is null or if ttlSeconds is less than or equal to zero
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   */
-  public CacheSetResponse set(String cacheName, String key, ByteBuffer value, long ttlSeconds) {
-    return scsDataClient.set(cacheName, key, value, ttlSeconds);
-  }
-
-  /**
-   * Sets the value in the cache. If a value for this key is already present it will be replaced by
-   * the new value.
-   *
-   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link SimpleCacheClient#builder(String, long)}
-   *
-   * @param cacheName Name of the cache to store the item in
-   * @param key The key under which the value is to be added.
-   * @param value The value to be stored.
-   * @return Result of the set operation.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key or value is null
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   */
-  public CacheSetResponse set(String cacheName, String key, ByteBuffer value) {
-    return scsDataClient.set(cacheName, key, value);
-  }
-
-  /**
-   * Sets the value in cache with a given Time To Live (TTL) seconds.
-   *
-   * <p>If a value for this key is already present it will be replaced by the new value.
-   *
-   * @param key The key under which the value is to be added.
-   * @param value The value to be stored.
-   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
-   * @return Result of the set operation.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   */
-  public CacheSetResponse set(String cacheName, String key, String value, long ttlSeconds) {
-    return scsDataClient.set(cacheName, key, value, ttlSeconds);
-  }
-
-  /**
-   * Sets the value in the cache. If a value for this key is already present it will be replaced by
-   * the new value.
-   *
-   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link SimpleCacheClient#builder(String, long)}
-   *
-   * @param cacheName Name of the cache to store the item in
-   * @param key The key under which the value is to be added.
-   * @param value The value to be stored.
-   * @return Result of the set operation.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key or value is null
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   */
-  public CacheSetResponse set(String cacheName, String key, String value) {
-    return scsDataClient.set(cacheName, key, value);
-  }
-
-  /**
-   * Sets the value in cache with a given Time To Live (TTL) seconds.
-   *
-   * <p>If a value for this key is already present it will be replaced by the new value.
-   *
-   * @param cacheName Name of the cache to store the item in
-   * @param key The key under which the value is to be added.
-   * @param value The value to be stored.
-   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
-   * @return Result of the set operation.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key or value is null or ttlSeconds is less than or equal to zero
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   */
-  public CacheSetResponse set(String cacheName, byte[] key, byte[] value, long ttlSeconds) {
-    return scsDataClient.set(cacheName, key, value, ttlSeconds);
-  }
-
-  /**
-   * Sets the value in the cache. If a value for this key is already present it will be replaced by
-   * the new value.
-   *
-   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link SimpleCacheClient#builder(String, long)}
-   *
-   * @param cacheName Name of the cache to store the item in
-   * @param key The key under which the value is to be added.
-   * @param value The value to be stored.
-   * @return Result of the set operation.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key or value is null
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   */
-  public CacheSetResponse set(String cacheName, byte[] key, byte[] value) {
-    return scsDataClient.set(cacheName, key, value);
-  }
-
-  /**
-   * Get the cache value stored for the given key.
-   *
    * @param cacheName Name of the cache to get the item from
    * @param key The key to get
    * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
    *     associated value data.
    */
-  public CompletableFuture<CacheGetResponse> getAsync(String cacheName, byte[] key) {
+  public CompletableFuture<CacheGetResponse> get(String cacheName, byte[] key) {
     return scsDataClient.getAsync(cacheName, key);
   }
 
@@ -354,7 +181,7 @@ public final class SimpleCacheClient implements Closeable {
    * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
    *     associated value data.
    */
-  public CompletableFuture<CacheGetResponse> getAsync(String cacheName, String key) {
+  public CompletableFuture<CacheGetResponse> get(String cacheName, String key) {
     return scsDataClient.getAsync(cacheName, key);
   }
 
@@ -369,7 +196,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CompletableFuture<CacheDeleteResponse> deleteAsync(String cacheName, String key) {
+  public CompletableFuture<CacheDeleteResponse> delete(String cacheName, String key) {
     return scsDataClient.deleteAsync(cacheName, key);
   }
 
@@ -384,7 +211,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CompletableFuture<CacheDeleteResponse> deleteAsync(String cacheName, byte[] key) {
+  public CompletableFuture<CacheDeleteResponse> delete(String cacheName, byte[] key) {
     return scsDataClient.deleteAsync(cacheName, key);
   }
 
@@ -404,7 +231,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CompletableFuture<CacheSetResponse> setAsync(
+  public CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, ByteBuffer value, long ttlSeconds) {
     return scsDataClient.setAsync(cacheName, key, value, ttlSeconds);
   }
@@ -425,8 +252,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CompletableFuture<CacheSetResponse> setAsync(
-      String cacheName, String key, ByteBuffer value) {
+  public CompletableFuture<CacheSetResponse> set(String cacheName, String key, ByteBuffer value) {
     return scsDataClient.setAsync(cacheName, key, value);
   }
 
@@ -446,7 +272,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CompletableFuture<CacheSetResponse> setAsync(
+  public CompletableFuture<CacheSetResponse> set(
       String cacheName, byte[] key, byte[] value, long ttlSeconds) {
     return scsDataClient.setAsync(cacheName, key, value, ttlSeconds);
   }
@@ -467,7 +293,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CompletableFuture<CacheSetResponse> setAsync(String cacheName, byte[] key, byte[] value) {
+  public CompletableFuture<CacheSetResponse> set(String cacheName, byte[] key, byte[] value) {
     return scsDataClient.setAsync(cacheName, key, value);
   }
 
@@ -487,7 +313,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CompletableFuture<CacheSetResponse> setAsync(
+  public CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, String value, long ttlSeconds) {
     return scsDataClient.setAsync(cacheName, key, value, ttlSeconds);
   }
@@ -508,7 +334,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CompletableFuture<CacheSetResponse> setAsync(String cacheName, String key, String value) {
+  public CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
     return scsDataClient.setAsync(cacheName, key, value);
   }
 
