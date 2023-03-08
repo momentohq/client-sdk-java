@@ -8,7 +8,16 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.messages.*;
+import momento.sdk.messages.CacheDeleteResponse;
+import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheSetResponse;
+import momento.sdk.messages.CreateCacheResponse;
+import momento.sdk.messages.CreateSigningKeyResponse;
+import momento.sdk.messages.DeleteCacheResponse;
+import momento.sdk.messages.FlushCacheResponse;
+import momento.sdk.messages.ListCachesResponse;
+import momento.sdk.messages.ListSigningKeysResponse;
+import momento.sdk.messages.RevokeSigningKeyResponse;
 
 /** Client to perform operations against the Simple Cache Service */
 public final class SimpleCacheClient implements Closeable {
