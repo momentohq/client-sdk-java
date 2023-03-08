@@ -73,7 +73,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
 
       final CacheGetResponse getResponse = target.get(cacheName, key);
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
-      assertThat(((CacheGetResponse.Hit) getResponse).string()).isEqualTo(value);
+      assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
 
       target.delete(cacheName, key);
       final CacheGetResponse getAfterDeleteResponse = target.get(cacheName, key);
@@ -99,7 +99,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
       target.set(cacheName, key, value, ttl1HourInSeconds);
       final CacheGetResponse getResponse = target.get(cacheName, key);
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
-      assertThat(((CacheGetResponse.Hit) getResponse).string()).isEqualTo(value);
+      assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
 
       // Execute Flush
       target.flushCache(cacheName);

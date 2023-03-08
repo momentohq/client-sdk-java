@@ -142,7 +142,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
       final CacheGetResponse getResponse = cache.get(cacheName, key);
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
-      assertThat(((CacheGetResponse.Hit) getResponse).byteArray()).isEqualTo(value);
+      assertThat(((CacheGetResponse.Hit) getResponse).valueByteArray()).isEqualTo(value);
 
       cache.delete(cacheName, key);
       final CacheGetResponse getAfterDeleteResponse = cache.get(cacheName, key);
@@ -182,7 +182,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
       client.set(cacheName, emptyKey, emptyValue);
       final CacheGetResponse response = client.get(cacheName, emptyKey);
       assertThat(response).isInstanceOf(CacheGetResponse.Hit.class);
-      assertThat(((CacheGetResponse.Hit) response).string()).isEqualTo(emptyValue);
+      assertThat(((CacheGetResponse.Hit) response).valueString()).isEqualTo(emptyValue);
     }
   }
 
@@ -197,7 +197,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
     // Successful Get with Hit
     final CacheGetResponse getResponse = target.get(cacheName, key);
     assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) getResponse).string()).isEqualTo(value);
+    assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
 
   private void runTtlTest(SimpleCacheClient target) throws Exception {

@@ -160,7 +160,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
       client.setAsync(cacheName, emptyKey, emptyValue).get();
       final CacheGetResponse response = client.getAsync(cacheName, emptyKey).get();
       assertThat(response).isInstanceOf(CacheGetResponse.Hit.class);
-      assertThat(((CacheGetResponse.Hit) response).string()).isEqualTo(emptyValue);
+      assertThat(((CacheGetResponse.Hit) response).valueString()).isEqualTo(emptyValue);
     }
   }
 
@@ -173,7 +173,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
       client.setAsync(cacheName, key, value).get();
       final CacheGetResponse getResponse = client.getAsync(cacheName, key).get();
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
-      assertThat(((CacheGetResponse.Hit) getResponse).string()).isEqualTo(value);
+      assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
       client.deleteAsync(cacheName, key).get();
       final CacheGetResponse getAfterDeleteResponse = client.getAsync(cacheName, key).get();
       assertThat(getAfterDeleteResponse).isInstanceOf(CacheGetResponse.Miss.class);
@@ -204,7 +204,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
     // Successful Get with Hit
     final CacheGetResponse getResponse = target.getAsync(cacheName, key).get();
     assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) getResponse).string()).isEqualTo(value);
+    assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
 
   private void runTtlTest(SimpleCacheClient target) throws Exception {
