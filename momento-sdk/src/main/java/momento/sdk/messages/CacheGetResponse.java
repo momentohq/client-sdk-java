@@ -11,56 +11,56 @@ import momento.sdk.exceptions.SdkException;
 public abstract class CacheGetResponse {
 
   public static class Hit extends CacheGetResponse {
-    private final ByteString body;
+    private final ByteString value;
 
-    public Hit(ByteString body) {
-      this.body = body;
+    public Hit(ByteString value) {
+      this.value = value;
     }
 
     /**
-     * Value stored in the cache as a byte array.
+     * Gets the retrieved value as a byte array.
      *
-     * @return Value stored for the given key.
+     * @return the value.
      */
-    public byte[] byteArray() {
-      return body.toByteArray();
+    public byte[] valueByteArray() {
+      return value.toByteArray();
     }
 
     /**
-     * Value stored in the cache as a {@link ByteBuffer}.
+     * Gets the retrieved value as a {@link ByteBuffer}.
      *
-     * @return Value stored for the given key.
+     * @return the value.
      */
-    public ByteBuffer byteBuffer() {
-      return body.asReadOnlyByteBuffer();
+    public ByteBuffer valueByteBuffer() {
+      return value.asReadOnlyByteBuffer();
     }
 
     /**
-     * Value stored in the cache as a UTF-8 {@link String}
+     * Gets the retrieved value as a UTF-8 {@link String}
      *
-     * @return Value stored for the given key.
+     * @return the value.
      */
-    public String string() {
-      return string(StandardCharsets.UTF_8);
+    public String valueString() {
+      return valueString(StandardCharsets.UTF_8);
     }
 
     /**
-     * Value stored in the cache as {@link String}.
+     * Gets the retrieved value as a {@link String}.
      *
-     * @param charset to express the bytes as String.
-     * @return Value stored for the given key.
+     * @param charset the string encoding to use.
+     * @return the value.
      */
-    public String string(Charset charset) {
-      return body.toString(charset);
+    public String valueString(Charset charset) {
+      return value.toString(charset);
     }
 
     /**
-     * Value as an {@link InputStream}
+     * Gets the retrieved value as an {@link InputStream}.
      *
-     * @return Value stored for the given key.
+     * @return the value.
      */
-    public InputStream inputStream() {
-      return body.newInput();
+    public InputStream valueInputStream() {
+      return value.newInput();
     }
   }
 
