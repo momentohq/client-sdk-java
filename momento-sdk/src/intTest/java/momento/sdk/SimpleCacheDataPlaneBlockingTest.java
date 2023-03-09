@@ -112,8 +112,8 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
       final CacheGetResponse response = client.get(cacheName, "");
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
-      assertThat(((CacheGetResponse.Error) response).exception())
-          .isInstanceOf(AuthenticationException.class);
+      assertThat(((CacheGetResponse.Error) response))
+          .hasCauseInstanceOf(AuthenticationException.class);
     }
   }
 
@@ -125,8 +125,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
 
       final CacheGetResponse response = client.get(cacheName, "");
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
-      assertThat(((CacheGetResponse.Error) response).exception())
-          .isInstanceOf(NotFoundException.class);
+      assertThat(((CacheGetResponse.Error) response)).hasCauseInstanceOf(NotFoundException.class);
 
       assertThrows(NotFoundException.class, () -> client.set(cacheName, "", "", 10));
     }
@@ -158,8 +157,7 @@ final class SimpleCacheDataPlaneBlockingTest extends BaseTestClass {
             .build()) {
       final CacheGetResponse response = client.get("cache", "key");
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
-      assertThat(((CacheGetResponse.Error) response).exception())
-          .isInstanceOf(TimeoutException.class);
+      assertThat(((CacheGetResponse.Error) response)).hasCauseInstanceOf(TimeoutException.class);
     }
   }
 

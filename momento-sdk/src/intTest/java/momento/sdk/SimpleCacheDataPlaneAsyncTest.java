@@ -6,6 +6,7 @@ import static momento.sdk.OtelTestHelpers.stopIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.verifyGetTrace;
 import static momento.sdk.OtelTestHelpers.verifySetTrace;
 import static momento.sdk.ScsDataTestHelper.assertSetResponse;
+import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,7 +14,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.AuthenticationException;
@@ -114,8 +114,8 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
 
       final CacheGetResponse response = client.getAsync(cacheName, "").join();
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
-      assertThat(((CacheGetResponse.Error) response).exception())
-          .isInstanceOf(AuthenticationException.class);
+      assertThat(((CacheGetResponse.Error) response))
+          .hasCauseInstanceOf(AuthenticationException.class);
     }
   }
 
@@ -123,12 +123,11 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
   public void nonExistentCacheNameReturnsErrorOnGetOrSet() {
     try (final SimpleCacheClient client =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
-      final String cacheName = UUID.randomUUID().toString();
+      final String cacheName = randomString("name");
 
       final CacheGetResponse response = client.getAsync(cacheName, "").join();
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
-      assertThat(((CacheGetResponse.Error) response).exception())
-          .isInstanceOf(NotFoundException.class);
+      assertThat(((CacheGetResponse.Error) response)).hasCauseInstanceOf(NotFoundException.class);
 
       ExecutionException getException =
           assertThrows(
@@ -146,8 +145,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
 
       final CacheGetResponse response = client.getAsync("cache", "key").join();
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
-      assertThat(((CacheGetResponse.Error) response).exception())
-          .isInstanceOf(TimeoutException.class);
+      assertThat(((CacheGetResponse.Error) response)).hasCauseInstanceOf(TimeoutException.class);
     }
   }
 
@@ -194,8 +192,8 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
   }
 
   private void runSetAndGetWithHitTest(SimpleCacheClient target) throws Exception {
-    final String key = UUID.randomUUID().toString();
-    final String value = UUID.randomUUID().toString();
+    final String key = randomString("key");
+    final String value = randomString("value");
 
     // Successful Set
     final CompletableFuture<CacheSetResponse> setResponse = target.setAsync(cacheName, key, value);
@@ -208,7 +206,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
   }
 
   private void runTtlTest(SimpleCacheClient target) throws Exception {
-    final String key = UUID.randomUUID().toString();
+    final String key = randomString("key");
 
     // Set Key sync
     target.setAsync(cacheName, key, "", 1);
@@ -222,8 +220,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
 
   private void runMissTest(SimpleCacheClient target) throws Exception {
     // Get key that was not set
-    final CacheGetResponse response =
-        target.getAsync(cacheName, UUID.randomUUID().toString()).get();
+    final CacheGetResponse response = target.getAsync(cacheName, randomString("key")).get();
     assertThat(response).isInstanceOf(CacheGetResponse.Miss.class);
   }
 }

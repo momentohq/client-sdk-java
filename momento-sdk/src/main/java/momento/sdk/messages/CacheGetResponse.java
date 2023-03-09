@@ -8,9 +8,9 @@ import java.nio.charset.StandardCharsets;
 import momento.sdk.exceptions.SdkException;
 
 /** Response for a cache get operation */
-public abstract class CacheGetResponse {
+public interface CacheGetResponse {
 
-  public static class Hit extends CacheGetResponse {
+  class Hit implements CacheGetResponse {
     private final ByteString value;
 
     public Hit(ByteString value) {
@@ -64,17 +64,12 @@ public abstract class CacheGetResponse {
     }
   }
 
-  public static class Miss extends CacheGetResponse {}
+  class Miss implements CacheGetResponse {}
 
-  public static class Error extends CacheGetResponse {
-    private final SdkException exception;
+  class Error extends SdkException implements CacheGetResponse {
 
-    public Error(SdkException exception) {
-      this.exception = exception;
-    }
-
-    public SdkException exception() {
-      return this.exception;
+    public Error(SdkException cause) {
+      super(cause.getMessage(), cause);
     }
   }
 }
