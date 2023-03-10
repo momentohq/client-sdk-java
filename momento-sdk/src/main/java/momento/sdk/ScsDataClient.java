@@ -61,29 +61,54 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheGetResponse> get(String cacheName, byte[] key) {
-    ensureValidKey(key);
-    return sendGet(cacheName, convert(key));
+    try {
+      ensureValidKey(key);
+      return sendGet(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   CompletableFuture<CacheGetResponse> get(String cacheName, String key) {
-    ensureValidKey(key);
-    return sendGet(cacheName, convert(key));
+    try {
+      ensureValidKey(key);
+      return sendGet(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   CompletableFuture<CacheDeleteResponse> delete(String cacheName, byte[] key) {
-    ensureValidKey(key);
-    return sendDelete(cacheName, convert(key));
+    try {
+      ensureValidKey(key);
+      return sendDelete(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   CompletableFuture<CacheDeleteResponse> delete(String cacheName, String key) {
-    ensureValidKey(key);
-    return sendDelete(cacheName, convert(key));
+    try {
+      ensureValidKey(key);
+      return sendDelete(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, ByteBuffer value, long ttlSeconds) {
-    ensureValidCacheSet(key, value, ttlSeconds);
-    return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    try {
+      ensureValidCacheSet(key, value, ttlSeconds);
+      return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, String key, ByteBuffer value) {
@@ -92,8 +117,13 @@ final class ScsDataClient implements Closeable {
 
   CompletableFuture<CacheSetResponse> set(
       String cacheName, byte[] key, byte[] value, long ttlSeconds) {
-    ensureValidCacheSet(key, value, ttlSeconds);
-    return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    try {
+      ensureValidCacheSet(key, value, ttlSeconds);
+      return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, byte[] key, byte[] value) {
@@ -102,8 +132,13 @@ final class ScsDataClient implements Closeable {
 
   CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, String value, long ttlSeconds) {
-    ensureValidCacheSet(key, value, ttlSeconds);
-    return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    try {
+      ensureValidCacheSet(key, value, ttlSeconds);
+      return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {

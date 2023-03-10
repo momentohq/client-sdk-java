@@ -2,7 +2,7 @@ package momento.sdk;
 
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
 import momento.sdk.exceptions.AlreadyExistsException;
@@ -59,7 +59,7 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   }
 
   @Test
-  public void throwsAlreadyExistsWhenCreatingExistingCache() {
+  public void returnsAlreadyExistsWhenCreatingExistingCache() {
     final String existingCache = System.getenv("TEST_CACHE_NAME");
 
     final CreateCacheResponse response = target.createCache(existingCache);
@@ -99,7 +99,7 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   }
 
   @Test
-  public void throwsValidationExceptionForNullCacheName() {
+  public void returnsValidationExceptionForNullCacheName() {
     final CreateCacheResponse createResponse = target.createCache(null);
     assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
     assertThat(((CreateCacheResponse.Error) createResponse))
@@ -158,29 +158,34 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
 
   @Test
   public void throwsInvalidArgumentForZeroRequestTimeout() {
-    assertThrows(
-        InvalidArgumentException.class,
-        () ->
-            SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
-                .requestTimeout(Duration.ofMillis(0))
-                .build());
+    //noinspection resource
+    assertThatExceptionOfType(InvalidArgumentException.class)
+        .isThrownBy(
+            () ->
+                SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
+                    .requestTimeout(Duration.ofMillis(0))
+                    .build());
   }
 
   @Test
   public void throwsInvalidArgumentForNegativeRequestTimeout() {
-    assertThrows(
-        InvalidArgumentException.class,
-        () ->
-            SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
-                .requestTimeout(Duration.ofMillis(-1))
-                .build());
+    //noinspection resource
+    assertThatExceptionOfType(InvalidArgumentException.class)
+        .isThrownBy(
+            () ->
+                SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
+                    .requestTimeout(Duration.ofMillis(-1))
+                    .build());
   }
 
   @Test
   public void throwsInvalidArgumentForNullRequestTimeout() {
-    assertThrows(
-        InvalidArgumentException.class,
-        () ->
-            SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS).requestTimeout(null).build());
+    //noinspection DataFlowIssue,resource
+    assertThatExceptionOfType(InvalidArgumentException.class)
+        .isThrownBy(
+            () ->
+                SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
+                    .requestTimeout(null)
+                    .build());
   }
 }
