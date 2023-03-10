@@ -2,26 +2,20 @@ package momento.sdk;
 
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
-import java.util.Optional;
-import java.util.UUID;
-import java.util.stream.Collectors;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
 import momento.sdk.messages.DeleteCacheResponse;
 import momento.sdk.messages.ListCachesResponse;
 import momento.sdk.messages.ListSigningKeysResponse;
-import momento.sdk.messages.SigningKey;
+import momento.sdk.messages.RevokeSigningKeyResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -46,18 +40,22 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
 
   @Test
   public void createListRevokeSigningKeyWorks() {
-    CreateSigningKeyResponse createSigningKeyResponse = target.createSigningKey(30);
-    ListSigningKeysResponse listSigningKeysResponse = target.listSigningKeys(null);
-    assertTrue(
-        listSigningKeysResponse.signingKeys().stream()
-            .map(SigningKey::getKeyId)
-            .anyMatch(keyId -> createSigningKeyResponse.getKeyId().equals(keyId)));
-    target.revokeSigningKey(createSigningKeyResponse.getKeyId());
-    listSigningKeysResponse = target.listSigningKeys(null);
-    assertFalse(
-        listSigningKeysResponse.signingKeys().stream()
-            .map(SigningKey::getKeyId)
-            .anyMatch(keyId -> createSigningKeyResponse.getKeyId().equals(keyId)));
+    final CreateSigningKeyResponse createSigningKeyResponse = target.createSigningKey(30);
+    assertThat(createSigningKeyResponse).isInstanceOf(CreateSigningKeyResponse.Success.class);
+    final String keyId = ((CreateSigningKeyResponse.Success) createSigningKeyResponse).getKeyId();
+
+    final ListSigningKeysResponse listSigningKeysResponse = target.listSigningKeys();
+    assertThat(listSigningKeysResponse).isInstanceOf(ListSigningKeysResponse.Success.class);
+    assertThat(((ListSigningKeysResponse.Success) listSigningKeysResponse).signingKeys())
+        .anyMatch(signingKey -> signingKey.getKeyId().equals(keyId));
+
+    final RevokeSigningKeyResponse revokeResponse = target.revokeSigningKey(keyId);
+    assertThat(revokeResponse).isInstanceOf(RevokeSigningKeyResponse.Success.class);
+
+    final ListSigningKeysResponse listAfterRevokeResponse = target.listSigningKeys();
+    assertThat(listAfterRevokeResponse).isInstanceOf(ListSigningKeysResponse.Success.class);
+    assertThat(((ListSigningKeysResponse.Success) listAfterRevokeResponse).signingKeys())
+        .noneMatch(signingKey -> signingKey.getKeyId().equals(keyId));
   }
 
   @Test
@@ -78,37 +76,14 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
   }
 
   @Test
-  public void listsCachesSuccessfullyHandlesNullToken() {
-    String cacheName = UUID.randomUUID().toString();
+  public void listsCachesHappyPath() {
+    final String cacheName = randomString("name");
     target.createCache(cacheName);
     try {
-      ListCachesResponse response = target.listCaches(null);
-      assertTrue(response.caches().size() >= 1);
-      assertTrue(
-          response.caches().stream()
-              .map(CacheInfo::name)
-              .collect(Collectors.toSet())
-              .contains(cacheName));
-      assertFalse(response.nextPageToken().isPresent());
-    } finally {
-      // cleanup
-      target.deleteCache(cacheName);
-    }
-  }
-
-  @Test
-  public void listsCachesSuccessfullyHandlesEmptyToken() {
-    String cacheName = UUID.randomUUID().toString();
-    target.createCache(cacheName);
-    try {
-      ListCachesResponse response = target.listCaches(Optional.empty());
-      assertTrue(response.caches().size() >= 1);
-      assertTrue(
-          response.caches().stream()
-              .map(CacheInfo::name)
-              .collect(Collectors.toSet())
-              .contains(cacheName));
-      assertFalse(response.nextPageToken().isPresent());
+      final ListCachesResponse response = target.listCaches();
+      assertThat(response).isInstanceOf(ListCachesResponse.Success.class);
+      assertThat(((ListCachesResponse.Success) response).getCaches())
+          .anyMatch(cacheInfo -> cacheInfo.name().equals(cacheName));
     } finally {
       // cleanup
       target.deleteCache(cacheName);
@@ -174,7 +149,10 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
       assertThat(((DeleteCacheResponse.Error) deleteResponse))
           .hasCauseInstanceOf(AuthenticationException.class);
 
-      assertThrows(AuthenticationException.class, () -> client.listCaches(Optional.empty()));
+      final ListCachesResponse listCachesResponse = client.listCaches();
+      assertThat(listCachesResponse).isInstanceOf(ListCachesResponse.Error.class);
+      assertThat((ListCachesResponse.Error) listCachesResponse)
+          .hasCauseInstanceOf(AuthenticationException.class);
     }
   }
 

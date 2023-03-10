@@ -21,7 +21,6 @@ import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
-import java.util.Optional;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
@@ -32,7 +31,6 @@ import momento.sdk.messages.ListCachesResponse;
 import momento.sdk.messages.ListSigningKeysResponse;
 import momento.sdk.messages.RevokeSigningKeyResponse;
 import momento.sdk.messages.SigningKey;
-import org.apache.commons.lang3.StringUtils;
 
 /** Client for interacting with Scs Control Plane. */
 final class ScsControlClient implements Closeable {
@@ -46,6 +44,7 @@ final class ScsControlClient implements Closeable {
   CreateCacheResponse createCache(String cacheName) {
     try {
       checkCacheNameValid(cacheName);
+      //noinspection ResultOfMethodCallIgnored
       controlGrpcStubsManager.getBlockingStub().createCache(buildCreateCacheRequest(cacheName));
       return new CreateCacheResponse.Success();
     } catch (Exception e) {
@@ -56,6 +55,7 @@ final class ScsControlClient implements Closeable {
   DeleteCacheResponse deleteCache(String cacheName) {
     try {
       checkCacheNameValid(cacheName);
+      //noinspection ResultOfMethodCallIgnored
       controlGrpcStubsManager.getBlockingStub().deleteCache(buildDeleteCacheRequest(cacheName));
       return new DeleteCacheResponse.Success();
     } catch (Exception e) {
@@ -66,6 +66,7 @@ final class ScsControlClient implements Closeable {
   FlushCacheResponse flushCache(String cacheName) {
     try {
       checkCacheNameValid(cacheName);
+      //noinspection ResultOfMethodCallIgnored
       controlGrpcStubsManager.getBlockingStub().flushCache(buildFlushCacheRequest(cacheName));
       return new FlushCacheResponse.Success();
     } catch (Exception e) {
@@ -73,47 +74,47 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-  ListCachesResponse listCaches(Optional<String> nextToken) {
+  ListCachesResponse listCaches() {
     try {
-      _ListCachesRequest request =
-          _ListCachesRequest.newBuilder().setNextToken(nextToken(nextToken)).build();
+      final _ListCachesRequest request = _ListCachesRequest.newBuilder().setNextToken("").build();
       return convert(controlGrpcStubsManager.getBlockingStub().listCaches(request));
     } catch (Exception e) {
-      throw CacheServiceExceptionMapper.convert(e);
+      return new ListCachesResponse.Error(CacheServiceExceptionMapper.convert(e));
     }
   }
 
   CreateSigningKeyResponse createSigningKey(int ttlMinutes, String endpoint) {
-    ensureValidTtlMinutes(ttlMinutes);
     try {
+      ensureValidTtlMinutes(ttlMinutes);
       return convert(
           controlGrpcStubsManager
               .getBlockingStub()
               .createSigningKey(buildCreateSigningKeyRequest(ttlMinutes)),
           endpoint);
     } catch (Exception e) {
-      throw CacheServiceExceptionMapper.convert(e);
+      return new CreateSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
     }
   }
 
   RevokeSigningKeyResponse revokeSigningKey(String keyId) {
     try {
+      //noinspection ResultOfMethodCallIgnored
       controlGrpcStubsManager
           .getBlockingStub()
           .revokeSigningKey(buildRevokeSigningKeyRequest(keyId));
-      return new RevokeSigningKeyResponse();
+      return new RevokeSigningKeyResponse.Success();
     } catch (Exception e) {
-      throw CacheServiceExceptionMapper.convert(e);
+      return new RevokeSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
     }
   }
 
-  ListSigningKeysResponse listSigningKeys(Optional<String> nextToken, String endpoint) {
+  ListSigningKeysResponse listSigningKeys(String endpoint) {
     try {
-      _ListSigningKeysRequest request =
-          _ListSigningKeysRequest.newBuilder().setNextToken(nextToken(nextToken)).build();
+      final _ListSigningKeysRequest request =
+          _ListSigningKeysRequest.newBuilder().setNextToken("").build();
       return convert(controlGrpcStubsManager.getBlockingStub().listSigningKeys(request), endpoint);
     } catch (Exception e) {
-      throw CacheServiceExceptionMapper.convert(e);
+      return new ListSigningKeysResponse.Error(CacheServiceExceptionMapper.convert(e));
     }
   }
 
@@ -138,19 +139,11 @@ final class ScsControlClient implements Closeable {
   }
 
   private static ListCachesResponse convert(_ListCachesResponse response) {
-    List<CacheInfo> caches = new ArrayList<>();
-    for (_Cache cache : response.getCacheList()) {
+    final List<CacheInfo> caches = new ArrayList<>();
+    for (final _Cache cache : response.getCacheList()) {
       caches.add(convert(cache));
     }
-    Optional<String> nextPageToken =
-        StringUtils.isEmpty(response.getNextToken())
-            ? Optional.empty()
-            : Optional.of(response.getNextToken());
-    return new ListCachesResponse(caches, nextPageToken);
-  }
-
-  private static String nextToken(Optional<String> nextToken) {
-    return nextToken == null || !nextToken.isPresent() ? "" : nextToken.get();
+    return new ListCachesResponse.Success(caches);
   }
 
   private static CacheInfo convert(_Cache cache) {
@@ -159,15 +152,12 @@ final class ScsControlClient implements Closeable {
 
   private static ListSigningKeysResponse convert(
       _ListSigningKeysResponse response, String endpoint) {
-    List<SigningKey> signingKeys = new ArrayList<>();
-    for (_SigningKey signingKey : response.getSigningKeyList()) {
+    final List<SigningKey> signingKeys = new ArrayList<>();
+    for (final _SigningKey signingKey : response.getSigningKeyList()) {
       signingKeys.add(convert(signingKey, endpoint));
     }
-    Optional<String> nextPageToken =
-        StringUtils.isEmpty(response.getNextToken())
-            ? Optional.empty()
-            : Optional.of(response.getNextToken());
-    return new ListSigningKeysResponse(signingKeys, nextPageToken);
+
+    return new ListSigningKeysResponse.Success(signingKeys);
   }
 
   private static SigningKey convert(_SigningKey signingKey, String endpoint) {
@@ -177,9 +167,9 @@ final class ScsControlClient implements Closeable {
 
   private static CreateSigningKeyResponse convert(
       _CreateSigningKeyResponse response, String endpoint) {
-    JsonObject jsonObject = JsonParser.parseString(response.getKey()).getAsJsonObject();
-    String keyId = jsonObject.get("kid").getAsString();
-    return new CreateSigningKeyResponse(
+    final JsonObject jsonObject = JsonParser.parseString(response.getKey()).getAsJsonObject();
+    final String keyId = jsonObject.get("kid").getAsString();
+    return new CreateSigningKeyResponse.Success(
         keyId, endpoint, response.getKey(), new Date(response.getExpiresAt() * 1000));
   }
 

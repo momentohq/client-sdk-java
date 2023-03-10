@@ -1,34 +1,34 @@
 package momento.sdk.messages;
 
 import java.util.List;
-import java.util.Optional;
-import momento.sdk.SimpleCacheClient;
+import momento.sdk.exceptions.SdkException;
 
-/** Response object for list of signing keys. */
-public final class ListSigningKeysResponse {
+/** Response for a list signing keys operation. */
+public interface ListSigningKeysResponse {
 
-  private final List<SigningKey> signingKeys;
-  private final Optional<String> nextPageToken;
+  /** A successful list signing keys operation. Contains the discovered signing keys. */
+  class Success implements ListSigningKeysResponse {
 
-  public ListSigningKeysResponse(List<SigningKey> signingKeys, Optional<String> nextPageToken) {
-    this.signingKeys = signingKeys;
-    this.nextPageToken = nextPageToken;
-  }
+    private final List<SigningKey> signingKeys;
 
-  public List<SigningKey> signingKeys() {
-    return signingKeys;
+    public Success(List<SigningKey> signingKeys) {
+      this.signingKeys = signingKeys;
+    }
+
+    public List<SigningKey> signingKeys() {
+      return signingKeys;
+    }
   }
 
   /**
-   * Next Page Token returned by Simple Cache Service along with the list of signing keys.
-   *
-   * <p>If nextPageToken().isPresent(), then this token must be provided in the next call to
-   * continue paginating through the list. This is done by setting the value in {@link
-   * SimpleCacheClient#listSigningKeys(Optional)}
-   *
-   * <p>When not present, there are no more signingKeys to return.
+   * A failed list signing keys operation. The response itself is an exception, so it can be
+   * directly thrown, or the cause of the error can be retrieved with {@link #getCause()}. The
+   * message is a copy of the message of the cause.
    */
-  public Optional<String> nextPageToken() {
-    return nextPageToken;
+  class Error extends SdkException implements ListSigningKeysResponse {
+
+    public Error(SdkException cause) {
+      super(cause.getMessage(), cause);
+    }
   }
 }
