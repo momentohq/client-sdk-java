@@ -170,7 +170,7 @@ public final class SimpleCacheClient implements Closeable {
    *     associated value data.
    */
   public CompletableFuture<CacheGetResponse> get(String cacheName, byte[] key) {
-    return scsDataClient.getAsync(cacheName, key);
+    return scsDataClient.get(cacheName, key);
   }
 
   /**
@@ -182,7 +182,7 @@ public final class SimpleCacheClient implements Closeable {
    *     associated value data.
    */
   public CompletableFuture<CacheGetResponse> get(String cacheName, String key) {
-    return scsDataClient.getAsync(cacheName, key);
+    return scsDataClient.get(cacheName, key);
   }
 
   /**
@@ -197,7 +197,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheDeleteResponse> delete(String cacheName, String key) {
-    return scsDataClient.deleteAsync(cacheName, key);
+    return scsDataClient.delete(cacheName, key);
   }
 
   /**
@@ -212,7 +212,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheDeleteResponse> delete(String cacheName, byte[] key) {
-    return scsDataClient.deleteAsync(cacheName, key);
+    return scsDataClient.delete(cacheName, key);
   }
 
   /**
@@ -233,7 +233,7 @@ public final class SimpleCacheClient implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, ByteBuffer value, long ttlSeconds) {
-    return scsDataClient.setAsync(cacheName, key, value, ttlSeconds);
+    return scsDataClient.set(cacheName, key, value, ttlSeconds);
   }
 
   /**
@@ -253,7 +253,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> set(String cacheName, String key, ByteBuffer value) {
-    return scsDataClient.setAsync(cacheName, key, value);
+    return scsDataClient.set(cacheName, key, value);
   }
 
   /**
@@ -274,7 +274,7 @@ public final class SimpleCacheClient implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> set(
       String cacheName, byte[] key, byte[] value, long ttlSeconds) {
-    return scsDataClient.setAsync(cacheName, key, value, ttlSeconds);
+    return scsDataClient.set(cacheName, key, value, ttlSeconds);
   }
 
   /**
@@ -294,7 +294,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> set(String cacheName, byte[] key, byte[] value) {
-    return scsDataClient.setAsync(cacheName, key, value);
+    return scsDataClient.set(cacheName, key, value);
   }
 
   /**
@@ -315,7 +315,7 @@ public final class SimpleCacheClient implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, String value, long ttlSeconds) {
-    return scsDataClient.setAsync(cacheName, key, value, ttlSeconds);
+    return scsDataClient.set(cacheName, key, value, ttlSeconds);
   }
 
   /**
@@ -335,7 +335,7 @@ public final class SimpleCacheClient implements Closeable {
    * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
-    return scsDataClient.setAsync(cacheName, key, value);
+    return scsDataClient.set(cacheName, key, value);
   }
 
   @Override

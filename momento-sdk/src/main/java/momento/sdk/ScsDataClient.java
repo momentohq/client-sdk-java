@@ -60,54 +60,54 @@ final class ScsDataClient implements Closeable {
     return endpoint;
   }
 
-  CompletableFuture<CacheGetResponse> getAsync(String cacheName, byte[] key) {
+  CompletableFuture<CacheGetResponse> get(String cacheName, byte[] key) {
     ensureValidKey(key);
     return sendGet(cacheName, convert(key));
   }
 
-  CompletableFuture<CacheGetResponse> getAsync(String cacheName, String key) {
+  CompletableFuture<CacheGetResponse> get(String cacheName, String key) {
     ensureValidKey(key);
     return sendGet(cacheName, convert(key));
   }
 
-  CompletableFuture<CacheDeleteResponse> deleteAsync(String cacheName, byte[] key) {
+  CompletableFuture<CacheDeleteResponse> delete(String cacheName, byte[] key) {
     ensureValidKey(key);
     return sendDelete(cacheName, convert(key));
   }
 
-  CompletableFuture<CacheDeleteResponse> deleteAsync(String cacheName, String key) {
+  CompletableFuture<CacheDeleteResponse> delete(String cacheName, String key) {
     ensureValidKey(key);
     return sendDelete(cacheName, convert(key));
   }
 
-  CompletableFuture<CacheSetResponse> setAsync(
+  CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, ByteBuffer value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
-  CompletableFuture<CacheSetResponse> setAsync(String cacheName, String key, ByteBuffer value) {
-    return setAsync(cacheName, key, value, itemDefaultTtlSeconds);
+  CompletableFuture<CacheSetResponse> set(String cacheName, String key, ByteBuffer value) {
+    return set(cacheName, key, value, itemDefaultTtlSeconds);
   }
 
-  CompletableFuture<CacheSetResponse> setAsync(
+  CompletableFuture<CacheSetResponse> set(
       String cacheName, byte[] key, byte[] value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
-  CompletableFuture<CacheSetResponse> setAsync(String cacheName, byte[] key, byte[] value) {
-    return setAsync(cacheName, key, value, itemDefaultTtlSeconds);
+  CompletableFuture<CacheSetResponse> set(String cacheName, byte[] key, byte[] value) {
+    return set(cacheName, key, value, itemDefaultTtlSeconds);
   }
 
-  CompletableFuture<CacheSetResponse> setAsync(
+  CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, String value, long ttlSeconds) {
     ensureValidCacheSet(key, value, ttlSeconds);
     return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
   }
 
-  CompletableFuture<CacheSetResponse> setAsync(String cacheName, String key, String value) {
-    return setAsync(cacheName, key, value, itemDefaultTtlSeconds);
+  CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
+    return set(cacheName, key, value, itemDefaultTtlSeconds);
   }
 
   private ByteString convert(String stringToEncode) {
