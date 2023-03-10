@@ -5,20 +5,16 @@ import static momento.sdk.OtelTestHelpers.startIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.stopIntegrationTestOtel;
 import static momento.sdk.OtelTestHelpers.verifyGetTrace;
 import static momento.sdk.OtelTestHelpers.verifySetTrace;
-import static momento.sdk.ScsDataTestHelper.assertSetResponse;
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.time.Duration;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.TimeoutException;
+import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
 import org.junit.jupiter.api.AfterEach;
@@ -125,13 +121,15 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       final String cacheName = randomString("name");
 
-      final CacheGetResponse response = client.get(cacheName, "").join();
-      assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
-      assertThat(((CacheGetResponse.Error) response)).hasCauseInstanceOf(NotFoundException.class);
+      final CacheGetResponse getResponse = client.get(cacheName, "").join();
+      assertThat(getResponse).isInstanceOf(CacheGetResponse.Error.class);
+      assertThat(((CacheGetResponse.Error) getResponse))
+          .hasCauseInstanceOf(NotFoundException.class);
 
-      ExecutionException getException =
-          assertThrows(ExecutionException.class, () -> client.set(cacheName, "", "", 10).get());
-      assertTrue(getException.getCause() instanceof NotFoundException);
+      final CacheSetResponse setResponse = client.set(cacheName, "", "", 10).join();
+      assertThat(setResponse).isInstanceOf(CacheSetResponse.Error.class);
+      assertThat(((CacheSetResponse.Error) setResponse))
+          .hasCauseInstanceOf(NotFoundException.class);
     }
   }
 
@@ -167,25 +165,30 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       final String key = "key";
       final String value = "value";
+
       client.set(cacheName, key, value).get();
       final CacheGetResponse getResponse = client.get(cacheName, key).get();
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
       assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
-      client.delete(cacheName, key).get();
+
+      final CacheDeleteResponse deleteResponse = client.delete(cacheName, key).get();
+      assertThat(deleteResponse).isInstanceOf(CacheDeleteResponse.Success.class);
+
       final CacheGetResponse getAfterDeleteResponse = client.get(cacheName, key).get();
       assertThat(getAfterDeleteResponse).isInstanceOf(CacheGetResponse.Miss.class);
     }
   }
 
   @Test
-  public void setWithShortTimeoutThrowsException() {
+  public void setWithShortTimeoutReturnsError() {
     try (SimpleCacheClient client =
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
             .requestTimeout(Duration.ofMillis(1))
             .build()) {
-      ExecutionException e =
-          assertThrows(ExecutionException.class, () -> client.set("cache", "key", "value").get());
-      assertTrue(e.getCause() instanceof TimeoutException);
+
+      final CacheSetResponse response = client.set("cache", "key", "value").join();
+      assertThat(response).isInstanceOf(CacheSetResponse.Error.class);
+      assertThat(((CacheSetResponse.Error) response)).hasCauseInstanceOf(TimeoutException.class);
     }
   }
 
@@ -194,8 +197,11 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
     final String value = randomString("value");
 
     // Successful Set
-    final CompletableFuture<CacheSetResponse> setResponse = target.set(cacheName, key, value);
-    assertSetResponse(value, setResponse.get());
+    final CacheSetResponse setResponse = target.set(cacheName, key, value).join();
+    assertThat(setResponse).isInstanceOf(CacheSetResponse.Success.class);
+    assertThat(((CacheSetResponse.Success) setResponse).valueString()).isEqualTo(value);
+    assertThat(((CacheSetResponse.Success) setResponse).valueByteArray())
+        .isEqualTo(value.getBytes());
 
     // Successful Get with Hit
     final CacheGetResponse getResponse = target.get(cacheName, key).get();

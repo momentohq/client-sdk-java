@@ -44,32 +44,32 @@ final class ScsControlClient implements Closeable {
   }
 
   CreateCacheResponse createCache(String cacheName) {
-    checkCacheNameValid(cacheName);
     try {
+      checkCacheNameValid(cacheName);
       controlGrpcStubsManager.getBlockingStub().createCache(buildCreateCacheRequest(cacheName));
-      return new CreateCacheResponse();
+      return new CreateCacheResponse.Success();
     } catch (Exception e) {
-      throw CacheServiceExceptionMapper.convert(e);
+      return new CreateCacheResponse.Error(CacheServiceExceptionMapper.convert(e));
     }
   }
 
   DeleteCacheResponse deleteCache(String cacheName) {
-    checkCacheNameValid(cacheName);
     try {
+      checkCacheNameValid(cacheName);
       controlGrpcStubsManager.getBlockingStub().deleteCache(buildDeleteCacheRequest(cacheName));
-      return new DeleteCacheResponse();
+      return new DeleteCacheResponse.Success();
     } catch (Exception e) {
-      throw CacheServiceExceptionMapper.convert(e);
+      return new DeleteCacheResponse.Error(CacheServiceExceptionMapper.convert(e));
     }
   }
 
   FlushCacheResponse flushCache(String cacheName) {
-    checkCacheNameValid(cacheName);
     try {
+      checkCacheNameValid(cacheName);
       controlGrpcStubsManager.getBlockingStub().flushCache(buildFlushCacheRequest(cacheName));
-      return new FlushCacheResponse();
+      return new FlushCacheResponse.Success();
     } catch (Exception e) {
-      throw CacheServiceExceptionMapper.convert(e);
+      return new FlushCacheResponse.Error(CacheServiceExceptionMapper.convert(e));
     }
   }
 
