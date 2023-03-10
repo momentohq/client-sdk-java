@@ -112,7 +112,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
     try (final SimpleCacheClient client =
         SimpleCacheClient.builder(badToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
 
-      final CacheGetResponse response = client.getAsync(cacheName, "").join();
+      final CacheGetResponse response = client.get(cacheName, "").join();
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
       assertThat(((CacheGetResponse.Error) response))
           .hasCauseInstanceOf(AuthenticationException.class);
@@ -125,13 +125,12 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       final String cacheName = randomString("name");
 
-      final CacheGetResponse response = client.getAsync(cacheName, "").join();
+      final CacheGetResponse response = client.get(cacheName, "").join();
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
       assertThat(((CacheGetResponse.Error) response)).hasCauseInstanceOf(NotFoundException.class);
 
       ExecutionException getException =
-          assertThrows(
-              ExecutionException.class, () -> client.setAsync(cacheName, "", "", 10).get());
+          assertThrows(ExecutionException.class, () -> client.set(cacheName, "", "", 10).get());
       assertTrue(getException.getCause() instanceof NotFoundException);
     }
   }
@@ -143,7 +142,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
             .requestTimeout(Duration.ofMillis(1))
             .build()) {
 
-      final CacheGetResponse response = client.getAsync("cache", "key").join();
+      final CacheGetResponse response = client.get("cache", "key").join();
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
       assertThat(((CacheGetResponse.Error) response)).hasCauseInstanceOf(TimeoutException.class);
     }
@@ -155,8 +154,8 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       final String emptyKey = "";
       final String emptyValue = "";
-      client.setAsync(cacheName, emptyKey, emptyValue).get();
-      final CacheGetResponse response = client.getAsync(cacheName, emptyKey).get();
+      client.set(cacheName, emptyKey, emptyValue).get();
+      final CacheGetResponse response = client.get(cacheName, emptyKey).get();
       assertThat(response).isInstanceOf(CacheGetResponse.Hit.class);
       assertThat(((CacheGetResponse.Hit) response).valueString()).isEqualTo(emptyValue);
     }
@@ -168,12 +167,12 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
         SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       final String key = "key";
       final String value = "value";
-      client.setAsync(cacheName, key, value).get();
-      final CacheGetResponse getResponse = client.getAsync(cacheName, key).get();
+      client.set(cacheName, key, value).get();
+      final CacheGetResponse getResponse = client.get(cacheName, key).get();
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
       assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
-      client.deleteAsync(cacheName, key).get();
-      final CacheGetResponse getAfterDeleteResponse = client.getAsync(cacheName, key).get();
+      client.delete(cacheName, key).get();
+      final CacheGetResponse getAfterDeleteResponse = client.get(cacheName, key).get();
       assertThat(getAfterDeleteResponse).isInstanceOf(CacheGetResponse.Miss.class);
     }
   }
@@ -185,8 +184,7 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
             .requestTimeout(Duration.ofMillis(1))
             .build()) {
       ExecutionException e =
-          assertThrows(
-              ExecutionException.class, () -> client.setAsync("cache", "key", "value").get());
+          assertThrows(ExecutionException.class, () -> client.set("cache", "key", "value").get());
       assertTrue(e.getCause() instanceof TimeoutException);
     }
   }
@@ -196,11 +194,11 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
     final String value = randomString("value");
 
     // Successful Set
-    final CompletableFuture<CacheSetResponse> setResponse = target.setAsync(cacheName, key, value);
+    final CompletableFuture<CacheSetResponse> setResponse = target.set(cacheName, key, value);
     assertSetResponse(value, setResponse.get());
 
     // Successful Get with Hit
-    final CacheGetResponse getResponse = target.getAsync(cacheName, key).get();
+    final CacheGetResponse getResponse = target.get(cacheName, key).get();
     assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
     assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
@@ -209,18 +207,18 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
     final String key = randomString("key");
 
     // Set Key sync
-    target.setAsync(cacheName, key, "", 1);
+    target.set(cacheName, key, "", 1);
 
     Thread.sleep(2000);
 
     // Get Key that was just set
-    final CacheGetResponse rsp = target.getAsync(cacheName, key).get();
+    final CacheGetResponse rsp = target.get(cacheName, key).get();
     assertThat(rsp).isInstanceOf(CacheGetResponse.Miss.class);
   }
 
   private void runMissTest(SimpleCacheClient target) throws Exception {
     // Get key that was not set
-    final CacheGetResponse response = target.getAsync(cacheName, randomString("key")).get();
+    final CacheGetResponse response = target.get(cacheName, randomString("key")).get();
     assertThat(response).isInstanceOf(CacheGetResponse.Miss.class);
   }
 }

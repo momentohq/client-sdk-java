@@ -2,6 +2,7 @@ package momento.sdk;
 
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatException;
 import static org.junit.jupiter.api.Assertions.*;
 
 import java.time.Duration;
@@ -35,13 +36,13 @@ final class SimpleCacheClientTest extends BaseTestClass {
 
   // These JWTs will result in UNAUTHENTICATED from the reachable backend since they have made up
   // signatures
-  private String BAD_CONTROL_PLANE_JWT =
+  private static final String BAD_CONTROL_PLANE_JWT =
       JWT_HEADER_BASE64
           + "."
           + JWT_PAYLOAD_BAD_CONTROL_PLANE_BASE64
           + "."
           + JWT_INVALID_SIGNATURE_BASE64;
-  private String BAD_DATA_PLANE_JWT =
+  private static final String BAD_DATA_PLANE_JWT =
       JWT_HEADER_BASE64
           + "."
           + JWT_PAYLOAD_BAD_DATA_PLANE_BASE64
@@ -69,17 +70,17 @@ final class SimpleCacheClientTest extends BaseTestClass {
     target.createCache(cacheName);
     target.createCache(alternateCacheName);
     try {
-      target.set(cacheName, key, value);
+      target.set(cacheName, key, value).join();
 
-      final CacheGetResponse getResponse = target.get(cacheName, key);
+      final CacheGetResponse getResponse = target.get(cacheName, key).join();
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
       assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
 
-      target.delete(cacheName, key);
-      final CacheGetResponse getAfterDeleteResponse = target.get(cacheName, key);
+      target.delete(cacheName, key).join();
+      final CacheGetResponse getAfterDeleteResponse = target.get(cacheName, key).join();
       assertThat(getAfterDeleteResponse).isInstanceOf(CacheGetResponse.Miss.class);
 
-      final CacheGetResponse getForKeyInSomeOtherCache = target.get(alternateCacheName, key);
+      final CacheGetResponse getForKeyInSomeOtherCache = target.get(alternateCacheName, key).join();
       assertThat(getForKeyInSomeOtherCache).isInstanceOf(CacheGetResponse.Miss.class);
     } finally {
       target.deleteCache(cacheName);
@@ -96,8 +97,8 @@ final class SimpleCacheClientTest extends BaseTestClass {
 
     target.createCache(cacheName);
     try {
-      target.set(cacheName, key, value, ttl1HourInSeconds);
-      final CacheGetResponse getResponse = target.get(cacheName, key);
+      target.set(cacheName, key, value, ttl1HourInSeconds).join();
+      final CacheGetResponse getResponse = target.get(cacheName, key).join();
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
       assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
 
@@ -105,7 +106,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
       target.flushCache(cacheName);
 
       // Verify that previously set key is now a MISS
-      final CacheGetResponse getResponseAfterFlush = target.get(cacheName, key);
+      final CacheGetResponse getResponseAfterFlush = target.get(cacheName, key).join();
       assertThat(getResponseAfterFlush).isInstanceOf(CacheGetResponse.Miss.class);
     } finally {
       target.deleteCache(cacheName);
@@ -124,6 +125,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
 
   @Test
   public void throwsExceptionWhenClientUsesNegativeDefaultTtl() {
+    //noinspection resource
     assertThrows(
         InvalidArgumentException.class,
         () -> SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), -1).build());
@@ -140,21 +142,23 @@ final class SimpleCacheClientTest extends BaseTestClass {
       assertTrue(e.getMessage().contains("Unable to reach request endpoint."));
 
       // But gets a valid response from Data plane
-      final CacheGetResponse getResponse = client.get("helloCache", "key");
+      final CacheGetResponse getResponse = client.get("helloCache", "key").join();
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Error.class);
       assertThat(((CacheGetResponse.Error) getResponse))
           .hasCauseInstanceOf(AuthenticationException.class);
 
-      assertThrows(AuthenticationException.class, () -> client.set("helloCache", "key", "value"));
+      assertThatException()
+          .isThrownBy(() -> client.set("helloCache", "key", "value").join())
+          .withCauseInstanceOf(AuthenticationException.class);
 
-      final CacheGetResponse asyncGetResponse = client.getAsync("helloCache", "key").join();
+      final CacheGetResponse asyncGetResponse = client.get("helloCache", "key").join();
       assertThat(asyncGetResponse).isInstanceOf(CacheGetResponse.Error.class);
       assertThat(((CacheGetResponse.Error) asyncGetResponse))
           .hasCauseInstanceOf(AuthenticationException.class);
 
       final ExecutionException setException =
           assertThrows(
-              ExecutionException.class, () -> client.setAsync("helloCache", "key", "value").get());
+              ExecutionException.class, () -> client.set("helloCache", "key", "value").get());
       assertTrue(setException.getCause() instanceof AuthenticationException);
     }
   }
@@ -169,14 +173,16 @@ final class SimpleCacheClientTest extends BaseTestClass {
           AuthenticationException.class, () -> client.createCache(randomString("cacheName")));
 
       // Unable to reach data plane
-      final CacheGetResponse getResponse = client.get("helloCache", "key");
+      final CacheGetResponse getResponse = client.get("helloCache", "key").join();
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Error.class);
       assertThat(((CacheGetResponse.Error) getResponse))
           .hasCauseInstanceOf(InternalServerException.class);
 
-      assertThrows(InternalServerException.class, () -> client.set("helloCache", "key", "value"));
+      assertThatException()
+          .isThrownBy(() -> client.set("helloCache", "key", "value").join())
+          .withCauseInstanceOf(InternalServerException.class);
 
-      final CacheGetResponse response = client.getAsync("helloCache", "key").join();
+      final CacheGetResponse response = client.get("helloCache", "key").join();
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
       assertThat(((CacheGetResponse.Error) response))
           .hasCauseInstanceOf(InternalServerException.class)
@@ -184,7 +190,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
 
       final ExecutionException setException =
           assertThrows(
-              ExecutionException.class, () -> client.setAsync("helloCache", "key", "value").get());
+              ExecutionException.class, () -> client.set("helloCache", "key", "value").get());
       assertTrue(setException.getCause() instanceof InternalServerException);
       assertTrue(setException.getMessage().contains("Unable to reach request endpoint."));
     }

@@ -3,7 +3,6 @@ package momento.sdk;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.nio.ByteBuffer;
-import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,49 +32,34 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
   public void nullKeyGetThrowsException() {
     String nullKeyString = null;
     assertThrows(InvalidArgumentException.class, () -> client.get(cacheName, nullKeyString));
-    assertThrows(InvalidArgumentException.class, () -> client.getAsync(cacheName, nullKeyString));
 
     byte[] nullByteKey = null;
     assertThrows(InvalidArgumentException.class, () -> client.get(cacheName, nullByteKey));
-    assertThrows(InvalidArgumentException.class, () -> client.getAsync(cacheName, nullByteKey));
   }
 
   @Test
   public void nullKeyDeleteThrowsException() {
     String nullKeyString = null;
     assertThrows(InvalidArgumentException.class, () -> client.delete(cacheName, nullKeyString));
-    assertThrows(
-        InvalidArgumentException.class, () -> client.deleteAsync(cacheName, nullKeyString));
 
     byte[] nullByteKey = null;
     assertThrows(InvalidArgumentException.class, () -> client.delete(cacheName, nullByteKey));
-    assertThrows(InvalidArgumentException.class, () -> client.deleteAsync(cacheName, nullByteKey));
   }
 
   @Test
   public void nullKeySetThrowsException() {
     String nullKeyString = null;
-    // Blocking String key set
+    // Async String key set
     assertThrows(
         InvalidArgumentException.class, () -> client.set(cacheName, nullKeyString, "hello", 10));
     assertThrows(
-        ClientSdkException.class,
+        InvalidArgumentException.class,
         () -> client.set(cacheName, nullKeyString, ByteBuffer.allocate(1), 10));
-    // Async String key set
-    assertThrows(
-        InvalidArgumentException.class,
-        () -> client.setAsync(cacheName, nullKeyString, "hello", 10));
-    assertThrows(
-        InvalidArgumentException.class,
-        () -> client.setAsync(cacheName, nullKeyString, ByteBuffer.allocate(1), 10));
 
     byte[] nullByteKey = null;
     assertThrows(
         InvalidArgumentException.class,
         () -> client.set(cacheName, nullByteKey, new byte[] {0x00}, 10));
-    assertThrows(
-        InvalidArgumentException.class,
-        () -> client.setAsync(cacheName, nullByteKey, new byte[] {0x00}, 10));
   }
 
   @Test
@@ -87,44 +71,23 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
         () -> client.set(cacheName, "hello", (ByteBuffer) null, 10));
     assertThrows(
         InvalidArgumentException.class, () -> client.set(cacheName, new byte[] {}, null, 10));
-
-    assertThrows(
-        InvalidArgumentException.class,
-        () -> client.setAsync(cacheName, "hello", (String) null, 10));
-    assertThrows(
-        InvalidArgumentException.class,
-        () -> client.setAsync(cacheName, "hello", (ByteBuffer) null, 10));
-    assertThrows(
-        InvalidArgumentException.class, () -> client.setAsync(cacheName, new byte[] {}, null, 10));
   }
 
   @Test
   public void ttlMustNotBeNegativeThrowsException() {
-    assertThrows(InvalidArgumentException.class, () -> client.set(cacheName, "hello", "world", -1));
+    assertThrows(InvalidArgumentException.class, () -> client.set(cacheName, "hello", "", -1));
     assertThrows(
         InvalidArgumentException.class,
         () -> client.set(cacheName, "hello", ByteBuffer.allocate(1), -1));
     assertThrows(
         InvalidArgumentException.class,
         () -> client.set(cacheName, new byte[] {}, new byte[] {}, -1));
-
-    assertThrows(InvalidArgumentException.class, () -> client.setAsync(cacheName, "hello", "", -1));
-    assertThrows(
-        InvalidArgumentException.class,
-        () -> client.setAsync(cacheName, "hello", ByteBuffer.allocate(1), -1));
-    assertThrows(
-        InvalidArgumentException.class,
-        () -> client.setAsync(cacheName, new byte[] {}, new byte[] {}, -1));
   }
 
   @Test
   public void nullCacheNameThrowsException() {
-    assertThrows(InvalidArgumentException.class, () -> client.get(null, ""));
-    assertThrows(InvalidArgumentException.class, () -> client.delete(null, ""));
-    assertThrows(InvalidArgumentException.class, () -> client.set(null, "", "", 10));
-
-    assertThrows(InvalidArgumentException.class, () -> client.getAsync(null, "").get());
-    assertThrows(InvalidArgumentException.class, () -> client.deleteAsync(null, "").get());
-    assertThrows(InvalidArgumentException.class, () -> client.setAsync(null, "", "", 10).get());
+    assertThrows(InvalidArgumentException.class, () -> client.get(null, "").get());
+    assertThrows(InvalidArgumentException.class, () -> client.delete(null, "").get());
+    assertThrows(InvalidArgumentException.class, () -> client.set(null, "", "", 10).get());
   }
 }
