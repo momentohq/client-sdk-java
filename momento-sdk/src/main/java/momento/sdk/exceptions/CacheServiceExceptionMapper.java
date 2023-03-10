@@ -22,7 +22,7 @@ public final class CacheServiceExceptionMapper {
    */
   public static SdkException convert(Throwable e) {
     if (e instanceof SdkException) {
-      throw (SdkException) e;
+      return (SdkException) e;
     }
 
     if (e instanceof io.grpc.StatusRuntimeException) {

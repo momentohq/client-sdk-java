@@ -1,62 +1,48 @@
 package momento.sdk.messages;
 
 import com.google.protobuf.ByteString;
-import java.io.InputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import momento.sdk.exceptions.SdkException;
 
-/** Result of the set operation on Cache. */
-public final class CacheSetResponse {
-  private final ByteString value;
+/** Response for a cache set operation */
+public interface CacheSetResponse {
 
-  public CacheSetResponse(ByteString value) {
-    this.value = value;
+  /** A successful set operation. Contains the value that was written. */
+  class Success implements CacheSetResponse {
+    private final ByteString value;
+
+    public Success(ByteString value) {
+      this.value = value;
+    }
+
+    /**
+     * Gets the value set in the cache as a byte array.
+     *
+     * @return the value.
+     */
+    public byte[] valueByteArray() {
+      return value.toByteArray();
+    }
+
+    /**
+     * Gets the value set in the cache as a UTF-8 {@link String}
+     *
+     * @return the value.
+     */
+    public String valueString() {
+      return value.toString(StandardCharsets.UTF_8);
+    }
   }
 
   /**
-   * Value set in the cache as a byte array.
-   *
-   * @return Value set for the given key.
+   * A failed set operation. The response itself is an exception, so it can be directly thrown, or
+   * the cause of the error can be retrieved with {@link #getCause()}. The message is a copy of the
+   * message of the cause.
    */
-  public byte[] byteArray() {
-    return value.toByteArray();
-  }
+  class Error extends SdkException implements CacheSetResponse {
 
-  /**
-   * Value set in the cache as a {@link ByteBuffer}.
-   *
-   * @return Value set for the given key.
-   */
-  public ByteBuffer byteBuffer() {
-    return value.asReadOnlyByteBuffer();
-  }
-
-  /**
-   * Value set in the cache as a UTF-8 {@link String}
-   *
-   * @return Value set for the given key.
-   */
-  public String string() {
-    return string(StandardCharsets.UTF_8);
-  }
-
-  /**
-   * Value set in the cache as {@link String}.
-   *
-   * @param charset to express the bytes as String.
-   * @return Value set for the given key.
-   */
-  public String string(Charset charset) {
-    return value.toString(charset);
-  }
-
-  /**
-   * Value as an {@link InputStream}
-   *
-   * @return Value set for the given key.
-   */
-  public InputStream inputStream() {
-    return value.newInput();
+    public Error(SdkException cause) {
+      super(cause.getMessage(), cause);
+    }
   }
 }
