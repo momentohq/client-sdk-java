@@ -10,6 +10,7 @@ val jwtVersion = rootProject.ext["jwtVersion"]
 
 dependencies {
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
+    testImplementation("org.assertj:assertj-core:3.24.2")
     testImplementation("commons-io:commons-io:2.11.0")
 
     implementation(platform("io.opentelemetry:opentelemetry-bom:$opentelemetryVersion"))

@@ -11,13 +11,7 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import grpc.cache_client.ScsGrpc;
-import grpc.cache_client._DeleteRequest;
-import grpc.cache_client._DeleteResponse;
-import grpc.cache_client._GetRequest;
-import grpc.cache_client._GetResponse;
-import grpc.cache_client._SetRequest;
-import grpc.cache_client._SetResponse;
+import grpc.cache_client.*;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
 import io.opentelemetry.api.OpenTelemetry;
@@ -34,6 +28,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
@@ -234,7 +229,19 @@ final class ScsDataClient implements Closeable {
         new FutureCallback<_GetResponse>() {
           @Override
           public void onSuccess(_GetResponse rsp) {
-            returnFuture.complete(new CacheGetResponse(rsp.getResult(), rsp.getCacheBody()));
+            final ECacheResult result = rsp.getResult();
+
+            final CacheGetResponse response;
+            if (result == ECacheResult.Hit) {
+              response = new CacheGetResponse.Hit(rsp.getCacheBody());
+            } else if (result == ECacheResult.Miss) {
+              response = new CacheGetResponse.Miss();
+            } else {
+              response =
+                  new CacheGetResponse.Error(
+                      new InternalServerException("Unsupported cache result " + result));
+            }
+            returnFuture.complete(response);
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
@@ -245,7 +252,8 @@ final class ScsDataClient implements Closeable {
 
           @Override
           public void onFailure(Throwable e) {
-            returnFuture.completeExceptionally(CacheServiceExceptionMapper.convert(e));
+            returnFuture.complete(
+                new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e)));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);

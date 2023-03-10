@@ -168,10 +168,6 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key to get
    * @return {@link CacheGetResponse} containing the status of the get operation and the associated
    *     value data.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key is null
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheGetResponse get(String cacheName, String key) {
     return scsDataClient.get(cacheName, key);
@@ -184,10 +180,6 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key to get
    * @return {@link CacheGetResponse} containing the status of the get operation and the associated
    *     value data.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key is null
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
    */
   public CacheGetResponse get(String cacheName, byte[] key) {
     return scsDataClient.get(cacheName, key);
@@ -349,10 +341,6 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key to get
    * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
    *     associated value data.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key is null
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheGetResponse> getAsync(String cacheName, byte[] key) {
     return scsDataClient.getAsync(cacheName, key);
@@ -365,10 +353,6 @@ public final class SimpleCacheClient implements Closeable {
    * @param key The key to get
    * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
    *     associated value data.
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws ClientSdkException if key is null
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
    */
   public CompletableFuture<CacheGetResponse> getAsync(String cacheName, String key) {
     return scsDataClient.getAsync(cacheName, key);
@@ -400,8 +384,8 @@ public final class SimpleCacheClient implements Closeable {
    * @throws NotFoundException
    * @throws momento.sdk.exceptions.InternalServerException
    */
-  public CompletableFuture<CacheGetResponse> deleteAsync(String cacheName, byte[] key) {
-    return scsDataClient.getAsync(cacheName, key);
+  public CompletableFuture<CacheDeleteResponse> deleteAsync(String cacheName, byte[] key) {
+    return scsDataClient.deleteAsync(cacheName, key);
   }
 
   /**
