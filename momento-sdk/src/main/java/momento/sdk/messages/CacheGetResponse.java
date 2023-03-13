@@ -7,6 +7,7 @@ import momento.sdk.exceptions.SdkException;
 /** Response for a cache get operation */
 public interface CacheGetResponse {
 
+  /** A successful get operation for a key that has a value. */
   class Hit implements CacheGetResponse {
     private final ByteString value;
 
@@ -33,8 +34,14 @@ public interface CacheGetResponse {
     }
   }
 
+  /** A successful get operation for a key that has no value. */
   class Miss implements CacheGetResponse {}
 
+  /**
+   * A failed get operation. The response itself is an exception, so it can be directly thrown, or
+   * the cause of the error can be retrieved with {@link #getCause()}. The message is a copy of the
+   * message of the cause.
+   */
   class Error extends SdkException implements CacheGetResponse {
 
     public Error(SdkException cause) {

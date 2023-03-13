@@ -216,7 +216,7 @@ final class ScsDataClient implements Closeable {
         new FutureCallback<_DeleteResponse>() {
           @Override
           public void onSuccess(_DeleteResponse rsp) {
-            returnFuture.complete(new CacheDeleteResponse());
+            returnFuture.complete(new CacheDeleteResponse.Success());
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
@@ -227,7 +227,8 @@ final class ScsDataClient implements Closeable {
 
           @Override
           public void onFailure(Throwable e) {
-            returnFuture.completeExceptionally(CacheServiceExceptionMapper.convert(e));
+            returnFuture.complete(
+                new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
@@ -273,7 +274,7 @@ final class ScsDataClient implements Closeable {
         new FutureCallback<_SetResponse>() {
           @Override
           public void onSuccess(_SetResponse rsp) {
-            returnFuture.complete(new CacheSetResponse(value));
+            returnFuture.complete(new CacheSetResponse.Success(value));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.OK);
@@ -284,8 +285,8 @@ final class ScsDataClient implements Closeable {
 
           @Override
           public void onFailure(Throwable e) {
-            returnFuture.completeExceptionally(
-                CacheServiceExceptionMapper.convert(e)); // bubble all errors up
+            returnFuture.complete(
+                new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
