@@ -1,34 +1,33 @@
 package momento.sdk.messages;
 
 import java.util.List;
-import java.util.Optional;
-import momento.sdk.SimpleCacheClient;
+import momento.sdk.exceptions.SdkException;
 
-/** Response object for list of caches. */
-public final class ListCachesResponse {
+/** Response for a list caches operation. */
+public interface ListCachesResponse {
 
-  private final List<CacheInfo> caches;
-  private final Optional<String> nextPageToken;
+  /** A successful list caches operation. Contains the discovered caches. */
+  class Success implements ListCachesResponse {
+    private final List<CacheInfo> caches;
 
-  public ListCachesResponse(List<CacheInfo> caches, Optional<String> nextPageToken) {
-    this.caches = caches;
-    this.nextPageToken = nextPageToken;
-  }
+    public Success(List<CacheInfo> caches) {
+      this.caches = caches;
+    }
 
-  public List<CacheInfo> caches() {
-    return caches;
+    public List<CacheInfo> getCaches() {
+      return caches;
+    }
   }
 
   /**
-   * Next Page Token returned by Simple Cache Service along with the list of caches.
-   *
-   * <p>If nextPageToken().isPresent(), then this token must be provided in the next call to
-   * continue paginating through the list. This is done by setting the value in {@link
-   * SimpleCacheClient#listCaches(Optional)}
-   *
-   * <p>When not present, there are no more caches to return.
+   * A failed list caches operation. The response itself is an exception, so it can be directly
+   * thrown, or the cause of the error can be retrieved with {@link #getCause()}. The message is a
+   * copy of the message of the cause.
    */
-  public Optional<String> nextPageToken() {
-    return nextPageToken;
+  class Error extends SdkException implements ListCachesResponse {
+
+    public Error(SdkException cause) {
+      super(cause.getMessage(), cause);
+    }
   }
 }

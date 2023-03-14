@@ -6,8 +6,6 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import momento.sdk.exceptions.ClientSdkException;
-import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
@@ -76,22 +74,9 @@ public final class SimpleCacheClient implements Closeable {
     return scsControlClient.flushCache(cacheName);
   }
 
-  /**
-   * Lists all caches for the provided auth token.
-   *
-   * <pre>{@code
-   * Optional<String> nextPageToken = Optional.empty();
-   * do {
-   *     ListCachesResponse response = simpleCacheClient.listCaches(nextPageToken);
-   *
-   *     // Your code here to use the response
-   *
-   *     nextPageToken = response.nextPageToken();
-   * } while(nextPageToken.isPresent());
-   * }</pre>
-   */
-  public ListCachesResponse listCaches(Optional<String> nextToken) {
-    return scsControlClient.listCaches(nextToken);
+  /** Lists all caches. */
+  public ListCachesResponse listCaches() {
+    return scsControlClient.listCaches();
   }
 
   /**
@@ -99,10 +84,6 @@ public final class SimpleCacheClient implements Closeable {
    *
    * @param ttlMinutes The key's time-to-live in minutes
    * @return The created key and its metadata
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   * @throws ClientSdkException if the {@code ttlMinutes} is invalid.
    */
   public CreateSigningKeyResponse createSigningKey(int ttlMinutes) {
     return scsControlClient.createSigningKey(ttlMinutes, scsDataClient.getEndpoint());
@@ -112,38 +93,18 @@ public final class SimpleCacheClient implements Closeable {
    * Revokes a Momento signing key, all tokens signed by which will be invalid
    *
    * @param keyId The id of the key to revoke
-   * @return
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
-   * @throws ClientSdkException if the {@code keyId} is null.
    */
   public RevokeSigningKeyResponse revokeSigningKey(String keyId) {
     return scsControlClient.revokeSigningKey(keyId);
   }
 
   /**
-   * Lists all Momento signing keys for the provided auth token.
+   * Lists all Momento signing keys.
    *
-   * <pre>{@code
-   * Optional<String> nextToken = Optional.empty();
-   * do {
-   *    ListSigningKeysResponse response = simpleCacheClient.listSigningKeys(nextToken);
-   *
-   *    // Your code here to use the response
-   *
-   *    nextToken = response.nextToken();
-   * } while (nextToken.isPresent());
-   * }</pre>
-   *
-   * @param nextToken Optional pagination token
    * @return A list of Momento signing keys along with a pagination token (if present)
-   * @throws momento.sdk.exceptions.PermissionDeniedException
-   * @throws NotFoundException
-   * @throws momento.sdk.exceptions.InternalServerException
    */
-  public ListSigningKeysResponse listSigningKeys(Optional<String> nextToken) {
-    return scsControlClient.listSigningKeys(nextToken, scsDataClient.getEndpoint());
+  public ListSigningKeysResponse listSigningKeys() {
+    return scsControlClient.listSigningKeys(scsDataClient.getEndpoint());
   }
 
   /**

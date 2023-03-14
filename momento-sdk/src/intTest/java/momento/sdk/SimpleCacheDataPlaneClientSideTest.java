@@ -12,13 +12,12 @@ import org.junit.jupiter.api.Test;
 final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
 
   private static final int DEFAULT_ITEM_TTL_SECONDS = 60;
-  private String authToken;
   private String cacheName;
   private SimpleCacheClient client;
 
   @BeforeEach
   void setup() {
-    authToken = System.getenv("TEST_AUTH_TOKEN");
+    final String authToken = System.getenv("TEST_AUTH_TOKEN");
     cacheName = System.getenv("TEST_CACHE_NAME");
     client = SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
   }
