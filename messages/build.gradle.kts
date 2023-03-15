@@ -10,8 +10,11 @@ dependencies {
 
     api("io.grpc:grpc-protobuf:${rootProject.ext["grpcVersion"]}")
     api("io.grpc:grpc-stub:${rootProject.ext["grpcVersion"]}")
-    api("com.google.protobuf:protobuf-java-util:${rootProject.ext["protobufVersion"]}")
+    api("com.google.protobuf:protobuf-java:${rootProject.ext["protobufVersion"]}")
     compileOnly("org.apache.tomcat:annotations-api:6.0.53") // necessary for Java 9+
+    implementation("com.google.guava:guava:${rootProject.ext["guavaVersion"]}")
+    implementation("com.google.api.grpc:proto-google-common-protos:2.0.1")
+    implementation("io.grpc:grpc-api:${rootProject.ext["grpcVersion"]}")
 
     protobuf(files("src/client_protos/proto/"))
 }
