@@ -24,6 +24,7 @@ import io.opentelemetry.context.Scope;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.Collections;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
@@ -61,29 +62,64 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheGetResponse> get(String cacheName, byte[] key) {
-    ensureValidKey(key);
-    return sendGet(cacheName, convert(key));
+    try {
+      ensureValidKey(key);
+      return sendGet(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheGetResponse.Error(
+              CacheServiceExceptionMapper.convert(
+                  e, Collections.singletonMap("cacheName", cacheName))));
+    }
   }
 
   CompletableFuture<CacheGetResponse> get(String cacheName, String key) {
-    ensureValidKey(key);
-    return sendGet(cacheName, convert(key));
+    try {
+      ensureValidKey(key);
+      return sendGet(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheGetResponse.Error(
+              CacheServiceExceptionMapper.convert(
+                  e, Collections.singletonMap("cacheName", cacheName))));
+    }
   }
 
   CompletableFuture<CacheDeleteResponse> delete(String cacheName, byte[] key) {
-    ensureValidKey(key);
-    return sendDelete(cacheName, convert(key));
+    try {
+      ensureValidKey(key);
+      return sendDelete(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDeleteResponse.Error(
+              CacheServiceExceptionMapper.convert(
+                  e, Collections.singletonMap("cacheName", cacheName))));
+    }
   }
 
   CompletableFuture<CacheDeleteResponse> delete(String cacheName, String key) {
-    ensureValidKey(key);
-    return sendDelete(cacheName, convert(key));
+    try {
+      ensureValidKey(key);
+      return sendDelete(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDeleteResponse.Error(
+              CacheServiceExceptionMapper.convert(
+                  e, Collections.singletonMap("cacheName", cacheName))));
+    }
   }
 
   CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, ByteBuffer value, long ttlSeconds) {
-    ensureValidCacheSet(key, value, ttlSeconds);
-    return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    try {
+      ensureValidCacheSet(key, value, ttlSeconds);
+      return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetResponse.Error(
+              CacheServiceExceptionMapper.convert(
+                  e, Collections.singletonMap("cacheName", cacheName))));
+    }
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, String key, ByteBuffer value) {
@@ -92,8 +128,15 @@ final class ScsDataClient implements Closeable {
 
   CompletableFuture<CacheSetResponse> set(
       String cacheName, byte[] key, byte[] value, long ttlSeconds) {
-    ensureValidCacheSet(key, value, ttlSeconds);
-    return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    try {
+      ensureValidCacheSet(key, value, ttlSeconds);
+      return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetResponse.Error(
+              CacheServiceExceptionMapper.convert(
+                  e, Collections.singletonMap("cacheName", cacheName))));
+    }
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, byte[] key, byte[] value) {
@@ -102,8 +145,15 @@ final class ScsDataClient implements Closeable {
 
   CompletableFuture<CacheSetResponse> set(
       String cacheName, String key, String value, long ttlSeconds) {
-    ensureValidCacheSet(key, value, ttlSeconds);
-    return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    try {
+      ensureValidCacheSet(key, value, ttlSeconds);
+      return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetResponse.Error(
+              CacheServiceExceptionMapper.convert(
+                  e, Collections.singletonMap("cacheName", cacheName))));
+    }
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
@@ -172,7 +222,9 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onFailure(Throwable e) {
             returnFuture.complete(
-                new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+                new CacheGetResponse.Error(
+                    CacheServiceExceptionMapper.convert(
+                        e, Collections.singletonMap("cacheName", cacheName))));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
@@ -228,7 +280,9 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onFailure(Throwable e) {
             returnFuture.complete(
-                new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
+                new CacheDeleteResponse.Error(
+                    CacheServiceExceptionMapper.convert(
+                        e, Collections.singletonMap("cacheName", cacheName))));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
@@ -286,7 +340,9 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onFailure(Throwable e) {
             returnFuture.complete(
-                new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+                new CacheSetResponse.Error(
+                    CacheServiceExceptionMapper.convert(
+                        e, Collections.singletonMap("cacheName", cacheName))));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);

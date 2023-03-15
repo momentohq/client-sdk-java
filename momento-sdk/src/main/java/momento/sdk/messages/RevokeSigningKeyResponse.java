@@ -1,6 +1,7 @@
 package momento.sdk.messages;
 
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.exceptions.WrappedSdkException;
 
 /** Response for a revoke signing key operation. */
 public interface RevokeSigningKeyResponse {
@@ -13,10 +14,10 @@ public interface RevokeSigningKeyResponse {
    * directly thrown, or the cause of the error can be retrieved with {@link #getCause()}. The
    * message is a copy of the message of the cause.
    */
-  class Error extends SdkException implements RevokeSigningKeyResponse {
+  class Error extends WrappedSdkException implements RevokeSigningKeyResponse {
 
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }

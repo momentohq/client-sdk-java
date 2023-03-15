@@ -1,7 +1,9 @@
 package momento.sdk.messages;
 
 import java.util.List;
+import java.util.stream.Collectors;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.exceptions.WrappedSdkException;
 
 /** Response for a list caches operation. */
 public interface ListCachesResponse {
@@ -17,6 +19,21 @@ public interface ListCachesResponse {
     public List<CacheInfo> getCaches() {
       return caches;
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Limits the caches to 5 to bound the size of the string.
+     */
+    @Override
+    public String toString() {
+      return super.toString()
+          + ": "
+          + getCaches().stream()
+              .map(CacheInfo::name)
+              .limit(5)
+              .collect(Collectors.joining("\", \"", "\"", "\"..."));
+    }
   }
 
   /**
@@ -24,10 +41,10 @@ public interface ListCachesResponse {
    * thrown, or the cause of the error can be retrieved with {@link #getCause()}. The message is a
    * copy of the message of the cause.
    */
-  class Error extends SdkException implements ListCachesResponse {
+  class Error extends WrappedSdkException implements ListCachesResponse {
 
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }

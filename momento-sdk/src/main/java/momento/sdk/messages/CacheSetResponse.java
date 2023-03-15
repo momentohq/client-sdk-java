@@ -2,7 +2,10 @@ package momento.sdk.messages;
 
 import com.google.protobuf.ByteString;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.exceptions.WrappedSdkException;
+import momento.sdk.internal.StringHelpers;
 
 /** Response for a cache set operation */
 public interface CacheSetResponse {
@@ -32,6 +35,21 @@ public interface CacheSetResponse {
     public String valueString() {
       return value.toString(StandardCharsets.UTF_8);
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Truncates the internal fields to 20 characters to bound the size of the string.
+     */
+    @Override
+    public String toString() {
+      return super.toString()
+          + ": valueString: \""
+          + StringHelpers.truncate(valueString())
+          + "\" valueByteArray: \""
+          + StringHelpers.truncate(Base64.getEncoder().encodeToString(valueByteArray()))
+          + "\"";
+    }
   }
 
   /**
@@ -39,10 +57,10 @@ public interface CacheSetResponse {
    * the cause of the error can be retrieved with {@link #getCause()}. The message is a copy of the
    * message of the cause.
    */
-  class Error extends SdkException implements CacheSetResponse {
+  class Error extends WrappedSdkException implements CacheSetResponse {
 
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }

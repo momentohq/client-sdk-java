@@ -1,6 +1,7 @@
 package momento.sdk.messages;
 
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.exceptions.WrappedSdkException;
 
 /** Response for a create cache operation */
 public interface CreateCacheResponse {
@@ -13,10 +14,10 @@ public interface CreateCacheResponse {
    * thrown, or the cause of the error can be retrieved with {@link #getCause()}. The message is a
    * copy of the message of the cause.
    */
-  class Error extends SdkException implements CreateCacheResponse {
+  class Error extends WrappedSdkException implements CreateCacheResponse {
 
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }

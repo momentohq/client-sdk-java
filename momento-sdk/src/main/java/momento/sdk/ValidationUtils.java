@@ -1,12 +1,13 @@
 package momento.sdk;
 
+import java.time.Duration;
 import momento.sdk.exceptions.InvalidArgumentException;
 
 // Should rely on server for all validations. However, there are some that cannot be delegated and
 // instead fail in grpc client, like providing null inputs or a negative ttl.
-// TODO: validation should not let exceptions escape from cache methods
 final class ValidationUtils {
 
+  static final String REQUEST_TIMEOUT_MUST_BE_POSITIVE = "Request timeout must be positive";
   static final String CACHE_ITEM_TTL_CANNOT_BE_NEGATIVE = "Cache item TTL cannot be negative.";
   static final String A_NON_NULL_KEY_IS_REQUIRED = "A non-null key is required.";
   static final String A_NON_NULL_VALUE_IS_REQUIRED = "A non-null value is required.";
@@ -14,6 +15,12 @@ final class ValidationUtils {
   static final String SIGNING_KEY_TTL_CANNOT_BE_NEGATIVE = "Signing key TTL cannot be negative.";
 
   ValidationUtils() {}
+
+  static void ensureRequestTimeoutValid(Duration requestTimeout) {
+    if (requestTimeout == null || requestTimeout.isNegative() || requestTimeout.isZero()) {
+      throw new InvalidArgumentException(REQUEST_TIMEOUT_MUST_BE_POSITIVE);
+    }
+  }
 
   static void checkCacheNameValid(String cacheName) {
     if (cacheName == null) {
