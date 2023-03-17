@@ -6,9 +6,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
 import momento.sdk.exceptions.AuthenticationException;
-import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
+import momento.sdk.exceptions.ServerUnavailableException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
@@ -147,8 +147,8 @@ final class SimpleCacheClientTest extends BaseTestClass {
       final CreateCacheResponse createResponse = client.createCache(randomString("cacheName"));
       assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
       assertThat(((CreateCacheResponse.Error) createResponse))
-          .hasCauseInstanceOf(InternalServerException.class)
-          .hasMessageContaining("Unable to reach request endpoint.");
+          .hasCauseInstanceOf(ServerUnavailableException.class)
+          .hasMessageContaining("server was unable to handle the request");
 
       // But gets a valid response from Data plane
       final CacheGetResponse getResponse = client.get("helloCache", "key").join();
@@ -180,14 +180,14 @@ final class SimpleCacheClientTest extends BaseTestClass {
       final CacheSetResponse setResponse = client.set("helloCache", "key", "value").join();
       assertThat(setResponse).isInstanceOf(CacheSetResponse.Error.class);
       assertThat(((CacheSetResponse.Error) setResponse))
-          .hasCauseInstanceOf(InternalServerException.class)
-          .hasMessageContaining("Unable to reach request endpoint.");
+          .hasCauseInstanceOf(ServerUnavailableException.class)
+          .hasMessageContaining("server was unable to handle the request");
 
       final CacheGetResponse getResponse = client.get("helloCache", "key").join();
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Error.class);
       assertThat(((CacheGetResponse.Error) getResponse))
-          .hasCauseInstanceOf(InternalServerException.class)
-          .hasMessageContaining("Unable to reach request endpoint.");
+          .hasCauseInstanceOf(ServerUnavailableException.class)
+          .hasMessageContaining("server was unable to handle the request");
     }
   }
 }

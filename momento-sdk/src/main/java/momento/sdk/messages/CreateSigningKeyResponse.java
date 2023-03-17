@@ -2,7 +2,6 @@ package momento.sdk.messages;
 
 import java.util.Date;
 import momento.sdk.exceptions.SdkException;
-import momento.sdk.exceptions.WrappedSdkException;
 
 /** Response for a create signing key operation */
 public interface CreateSigningKeyResponse {
@@ -61,8 +60,13 @@ public interface CreateSigningKeyResponse {
    * directly thrown, or the cause of the error can be retrieved with {@link #getCause()}. The
    * message is a copy of the message of the cause.
    */
-  class Error extends WrappedSdkException implements CreateSigningKeyResponse {
+  class Error extends SdkException implements CreateSigningKeyResponse {
 
+    /**
+     * Constructs a signing key creation error with a cause.
+     *
+     * @param cause the cause.
+     */
     public Error(SdkException cause) {
       super(cause);
     }

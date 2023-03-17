@@ -3,7 +3,6 @@ package momento.sdk.messages;
 import java.util.List;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.SdkException;
-import momento.sdk.exceptions.WrappedSdkException;
 
 /** Response for a list signing keys operation. */
 public interface ListSigningKeysResponse {
@@ -13,10 +12,20 @@ public interface ListSigningKeysResponse {
 
     private final List<SigningKey> signingKeys;
 
+    /**
+     * Constructs a list signing keys success with a list of found keys
+     *
+     * @param signingKeys the retrieved keys.
+     */
     public Success(List<SigningKey> signingKeys) {
       this.signingKeys = signingKeys;
     }
 
+    /**
+     * Returns the retrieved signing keys.
+     *
+     * @return the keys.
+     */
     public List<SigningKey> signingKeys() {
       return signingKeys;
     }
@@ -43,8 +52,13 @@ public interface ListSigningKeysResponse {
    * directly thrown, or the cause of the error can be retrieved with {@link #getCause()}. The
    * message is a copy of the message of the cause.
    */
-  class Error extends WrappedSdkException implements ListSigningKeysResponse {
+  class Error extends SdkException implements ListSigningKeysResponse {
 
+    /**
+     * Constructs a signing key list error with a cause.
+     *
+     * @param cause the cause.
+     */
     public Error(SdkException cause) {
       super(cause);
     }

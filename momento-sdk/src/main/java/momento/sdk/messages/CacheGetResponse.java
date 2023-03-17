@@ -4,7 +4,6 @@ import com.google.protobuf.ByteString;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import momento.sdk.exceptions.SdkException;
-import momento.sdk.exceptions.WrappedSdkException;
 import momento.sdk.internal.StringHelpers;
 
 /** Response for a cache get operation */
@@ -14,6 +13,11 @@ public interface CacheGetResponse {
   class Hit implements CacheGetResponse {
     private final ByteString value;
 
+    /**
+     * Constructs a cache get hit with an encoded value.
+     *
+     * @param value the retrieved value.
+     */
     public Hit(ByteString value) {
       this.value = value;
     }
@@ -60,8 +64,13 @@ public interface CacheGetResponse {
    * the cause of the error can be retrieved with {@link #getCause()}. The message is a copy of the
    * message of the cause.
    */
-  class Error extends WrappedSdkException implements CacheGetResponse {
+  class Error extends SdkException implements CacheGetResponse {
 
+    /**
+     * Constructs a cache get error with a cause.
+     *
+     * @param cause the cause.
+     */
     public Error(SdkException cause) {
       super(cause);
     }

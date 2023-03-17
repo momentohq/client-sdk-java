@@ -66,6 +66,11 @@ final class ScsDataGrpcStubsManager implements Closeable {
     return futureStub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
   }
 
+  /** Return the length in seconds of the deadline that a newly created stub will have. */
+  public long getDeadlineSeconds() {
+    return deadline.getSeconds();
+  }
+
   @Override
   public void close() {
     channel.shutdown();

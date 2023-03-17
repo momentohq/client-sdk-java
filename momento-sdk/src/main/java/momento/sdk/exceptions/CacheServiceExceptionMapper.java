@@ -2,9 +2,6 @@ package momento.sdk.exceptions;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import java.net.UnknownHostException;
-import java.util.Collections;
-import java.util.Map;
 import momento.sdk.internal.MomentoGrpcErrorDetails;
 import momento.sdk.internal.MomentoTransportErrorDetails;
 
@@ -12,14 +9,8 @@ public final class CacheServiceExceptionMapper {
 
   private static final String SDK_FAILED_TO_PROCESS_THE_REQUEST =
       "SDK Failed to process the request.";
-  private static final String INTERNAL_SERVER_ERROR_MESSAGE =
-      "Unexpected exception occurred while trying to fulfill the request.";
 
   private CacheServiceExceptionMapper() {}
-
-  public static SdkException convert(Throwable e) {
-    return convert(e, Collections.emptyMap());
-  }
 
   /**
    * Common Handler for converting exceptions encountered by the SDK.
@@ -28,7 +19,7 @@ public final class CacheServiceExceptionMapper {
    *
    * @param e to convert
    */
-  public static SdkException convert(Throwable e, Map<String, String> metadata) {
+  public static SdkException convert(Throwable e, MomentoErrorMetadata metadata) {
     if (e instanceof SdkException) {
       return (SdkException) e;
     }
@@ -49,60 +40,46 @@ public final class CacheServiceExceptionMapper {
         case OUT_OF_RANGE:
           // fall through
         case FAILED_PRECONDITION:
-          return new BadRequestException(grpcException.getMessage(), errorDetails);
+          return new BadRequestException(grpcException, errorDetails);
 
         case CANCELLED:
-          return new CancellationException(grpcException.getMessage(), errorDetails);
+          return new CancellationException(grpcException, errorDetails);
 
         case DEADLINE_EXCEEDED:
-          return new TimeoutException(grpcException.getMessage(), errorDetails);
+          return new TimeoutException(grpcException, errorDetails);
 
         case PERMISSION_DENIED:
-          return new PermissionDeniedException(grpcException.getMessage(), errorDetails);
+          return new PermissionDeniedException(grpcException, errorDetails);
 
         case UNAUTHENTICATED:
-          return new AuthenticationException(grpcException.getMessage(), errorDetails);
+          return new AuthenticationException(grpcException, errorDetails);
 
         case RESOURCE_EXHAUSTED:
-          return new LimitExceededException(grpcException.getMessage(), errorDetails);
+          return new LimitExceededException(grpcException, errorDetails);
 
         case NOT_FOUND:
-          return new NotFoundException(grpcException.getMessage(), errorDetails);
+          return new NotFoundException(grpcException, errorDetails);
 
         case ALREADY_EXISTS:
-          return new AlreadyExistsException(grpcException.getMessage(), errorDetails);
+          return new AlreadyExistsException(grpcException, errorDetails);
 
         case UNKNOWN:
-          // fall through
+          return new UnknownServiceException(grpcException, errorDetails);
+
+        case UNAVAILABLE:
+          return new ServerUnavailableException(grpcException, errorDetails);
+
         case ABORTED:
           // fall through
         case INTERNAL:
           // fall through
-        case UNAVAILABLE:
-          // fall through
         case DATA_LOSS:
           // fall through
         default:
-          return convertUnhandledExceptions(grpcException, errorDetails);
+          return new InternalServerException(e, errorDetails);
       }
     }
 
-    return new ClientSdkException(SDK_FAILED_TO_PROCESS_THE_REQUEST, e);
-  }
-
-  public static SdkException convertUnhandledExceptions(
-      StatusRuntimeException e, MomentoTransportErrorDetails errorDetails) {
-    if (isDnsUnreachable(e)) {
-      return new InternalServerException(
-          String.format("Unable to reach request endpoint. Request failed with %s", e.getMessage()),
-          errorDetails);
-    }
-    return new InternalServerException(INTERNAL_SERVER_ERROR_MESSAGE, e, errorDetails);
-  }
-
-  private static boolean isDnsUnreachable(StatusRuntimeException e) {
-    return e.getStatus().getCode() == Status.Code.UNAVAILABLE
-        && e.getCause() instanceof RuntimeException
-        && e.getCause().getCause() instanceof UnknownHostException;
+    return new UnknownException(SDK_FAILED_TO_PROCESS_THE_REQUEST, e);
   }
 }

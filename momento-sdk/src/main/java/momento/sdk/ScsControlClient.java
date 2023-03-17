@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.MomentoErrorMetadata;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
@@ -45,10 +46,13 @@ final class ScsControlClient implements Closeable {
     try {
       checkCacheNameValid(cacheName);
       //noinspection ResultOfMethodCallIgnored
+
       controlGrpcStubsManager.getBlockingStub().createCache(buildCreateCacheRequest(cacheName));
       return new CreateCacheResponse.Success();
     } catch (Exception e) {
-      return new CreateCacheResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return new CreateCacheResponse.Error(
+          CacheServiceExceptionMapper.convert(
+              e, new MomentoErrorMetadata(controlGrpcStubsManager.getDeadlineSeconds(), null)));
     }
   }
 
@@ -59,7 +63,9 @@ final class ScsControlClient implements Closeable {
       controlGrpcStubsManager.getBlockingStub().deleteCache(buildDeleteCacheRequest(cacheName));
       return new DeleteCacheResponse.Success();
     } catch (Exception e) {
-      return new DeleteCacheResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return new DeleteCacheResponse.Error(
+          CacheServiceExceptionMapper.convert(
+              e, new MomentoErrorMetadata(controlGrpcStubsManager.getDeadlineSeconds(), null)));
     }
   }
 
@@ -70,7 +76,9 @@ final class ScsControlClient implements Closeable {
       controlGrpcStubsManager.getBlockingStub().flushCache(buildFlushCacheRequest(cacheName));
       return new FlushCacheResponse.Success();
     } catch (Exception e) {
-      return new FlushCacheResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return new FlushCacheResponse.Error(
+          CacheServiceExceptionMapper.convert(
+              e, new MomentoErrorMetadata(controlGrpcStubsManager.getDeadlineSeconds(), null)));
     }
   }
 
@@ -79,7 +87,9 @@ final class ScsControlClient implements Closeable {
       final _ListCachesRequest request = _ListCachesRequest.newBuilder().setNextToken("").build();
       return convert(controlGrpcStubsManager.getBlockingStub().listCaches(request));
     } catch (Exception e) {
-      return new ListCachesResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return new ListCachesResponse.Error(
+          CacheServiceExceptionMapper.convert(
+              e, new MomentoErrorMetadata(controlGrpcStubsManager.getDeadlineSeconds(), null)));
     }
   }
 
@@ -92,7 +102,9 @@ final class ScsControlClient implements Closeable {
               .createSigningKey(buildCreateSigningKeyRequest(ttlMinutes)),
           endpoint);
     } catch (Exception e) {
-      return new CreateSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return new CreateSigningKeyResponse.Error(
+          CacheServiceExceptionMapper.convert(
+              e, new MomentoErrorMetadata(controlGrpcStubsManager.getDeadlineSeconds(), null)));
     }
   }
 
@@ -104,7 +116,9 @@ final class ScsControlClient implements Closeable {
           .revokeSigningKey(buildRevokeSigningKeyRequest(keyId));
       return new RevokeSigningKeyResponse.Success();
     } catch (Exception e) {
-      return new RevokeSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return new RevokeSigningKeyResponse.Error(
+          CacheServiceExceptionMapper.convert(
+              e, new MomentoErrorMetadata(controlGrpcStubsManager.getDeadlineSeconds(), null)));
     }
   }
 
@@ -114,7 +128,9 @@ final class ScsControlClient implements Closeable {
           _ListSigningKeysRequest.newBuilder().setNextToken("").build();
       return convert(controlGrpcStubsManager.getBlockingStub().listSigningKeys(request), endpoint);
     } catch (Exception e) {
-      return new ListSigningKeysResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return new ListSigningKeysResponse.Error(
+          CacheServiceExceptionMapper.convert(
+              e, new MomentoErrorMetadata(controlGrpcStubsManager.getDeadlineSeconds(), null)));
     }
   }
 
