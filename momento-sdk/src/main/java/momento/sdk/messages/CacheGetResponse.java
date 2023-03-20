@@ -2,7 +2,9 @@ package momento.sdk.messages;
 
 import com.google.protobuf.ByteString;
 import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.internal.StringHelpers;
 
 /** Response for a cache get operation */
 public interface CacheGetResponse {
@@ -11,6 +13,11 @@ public interface CacheGetResponse {
   class Hit implements CacheGetResponse {
     private final ByteString value;
 
+    /**
+     * Constructs a cache get hit with an encoded value.
+     *
+     * @param value the retrieved value.
+     */
     public Hit(ByteString value) {
       this.value = value;
     }
@@ -32,6 +39,21 @@ public interface CacheGetResponse {
     public String valueString() {
       return value.toString(StandardCharsets.UTF_8);
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Truncates the internal fields to 20 characters to bound the size of the string.
+     */
+    @Override
+    public String toString() {
+      return super.toString()
+          + ": valueString: \""
+          + StringHelpers.truncate(valueString())
+          + "\" valueByteArray: \""
+          + StringHelpers.truncate(Base64.getEncoder().encodeToString(valueByteArray()))
+          + "\"";
+    }
   }
 
   /** A successful get operation for a key that has no value. */
@@ -44,8 +66,13 @@ public interface CacheGetResponse {
    */
   class Error extends SdkException implements CacheGetResponse {
 
+    /**
+     * Constructs a cache get error with a cause.
+     *
+     * @param cause the cause.
+     */
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }

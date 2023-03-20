@@ -36,6 +36,23 @@ public interface CreateSigningKeyResponse {
     public Date getExpiresAt() {
       return expiresAt;
     }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Prints key metadata but not the key.
+     */
+    @Override
+    public String toString() {
+      return super.toString()
+          + ": keyId: \""
+          + getKeyId()
+          + "\" endpoint: \""
+          + getEndpoint()
+          + "\" expiresAt: \""
+          + getExpiresAt()
+          + "\"";
+    }
   }
 
   /**
@@ -45,8 +62,13 @@ public interface CreateSigningKeyResponse {
    */
   class Error extends SdkException implements CreateSigningKeyResponse {
 
+    /**
+     * Constructs a signing key creation error with a cause.
+     *
+     * @param cause the cause.
+     */
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }

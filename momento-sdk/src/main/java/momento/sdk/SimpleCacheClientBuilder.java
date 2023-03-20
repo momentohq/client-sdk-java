@@ -2,7 +2,6 @@ package momento.sdk;
 
 import java.time.Duration;
 import java.util.Optional;
-import momento.sdk.exceptions.InvalidArgumentException;
 
 /** Builder for {@link momento.sdk.SimpleCacheClient} */
 public final class SimpleCacheClientBuilder {
@@ -18,9 +17,7 @@ public final class SimpleCacheClientBuilder {
   }
 
   public SimpleCacheClientBuilder requestTimeout(Duration requestTimeout) {
-    if (requestTimeout == null || requestTimeout.isNegative() || requestTimeout.isZero()) {
-      throw new InvalidArgumentException("Request timeout should be positive");
-    }
+    ValidationUtils.ensureRequestTimeoutValid(requestTimeout);
     this.requestTimeout = Optional.of(requestTimeout);
     return this;
   }

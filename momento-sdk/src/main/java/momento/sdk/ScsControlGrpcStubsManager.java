@@ -53,6 +53,11 @@ final class ScsControlGrpcStubsManager implements Closeable {
     return controlBlockingStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);
   }
 
+  /** Return the length in seconds of the deadline that a newly created stub will have. */
+  public long getDeadlineSeconds() {
+    return DEADLINE.getSeconds();
+  }
+
   @Override
   public void close() {
     channel.shutdown();

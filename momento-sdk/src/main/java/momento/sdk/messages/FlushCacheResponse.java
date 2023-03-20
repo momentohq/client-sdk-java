@@ -15,8 +15,13 @@ public interface FlushCacheResponse {
    */
   class Error extends SdkException implements FlushCacheResponse {
 
+    /**
+     * Constructs a cache flush error with a cause.
+     *
+     * @param cause the cause.
+     */
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }

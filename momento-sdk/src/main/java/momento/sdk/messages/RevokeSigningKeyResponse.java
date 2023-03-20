@@ -15,8 +15,13 @@ public interface RevokeSigningKeyResponse {
    */
   class Error extends SdkException implements RevokeSigningKeyResponse {
 
+    /**
+     * Constructs a signing key revocation error with a cause.
+     *
+     * @param cause the cause.
+     */
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }

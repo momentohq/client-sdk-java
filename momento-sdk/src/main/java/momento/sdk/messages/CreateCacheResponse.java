@@ -15,8 +15,13 @@ public interface CreateCacheResponse {
    */
   class Error extends SdkException implements CreateCacheResponse {
 
+    /**
+     * Constructs a cache creation error with a cause.
+     *
+     * @param cause the cause.
+     */
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }

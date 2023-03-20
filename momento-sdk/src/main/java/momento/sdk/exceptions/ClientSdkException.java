@@ -10,11 +10,33 @@ package momento.sdk.exceptions;
  */
 public class ClientSdkException extends SdkException {
 
-  public ClientSdkException(String message, Throwable cause) {
-    super(message, cause);
+  /**
+   * Constructs a ClientSdkException with an error code, a detail message, and a cause.
+   *
+   * @param errorCode the error code, or {@link MomentoErrorCode#UNKNOWN} if none exists.
+   * @param message the detail message.
+   * @param cause the cause.
+   */
+  public ClientSdkException(MomentoErrorCode errorCode, String message, Throwable cause) {
+    super(errorCode, message, cause);
   }
 
+  /**
+   * Constructs a ClientSdkException with an error code and a detail message.
+   *
+   * @param errorCode the error code, or {@link MomentoErrorCode#UNKNOWN} if none exists.
+   * @param message the detail message.
+   */
+  public ClientSdkException(MomentoErrorCode errorCode, String message) {
+    super(errorCode, message);
+  }
+
+  /**
+   * Constructs a ClientSdkException with a detail message.
+   *
+   * @param message the detail message.
+   */
   public ClientSdkException(String message) {
-    super(message);
+    super(MomentoErrorCode.UNKNOWN, message);
   }
 }

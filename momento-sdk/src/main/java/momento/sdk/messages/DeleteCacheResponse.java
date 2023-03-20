@@ -15,8 +15,13 @@ public interface DeleteCacheResponse {
    */
   class Error extends SdkException implements DeleteCacheResponse {
 
+    /**
+     * Constructs a delete cache error with a cause.
+     *
+     * @param cause the cause.
+     */
     public Error(SdkException cause) {
-      super(cause.getMessage(), cause);
+      super(cause);
     }
   }
 }
