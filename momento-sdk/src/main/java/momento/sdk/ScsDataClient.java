@@ -438,7 +438,11 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onFailure(Throwable e) {
             returnFuture.complete(
-                new CacheIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+                new CacheIncrementResponse.Error(
+                    CacheServiceExceptionMapper.convert(
+                        e,
+                        new MomentoErrorMetadata(
+                            scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
