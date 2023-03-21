@@ -6,16 +6,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import momento.sdk.messages.CacheDeleteResponse;
-import momento.sdk.messages.CacheGetResponse;
-import momento.sdk.messages.CacheSetResponse;
-import momento.sdk.messages.CreateCacheResponse;
-import momento.sdk.messages.CreateSigningKeyResponse;
-import momento.sdk.messages.DeleteCacheResponse;
-import momento.sdk.messages.FlushCacheResponse;
-import momento.sdk.messages.ListCachesResponse;
-import momento.sdk.messages.ListSigningKeysResponse;
-import momento.sdk.messages.RevokeSigningKeyResponse;
+import momento.sdk.messages.*;
 
 /** Client to perform operations against the Simple Cache Service */
 public final class SimpleCacheClient implements Closeable {
@@ -250,6 +241,16 @@ public final class SimpleCacheClient implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
     return scsDataClient.set(cacheName, key, value);
+  }
+
+  public CompletableFuture<CacheIncrementResponse> increment(
+      String cacheName, String field, long amount, long ttSeconds) {
+    return scsDataClient.increment(cacheName, field, amount, ttSeconds);
+  }
+
+  public CompletableFuture<CacheIncrementResponse> increment(
+      String cacheName, byte[] field, long amount, long ttSeconds) {
+    return scsDataClient.increment(cacheName, field, amount, ttSeconds);
   }
 
   @Override
