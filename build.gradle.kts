@@ -1,7 +1,12 @@
 ext["grpcVersion"] = "1.47.0"
+ext["guavaVersion"] = "31.0.1-android" // This version is in sync with grpcVersion
 ext["protobufVersion"] = "3.21.2"
 ext["opentelemetryVersion"] = "1.5.0"
 ext["jwtVersion"] = "0.11.2"
+
+plugins {
+    id("ca.cutterslade.analyze") version "1.9.0"
+}
 
 allprojects {
     // These fields are used by the artifactoryPublish task
@@ -9,6 +14,7 @@ allprojects {
     //  customers will consume.
     group = "momento.sandbox"
     version = findProperty("version") as String
+    apply(plugin = "ca.cutterslade.analyze")
 }
 
 // Spotless plugin used for Java Formatting needs the buildscript with repository

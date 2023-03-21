@@ -5,7 +5,6 @@ import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import java.util.Optional;
 import momento.sdk.exceptions.InvalidArgumentException;
-import org.apache.commons.lang3.StringUtils;
 
 final class AuthTokenParser {
 
@@ -23,7 +22,7 @@ final class AuthTokenParser {
   }
 
   private static void ensurePresent(String authToken) {
-    if (StringUtils.isEmpty(authToken)) {
+    if (authToken == null || authToken.isEmpty()) {
       throw new InvalidArgumentException("Malformed Auth Token.");
     }
   }

@@ -1,2 +1,2 @@
 rootProject.name = "client-sdk-java"
-include("momento-sdk", "messages")
+include("momento-sdk")
