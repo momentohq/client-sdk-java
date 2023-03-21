@@ -27,7 +27,7 @@ dependencies {
     runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jwtVersion")
 
     // Internal Deps -------------------
-    implementation(project(":messages"))
+    implementation("software.momento.java:client-protos:0.54.0")
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("org.assertj:assertj-core:3.24.2")

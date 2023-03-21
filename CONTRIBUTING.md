@@ -4,8 +4,6 @@
     * `brew install openjdk`
 1. Clone repo
     * `git clone git@github.com:momentohq/client-sdk-java.git`
-1. Initialize git submodule
-    * `git submodule init && git submodule sync && git submodule update`
 1. Run gradle build
     * `./gradlew clean build`
 1. To run integration tests:
