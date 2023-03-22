@@ -1,28 +1,20 @@
 package momento.sdk;
 
-import static momento.sdk.OtelTestHelpers.setOtelSDK;
-import static momento.sdk.OtelTestHelpers.startIntegrationTestOtel;
-import static momento.sdk.OtelTestHelpers.stopIntegrationTestOtel;
-import static momento.sdk.OtelTestHelpers.verifyGetTrace;
-import static momento.sdk.OtelTestHelpers.verifySetTrace;
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.opentelemetry.sdk.OpenTelemetrySdk;
 import java.time.Duration;
-import java.util.Optional;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.TimeoutException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheSetResponse;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /** Tests with Async APIs. */
-final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
+final class SimpleCacheDataPlaneTest extends BaseTestClass {
 
   private static final int DEFAULT_ITEM_TTL_SECONDS = 60;
   private String authToken;
@@ -34,29 +26,9 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
     cacheName = System.getenv("TEST_CACHE_NAME");
   }
 
-  @AfterEach
-  void tearDown() throws Exception {
-    stopIntegrationTestOtel();
-  }
-
   @Test
   void getReturnsHitAfterSet() throws Exception {
     runSetAndGetWithHitTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
-  }
-
-  @Test
-  void getReturnsHitAfterSetWithTracing() throws Exception {
-    startIntegrationTestOtel();
-    OpenTelemetrySdk openTelemetry = setOtelSDK();
-
-    runSetAndGetWithHitTest(
-        new SimpleCacheClient(
-            authToken, DEFAULT_ITEM_TTL_SECONDS, Optional.of(openTelemetry), Optional.empty()));
-
-    // To accommodate for delays in tracing logs to appear in docker
-    Thread.sleep(1000);
-    verifySetTrace("1");
-    verifyGetTrace("1");
   }
 
   @Test
@@ -65,38 +37,8 @@ final class SimpleCacheDataPlaneAsyncTest extends BaseTestClass {
   }
 
   @Test
-  void cacheMissSuccessWithTracing() throws Exception {
-    startIntegrationTestOtel();
-    OpenTelemetrySdk openTelemetry = setOtelSDK();
-
-    runMissTest(
-        new SimpleCacheClient(
-            authToken, DEFAULT_ITEM_TTL_SECONDS, Optional.of(openTelemetry), Optional.empty()));
-
-    // To accommodate for delays in tracing logs to appear in docker
-    Thread.sleep(1000);
-    verifySetTrace("0");
-    verifyGetTrace("1");
-  }
-
-  @Test
   void itemDroppedAfterTtlExpires() throws Exception {
     runTtlTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
-  }
-
-  @Test
-  void itemDroppedAfterTtlExpiresWithTracing() throws Exception {
-    startIntegrationTestOtel();
-    OpenTelemetrySdk openTelemetry = setOtelSDK();
-
-    runTtlTest(
-        new SimpleCacheClient(
-            authToken, DEFAULT_ITEM_TTL_SECONDS, Optional.of(openTelemetry), Optional.empty()));
-
-    // To accommodate for delays in tracing logs to appear in docker
-    Thread.sleep(1000);
-    verifySetTrace("1");
-    verifyGetTrace("1");
   }
 
   @Test
