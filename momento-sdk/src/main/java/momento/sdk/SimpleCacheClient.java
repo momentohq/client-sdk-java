@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
@@ -250,6 +251,36 @@ public final class SimpleCacheClient implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
     return scsDataClient.set(cacheName, key, value);
+  }
+
+  /**
+   * Increments the value in the cache by an amount.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param field The field under which the value is to be added.
+   * @param amount The amount by which the cache value is to be incremented.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
+   * @return Future containing the result of the increment operation.
+   */
+  public CompletableFuture<CacheIncrementResponse> increment(
+      String cacheName, String field, long amount, long ttlSeconds) {
+    return scsDataClient.increment(cacheName, field, amount, ttlSeconds);
+  }
+
+  /**
+   * Increments the value in the cache by an amount.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param field The field under which the value is to be added.
+   * @param amount The amount by which the cache value is to be incremented.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
+   * @return Future containing the result of the increment operation.
+   */
+  public CompletableFuture<CacheIncrementResponse> increment(
+      String cacheName, byte[] field, long amount, long ttlSeconds) {
+    return scsDataClient.increment(cacheName, field, amount, ttlSeconds);
   }
 
   @Override

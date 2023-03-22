@@ -11,6 +11,7 @@ import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.ServerUnavailableException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.FlushCacheResponse;
@@ -24,6 +25,8 @@ final class SimpleCacheClientTest extends BaseTestClass {
   private static final int DEFAULT_TTL_SECONDS = 60;
 
   private SimpleCacheClient target;
+
+  private String cacheName;
 
   private static final String JWT_HEADER_BASE64 = "eyJhbGciOiJIUzUxMiJ9";
   private static final String JWT_INVALID_SIGNATURE_BASE64 =
@@ -55,21 +58,22 @@ final class SimpleCacheClientTest extends BaseTestClass {
   void setup() {
     target =
         SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), DEFAULT_TTL_SECONDS).build();
+    cacheName = System.getenv("TEST_CACHE_NAME");
+    target.createCache(cacheName);
   }
 
   @AfterEach
   void teardown() {
+    target.deleteCache(cacheName);
     target.close();
   }
 
   @Test
   public void createCacheGetSetDeleteValuesAndDeleteCache() {
-    final String cacheName = randomString("name");
     final String alternateCacheName = randomString("alternateName");
     final String key = randomString("key");
     final String value = randomString("value");
 
-    target.createCache(cacheName);
     target.createCache(alternateCacheName);
     try {
       target.set(cacheName, key, value).join();
@@ -87,19 +91,16 @@ final class SimpleCacheClientTest extends BaseTestClass {
       final CacheGetResponse getForKeyInSomeOtherCache = target.get(alternateCacheName, key).join();
       assertThat(getForKeyInSomeOtherCache).isInstanceOf(CacheGetResponse.Miss.class);
     } finally {
-      target.deleteCache(cacheName);
       target.deleteCache(alternateCacheName);
     }
   }
 
   @Test
   public void shouldFlushCacheContents() {
-    final String cacheName = randomString("name");
     final String key = randomString("key");
     final String value = randomString("value");
     final long ttl1HourInSeconds = Duration.ofHours(1).getSeconds();
 
-    target.createCache(cacheName);
     try {
       target.set(cacheName, key, value, ttl1HourInSeconds).join();
       final CacheGetResponse getResponse = target.get(cacheName, key).join();
@@ -189,5 +190,74 @@ final class SimpleCacheClientTest extends BaseTestClass {
           .hasCauseInstanceOf(ServerUnavailableException.class)
           .hasMessageContaining("server was unable to handle the request");
     }
+  }
+
+  @Test
+  public void shouldReturnCacheIncrementedValuesWithStringField() {
+    final String field = "field";
+
+    CacheIncrementResponse incrementResponse =
+        target.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
+    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
+
+    incrementResponse = target.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
+    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
+
+    incrementResponse = target.increment(cacheName, field, -1051, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
+    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
+
+    CacheGetResponse getResp = target.get(cacheName, field).join();
+    assertThat(getResp).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) getResp).valueString()).isEqualTo("-1000");
+  }
+
+  @Test
+  public void shouldReturnCacheIncrementedValuesWithUint8ArrayField() {
+    final byte[] field = "field".getBytes();
+
+    CacheIncrementResponse incrementResponse =
+        target.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
+    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
+
+    incrementResponse = target.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
+    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
+
+    incrementResponse = target.increment(cacheName, field, -1051, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
+    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
+
+    CacheGetResponse getResp = target.get(cacheName, field).join();
+    assertThat(getResp).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) getResp).valueString()).isEqualTo("-1000");
+  }
+
+  @Test
+  public void shouldFailCacheIncrementedValuesWhenNullCacheName() {
+    final String field = "field";
+
+    CacheIncrementResponse cacheIncrementResponse =
+        target.increment(null, field, 1, DEFAULT_TTL_SECONDS).join();
+    assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
+  }
+
+  @Test
+  public void shouldFailCacheIncrementedValuesWhenCacheNotExist() {
+    final String cacheName = "fake-cache";
+    final String field = "field";
+
+    CacheIncrementResponse cacheIncrementResponse =
+        target.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
+    assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
   }
 }

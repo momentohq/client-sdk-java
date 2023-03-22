@@ -11,7 +11,16 @@ import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
-import grpc.cache_client.*;
+import grpc.cache_client.ECacheResult;
+import grpc.cache_client.ScsGrpc;
+import grpc.cache_client._DeleteRequest;
+import grpc.cache_client._DeleteResponse;
+import grpc.cache_client._GetRequest;
+import grpc.cache_client._GetResponse;
+import grpc.cache_client._IncrementRequest;
+import grpc.cache_client._IncrementResponse;
+import grpc.cache_client._SetRequest;
+import grpc.cache_client._SetResponse;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
 import io.opentelemetry.api.OpenTelemetry;
@@ -31,6 +40,7 @@ import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.MomentoErrorMetadata;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheSetResponse;
 
 /** Client for interacting with Scs Data plane. */
@@ -168,6 +178,27 @@ final class ScsDataClient implements Closeable {
                   new MomentoErrorMetadata(
                       scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
     }
+  }
+
+  CompletableFuture<CacheIncrementResponse> increment(
+      String cacheName, String field, long amount, long ttSeconds) {
+    try {
+      checkCacheNameValid(cacheName);
+      return sendIncrement(cacheName, convert(field), amount, ttSeconds);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheIncrementResponse.Error(
+              CacheServiceExceptionMapper.convert(
+                  e,
+                  new MomentoErrorMetadata(
+                      scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+    }
+  }
+
+  CompletableFuture<CacheIncrementResponse> increment(
+      String cacheName, byte[] field, long amount, long ttlSeconds) {
+    checkCacheNameValid(cacheName);
+    return sendIncrement(cacheName, convert(field), amount, ttlSeconds);
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
@@ -379,6 +410,67 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheIncrementResponse> sendIncrement(
+      String cacheName, ByteString field, long amount, long ttlSeconds) {
+    Optional<Span> span = buildSpan("java-sdk-increment-request");
+    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    ListenableFuture<_IncrementResponse> rspFuture =
+        withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
+            .increment(buildIncrementRequest(field, amount, ttlSeconds * 1000));
+
+    // Build a CompletableFuture to return to caller
+    CompletableFuture<CacheIncrementResponse> returnFuture =
+        new CompletableFuture<CacheIncrementResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_IncrementResponse>() {
+          @Override
+          public void onSuccess(_IncrementResponse rsp) {
+            returnFuture.complete(new CacheIncrementResponse.Success((int) rsp.getValue()));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.OK);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+
+          @Override
+          public void onFailure(Throwable e) {
+            returnFuture.complete(
+                new CacheIncrementResponse.Error(
+                    CacheServiceExceptionMapper.convert(
+                        e,
+                        new MomentoErrorMetadata(
+                            scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
   private static ScsGrpc.ScsFutureStub withCacheNameHeader(
       ScsGrpc.ScsFutureStub stub, String cacheName) {
     Metadata header = new Metadata();
@@ -399,6 +491,14 @@ final class ScsDataClient implements Closeable {
         .setCacheKey(key)
         .setCacheBody(value)
         .setTtlMilliseconds(ttl)
+        .build();
+  }
+
+  private _IncrementRequest buildIncrementRequest(ByteString field, long amount, long ttlSeconds) {
+    return _IncrementRequest.newBuilder()
+        .setCacheKey(field)
+        .setAmount(amount)
+        .setTtlMilliseconds(ttlSeconds)
         .build();
   }
 
