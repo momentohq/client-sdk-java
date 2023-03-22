@@ -20,11 +20,11 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /** Just includes a happy test path that interacts with both control and data plane clients. */
-final class SimpleCacheClientTest extends BaseTestClass {
+final class CacheClientTest extends BaseTestClass {
 
   private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
-  private SimpleCacheClient target;
+  private CacheClient target;
 
   private String cacheName;
 
@@ -56,8 +56,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    target =
-        SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), DEFAULT_TTL_SECONDS).build();
+    target = CacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), DEFAULT_TTL_SECONDS).build();
     cacheName = System.getenv("TEST_CACHE_NAME");
     target.createCache(cacheName);
   }
@@ -139,14 +138,13 @@ final class SimpleCacheClientTest extends BaseTestClass {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
             () ->
-                SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), Duration.ofDays(-1))
-                    .build());
+                CacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), Duration.ofDays(-1)).build());
   }
 
   @Test
   public void initializesSdkAndCanHitDataPlaneForUnreachableControlPlane() {
-    try (final SimpleCacheClient client =
-        SimpleCacheClient.builder(BAD_CONTROL_PLANE_JWT, DEFAULT_TTL_SECONDS).build()) {
+    try (final CacheClient client =
+        CacheClient.builder(BAD_CONTROL_PLANE_JWT, DEFAULT_TTL_SECONDS).build()) {
       // Unable to hit control plane
       final CreateCacheResponse createResponse = client.createCache(randomString("cacheName"));
       assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
@@ -171,8 +169,8 @@ final class SimpleCacheClientTest extends BaseTestClass {
 
   @Test
   public void initializesSdkAndCanHitControlPlaneForUnreachableDataPlane() {
-    try (final SimpleCacheClient client =
-        SimpleCacheClient.builder(BAD_DATA_PLANE_JWT, DEFAULT_TTL_SECONDS).build()) {
+    try (final CacheClient client =
+        CacheClient.builder(BAD_DATA_PLANE_JWT, DEFAULT_TTL_SECONDS).build()) {
 
       // Can reach control plane.
       final CreateCacheResponse createResponse = client.createCache(randomString("cacheName"));

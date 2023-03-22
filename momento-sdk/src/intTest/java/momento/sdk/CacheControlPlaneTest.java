@@ -20,17 +20,17 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-final class SimpleCacheControlPlaneTest extends BaseTestClass {
+final class CacheControlPlaneTest extends BaseTestClass {
 
   private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
-  private SimpleCacheClient target;
+  private CacheClient target;
   private String authToken;
 
   @BeforeEach
   void setup() {
     authToken = System.getenv("TEST_AUTH_TOKEN");
-    target = SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS).build();
+    target = CacheClient.builder(authToken, DEFAULT_TTL_SECONDS).build();
   }
 
   @AfterEach
@@ -139,8 +139,7 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
             + "2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmml"
             + "s76573jnajhjjjhjdhnndy";
 
-    try (final SimpleCacheClient client =
-        SimpleCacheClient.builder(badToken, Duration.ofSeconds(10)).build()) {
+    try (final CacheClient client = CacheClient.builder(badToken, Duration.ofSeconds(10)).build()) {
       final CreateCacheResponse createResponse = client.createCache(cacheName);
       assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
       assertThat(((CreateCacheResponse.Error) createResponse))
@@ -164,7 +163,7 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
             () ->
-                SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
+                CacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
                     .requestTimeout(Duration.ofMillis(0))
                     .build());
   }
@@ -175,7 +174,7 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
             () ->
-                SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
+                CacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
                     .requestTimeout(Duration.ofMillis(-1))
                     .build());
   }
@@ -185,9 +184,6 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
     //noinspection resource
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
-            () ->
-                SimpleCacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
-                    .requestTimeout(null)
-                    .build());
+            () -> CacheClient.builder(authToken, DEFAULT_TTL_SECONDS).requestTimeout(null).build());
   }
 }
