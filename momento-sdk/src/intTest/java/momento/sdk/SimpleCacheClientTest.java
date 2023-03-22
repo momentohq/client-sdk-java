@@ -246,11 +246,9 @@ final class SimpleCacheClientTest extends BaseTestClass {
   public void shouldFailCacheIncrementedValuesWhenNullCacheName() {
     final String field = "field";
 
-    try {
-      target.increment(null, field, 1, DEFAULT_TTL_SECONDS).join();
-    } catch (Exception ex) {
-      assertThat(ex).isInstanceOf(InvalidArgumentException.class);
-    }
+    CacheIncrementResponse cacheIncrementResponse =
+        target.increment(null, field, 1, DEFAULT_TTL_SECONDS).join();
+    assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
   }
 
   @Test
