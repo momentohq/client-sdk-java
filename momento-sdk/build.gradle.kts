@@ -31,9 +31,6 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
     testImplementation("org.assertj:assertj-core:3.24.2")
-    testImplementation("commons-io:commons-io:2.11.0")
-    testImplementation("io.opentelemetry:opentelemetry-sdk:$opentelemetryVersion")
-    testImplementation("io.opentelemetry:opentelemetry-exporter-otlp:$opentelemetryVersion")
 }
 
 spotless {
