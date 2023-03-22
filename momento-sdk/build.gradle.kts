@@ -5,32 +5,23 @@ plugins {
     id("com.diffplug.spotless") version "5.15.1"
 }
 
-val opentelemetryVersion = rootProject.ext["opentelemetryVersion"]
-val jwtVersion = rootProject.ext["jwtVersion"]
-val grpcVersion = rootProject.ext["grpcVersion"]
-val guavaVersion = rootProject.ext["guavaVersion"]
-
 dependencies {
-    implementation(platform("io.opentelemetry:opentelemetry-bom:$opentelemetryVersion"))
-    implementation("io.opentelemetry:opentelemetry-api")
-    implementation("io.grpc:grpc-netty-shaded:$grpcVersion")
-    implementation("com.google.guava:guava:$guavaVersion")
-    implementation("com.google.code.gson:gson:2.8.9")
-    implementation("com.google.protobuf:protobuf-java:3.21.2")
-    implementation("io.grpc:grpc-api:$grpcVersion")
-    implementation("io.grpc:grpc-stub:$grpcVersion")
-    implementation("io.opentelemetry:opentelemetry-context:$opentelemetryVersion")
+    implementation(libs.momento.java.protos)
+
+    implementation(libs.bundles.grpc)
+    implementation(libs.bundles.opentelemetry)
+    implementation(libs.protobuf.java)
+    implementation(libs.guava)
+    implementation(libs.gson)
 
     // For Auth token
-    implementation("io.jsonwebtoken:jjwt-api:$jwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-impl:$jwtVersion")
-    runtimeOnly("io.jsonwebtoken:jjwt-jackson:$jwtVersion")
+    implementation(libs.jjwt.api)
+    runtimeOnly(libs.jjwt.impl)
+    runtimeOnly(libs.jjwt.gson)
 
-    // Internal Deps -------------------
-    implementation("software.momento.java:client-protos:0.54.0")
-
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.1")
-    testImplementation("org.assertj:assertj-core:3.24.2")
+    // Test dependencies
+    testImplementation(libs.junit)
+    testImplementation(libs.assertj)
 }
 
 spotless {
