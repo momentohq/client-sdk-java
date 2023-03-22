@@ -26,7 +26,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
 
   private SimpleCacheClient target;
 
-  private String cacheName = "test-cache";
+  private String cacheName;
 
   private static final String JWT_HEADER_BASE64 = "eyJhbGciOiJIUzUxMiJ9";
   private static final String JWT_INVALID_SIGNATURE_BASE64 =
@@ -58,6 +58,7 @@ final class SimpleCacheClientTest extends BaseTestClass {
   void setup() {
     target =
         SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), DEFAULT_TTL_SECONDS).build();
+    cacheName = System.getenv("TEST_CACHE_NAME");
     target.createCache(cacheName);
   }
 
