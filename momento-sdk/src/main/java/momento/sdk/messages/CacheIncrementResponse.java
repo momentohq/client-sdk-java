@@ -24,9 +24,9 @@ public interface CacheIncrementResponse {
   }
 
   /**
-   * A failed cache increment operation. The response itself is an exception, so it can be
-   * directly thrown, or the cause of the error can be retrieved with {@link #getClass()} ()}. The
-   * message is a copy of the message of the cause.
+   * A failed cache increment operation. The response itself is an exception, so it can be directly
+   * thrown, or the cause of the error can be retrieved with {@link #getClass()} ()}. The message is
+   * a copy of the message of the cause.
    */
   class Error implements CacheIncrementResponse {
 

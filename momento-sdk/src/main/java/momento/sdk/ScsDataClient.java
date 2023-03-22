@@ -397,7 +397,7 @@ final class ScsDataClient implements Closeable {
     Optional<Span> span = buildSpan("java-sdk-increment-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
-      // Submit request to non-blocking stub
+    // Submit request to non-blocking stub
     ListenableFuture<_IncrementResponse> rspFuture =
         withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
             .increment(buildIncrementRequest(field, amount, ttlSeconds * 1000));
@@ -482,7 +482,7 @@ final class ScsDataClient implements Closeable {
         .setAmount(amount)
         .setTtlMilliseconds(ttlSeconds)
         .build();
-    }
+  }
 
   private Optional<Span> buildSpan(String spanName) {
     // TODO - We should change this logic so can pass in parent span so returned span becomes a sub
