@@ -6,7 +6,17 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import momento.sdk.messages.*;
+import momento.sdk.messages.CacheDeleteResponse;
+import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheIncrementResponse;
+import momento.sdk.messages.CacheSetResponse;
+import momento.sdk.messages.CreateCacheResponse;
+import momento.sdk.messages.CreateSigningKeyResponse;
+import momento.sdk.messages.DeleteCacheResponse;
+import momento.sdk.messages.FlushCacheResponse;
+import momento.sdk.messages.ListCachesResponse;
+import momento.sdk.messages.ListSigningKeysResponse;
+import momento.sdk.messages.RevokeSigningKeyResponse;
 
 /** Client to perform operations against the Simple Cache Service */
 public final class SimpleCacheClient implements Closeable {
@@ -243,14 +253,34 @@ public final class SimpleCacheClient implements Closeable {
     return scsDataClient.set(cacheName, key, value);
   }
 
+  /**
+   * Increments the value in the cache by an amount.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param field The field under which the value is to be added.
+   * @param amount The amount by which the cache value is to be incremented.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
+   * @return Future containing the result of the increment operation.
+   */
   public CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, String field, long amount, long ttSeconds) {
-    return scsDataClient.increment(cacheName, field, amount, ttSeconds);
+      String cacheName, String field, long amount, long ttlSeconds) {
+    return scsDataClient.increment(cacheName, field, amount, ttlSeconds);
   }
 
+  /**
+   * Increments the value in the cache by an amount.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param field The field under which the value is to be added.
+   * @param amount The amount by which the cache value is to be incremented.
+   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
+   *     used when building a cache client {@link SimpleCacheClient#builder(String, long)}
+   * @return Future containing the result of the increment operation.
+   */
   public CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, byte[] field, long amount, long ttSeconds) {
-    return scsDataClient.increment(cacheName, field, amount, ttSeconds);
+      String cacheName, byte[] field, long amount, long ttlSeconds) {
+    return scsDataClient.increment(cacheName, field, amount, ttlSeconds);
   }
 
   @Override
