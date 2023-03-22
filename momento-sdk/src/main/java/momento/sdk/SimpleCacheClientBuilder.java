@@ -7,10 +7,10 @@ import java.util.Optional;
 public final class SimpleCacheClientBuilder {
 
   private final String authToken;
-  private final long itemDefaultTtlSeconds;
+  private final Duration itemDefaultTtlSeconds;
   private Optional<Duration> requestTimeout = Optional.empty();
 
-  SimpleCacheClientBuilder(String authToken, long itemTtlDefaultSeconds) {
+  SimpleCacheClientBuilder(String authToken, Duration itemTtlDefaultSeconds) {
     this.authToken = authToken;
     ValidationUtils.ensureValidTtl(itemTtlDefaultSeconds);
     this.itemDefaultTtlSeconds = itemTtlDefaultSeconds;

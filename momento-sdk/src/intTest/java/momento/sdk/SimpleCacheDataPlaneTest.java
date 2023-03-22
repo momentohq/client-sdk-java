@@ -16,7 +16,7 @@ import org.junit.jupiter.api.Test;
 /** Tests with Async APIs. */
 final class SimpleCacheDataPlaneTest extends BaseTestClass {
 
-  private static final int DEFAULT_ITEM_TTL_SECONDS = 60;
+  private static final Duration DEFAULT_ITEM_TTL_SECONDS = Duration.ofSeconds(60);
   private String authToken;
   private String cacheName;
 
@@ -68,7 +68,8 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
       assertThat(((CacheGetResponse.Error) getResponse))
           .hasCauseInstanceOf(NotFoundException.class);
 
-      final CacheSetResponse setResponse = client.set(cacheName, "", "", 10).join();
+      final CacheSetResponse setResponse =
+          client.set(cacheName, "", "", Duration.ofSeconds(10)).join();
       assertThat(setResponse).isInstanceOf(CacheSetResponse.Error.class);
       assertThat(((CacheSetResponse.Error) setResponse))
           .hasCauseInstanceOf(NotFoundException.class);
@@ -155,7 +156,7 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
     final String key = randomString("key");
 
     // Set Key sync
-    target.set(cacheName, key, "", 1);
+    target.set(cacheName, key, "", Duration.ofSeconds(1));
 
     Thread.sleep(2000);
 

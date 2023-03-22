@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 
 final class SimpleCacheControlPlaneTest extends BaseTestClass {
 
-  private static final int DEFAULT_TTL_SECONDS = 60;
+  private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
   private SimpleCacheClient target;
   private String authToken;
@@ -138,7 +138,8 @@ final class SimpleCacheControlPlaneTest extends BaseTestClass {
             + "2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmml"
             + "s76573jnajhjjjhjdhnndy";
 
-    try (final SimpleCacheClient client = SimpleCacheClient.builder(badToken, 10).build()) {
+    try (final SimpleCacheClient client =
+        SimpleCacheClient.builder(badToken, Duration.ofSeconds(10)).build()) {
       final CreateCacheResponse createResponse = client.createCache(cacheName);
       assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
       assertThat(((CreateCacheResponse.Error) createResponse))
