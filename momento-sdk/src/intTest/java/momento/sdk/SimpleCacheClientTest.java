@@ -202,12 +202,12 @@ final class SimpleCacheClientTest extends BaseTestClass {
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
 
-    incrementResponse = target.increment(cacheName, field, 50, 1000).join();
+    incrementResponse = target.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
 
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
 
-    incrementResponse = target.increment(cacheName, field, -1051, 1000).join();
+    incrementResponse = target.increment(cacheName, field, -1051, DEFAULT_TTL_SECONDS).join();
 
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
@@ -227,12 +227,12 @@ final class SimpleCacheClientTest extends BaseTestClass {
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
 
-    incrementResponse = target.increment(cacheName, field, 50, 1000).join();
+    incrementResponse = target.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
 
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
 
-    incrementResponse = target.increment(cacheName, field, -1051, 1000).join();
+    incrementResponse = target.increment(cacheName, field, -1051, DEFAULT_TTL_SECONDS).join();
 
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
