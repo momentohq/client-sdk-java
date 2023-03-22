@@ -27,6 +27,21 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
   }
 
   @Test
+  void getReturnsHitAfterSet() throws Exception {
+    runSetAndGetWithHitTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
+  }
+
+  @Test
+  void cacheMissSuccess() throws Exception {
+    runMissTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
+  }
+
+  @Test
+  void itemDroppedAfterTtlExpires() throws Exception {
+    runTtlTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
+  }
+
+  @Test
   void badTokenReturnsAuthenticationError() {
     final String badToken =
         "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5"
@@ -117,5 +132,41 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
       assertThat(response).isInstanceOf(CacheSetResponse.Error.class);
       assertThat(((CacheSetResponse.Error) response)).hasCauseInstanceOf(TimeoutException.class);
     }
+  }
+
+  private void runSetAndGetWithHitTest(SimpleCacheClient target) throws Exception {
+    final String key = randomString("key");
+    final String value = randomString("value");
+
+    // Successful Set
+    final CacheSetResponse setResponse = target.set(cacheName, key, value).join();
+    assertThat(setResponse).isInstanceOf(CacheSetResponse.Success.class);
+    assertThat(((CacheSetResponse.Success) setResponse).valueString()).isEqualTo(value);
+    assertThat(((CacheSetResponse.Success) setResponse).valueByteArray())
+        .isEqualTo(value.getBytes());
+
+    // Successful Get with Hit
+    final CacheGetResponse getResponse = target.get(cacheName, key).get();
+    assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
+  }
+
+  private void runTtlTest(SimpleCacheClient target) throws Exception {
+    final String key = randomString("key");
+
+    // Set Key sync
+    target.set(cacheName, key, "", 1);
+
+    Thread.sleep(2000);
+
+    // Get Key that was just set
+    final CacheGetResponse rsp = target.get(cacheName, key).get();
+    assertThat(rsp).isInstanceOf(CacheGetResponse.Miss.class);
+  }
+
+  private void runMissTest(SimpleCacheClient target) throws Exception {
+    // Get key that was not set
+    final CacheGetResponse response = target.get(cacheName, randomString("key")).get();
+    assertThat(response).isInstanceOf(CacheGetResponse.Miss.class);
   }
 }
