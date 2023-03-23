@@ -50,18 +50,18 @@ final class ScsDataClient implements Closeable {
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
 
   private final Optional<Tracer> tracer;
-  private final long itemDefaultTtlSeconds;
+  private final Duration itemDefaultTtl;
   private final ScsDataGrpcStubsManager scsDataGrpcStubsManager;
   private final String endpoint;
 
   ScsDataClient(
       String authToken,
       String endpoint,
-      long defaultTtlSeconds,
+      Duration defaultTtl,
       Optional<OpenTelemetry> openTelemetry,
       Optional<Duration> requestTimeout) {
     this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
-    this.itemDefaultTtlSeconds = defaultTtlSeconds;
+    this.itemDefaultTtl = defaultTtl;
     this.scsDataGrpcStubsManager =
         new ScsDataGrpcStubsManager(authToken, endpoint, openTelemetry, requestTimeout);
     this.endpoint = endpoint;
@@ -128,10 +128,10 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, ByteBuffer value, long ttlSeconds) {
+      String cacheName, String key, ByteBuffer value, Duration ttl) {
     try {
-      ensureValidCacheSet(key, value, ttlSeconds);
-      return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+      ensureValidCacheSet(key, value, ttl);
+      return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetResponse.Error(
@@ -143,14 +143,14 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, String key, ByteBuffer value) {
-    return set(cacheName, key, value, itemDefaultTtlSeconds);
+    return set(cacheName, key, value, itemDefaultTtl);
   }
 
   CompletableFuture<CacheSetResponse> set(
-      String cacheName, byte[] key, byte[] value, long ttlSeconds) {
+      String cacheName, byte[] key, byte[] value, Duration ttl) {
     try {
-      ensureValidCacheSet(key, value, ttlSeconds);
-      return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+      ensureValidCacheSet(key, value, ttl);
+      return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetResponse.Error(
@@ -162,14 +162,14 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, byte[] key, byte[] value) {
-    return set(cacheName, key, value, itemDefaultTtlSeconds);
+    return set(cacheName, key, value, itemDefaultTtl);
   }
 
   CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, String value, long ttlSeconds) {
+      String cacheName, String key, String value, Duration ttl) {
     try {
-      ensureValidCacheSet(key, value, ttlSeconds);
-      return sendSet(cacheName, convert(key), convert(value), ttlSeconds);
+      ensureValidCacheSet(key, value, ttl);
+      return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetResponse.Error(
@@ -181,10 +181,10 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, String field, long amount, long ttSeconds) {
+      String cacheName, String field, long amount, Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
-      return sendIncrement(cacheName, convert(field), amount, ttSeconds);
+      return sendIncrement(cacheName, convert(field), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheIncrementResponse.Error(
@@ -196,13 +196,13 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, byte[] field, long amount, long ttlSeconds) {
+      String cacheName, byte[] field, long amount, Duration ttl) {
     checkCacheNameValid(cacheName);
-    return sendIncrement(cacheName, convert(field), amount, ttlSeconds);
+    return sendIncrement(cacheName, convert(field), amount, ttl);
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
-    return set(cacheName, key, value, itemDefaultTtlSeconds);
+    return set(cacheName, key, value, itemDefaultTtl);
   }
 
   private ByteString convert(String stringToEncode) {
@@ -349,7 +349,7 @@ final class ScsDataClient implements Closeable {
   }
 
   private CompletableFuture<CacheSetResponse> sendSet(
-      String cacheName, ByteString key, ByteString value, long ttlSeconds) {
+      String cacheName, ByteString key, ByteString value, Duration ttl) {
     checkCacheNameValid(cacheName);
     Optional<Span> span = buildSpan("java-sdk-set-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
@@ -357,7 +357,7 @@ final class ScsDataClient implements Closeable {
     // Submit request to non-blocking stub
     ListenableFuture<_SetResponse> rspFuture =
         withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
-            .set(buildSetRequest(key, value, ttlSeconds * 1000));
+            .set(buildSetRequest(key, value, ttl));
 
     // Build a CompletableFuture to return to caller
     CompletableFuture<CacheSetResponse> returnFuture =
@@ -411,14 +411,14 @@ final class ScsDataClient implements Closeable {
   }
 
   private CompletableFuture<CacheIncrementResponse> sendIncrement(
-      String cacheName, ByteString field, long amount, long ttlSeconds) {
+      String cacheName, ByteString field, long amount, Duration ttl) {
     Optional<Span> span = buildSpan("java-sdk-increment-request");
     Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     ListenableFuture<_IncrementResponse> rspFuture =
         withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
-            .increment(buildIncrementRequest(field, amount, ttlSeconds * 1000));
+            .increment(buildIncrementRequest(field, amount, ttl));
 
     // Build a CompletableFuture to return to caller
     CompletableFuture<CacheIncrementResponse> returnFuture =
@@ -486,19 +486,19 @@ final class ScsDataClient implements Closeable {
     return _DeleteRequest.newBuilder().setCacheKey(key).build();
   }
 
-  private _SetRequest buildSetRequest(ByteString key, ByteString value, long ttl) {
+  private _SetRequest buildSetRequest(ByteString key, ByteString value, Duration ttl) {
     return _SetRequest.newBuilder()
         .setCacheKey(key)
         .setCacheBody(value)
-        .setTtlMilliseconds(ttl)
+        .setTtlMilliseconds(ttl.toMillis())
         .build();
   }
 
-  private _IncrementRequest buildIncrementRequest(ByteString field, long amount, long ttlSeconds) {
+  private _IncrementRequest buildIncrementRequest(ByteString field, long amount, Duration ttl) {
     return _IncrementRequest.newBuilder()
         .setCacheKey(field)
         .setAmount(amount)
-        .setTtlMilliseconds(ttlSeconds)
+        .setTtlMilliseconds(ttl.toMillis())
         .build();
   }
 

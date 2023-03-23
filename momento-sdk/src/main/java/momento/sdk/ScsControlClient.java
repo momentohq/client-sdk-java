@@ -18,6 +18,7 @@ import grpc.control_client._ListSigningKeysResponse;
 import grpc.control_client._RevokeSigningKeyRequest;
 import grpc.control_client._SigningKey;
 import java.io.Closeable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -93,13 +94,13 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-  CreateSigningKeyResponse createSigningKey(int ttlMinutes, String endpoint) {
+  CreateSigningKeyResponse createSigningKey(Duration ttl, String endpoint) {
     try {
-      ensureValidTtlMinutes(ttlMinutes);
+      ensureValidTtlMinutes(ttl);
       return convert(
           controlGrpcStubsManager
               .getBlockingStub()
-              .createSigningKey(buildCreateSigningKeyRequest(ttlMinutes)),
+              .createSigningKey(buildCreateSigningKeyRequest(ttl)),
           endpoint);
     } catch (Exception e) {
       return new CreateSigningKeyResponse.Error(
@@ -146,8 +147,8 @@ final class ScsControlClient implements Closeable {
     return _FlushCacheRequest.newBuilder().setCacheName(cacheName).build();
   }
 
-  private static _CreateSigningKeyRequest buildCreateSigningKeyRequest(int ttlMinutes) {
-    return _CreateSigningKeyRequest.newBuilder().setTtlMinutes(ttlMinutes).build();
+  private static _CreateSigningKeyRequest buildCreateSigningKeyRequest(Duration ttl) {
+    return _CreateSigningKeyRequest.newBuilder().setTtlMinutes((int) ttl.toMinutes()).build();
   }
 
   private static _RevokeSigningKeyRequest buildRevokeSigningKeyRequest(String keyId) {

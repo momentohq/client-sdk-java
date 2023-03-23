@@ -7,13 +7,13 @@ import java.util.Optional;
 public final class SimpleCacheClientBuilder {
 
   private final String authToken;
-  private final long itemDefaultTtlSeconds;
+  private final Duration itemDefaultTtl;
   private Optional<Duration> requestTimeout = Optional.empty();
 
-  SimpleCacheClientBuilder(String authToken, long itemTtlDefaultSeconds) {
+  SimpleCacheClientBuilder(String authToken, Duration itemDefaultTtl) {
     this.authToken = authToken;
-    ValidationUtils.ensureValidTtl(itemTtlDefaultSeconds);
-    this.itemDefaultTtlSeconds = itemTtlDefaultSeconds;
+    ValidationUtils.ensureValidTtl(itemDefaultTtl);
+    this.itemDefaultTtl = itemDefaultTtl;
   }
 
   public SimpleCacheClientBuilder requestTimeout(Duration requestTimeout) {
@@ -23,7 +23,6 @@ public final class SimpleCacheClientBuilder {
   }
 
   public SimpleCacheClient build() {
-    return new SimpleCacheClient(
-        authToken, itemDefaultTtlSeconds, Optional.empty(), requestTimeout);
+    return new SimpleCacheClient(authToken, itemDefaultTtl, Optional.empty(), requestTimeout);
   }
 }

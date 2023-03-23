@@ -3,6 +3,7 @@ package momento.sdk;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
@@ -14,7 +15,7 @@ import org.junit.jupiter.api.Test;
 /** Tests client side exceptions */
 final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
 
-  private static final int DEFAULT_ITEM_TTL_SECONDS = 60;
+  private static final Duration DEFAULT_ITEM_TTL_SECONDS = Duration.ofSeconds(60);
   private String cacheName;
   private SimpleCacheClient client;
 
@@ -58,19 +59,20 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
 
   @Test
   public void nullKeySetReturnsError() {
-    final CacheSetResponse stringSetResponse = client.set(cacheName, null, "hello", 10).join();
+    final CacheSetResponse stringSetResponse =
+        client.set(cacheName, null, "hello", Duration.ofSeconds(10)).join();
     assertThat(stringSetResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) stringSetResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
     final CacheSetResponse byteBufferSetResponse =
-        client.set(cacheName, null, ByteBuffer.allocate(1), 10).join();
+        client.set(cacheName, null, ByteBuffer.allocate(1), Duration.ofSeconds(10)).join();
     assertThat(byteBufferSetResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) byteBufferSetResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
     final CacheSetResponse byteKeySetResponse =
-        client.set(cacheName, null, new byte[] {0x00}, 10).join();
+        client.set(cacheName, null, new byte[] {0x00}, Duration.ofSeconds(10)).join();
     assertThat(byteKeySetResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) byteKeySetResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
@@ -79,19 +81,19 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
   @Test
   public void nullValueSetReturnsError() {
     final CacheSetResponse stringResponse =
-        client.set(cacheName, "hello", (String) null, 10).join();
+        client.set(cacheName, "hello", (String) null, Duration.ofSeconds(10)).join();
     assertThat(stringResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) stringResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
     final CacheSetResponse byteBufferResponse =
-        client.set(cacheName, "hello", (ByteBuffer) null, 10).join();
+        client.set(cacheName, "hello", (ByteBuffer) null, Duration.ofSeconds(10)).join();
     assertThat(byteBufferResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) byteBufferResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
     final CacheSetResponse byteArrayResponse =
-        client.set(cacheName, new byte[] {}, null, 10).join();
+        client.set(cacheName, new byte[] {}, null, Duration.ofSeconds(10)).join();
     assertThat(byteArrayResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) byteArrayResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
@@ -99,19 +101,20 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
 
   @Test
   public void ttlMustNotBeNegativeReturnsError() {
-    final CacheSetResponse stringSetResponse = client.set(cacheName, "hello", "", -1).join();
+    final CacheSetResponse stringSetResponse =
+        client.set(cacheName, "hello", "", Duration.ofSeconds(-1)).join();
     assertThat(stringSetResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) stringSetResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
     final CacheSetResponse byteBufferSetResponse =
-        client.set(cacheName, "hello", ByteBuffer.allocate(1), -1).join();
+        client.set(cacheName, "hello", ByteBuffer.allocate(1), Duration.ofSeconds(-1)).join();
     assertThat(byteBufferSetResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) byteBufferSetResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
     final CacheSetResponse byteArraySetResponse =
-        client.set(cacheName, new byte[] {}, new byte[] {}, -1).join();
+        client.set(cacheName, new byte[] {}, new byte[] {}, Duration.ofSeconds(-1)).join();
     assertThat(byteArraySetResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) byteArraySetResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
@@ -129,7 +132,7 @@ final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
     assertThat((CacheDeleteResponse.Error) deleteResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
-    final CacheSetResponse setResponse = client.set(null, "", "", 10).join();
+    final CacheSetResponse setResponse = client.set(null, "", "", Duration.ofSeconds(10)).join();
     assertThat(setResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) setResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);

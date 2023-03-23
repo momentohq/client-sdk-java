@@ -22,7 +22,7 @@ import org.junit.jupiter.api.Test;
 /** Just includes a happy test path that interacts with both control and data plane clients. */
 final class SimpleCacheClientTest extends BaseTestClass {
 
-  private static final int DEFAULT_TTL_SECONDS = 60;
+  private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
   private SimpleCacheClient target;
 
@@ -99,10 +99,10 @@ final class SimpleCacheClientTest extends BaseTestClass {
   public void shouldFlushCacheContents() {
     final String key = randomString("key");
     final String value = randomString("value");
-    final long ttl1HourInSeconds = Duration.ofHours(1).getSeconds();
+    final Duration ttl1Hour = Duration.ofHours(1);
 
     try {
-      target.set(cacheName, key, value, ttl1HourInSeconds).join();
+      target.set(cacheName, key, value, ttl1Hour).join();
       final CacheGetResponse getResponse = target.get(cacheName, key).join();
       assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
       assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
@@ -137,7 +137,10 @@ final class SimpleCacheClientTest extends BaseTestClass {
   public void throwsExceptionWhenClientUsesNegativeDefaultTtl() {
     //noinspection resource
     assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(() -> SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), -1).build());
+        .isThrownBy(
+            () ->
+                SimpleCacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), Duration.ofDays(-1))
+                    .build());
   }
 
   @Test
