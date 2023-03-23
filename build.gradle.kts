@@ -1,9 +1,3 @@
-ext["grpcVersion"] = "1.47.0"
-ext["guavaVersion"] = "31.0.1-android" // This version is in sync with grpcVersion
-ext["protobufVersion"] = "3.21.2"
-ext["opentelemetryVersion"] = "1.5.0"
-ext["jwtVersion"] = "0.11.2"
-
 plugins {
     id("ca.cutterslade.analyze") version "1.9.0"
 }

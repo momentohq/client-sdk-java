@@ -1,0 +1,35 @@
+[versions]
+assertj = "3.24.2"
+grpc = "1.53.0"
+protobuf = "3.22.2"
+jjwt = "0.11.5"
+junit = "5.9.2"
+gson = "2.10.1"
+guava = "31.1-android"
+java-protos = "0.54.1"
+opentelemetry = "1.24.0"
+
+[libraries]
+grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpc"}
+grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
+grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+
+opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opentelemetry" }
+opentelemetry-context = { module = "io.opentelemetry:opentelemetry-context", version.ref = "opentelemetry" }
+
+jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
+jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
+jjwt-gson = { module = "io.jsonwebtoken:jjwt-gson", version.ref = "jjwt" }
+
+
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+guava = { module = "com.google.guava:guava", version.ref = "guava" }
+momento-java-protos = { module = "software.momento.java:client-protos", version.ref = "java-protos" }
+protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+
+junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
+assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+
+[bundles]
+grpc = ["grpc-api", "grpc-stub", "grpc-netty-shaded"]
+opentelemetry = ["opentelemetry-api", "opentelemetry-context"]
