@@ -14,7 +14,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /** Tests with Async APIs. */
-final class SimpleCacheDataPlaneTest extends BaseTestClass {
+final class CacheDataPlaneTest extends BaseTestClass {
 
   private static final Duration DEFAULT_ITEM_TTL_SECONDS = Duration.ofSeconds(60);
   private String authToken;
@@ -28,17 +28,17 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
 
   @Test
   void getReturnsHitAfterSet() throws Exception {
-    runSetAndGetWithHitTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
+    runSetAndGetWithHitTest(CacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
   }
 
   @Test
   void cacheMissSuccess() throws Exception {
-    runMissTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
+    runMissTest(CacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
   }
 
   @Test
   void itemDroppedAfterTtlExpires() throws Exception {
-    runTtlTest(SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
+    runTtlTest(CacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build());
   }
 
   @Test
@@ -47,8 +47,8 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
         "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5"
             + "wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEub"
             + "W9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
-    try (final SimpleCacheClient client =
-        SimpleCacheClient.builder(badToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+    try (final CacheClient client =
+        CacheClient.builder(badToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
 
       final CacheGetResponse response = client.get(cacheName, "").join();
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
@@ -59,8 +59,8 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
 
   @Test
   public void nonExistentCacheNameReturnsErrorOnGetOrSet() {
-    try (final SimpleCacheClient client =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+    try (final CacheClient client =
+        CacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       final String cacheName = randomString("name");
 
       final CacheGetResponse getResponse = client.get(cacheName, "").join();
@@ -78,8 +78,8 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
 
   @Test
   public void getWithShortTimeoutReturnsError() {
-    try (final SimpleCacheClient client =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
+    try (final CacheClient client =
+        CacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
             .requestTimeout(Duration.ofMillis(1))
             .build()) {
 
@@ -91,8 +91,8 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
 
   @Test
   public void allowEmptyKeyValues() throws Exception {
-    try (final SimpleCacheClient client =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+    try (final CacheClient client =
+        CacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       final String emptyKey = "";
       final String emptyValue = "";
       client.set(cacheName, emptyKey, emptyValue).get();
@@ -104,8 +104,8 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
 
   @Test
   public void deleteAsyncHappyPath() throws Exception {
-    try (final SimpleCacheClient client =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
+    try (final CacheClient client =
+        CacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build()) {
       final String key = "key";
       final String value = "value";
 
@@ -124,8 +124,8 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
 
   @Test
   public void setWithShortTimeoutReturnsError() {
-    try (SimpleCacheClient client =
-        SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
+    try (CacheClient client =
+        CacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS)
             .requestTimeout(Duration.ofMillis(1))
             .build()) {
 
@@ -135,7 +135,7 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
     }
   }
 
-  private void runSetAndGetWithHitTest(SimpleCacheClient target) throws Exception {
+  private void runSetAndGetWithHitTest(CacheClient target) throws Exception {
     final String key = randomString("key");
     final String value = randomString("value");
 
@@ -152,7 +152,7 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
     assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
 
-  private void runTtlTest(SimpleCacheClient target) throws Exception {
+  private void runTtlTest(CacheClient target) throws Exception {
     final String key = randomString("key");
 
     // Set Key sync
@@ -165,7 +165,7 @@ final class SimpleCacheDataPlaneTest extends BaseTestClass {
     assertThat(rsp).isInstanceOf(CacheGetResponse.Miss.class);
   }
 
-  private void runMissTest(SimpleCacheClient target) throws Exception {
+  private void runMissTest(CacheClient target) throws Exception {
     // Get key that was not set
     final CacheGetResponse response = target.get(cacheName, randomString("key")).get();
     assertThat(response).isInstanceOf(CacheGetResponse.Miss.class);

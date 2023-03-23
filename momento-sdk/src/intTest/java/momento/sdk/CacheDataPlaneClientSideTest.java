@@ -13,17 +13,17 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 /** Tests client side exceptions */
-final class SimpleCacheDataPlaneClientSideTest extends BaseTestClass {
+final class CacheDataPlaneClientSideTest extends BaseTestClass {
 
   private static final Duration DEFAULT_ITEM_TTL_SECONDS = Duration.ofSeconds(60);
   private String cacheName;
-  private SimpleCacheClient client;
+  private CacheClient client;
 
   @BeforeEach
   void setup() {
     final String authToken = System.getenv("TEST_AUTH_TOKEN");
     cacheName = System.getenv("TEST_CACHE_NAME");
-    client = SimpleCacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
+    client = CacheClient.builder(authToken, DEFAULT_ITEM_TTL_SECONDS).build();
   }
 
   @AfterEach
