@@ -26,7 +26,7 @@ public final class SimpleCacheClient implements Closeable {
 
   SimpleCacheClient(
       String authToken,
-      Duration itemDefaultTtlSeconds,
+      Duration itemDefaultTtl,
       Optional<OpenTelemetry> telemetryOptional,
       Optional<Duration> requestTimeout) {
     MomentoEndpointsResolver.MomentoEndpoints endpoints =
@@ -36,13 +36,13 @@ public final class SimpleCacheClient implements Closeable {
         new ScsDataClient(
             authToken,
             endpoints.cacheEndpoint(),
-            itemDefaultTtlSeconds,
+            itemDefaultTtl,
             telemetryOptional,
             requestTimeout);
   }
 
-  public static SimpleCacheClientBuilder builder(String authToken, Duration itemDefaultTtlSeconds) {
-    return new SimpleCacheClientBuilder(authToken, itemDefaultTtlSeconds);
+  public static SimpleCacheClientBuilder builder(String authToken, Duration itemDefaultTtl) {
+    return new SimpleCacheClientBuilder(authToken, itemDefaultTtl);
   }
 
   /**
@@ -83,11 +83,11 @@ public final class SimpleCacheClient implements Closeable {
   /**
    * Creates a new Momento signing key
    *
-   * @param ttlMinutes The key's time-to-live in minutes
+   * @param ttl The key's time-to-live duration
    * @return The created key and its metadata
    */
-  public CreateSigningKeyResponse createSigningKey(int ttlMinutes) {
-    return scsControlClient.createSigningKey(ttlMinutes, scsDataClient.getEndpoint());
+  public CreateSigningKeyResponse createSigningKey(Duration ttl) {
+    return scsControlClient.createSigningKey(ttl, scsDataClient.getEndpoint());
   }
 
   /**
@@ -162,13 +162,13 @@ public final class SimpleCacheClient implements Closeable {
    * @param cacheName Name of the cache to store the item in
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
-   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, Duration)}
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link SimpleCacheClient#builder(String, Duration)}
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, ByteBuffer value, Duration ttlSeconds) {
-    return scsDataClient.set(cacheName, key, value, ttlSeconds);
+      String cacheName, String key, ByteBuffer value, Duration ttl) {
+    return scsDataClient.set(cacheName, key, value, ttl);
   }
 
   /**
@@ -195,13 +195,13 @@ public final class SimpleCacheClient implements Closeable {
    * @param cacheName Name of the cache to store the item in
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
-   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, Duration)}
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link SimpleCacheClient#builder(String, Duration)}
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(
-      String cacheName, byte[] key, byte[] value, Duration ttlSeconds) {
-    return scsDataClient.set(cacheName, key, value, ttlSeconds);
+      String cacheName, byte[] key, byte[] value, Duration ttl) {
+    return scsDataClient.set(cacheName, key, value, ttl);
   }
 
   /**
@@ -228,13 +228,13 @@ public final class SimpleCacheClient implements Closeable {
    * @param cacheName Name of the cache to store the item in
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
-   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, Duration)}
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link SimpleCacheClient#builder(String, Duration)}
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, String value, Duration ttlSeconds) {
-    return scsDataClient.set(cacheName, key, value, ttlSeconds);
+      String cacheName, String key, String value, Duration ttl) {
+    return scsDataClient.set(cacheName, key, value, ttl);
   }
 
   /**
@@ -259,13 +259,13 @@ public final class SimpleCacheClient implements Closeable {
    * @param cacheName Name of the cache to store the item in
    * @param field The field under which the value is to be added.
    * @param amount The amount by which the cache value is to be incremented.
-   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, Duration)}
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link SimpleCacheClient#builder(String, Duration)}
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, String field, long amount, Duration ttlSeconds) {
-    return scsDataClient.increment(cacheName, field, amount, ttlSeconds);
+      String cacheName, String field, long amount, Duration ttl) {
+    return scsDataClient.increment(cacheName, field, amount, ttl);
   }
 
   /**
@@ -274,13 +274,13 @@ public final class SimpleCacheClient implements Closeable {
    * @param cacheName Name of the cache to store the item in
    * @param field The field under which the value is to be added.
    * @param amount The amount by which the cache value is to be incremented.
-   * @param ttlSeconds Time to Live for the item in Cache. This ttl takes precedence over the TTL
-   *     used when building a cache client {@link SimpleCacheClient#builder(String, Duration)}
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link SimpleCacheClient#builder(String, Duration)}
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, byte[] field, long amount, Duration ttlSeconds) {
-    return scsDataClient.increment(cacheName, field, amount, ttlSeconds);
+      String cacheName, byte[] field, long amount, Duration ttl) {
+    return scsDataClient.increment(cacheName, field, amount, ttl);
   }
 
   @Override

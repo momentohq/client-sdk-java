@@ -28,12 +28,12 @@ final class ValidationUtils {
     }
   }
 
-  static void ensureValidCacheSet(Object key, Object value, Duration ttlSeconds) {
+  static void ensureValidCacheSet(Object key, Object value, Duration ttl) {
     ensureValidKey(key);
     if (value == null) {
       throw new InvalidArgumentException(A_NON_NULL_VALUE_IS_REQUIRED);
     }
-    ensureValidTtl(ttlSeconds);
+    ensureValidTtl(ttl);
   }
 
   static void ensureValidKey(Object key) {
@@ -42,14 +42,14 @@ final class ValidationUtils {
     }
   }
 
-  static void ensureValidTtl(Duration ttlSeconds) {
-    if (ttlSeconds.getSeconds() < 0) {
+  static void ensureValidTtl(Duration ttl) {
+    if (ttl.getSeconds() < 0) {
       throw new InvalidArgumentException(CACHE_ITEM_TTL_CANNOT_BE_NEGATIVE);
     }
   }
 
-  static void ensureValidTtlMinutes(int ttlMinutes) {
-    if (ttlMinutes < 0) {
+  static void ensureValidTtlMinutes(Duration ttlMinutes) {
+    if (ttlMinutes.toMinutes() < 0) {
       throw new InvalidArgumentException(SIGNING_KEY_TTL_CANNOT_BE_NEGATIVE);
     }
   }
