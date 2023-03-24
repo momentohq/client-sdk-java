@@ -19,6 +19,8 @@ import grpc.cache_client._GetRequest;
 import grpc.cache_client._GetResponse;
 import grpc.cache_client._IncrementRequest;
 import grpc.cache_client._IncrementResponse;
+import grpc.cache_client._SetIfNotExistsRequest;
+import grpc.cache_client._SetIfNotExistsResponse;
 import grpc.cache_client._SetRequest;
 import grpc.cache_client._SetResponse;
 import io.grpc.Metadata;
@@ -40,6 +42,7 @@ import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
+import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetResponse;
 
 /** Client for interacting with Scs Data plane. */
@@ -164,12 +167,61 @@ final class ScsDataClient implements Closeable {
 
   CompletableFuture<CacheIncrementResponse> increment(
       String cacheName, byte[] field, long amount, Duration ttl) {
-    checkCacheNameValid(cacheName);
-    return sendIncrement(cacheName, convert(field), amount, ttl);
+    try {
+      checkCacheNameValid(cacheName);
+      return sendIncrement(cacheName, convert(field), amount, ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
     return set(cacheName, key, value, itemDefaultTtl);
+  }
+
+  CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, String key, String value, Duration ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, String key, byte[] value, Duration ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, byte[] key, String value, Duration ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, byte[] key, byte[] value, Duration ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   private ByteString convert(String stringToEncode) {
@@ -416,8 +468,78 @@ final class ScsDataClient implements Closeable {
             scope.ifPresent(Scope::close);
           }
         },
-        // Execute on same thread that called execute on CompletionStage
-        MoreExecutors.directExecutor());
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheSetIfNotExistsResponse> sendSetIfNotExists(
+      String cacheName, ByteString key, ByteString value, Duration ttl) {
+    final Optional<Span> span = buildSpan("java-sdk-setIfNotExists-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SetIfNotExistsResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .setIfNotExists(buildSetIfNotExistsRequest(key, value, ttl));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSetIfNotExistsResponse> returnFuture =
+        new CompletableFuture<CacheSetIfNotExistsResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SetIfNotExistsResponse>() {
+          @Override
+          public void onSuccess(_SetIfNotExistsResponse rsp) {
+            if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.STORED)) {
+              returnFuture.complete(new CacheSetIfNotExistsResponse.Stored(key, value));
+              span.ifPresent(
+                  theSpan -> {
+                    theSpan.setStatus(StatusCode.OK);
+                    theSpan.end(now());
+                  });
+              scope.ifPresent(Scope::close);
+            } else if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.NOT_STORED)) {
+              returnFuture.complete(new CacheSetIfNotExistsResponse.NotStored());
+              span.ifPresent(
+                  theSpan -> {
+                    theSpan.setStatus(StatusCode.OK);
+                    theSpan.end(now());
+                  });
+              scope.ifPresent(Scope::close);
+            }
+          }
+
+          @Override
+          public void onFailure(Throwable e) {
+            returnFuture.complete(
+                new CacheSetIfNotExistsResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
 
     return returnFuture;
   }
@@ -454,6 +576,15 @@ final class ScsDataClient implements Closeable {
     return _IncrementRequest.newBuilder()
         .setCacheKey(field)
         .setAmount(amount)
+        .setTtlMilliseconds(ttl.toMillis())
+        .build();
+  }
+
+  private _SetIfNotExistsRequest buildSetIfNotExistsRequest(
+      ByteString key, ByteString value, Duration ttl) {
+    return _SetIfNotExistsRequest.newBuilder()
+        .setCacheKey(key)
+        .setCacheBody(value)
         .setTtlMilliseconds(ttl.toMillis())
         .build();
   }
