@@ -9,6 +9,7 @@ import java.util.concurrent.CompletableFuture;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
+import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
@@ -251,6 +252,70 @@ public final class CacheClient implements Closeable {
    */
   public CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
     return scsDataClient.set(cacheName, key, value);
+  }
+
+  /**
+   * Associates a key with a value. If a value for this key is already present it is not replaced by
+   * the new value.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param key {String} The key under which the value is to be added.
+   * @param value {String} The value to be stored.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @return Future containing the result of the set operation.
+   */
+  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, String key, String value, Duration ttl) {
+    return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
+  }
+
+  /**
+   * Associates a key with a value. If a value for this key is already present it is not replaced by
+   * the new value.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param key {String} The key under which the value is to be added.
+   * @param value {Byte Array} The value to be stored.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @return Future containing the result of the set operation.
+   */
+  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, String key, byte[] value, Duration ttl) {
+    return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
+  }
+
+  /**
+   * Associates a key with a value. If a value for this key is already present it is not replaced by
+   * the new value.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param key {Byte Array} The key under which the value is to be added.
+   * @param value {String} The value to be stored.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @return Future containing the result of the set operation.
+   */
+  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, byte[] key, String value, Duration ttl) {
+    return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
+  }
+
+  /**
+   * Associates a key with a value. If a value for this key is already present it is not replaced by
+   * the new value.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param key {Byte Array} The key under which the value is to be added.
+   * @param value {Byte Array} The value to be stored.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @return Future containing the result of the set operation.
+   */
+  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, byte[] key, byte[] value, Duration ttl) {
+    return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
   }
 
   /**

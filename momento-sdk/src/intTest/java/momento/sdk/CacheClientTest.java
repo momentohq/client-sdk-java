@@ -12,6 +12,7 @@ import momento.sdk.exceptions.ServerUnavailableException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
+import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.FlushCacheResponse;
@@ -260,5 +261,130 @@ final class CacheClientTest extends BaseTestClass {
     CacheIncrementResponse cacheIncrementResponse =
         target.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
     assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
+  }
+
+  @Test
+  public void shouldSetStringValueToStringKeyWhenKeyNotExists() {
+    final String key = randomString("test-key");
+    final String value = randomString("test-value");
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
+        .isEqualTo(key);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+        .isEqualTo(value);
+
+    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(value);
+  }
+
+  @Test
+  public void shouldSetByteArrayValueToStringKeyWhenKeyNotExists() {
+    final String key = randomString("test-key");
+    final byte[] value = "test-value".getBytes();
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
+        .isEqualTo(key);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueByteArray())
+        .isEqualTo(value);
+
+    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueByteArray()).isEqualTo(value);
+  }
+
+  @Test
+  public void shouldSetStringValueToByteArrayKeyWhenKeyNotExists() {
+    final byte[] key = "test-key".getBytes();
+    final String value = "test-value";
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyByteArray())
+        .isEqualTo(key);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+        .isEqualTo(value);
+
+    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(value);
+  }
+
+  @Test
+  public void shouldSetByteArrayValueToByteArrayKeyWhenKeyNotExists() {
+    final byte[] key = "test-key".getBytes();
+    final byte[] value = "test-value".getBytes();
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyByteArray())
+        .isEqualTo(key);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueByteArray())
+        .isEqualTo(value);
+
+    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueByteArray()).isEqualTo(value);
+  }
+
+  @Test
+  public void shouldNotSetValueToKeyWhenKeyExists() {
+    final String key = "test-key";
+    final String oldValue = "old-test-value";
+    final String newValue = "new-test-value";
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, oldValue, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
+        .isEqualTo(key);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+        .isEqualTo(oldValue);
+
+    cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, newValue, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse)
+        .isInstanceOf(CacheSetIfNotExistsResponse.NotStored.class);
+
+    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(oldValue);
+  }
+
+  @Test
+  public void shouldFailSetValueToKeyWhenCacheNotExist() {
+    final String cacheName = "fake-cache";
+    final String key = "test-key";
+    final String value = "old-test-value";
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
+  }
+
+  @Test
+  public void shouldFailSetValueToKeyWhenNullCacheName() {
+    final String key = "test-key";
+    final String value = "old-test-value";
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(null, key, value, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
   }
 }
