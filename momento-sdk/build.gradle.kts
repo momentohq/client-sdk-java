@@ -1,5 +1,5 @@
 plugins {
-    id("momento.artifactory-java-lib")
+    id("momento.publishable-java-lib")
     id("momento.junit-tests")
     id("momento.integration-tests")
     id("com.diffplug.spotless") version "5.15.1"
