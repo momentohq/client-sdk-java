@@ -37,7 +37,6 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
-import momento.sdk.exceptions.MomentoErrorMetadata;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
@@ -77,11 +76,7 @@ final class ScsDataClient implements Closeable {
       return sendGet(cacheName, convert(key));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheGetResponse.Error(
-              CacheServiceExceptionMapper.convert(
-                  e,
-                  new MomentoErrorMetadata(
-                      scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+          new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -91,11 +86,7 @@ final class ScsDataClient implements Closeable {
       return sendGet(cacheName, convert(key));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheGetResponse.Error(
-              CacheServiceExceptionMapper.convert(
-                  e,
-                  new MomentoErrorMetadata(
-                      scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+          new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -105,11 +96,7 @@ final class ScsDataClient implements Closeable {
       return sendDelete(cacheName, convert(key));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDeleteResponse.Error(
-              CacheServiceExceptionMapper.convert(
-                  e,
-                  new MomentoErrorMetadata(
-                      scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+          new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -119,11 +106,7 @@ final class ScsDataClient implements Closeable {
       return sendDelete(cacheName, convert(key));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDeleteResponse.Error(
-              CacheServiceExceptionMapper.convert(
-                  e,
-                  new MomentoErrorMetadata(
-                      scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+          new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -134,11 +117,7 @@ final class ScsDataClient implements Closeable {
       return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetResponse.Error(
-              CacheServiceExceptionMapper.convert(
-                  e,
-                  new MomentoErrorMetadata(
-                      scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+          new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -153,11 +132,7 @@ final class ScsDataClient implements Closeable {
       return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetResponse.Error(
-              CacheServiceExceptionMapper.convert(
-                  e,
-                  new MomentoErrorMetadata(
-                      scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+          new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -172,11 +147,7 @@ final class ScsDataClient implements Closeable {
       return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetResponse.Error(
-              CacheServiceExceptionMapper.convert(
-                  e,
-                  new MomentoErrorMetadata(
-                      scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+          new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -187,11 +158,7 @@ final class ScsDataClient implements Closeable {
       return sendIncrement(cacheName, convert(field), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheIncrementResponse.Error(
-              CacheServiceExceptionMapper.convert(
-                  e,
-                  new MomentoErrorMetadata(
-                      scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+          new CacheIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -219,19 +186,21 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
     checkCacheNameValid(cacheName);
-    Optional<Span> span = buildSpan("java-sdk-get-request");
-    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+    final Optional<Span> span = buildSpan("java-sdk-get-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
     // Submit request to non-blocking stub
-    ListenableFuture<_GetResponse> rspFuture =
-        withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName).get(buildGetRequest(key));
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_GetResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata).get(buildGetRequest(key));
 
     // Build a CompletableFuture to return to caller
-    CompletableFuture<CacheGetResponse> returnFuture =
+    final CompletableFuture<CacheGetResponse> returnFuture =
         new CompletableFuture<CacheGetResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
-            boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
             super.cancel(mayInterruptIfRunning);
             return result;
           }
@@ -267,11 +236,7 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onFailure(Throwable e) {
             returnFuture.complete(
-                new CacheGetResponse.Error(
-                    CacheServiceExceptionMapper.convert(
-                        e,
-                        new MomentoErrorMetadata(
-                            scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+                new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
@@ -281,29 +246,28 @@ final class ScsDataClient implements Closeable {
             scope.ifPresent(Scope::close);
           }
         },
-        MoreExecutors
-            .directExecutor()); // Execute on same thread that called execute on CompletionStage
-    // returned
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
 
     return returnFuture;
   }
 
   private CompletableFuture<CacheDeleteResponse> sendDelete(String cacheName, ByteString key) {
     checkCacheNameValid(cacheName);
-    Optional<Span> span = buildSpan("java-sdk-delete-request");
-    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+    final Optional<Span> span = buildSpan("java-sdk-delete-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
-    ListenableFuture<_DeleteResponse> rspFuture =
-        withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
-            .delete(buildDeleteRequest(key));
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_DeleteResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata).delete(buildDeleteRequest(key));
 
     // Build a CompletableFuture to return to caller
-    CompletableFuture<CacheDeleteResponse> returnFuture =
+    final CompletableFuture<CacheDeleteResponse> returnFuture =
         new CompletableFuture<CacheDeleteResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
-            boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
             super.cancel(mayInterruptIfRunning);
             return result;
           }
@@ -327,11 +291,7 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onFailure(Throwable e) {
             returnFuture.complete(
-                new CacheDeleteResponse.Error(
-                    CacheServiceExceptionMapper.convert(
-                        e,
-                        new MomentoErrorMetadata(
-                            scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+                new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
@@ -341,9 +301,8 @@ final class ScsDataClient implements Closeable {
             scope.ifPresent(Scope::close);
           }
         },
-        MoreExecutors
-            .directExecutor()); // Execute on same thread that called execute on CompletionStage
-    // returned
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
 
     return returnFuture;
   }
@@ -351,21 +310,22 @@ final class ScsDataClient implements Closeable {
   private CompletableFuture<CacheSetResponse> sendSet(
       String cacheName, ByteString key, ByteString value, Duration ttl) {
     checkCacheNameValid(cacheName);
-    Optional<Span> span = buildSpan("java-sdk-set-request");
-    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+    final Optional<Span> span = buildSpan("java-sdk-set-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
-    ListenableFuture<_SetResponse> rspFuture =
-        withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SetResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
             .set(buildSetRequest(key, value, ttl));
 
     // Build a CompletableFuture to return to caller
-    CompletableFuture<CacheSetResponse> returnFuture =
+    final CompletableFuture<CacheSetResponse> returnFuture =
         new CompletableFuture<CacheSetResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
-            boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
             super.cancel(mayInterruptIfRunning);
             return result;
           }
@@ -389,11 +349,7 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onFailure(Throwable e) {
             returnFuture.complete(
-                new CacheSetResponse.Error(
-                    CacheServiceExceptionMapper.convert(
-                        e,
-                        new MomentoErrorMetadata(
-                            scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+                new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
@@ -403,30 +359,30 @@ final class ScsDataClient implements Closeable {
             scope.ifPresent(Scope::close);
           }
         },
-        MoreExecutors
-            .directExecutor()); // Execute on same thread that called execute on CompletionStage
-    // returned
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
 
     return returnFuture;
   }
 
   private CompletableFuture<CacheIncrementResponse> sendIncrement(
       String cacheName, ByteString field, long amount, Duration ttl) {
-    Optional<Span> span = buildSpan("java-sdk-increment-request");
-    Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+    final Optional<Span> span = buildSpan("java-sdk-increment-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
-    ListenableFuture<_IncrementResponse> rspFuture =
-        withCacheNameHeader(scsDataGrpcStubsManager.getStub(), cacheName)
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_IncrementResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
             .increment(buildIncrementRequest(field, amount, ttl));
 
     // Build a CompletableFuture to return to caller
-    CompletableFuture<CacheIncrementResponse> returnFuture =
+    final CompletableFuture<CacheIncrementResponse> returnFuture =
         new CompletableFuture<CacheIncrementResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
-            boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
             super.cancel(mayInterruptIfRunning);
             return result;
           }
@@ -450,11 +406,7 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onFailure(Throwable e) {
             returnFuture.complete(
-                new CacheIncrementResponse.Error(
-                    CacheServiceExceptionMapper.convert(
-                        e,
-                        new MomentoErrorMetadata(
-                            scsDataGrpcStubsManager.getDeadlineSeconds(), cacheName))));
+                new CacheIncrementResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
                 theSpan -> {
                   theSpan.setStatus(StatusCode.ERROR);
@@ -464,18 +416,22 @@ final class ScsDataClient implements Closeable {
             scope.ifPresent(Scope::close);
           }
         },
-        MoreExecutors
-            .directExecutor()); // Execute on same thread that called execute on CompletionStage
-    // returned
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
 
     return returnFuture;
   }
 
-  private static ScsGrpc.ScsFutureStub withCacheNameHeader(
-      ScsGrpc.ScsFutureStub stub, String cacheName) {
-    Metadata header = new Metadata();
-    header.put(CACHE_NAME_KEY, cacheName);
-    return MetadataUtils.attachHeaders(stub, header);
+  private static Metadata metadataWithCache(String cacheName) {
+    final Metadata metadata = new Metadata();
+    metadata.put(CACHE_NAME_KEY, cacheName);
+
+    return metadata;
+  }
+
+  private static ScsGrpc.ScsFutureStub attachMetadata(
+      ScsGrpc.ScsFutureStub stub, Metadata metadata) {
+    return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
 
   private _GetRequest buildGetRequest(ByteString key) {
