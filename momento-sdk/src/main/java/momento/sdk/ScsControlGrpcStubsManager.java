@@ -9,6 +9,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Control Plane.
@@ -24,7 +25,7 @@ final class ScsControlGrpcStubsManager implements Closeable {
   private final ManagedChannel channel;
   private final ScsControlGrpc.ScsControlBlockingStub controlBlockingStub;
 
-  ScsControlGrpcStubsManager(String authToken, String endpoint) {
+  ScsControlGrpcStubsManager(@Nonnull String authToken, @Nonnull String endpoint) {
     this.channel = setupConnection(authToken, endpoint);
     this.controlBlockingStub = ScsControlGrpc.newBlockingStub(channel);
   }
@@ -47,7 +48,7 @@ final class ScsControlGrpcStubsManager implements Closeable {
    * before the deadline expires. Hence, the stub returned from here should never be cached and the
    * safest behavior is for clients to request a new stub each time.
    *
-   * <p>more information: https://github.com/grpc/grpc-java/issues/1495
+   * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
    */
   ScsControlGrpc.ScsControlBlockingStub getBlockingStub() {
     return controlBlockingStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);

@@ -3,6 +3,7 @@ assertj = "3.24.2"
 grpc = "1.53.0"
 protobuf = "3.22.2"
 jjwt = "0.11.5"
+jsr305 = "3.0.2"
 junit = "5.9.2"
 gson = "2.10.1"
 guava = "31.1-android"
@@ -21,7 +22,7 @@ jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-gson = { module = "io.jsonwebtoken:jjwt-gson", version.ref = "jjwt" }
 
-
+jsr305 = { module = "com.google.code.findbugs:jsr305", version.ref = "jsr305" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 momento-java-protos = { module = "software.momento.java:client-protos", version.ref = "java-protos" }

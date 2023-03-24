@@ -6,6 +6,8 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
@@ -26,20 +28,16 @@ public final class CacheClient implements Closeable {
   private final ScsDataClient scsDataClient;
 
   CacheClient(
-      String authToken,
-      Duration itemDefaultTtl,
-      Optional<OpenTelemetry> telemetryOptional,
-      Optional<Duration> requestTimeout) {
+      @Nonnull String authToken,
+      @Nonnull Duration itemDefaultTtl,
+      @Nullable OpenTelemetry openTelemetry,
+      @Nullable Duration requestTimeout) {
     MomentoEndpointsResolver.MomentoEndpoints endpoints =
         MomentoEndpointsResolver.resolve(authToken, Optional.empty());
     this.scsControlClient = new ScsControlClient(authToken, endpoints.controlEndpoint());
     this.scsDataClient =
         new ScsDataClient(
-            authToken,
-            endpoints.cacheEndpoint(),
-            itemDefaultTtl,
-            telemetryOptional,
-            requestTimeout);
+            authToken, endpoints.cacheEndpoint(), itemDefaultTtl, openTelemetry, requestTimeout);
   }
 
   public static CacheClientBuilder builder(String authToken, Duration itemDefaultTtl) {

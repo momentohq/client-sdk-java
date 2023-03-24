@@ -22,6 +22,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import javax.annotation.Nonnull;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
@@ -38,7 +39,7 @@ final class ScsControlClient implements Closeable {
 
   private final ScsControlGrpcStubsManager controlGrpcStubsManager;
 
-  ScsControlClient(String authToken, String endpoint) {
+  ScsControlClient(@Nonnull String authToken, @Nonnull String endpoint) {
     this.controlGrpcStubsManager = new ScsControlGrpcStubsManager(authToken, endpoint);
   }
 

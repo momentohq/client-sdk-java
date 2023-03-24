@@ -37,6 +37,8 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.messages.CacheDeleteResponse;
@@ -51,18 +53,22 @@ final class ScsDataClient implements Closeable {
   private static final Metadata.Key<String> CACHE_NAME_KEY =
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
 
-  private final Optional<Tracer> tracer;
+  private final Tracer tracer;
   private final Duration itemDefaultTtl;
   private final ScsDataGrpcStubsManager scsDataGrpcStubsManager;
   private final String endpoint;
 
   ScsDataClient(
-      String authToken,
-      String endpoint,
-      Duration defaultTtl,
-      Optional<OpenTelemetry> openTelemetry,
-      Optional<Duration> requestTimeout) {
-    this.tracer = openTelemetry.map(ot -> ot.getTracer("momento-java-scs-client", "1.0.0"));
+      @Nonnull String authToken,
+      @Nonnull String endpoint,
+      @Nonnull Duration defaultTtl,
+      @Nullable OpenTelemetry openTelemetry,
+      @Nullable Duration requestTimeout) {
+    if (openTelemetry != null) {
+      this.tracer = openTelemetry.getTracer("momento-java-scs-client", "1.0.0");
+    } else {
+      this.tracer = null;
+    }
     this.itemDefaultTtl = defaultTtl;
     this.scsDataGrpcStubsManager =
         new ScsDataGrpcStubsManager(authToken, endpoint, openTelemetry, requestTimeout);
@@ -286,7 +292,7 @@ final class ScsDataClient implements Closeable {
           }
 
           @Override
-          public void onFailure(Throwable e) {
+          public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
@@ -341,7 +347,7 @@ final class ScsDataClient implements Closeable {
           }
 
           @Override
-          public void onFailure(Throwable e) {
+          public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
@@ -399,7 +405,7 @@ final class ScsDataClient implements Closeable {
           }
 
           @Override
-          public void onFailure(Throwable e) {
+          public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
@@ -456,7 +462,7 @@ final class ScsDataClient implements Closeable {
           }
 
           @Override
-          public void onFailure(Throwable e) {
+          public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheIncrementResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
@@ -592,12 +598,13 @@ final class ScsDataClient implements Closeable {
   private Optional<Span> buildSpan(String spanName) {
     // TODO - We should change this logic so can pass in parent span so returned span becomes a sub
     // span of a parent span.
-    return tracer.map(
-        t ->
-            t.spanBuilder(spanName)
-                .setSpanKind(SpanKind.CLIENT)
-                .setStartTimestamp(now())
-                .startSpan());
+    return Optional.ofNullable(tracer)
+        .map(
+            t ->
+                t.spanBuilder(spanName)
+                    .setSpanKind(SpanKind.CLIENT)
+                    .setStartTimestamp(now())
+                    .startSpan());
   }
 
   @Override
