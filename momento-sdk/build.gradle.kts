@@ -8,7 +8,8 @@ plugins {
 dependencies {
     implementation(libs.momento.java.protos)
 
-    api(libs.grpc.api) // Marked as api because SdkException contains classes from this dependency
+    api(libs.jsr305) // Marked api because the annotations are used in sdk methods
+    api(libs.grpc.api) // Marked api because SdkException contains classes from this dependency
     implementation(libs.grpc.stub)
     implementation(libs.grpc.nettyshaded)
     implementation(libs.bundles.opentelemetry)

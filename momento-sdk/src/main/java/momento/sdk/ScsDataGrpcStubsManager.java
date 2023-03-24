@@ -9,8 +9,9 @@ import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Data Plane.
@@ -28,28 +29,31 @@ final class ScsDataGrpcStubsManager implements Closeable {
   private final Duration deadline;
 
   ScsDataGrpcStubsManager(
-      String authToken,
-      String endpoint,
-      Optional<OpenTelemetry> openTelemetry,
-      Optional<Duration> requestTimeout) {
-    this.deadline = requestTimeout.orElse(DEFAULT_DEADLINE);
+      @Nonnull String authToken,
+      @Nonnull String endpoint,
+      @Nullable OpenTelemetry openTelemetry,
+      @Nullable Duration requestTimeout) {
+    if (requestTimeout != null) {
+      this.deadline = requestTimeout;
+    } else {
+      this.deadline = DEFAULT_DEADLINE;
+    }
     this.channel = setupChannel(authToken, endpoint, openTelemetry);
     this.futureStub = ScsGrpc.newFutureStub(channel);
   }
 
   private static ManagedChannel setupChannel(
-      String authToken, String endpoint, Optional<OpenTelemetry> openTelemetry) {
+      String authToken, String endpoint, OpenTelemetry openTelemetry) {
     NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(authToken));
-    openTelemetry.ifPresent(
-        theOpenTelemetry ->
-            clientInterceptors.add(new OpenTelemetryClientInterceptor(theOpenTelemetry)));
+    if (openTelemetry != null) {
+      clientInterceptors.add(new OpenTelemetryClientInterceptor(openTelemetry));
+    }
     channelBuilder.intercept(clientInterceptors);
-    ManagedChannel channel = channelBuilder.build();
-    return channel;
+    return channelBuilder.build();
   }
 
   /**
@@ -60,7 +64,7 @@ final class ScsDataGrpcStubsManager implements Closeable {
    * before the deadline expires. Hence, the stub returned from here should never be cached and the
    * safest behavior is for clients to request a new stub each time.
    *
-   * <p>more information: https://github.com/grpc/grpc-java/issues/1495
+   * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
    */
   ScsGrpc.ScsFutureStub getStub() {
     return futureStub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
