@@ -1,6 +1,5 @@
 package momento.sdk.exceptions;
 
-import java.util.Optional;
 import momento.sdk.internal.MomentoTransportErrorDetails;
 
 /** A resource already exists. */
@@ -26,8 +25,10 @@ public class AlreadyExistsException extends MomentoServiceException {
   }
 
   private static String completeMessage(MomentoTransportErrorDetails transportErrorDetails) {
-    final Optional<String> nameOpt =
-        transportErrorDetails.getGrpcErrorDetails().getMetadata().getCacheName();
-    return nameOpt.map(s -> MESSAGE + " Cache name: " + s).orElse(MESSAGE);
+    return transportErrorDetails
+        .getGrpcErrorDetails()
+        .getCacheName()
+        .map(s -> MESSAGE + " Cache name: " + s)
+        .orElse(MESSAGE);
   }
 }

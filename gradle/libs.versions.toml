@@ -12,7 +12,7 @@ opentelemetry = "1.24.0"
 [libraries]
 grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpc"}
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
-grpc-netty-shaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+grpc-nettyshaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
 
 opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opentelemetry" }
 opentelemetry-context = { module = "io.opentelemetry:opentelemetry-context", version.ref = "opentelemetry" }
@@ -31,5 +31,4 @@ junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 
 [bundles]
-grpc = ["grpc-api", "grpc-stub", "grpc-netty-shaded"]
 opentelemetry = ["opentelemetry-api", "opentelemetry-context"]

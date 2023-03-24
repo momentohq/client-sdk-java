@@ -1,5 +1,6 @@
 package momento.sdk.exceptions;
 
+import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import momento.sdk.internal.MomentoGrpcErrorDetails;
@@ -19,7 +20,19 @@ public final class CacheServiceExceptionMapper {
    *
    * @param e to convert
    */
-  public static SdkException convert(Throwable e, MomentoErrorMetadata metadata) {
+  public static SdkException convert(Throwable e) {
+    return convert(e, null);
+  }
+
+  /**
+   * Common Handler for converting exceptions encountered by the SDK.
+   *
+   * <p>Any specialized exception handling should be performed before calling this
+   *
+   * @param e to convert
+   * @param metadata metadata from the grpc request that caused the error
+   */
+  public static SdkException convert(Throwable e, Metadata metadata) {
     if (e instanceof SdkException) {
       return (SdkException) e;
     }
