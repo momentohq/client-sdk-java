@@ -18,15 +18,6 @@ configure<JavaPluginExtension> {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-// Sign only if we have a key to do so
-val signingKey: String? = System.getenv("SONATYPE_SIGNING_KEY")
-if (signingKey != null) {
-    signing {
-        useInMemoryPgpKeys(signingKey, System.getenv("SONATYPE_SIGNING_KEY_PASSWORD"))
-        sign(publishing.publications["mavenJava"])
-    }
-}
-
 publishing {
     publications {
         register<MavenPublication>("mavenJava") {
@@ -59,5 +50,14 @@ publishing {
                 }
             }
         }
+    }
+}
+
+// Sign only if we have a key to do so
+val signingKey: String? = System.getenv("SONATYPE_SIGNING_KEY")
+if (signingKey != null) {
+    signing {
+        useInMemoryPgpKeys(signingKey, System.getenv("SONATYPE_SIGNING_KEY_PASSWORD"))
+        sign(publishing.publications["mavenJava"])
     }
 }
