@@ -47,7 +47,7 @@ jobs:
         SONATYPE_SIGNING_KEY_PASSWORD: ${{ secrets.SONATYPE_SIGNING_KEY_PASSWORD }}
         SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
         SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        ORG_GRADLE_PROJECT_version: ${{ needs.release.outputs.version }}
+        ORG_GRADLE_PROJECT_version: ${{ steps.semrel.outputs.version }}
       uses: gradle/gradle-build-action@v2
       with:
         arguments: publishToSonatype closeSonatypeStagingRepository  #TODO: closeAndReleaseStagingRepository
