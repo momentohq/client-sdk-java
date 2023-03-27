@@ -7,22 +7,20 @@
  */
 
 plugins {
-    `application`
+    application
     id("com.diffplug.spotless") version "5.15.1"
 }
 
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
-
-    maven("https://momento.jfrog.io/artifactory/maven-public")
 }
 
 dependencies {
-    implementation("momento.sandbox:momento-sdk:0.18.0")
+    implementation("software.momento.java:sdk:0.23.2")
 
     // Use JUnit Jupiter for testing.
-    testImplementation("org.junit.jupiter:junit-jupiter:5.7.2")
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 }
 
 spotless {
@@ -40,3 +38,4 @@ tasks.test {
 application {
     mainClass.set("momento.client.example.MomentoCacheApplication")
 }
+

@@ -1,13 +1,15 @@
 package momento.client.example.advanced;
 
+import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import momento.sdk.SimpleCacheClient;
+import momento.sdk.CacheClient;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheSetResponse;
 
 /**
  * Example application that shows how to handle Cache lookups and cache misses.
@@ -19,75 +21,83 @@ import momento.sdk.messages.CacheGetResponse;
  */
 public class MomentoCacheWithDatabase {
 
-  private static final String MOMENTO_AUTH_TOKEN = "<YOUR TOKEN HERE>";
+  private static final String MOMENTO_AUTH_TOKEN = System.getenv("MOMENTO_AUTH_TOKEN");
   private static final String CACHE_NAME = "cache";
-  private static final String ITEM_NOT_FOUND_MESSAGE = "Not Found in Cache or Database";
+  private static final String ITEM_NOT_FOUND_MESSAGE = "not found in Cache or Database";
   private static final List<String> itemIds = Arrays.asList("1", "20");
-  private static final int DEFAULT_ITEM_TTL = 60;
+  private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   public static void main(String[] args) {
     printStartBanner();
-    Database database = new DatabaseImpl();
-    try (SimpleCacheClient simpleCacheClient =
-        SimpleCacheClient.builder(MOMENTO_AUTH_TOKEN, DEFAULT_ITEM_TTL).build()) {
-      createCache(simpleCacheClient, CACHE_NAME);
-      runExample(simpleCacheClient, database);
+    final Database database = new DatabaseImpl();
+    try (final CacheClient cacheClient =
+        CacheClient.builder(MOMENTO_AUTH_TOKEN, DEFAULT_ITEM_TTL).build()) {
+      createCache(cacheClient, CACHE_NAME);
+      runExample(cacheClient, database);
     }
     printEndBanner();
   }
 
-  private static void runExample(SimpleCacheClient cache, Database database) {
-    for (String itemId : itemIds) {
-      System.out.println(String.format("Initiating Lookup for item id: %s", itemId));
-      String result = lookup(itemId, cache, database).orElse(ITEM_NOT_FOUND_MESSAGE);
-      System.out.println(String.format("Item id: %s Item: %s", itemId, result));
+  private static void runExample(CacheClient cache, Database database) {
+    for (final String itemId : itemIds) {
+      System.out.printf("Initiating Lookup for item id '%s'.%n", itemId);
+      final String result = lookup(itemId, cache, database).orElse(ITEM_NOT_FOUND_MESSAGE);
+      System.out.printf("Item id: %s, Item: %s%n", itemId, result);
 
-      // Item was found in Database or Cache the second look up should be a cache hit.
+      // If the item was found in the Database or Cache the second look up should be a cache hit.
       if (!result.equals(ITEM_NOT_FOUND_MESSAGE)) {
-        System.out.println(String.format("\n \nLookup Item id: %s again.", itemId));
+        System.out.printf("%n%nLookup Item id '%s' again.%n", itemId);
 
-        String secondLookup =
+        final String secondLookup =
             lookup(itemId, cache, database)
-                .orElseThrow(() -> new AssertionError("Item should be present."));
-        System.out.println(String.format("Look up for Item id: %s Item: %s", itemId, secondLookup));
+                .orElseThrow(() -> new IllegalStateException("Item should be present."));
+        System.out.printf("Item id: %s, Item: %s%n", itemId, secondLookup);
       }
 
-      System.out.println(String.format("Done looking up item id: %s \n \n", itemId));
+      System.out.printf("Done looking up item id '%s'.%n%n%n", itemId);
     }
   }
 
   // Handle cache lookups and fallback to database when item isn't found
-  private static Optional<String> lookup(
-      String itemId, SimpleCacheClient cache, Database database) {
-    CacheGetResponse response = cache.get(CACHE_NAME, itemId);
+  private static Optional<String> lookup(String itemId, CacheClient cache, Database database) {
+    final CacheGetResponse response = cache.get(CACHE_NAME, itemId).join();
     writeCacheLog(response, itemId);
-    return response.string().or(() -> handleCacheMiss(itemId, cache, database));
+    if (response instanceof CacheGetResponse.Hit hit) {
+      return Optional.of(hit.valueString());
+    } else {
+      return handleCacheMiss(itemId, cache, database);
+    }
   }
 
   // Handle Cache Miss
   // Lookup the item in database and if found, add the item to cache.
   private static Optional<String> handleCacheMiss(
-      String itemId, SimpleCacheClient cache, Database database) {
-    Optional<String> item = database.getItem(itemId);
+      String itemId, CacheClient cache, Database database) {
+    final Optional<String> item = database.getItem(itemId);
     if (item.isPresent()) {
-      cache.set(CACHE_NAME, itemId, item.get());
-      System.out.println(
-          String.format(
-              "Item stored with key: %s and value: %s stored in Cache", itemId, item.get()));
+      final CacheSetResponse response = cache.set(CACHE_NAME, itemId, item.get()).join();
+      if (response instanceof CacheSetResponse.Success) {
+        System.out.printf(
+            "Item with key '%s' and value '%s' stored in Cache%n", itemId, item.get());
+      } else {
+        System.out.printf(
+            "Failed to write item with key '%s' and value '%s' to Cache", itemId, item.get());
+      }
     }
     return item;
   }
 
   private static void writeCacheLog(CacheGetResponse response, String key) {
-    System.out.println(
-        String.format("Cache lookup up for item id: %s resulted in : %s", key, response.status()));
+    System.out.printf(
+        "Cache lookup up for item id '%s' resulted in: %s%n",
+        key, response.getClass().getSimpleName());
   }
 
-  private static void createCache(SimpleCacheClient simpleCacheClient, String cacheName) {
+  private static void createCache(CacheClient cacheClient, String cacheName) {
     try {
-      simpleCacheClient.createCache(cacheName);
+      cacheClient.createCache(cacheName);
     } catch (AlreadyExistsException e) {
-      System.out.println(String.format("Cache with name `%s` already exists.", cacheName));
+      System.out.printf("Cache with name '%s' already exists.%n", cacheName);
     }
   }
 
@@ -115,15 +125,15 @@ class DatabaseImpl implements Database {
   @Override
   public Optional<String> getItem(String itemId) {
     if (data.containsKey(itemId)) {
-      System.out.println(String.format("Item with id: %s found in database", itemId));
+      System.out.printf("Item with id '%s' found in database%n", itemId);
       return Optional.ofNullable(data.get(itemId));
     }
-    System.out.println(String.format("Item with id: %s not found in database", itemId));
+    System.out.printf("Item with id '%s' not found in database%n", itemId);
     return Optional.empty();
   }
 
   private static Map<String, String> buildDatabase() {
-    Map<String, String> data = new HashMap<>();
+    final Map<String, String> data = new HashMap<>();
     data.put("1", "Bananas");
     data.put("2", "Apples");
     data.put("3", "Mangoes");
