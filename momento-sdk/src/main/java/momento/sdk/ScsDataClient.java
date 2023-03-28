@@ -7,6 +7,7 @@ import static momento.sdk.ValidationUtils.checkListNameValid;
 import static momento.sdk.ValidationUtils.checkSetNameValid;
 import static momento.sdk.ValidationUtils.ensureValidCacheSet;
 import static momento.sdk.ValidationUtils.ensureValidKey;
+import static momento.sdk.ValidationUtils.ensureValidValue;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -49,6 +50,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
@@ -58,6 +60,7 @@ import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
+import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetResponse;
@@ -251,7 +254,7 @@ final class ScsDataClient implements Closeable {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(setName);
-      ensureValidKey(element);
+      ensureValidValue(element);
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
@@ -267,7 +270,7 @@ final class ScsDataClient implements Closeable {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(setName);
-      ensureValidKey(element);
+      ensureValidValue(element);
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
@@ -275,6 +278,38 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetAddElementsResponse> setAddStringElements(
+      String cacheName, String setName, Set<String> elements, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(setName);
+      ensureValidValue(elements);
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+      return sendSetAddElements(cacheName, convert(setName), convertStringSet(elements), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetAddElementsResponse> setAddByteArrayElements(
+      String cacheName, String setName, Set<byte[]> elements, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(setName);
+      ensureValidValue(elements);
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+      return sendSetAddElements(cacheName, convert(setName), convertByteArraySet(elements), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -339,6 +374,14 @@ final class ScsDataClient implements Closeable {
 
   private ByteString convert(ByteBuffer byteBuffer) {
     return ByteString.copyFrom(byteBuffer);
+  }
+
+  private Set<ByteString> convertStringSet(Set<String> strings) {
+    return strings.stream().map(this::convert).collect(Collectors.toSet());
+  }
+
+  private Set<ByteString> convertByteArraySet(Set<byte[]> strings) {
+    return strings.stream().map(this::convert).collect(Collectors.toSet());
   }
 
   private List<ByteString> convertStringArray(List<String> stringArrayToEncode) {
@@ -708,6 +751,65 @@ final class ScsDataClient implements Closeable {
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheSetAddElementResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheSetAddElementsResponse> sendSetAddElements(
+      String cacheName, ByteString setName, Set<ByteString> elements, CollectionTtl ttl) {
+    checkCacheNameValid(cacheName);
+    final Optional<Span> span = buildSpan("java-sdk-set-add-elements-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SetUnionResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .setUnion(buildSetUnionRequest(setName, elements, ttl));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSetAddElementsResponse> returnFuture =
+        new CompletableFuture<CacheSetAddElementsResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SetUnionResponse>() {
+          @Override
+          public void onSuccess(_SetUnionResponse rsp) {
+            returnFuture.complete(new CacheSetAddElementsResponse.Success());
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.OK);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheSetAddElementsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
                 theSpan -> {

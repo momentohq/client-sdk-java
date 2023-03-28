@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -14,6 +15,7 @@ import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
+import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetResponse;
@@ -385,6 +387,42 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSetAddElementResponse> setAddElement(
       String cacheName, String setName, byte[] element, CollectionTtl ttl) {
     return scsDataClient.setAddElement(cacheName, setName, element, ttl);
+  }
+
+  /**
+   * Add several string elements to a set in the cache.
+   *
+   * <p>After this operation the set will contain the union of the elements passed in and the
+   * original elements of the set.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param setName The set to add the element to.
+   * @param elements The data to add to the set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the add element operation.
+   */
+  public CompletableFuture<CacheSetAddElementsResponse> setAddStringElements(
+      String cacheName, String setName, Set<String> elements, CollectionTtl ttl) {
+    return scsDataClient.setAddStringElements(cacheName, setName, elements, ttl);
+  }
+
+  /**
+   * Add several byte array elements to a set in the cache.
+   *
+   * <p>After this operation the set will contain the union of the elements passed in and the
+   * original elements of the set.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param setName The set to add the element to.
+   * @param elements The data to add to the set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the add element operation.
+   */
+  public CompletableFuture<CacheSetAddElementsResponse> setAddByteArrayElements(
+      String cacheName, String setName, Set<byte[]> elements, CollectionTtl ttl) {
+    return scsDataClient.setAddByteArrayElements(cacheName, setName, elements, ttl);
   }
 
   /**

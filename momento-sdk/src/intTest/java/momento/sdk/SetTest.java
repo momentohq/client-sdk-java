@@ -2,11 +2,15 @@ package momento.sdk;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.collect.Sets;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.util.Collections;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheSetAddElementResponse;
+import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.requests.CollectionTtl;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -154,6 +158,152 @@ public class SetTest {
             client.setAddElement(cacheName, cacheName, (byte[]) null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(5, TimeUnit.SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSetAddElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void setAddStringElementsHappyPath() {
+    final Set<String> firstSet = Sets.newHashSet("one", "two");
+    final Set<String> secondSet = Sets.newHashSet("two", "three");
+
+    assertThat(
+            client.setAddStringElements(cacheName, setName, firstSet, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .isInstanceOf(CacheSetAddElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueSetString()).hasSize(2).containsAll(firstSet));
+
+    // Try to add the same elements again
+    assertThat(
+            client.setAddStringElements(cacheName, setName, firstSet, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .isInstanceOf(CacheSetAddElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueSetString()).hasSize(2).containsAll(firstSet));
+
+    // Add a set with one new and one overlapping element
+    assertThat(
+            client.setAddStringElements(
+                cacheName, setName, secondSet, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .isInstanceOf(CacheSetAddElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.valueSetString())
+                    .hasSize(3)
+                    .containsAll(firstSet)
+                    .containsAll(secondSet));
+  }
+
+  @Test
+  public void setAddByteArrayElementsHappyPath() {
+    final Set<byte[]> firstSet = Sets.newHashSet("one".getBytes(), "two".getBytes());
+    final Set<byte[]> secondSet = Sets.newHashSet("two".getBytes(), "three".getBytes());
+
+    assertThat(
+            client.setAddByteArrayElements(
+                cacheName, setName, firstSet, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .isInstanceOf(CacheSetAddElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueSetByteArray()).hasSize(2).containsAll(firstSet));
+
+    // Try to add the same elements again
+    assertThat(
+            client.setAddByteArrayElements(
+                cacheName, setName, firstSet, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .isInstanceOf(CacheSetAddElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueSetByteArray()).hasSize(2).containsAll(firstSet));
+
+    // Add a set with one new and one overlapping element
+    assertThat(
+            client.setAddByteArrayElements(
+                cacheName, setName, secondSet, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .isInstanceOf(CacheSetAddElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.valueSetByteArray())
+                    .hasSize(3)
+                    .containsAll(firstSet)
+                    .containsAll(secondSet));
+  }
+
+  @Test
+  public void setAddElementsReturnsErrorWithNullCacheName() {
+    final Set<String> stringElements = Collections.singleton("element");
+    final Set<byte[]> bytesElements = Collections.singleton("bytes-element".getBytes());
+
+    assertThat(
+            client.setAddStringElements(
+                null, setName, stringElements, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetAddElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(
+            client.setAddByteArrayElements(
+                null, setName, bytesElements, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetAddElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void setAddElementsReturnsErrorWithNullSetName() {
+    final Set<String> stringElements = Collections.singleton("element");
+    final Set<byte[]> bytesElements = Collections.singleton("bytes-element".getBytes());
+
+    assertThat(
+            client.setAddStringElements(
+                cacheName, null, stringElements, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetAddElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(
+            client.setAddByteArrayElements(
+                cacheName, null, bytesElements, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetAddElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void setAddElementsReturnsErrorWithNullElement() {
+    assertThat(
+            client.setAddStringElements(cacheName, cacheName, null, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetAddElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(
+            client.setAddByteArrayElements(
+                cacheName, cacheName, null, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(5, TimeUnit.SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetAddElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
