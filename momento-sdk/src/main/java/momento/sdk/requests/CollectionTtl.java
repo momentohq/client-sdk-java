@@ -14,20 +14,20 @@ import java.time.Duration;
  * client's TTL.
  */
 public class CollectionTtl {
-  private Duration ttlSeconds;
-  private boolean refreshTtl;
+  private final Duration ttl;
+  private final boolean refreshTtl;
 
-  public CollectionTtl(Duration ttlSeconds, boolean refreshTtl) {
+  public CollectionTtl(Duration ttl, boolean refreshTtl) {
     this.refreshTtl = refreshTtl;
-    this.ttlSeconds = ttlSeconds;
+    this.ttl = ttl;
   }
 
-  public Duration ttSeconds() {
-    return this.ttlSeconds;
+  public long ttSeconds() {
+    return this.ttl.getSeconds();
   }
 
   public long ttMilliseconds() {
-    return ttlSeconds.toMillis();
+    return ttl.toMillis();
   }
 
   public boolean refreshTtl() {
@@ -38,7 +38,7 @@ public class CollectionTtl {
    * The default way to handle TTLs for collections. The client's default TTL will be used, and the
    * TTL for the collection will be refreshed any time the collection is modified.
    *
-   * @return {CollectionTtl}
+   * @return CollectionTtl
    */
   public static CollectionTtl fromCacheTtl() {
     return new CollectionTtl(null, true);
@@ -48,30 +48,30 @@ public class CollectionTtl {
    * Constructs a CollectionTtl with the specified TTL. The TTL for the collection will be refreshed
    * any time the collection is modified.
    *
-   * @param ttlSeconds
-   * @return {CollectionTtl}
+   * @param ttl
+   * @return CollectionTtl
    */
-  public static CollectionTtl of(Duration ttlSeconds) {
-    return new CollectionTtl(ttlSeconds, true);
+  public static CollectionTtl of(Duration ttl) {
+    return new CollectionTtl(ttl, true);
   }
 
   /**
    * Constructs a CollectionTtl with the specified TTL. Will only refresh if the TTL is provided.
    *
-   * @param ttlSeconds
-   * @return {CollectionTtl}
+   * @param ttl
+   * @return CollectionTtl
    */
-  public static CollectionTtl refreshTtlIfProvided(Duration ttlSeconds) {
-    return new CollectionTtl(ttlSeconds, ttlSeconds != null);
+  public static CollectionTtl refreshTtlIfProvided(Duration ttl) {
+    return new CollectionTtl(ttl, ttl != null);
   }
 
   /**
    * Copies the CollectionTtl, but it will refresh the TTL when the collection is modified.
    *
-   * @return {CollectionTtl}
+   * @return CollectionTtl
    */
   public CollectionTtl withRefreshTtlOnUpdates() {
-    return new CollectionTtl(ttlSeconds, true);
+    return new CollectionTtl(ttl, true);
   }
 
   /**
@@ -79,9 +79,9 @@ public class CollectionTtl {
    * Use this if you want to ensure that your collection expires at the originally specified time,
    * even if you make modifications to the value of the collection.
    *
-   * @return {CollectionTtl}
+   * @return CollectionTtl
    */
   public CollectionTtl withNoRefreshTtlOnUpdates() {
-    return new CollectionTtl(ttlSeconds, false);
+    return new CollectionTtl(ttl, false);
   }
 }
