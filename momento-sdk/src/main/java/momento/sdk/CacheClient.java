@@ -4,6 +4,7 @@ import io.opentelemetry.api.OpenTelemetry;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
@@ -11,6 +12,7 @@ import javax.annotation.Nullable;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
+import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
@@ -20,6 +22,7 @@ import momento.sdk.messages.FlushCacheResponse;
 import momento.sdk.messages.ListCachesResponse;
 import momento.sdk.messages.ListSigningKeysResponse;
 import momento.sdk.messages.RevokeSigningKeyResponse;
+import momento.sdk.requests.CollectionTtl;
 
 /** Client to perform operations against the Momento Cache Service */
 public final class CacheClient implements Closeable {
@@ -344,6 +347,48 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheIncrementResponse> increment(
       String cacheName, byte[] field, long amount, Duration ttl) {
     return scsDataClient.increment(cacheName, field, amount, ttl);
+  }
+
+  /**
+   * Concatenates values to the back of the list.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param listName The field under which the value is to be added.
+   * @param values The amount by which the cache value is to be incremented.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list concatenate back operation.
+   */
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+      String cacheName,
+      String listName,
+      List<String> values,
+      CollectionTtl ttl,
+      Integer truncateFrontToSize) {
+    return scsDataClient.listConcatenateBack(cacheName, listName, values, ttl, truncateFrontToSize);
+  }
+
+  /**
+   * Concatenates values to the back of the list.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param listName The field under which the value is to be added.
+   * @param values The amount by which the cache value is to be incremented.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list concatenate back operation.
+   */
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+      String cacheName,
+      String listName,
+      List<byte[]> values,
+      CollectionTtl ttl,
+      int truncateFrontToSize) {
+    return scsDataClient.listConcatenateBack(cacheName, listName, values, ttl, truncateFrontToSize);
   }
 
   @Override
