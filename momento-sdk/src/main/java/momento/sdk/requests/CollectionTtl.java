@@ -1,6 +1,8 @@
 package momento.sdk.requests;
 
 import java.time.Duration;
+import java.util.Optional;
+import javax.annotation.Nullable;
 
 /**
  * Represents the desired behavior for managing the TTL on collection objects (dictionaries, lists,
@@ -17,17 +19,17 @@ public class CollectionTtl {
   private final Duration ttl;
   private final boolean refreshTtl;
 
-  public CollectionTtl(Duration ttl, boolean refreshTtl) {
+  public CollectionTtl(@Nullable Duration ttl, boolean refreshTtl) {
     this.refreshTtl = refreshTtl;
     this.ttl = ttl;
   }
 
-  public long ttlSeconds() {
-    return this.ttl.getSeconds();
+  public Optional<Long> toSeconds() {
+    return Optional.ofNullable(ttl).map(Duration::getSeconds);
   }
 
-  public long ttlMilliseconds() {
-    return ttl.toMillis();
+  public Optional<Long> toMilliseconds() {
+    return Optional.ofNullable(ttl).map(Duration::toMillis);
   }
 
   public boolean refreshTtl() {
@@ -51,7 +53,7 @@ public class CollectionTtl {
    * @param ttl
    * @return CollectionTtl
    */
-  public static CollectionTtl of(Duration ttl) {
+  public static CollectionTtl of(@Nullable Duration ttl) {
     return new CollectionTtl(ttl, true);
   }
 
@@ -61,7 +63,7 @@ public class CollectionTtl {
    * @param ttl
    * @return CollectionTtl
    */
-  public static CollectionTtl refreshTtlIfProvided(Duration ttl) {
+  public static CollectionTtl refreshTtlIfProvided(@Nullable Duration ttl) {
     return new CollectionTtl(ttl, ttl != null);
   }
 

@@ -13,6 +13,8 @@ import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
+import momento.sdk.messages.CacheSetAddElementResponse;
+import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
@@ -347,6 +349,53 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheIncrementResponse> increment(
       String cacheName, byte[] field, long amount, Duration ttl) {
     return scsDataClient.increment(cacheName, field, amount, ttl);
+  }
+
+  /**
+   * Add an element to a set in the cache.
+   *
+   * <p>After this operation the set will contain the union of the element passed in and the
+   * original elements of the set.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param setName The set to add the element to.
+   * @param element The data to add to the set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the add element operation.
+   */
+  public CompletableFuture<CacheSetAddElementResponse> setAddElement(
+      String cacheName, String setName, String element, CollectionTtl ttl) {
+    return scsDataClient.setAddElement(cacheName, setName, element, ttl);
+  }
+
+  /**
+   * Add an element to a set in the cache.
+   *
+   * <p>After this operation the set will contain the union of the element passed in and the
+   * original elements of the set.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param setName The set to add the element to.
+   * @param element The data to add to the set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the add element operation.
+   */
+  public CompletableFuture<CacheSetAddElementResponse> setAddElement(
+      String cacheName, String setName, byte[] element, CollectionTtl ttl) {
+    return scsDataClient.setAddElement(cacheName, setName, element, ttl);
+  }
+
+  /**
+   * Fetch an entire set from the cache.
+   *
+   * @param cacheName Name of the cache to perform the lookup in
+   * @param setName The set to fetch.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSetFetchResponse> setFetch(String cacheName, String setName) {
+    return scsDataClient.setFetch(cacheName, setName);
   }
 
   /**

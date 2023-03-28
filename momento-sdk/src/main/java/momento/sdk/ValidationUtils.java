@@ -12,6 +12,8 @@ final class ValidationUtils {
   static final String A_NON_NULL_KEY_IS_REQUIRED = "A non-null key is required.";
   static final String A_NON_NULL_VALUE_IS_REQUIRED = "A non-null value is required.";
   static final String CACHE_NAME_IS_REQUIRED = "Cache name is required.";
+
+  static final String SET_NAME_CANNOT_BE_NULL = "Set name cannot be null.";
   static final String LIST_NAME_CANNOT_BE_NULL = "List name cannot be null.";
   static final String LIST_SLICE_START_END_INVALID =
       "endIndex (exclusive) must be larger than startIndex (inclusive).";
@@ -37,6 +39,12 @@ final class ValidationUtils {
     }
   }
 
+  static void checkSetNameValid(String setName) {
+    if (setName == null) {
+      throw new InvalidArgumentException(SET_NAME_CANNOT_BE_NULL);
+    }
+  }
+
   static void checkListSliceStartEndValid(Integer startIndex, Integer endIndex) {
     if (startIndex == null || endIndex == null) return;
     if (endIndex <= startIndex) {
@@ -46,15 +54,19 @@ final class ValidationUtils {
 
   static void ensureValidCacheSet(Object key, Object value, Duration ttl) {
     ensureValidKey(key);
-    if (value == null) {
-      throw new InvalidArgumentException(A_NON_NULL_VALUE_IS_REQUIRED);
-    }
+    ensureValidValue(value);
     ensureValidTtl(ttl);
   }
 
   static void ensureValidKey(Object key) {
     if (key == null) {
       throw new InvalidArgumentException(A_NON_NULL_KEY_IS_REQUIRED);
+    }
+  }
+
+  static void ensureValidValue(Object value) {
+    if (value == null) {
+      throw new InvalidArgumentException(A_NON_NULL_VALUE_IS_REQUIRED);
     }
   }
 
