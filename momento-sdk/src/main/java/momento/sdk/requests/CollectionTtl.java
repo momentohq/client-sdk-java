@@ -22,11 +22,11 @@ public class CollectionTtl {
     this.ttl = ttl;
   }
 
-  public long ttSeconds() {
+  public long ttlSeconds() {
     return this.ttl.getSeconds();
   }
 
-  public long ttMilliseconds() {
+  public long ttlMilliseconds() {
     return ttl.toMillis();
   }
 

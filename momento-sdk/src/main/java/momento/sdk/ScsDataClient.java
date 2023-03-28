@@ -3,6 +3,7 @@ package momento.sdk;
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static java.time.Instant.now;
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
+import static momento.sdk.ValidationUtils.checkListNameValid;
 import static momento.sdk.ValidationUtils.ensureValidCacheSet;
 import static momento.sdk.ValidationUtils.ensureValidKey;
 
@@ -19,6 +20,8 @@ import grpc.cache_client._GetRequest;
 import grpc.cache_client._GetResponse;
 import grpc.cache_client._IncrementRequest;
 import grpc.cache_client._IncrementResponse;
+import grpc.cache_client._ListConcatenateBackRequest;
+import grpc.cache_client._ListConcatenateBackResponse;
 import grpc.cache_client._SetIfNotExistsRequest;
 import grpc.cache_client._SetIfNotExistsResponse;
 import grpc.cache_client._SetRequest;
@@ -35,6 +38,8 @@ import io.opentelemetry.context.Scope;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
@@ -44,8 +49,10 @@ import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
+import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetResponse;
+import momento.sdk.requests.CollectionTtl;
 
 /** Client for interacting with Scs Data plane. */
 final class ScsDataClient implements Closeable {
@@ -230,6 +237,46 @@ final class ScsDataClient implements Closeable {
     }
   }
 
+  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+      String cacheName,
+      String listName,
+      List<String> values,
+      CollectionTtl ttl,
+      Integer truncateFrontToSize) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+      return sendListConcatenateBack(
+          cacheName, convert(listName), convertStringArray(values), ttl, truncateFrontToSize);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+      String cacheName,
+      String listName,
+      List<byte[]> values,
+      CollectionTtl ttl,
+      int truncateFrontToSize) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+      return sendListConcatenateBack(
+          cacheName, convert(listName), convertByteArray(values), ttl, truncateFrontToSize);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
   private ByteString convert(String stringToEncode) {
     return ByteString.copyFromUtf8(stringToEncode);
   }
@@ -240,6 +287,22 @@ final class ScsDataClient implements Closeable {
 
   private ByteString convert(ByteBuffer byteBuffer) {
     return ByteString.copyFrom(byteBuffer);
+  }
+
+  private List<ByteString> convertStringArray(List<String> stringArrayToEncode) {
+    List<ByteString> byteStringArray = new ArrayList<>();
+    for (int i = 0; i < stringArrayToEncode.size(); i++) {
+      byteStringArray.add(i, convert(stringArrayToEncode.get(i)));
+    }
+    return byteStringArray;
+  }
+
+  private List<ByteString> convertByteArray(List<byte[]> byteArrayToEncode) {
+    List<ByteString> byteStringArray = new ArrayList<>();
+    for (int i = 0; i < byteArrayToEncode.size(); i++) {
+      byteStringArray.add(i, convert(byteArrayToEncode.get(i)));
+    }
+    return byteStringArray;
   }
 
   private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
@@ -550,6 +613,71 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheListConcatenateBackResponse> sendListConcatenateBack(
+      String cacheName,
+      ByteString listName,
+      List<ByteString> values,
+      CollectionTtl ttl,
+      Integer truncateFrontToSize) {
+    final Optional<Span> span = buildSpan("java-sdk-listConcatenateBack-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_ListConcatenateBackResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .listConcatenateBack(
+                buildListConcatenateBackRequest(listName, values, ttl, truncateFrontToSize));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheListConcatenateBackResponse> returnFuture =
+        new CompletableFuture<CacheListConcatenateBackResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_ListConcatenateBackResponse>() {
+          @Override
+          public void onSuccess(_ListConcatenateBackResponse rsp) {
+            returnFuture.complete(
+                new CacheListConcatenateBackResponse.Success(rsp.getListLength()));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.OK);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheListConcatenateBackResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
   private static Metadata metadataWithCache(String cacheName) {
     final Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
@@ -593,6 +721,22 @@ final class ScsDataClient implements Closeable {
         .setCacheBody(value)
         .setTtlMilliseconds(ttl.toMillis())
         .build();
+  }
+
+  private _ListConcatenateBackRequest buildListConcatenateBackRequest(
+      ByteString listName,
+      List<ByteString> values,
+      CollectionTtl ttl,
+      Integer truncateFrontToSize) {
+    _ListConcatenateBackRequest request =
+        _ListConcatenateBackRequest.newBuilder()
+            .setListName(listName)
+            .setTtlMilliseconds(ttl.ttlMilliseconds())
+            .setRefreshTtl(ttl.refreshTtl())
+            .setTruncateFrontToSize(truncateFrontToSize.byteValue())
+            .addAllValues(values)
+            .build();
+    return request;
   }
 
   private Optional<Span> buildSpan(String spanName) {
