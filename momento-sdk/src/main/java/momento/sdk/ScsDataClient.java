@@ -48,7 +48,6 @@ import io.opentelemetry.context.Scope;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -342,7 +341,7 @@ final class ScsDataClient implements Closeable {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
       return sendListConcatenateBack(
-          cacheName, convert(listName), convertStringArray(values), ttl, truncateFrontToSize);
+          cacheName, convert(listName), convertStringList(values), ttl, truncateFrontToSize);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -362,7 +361,7 @@ final class ScsDataClient implements Closeable {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
       return sendListConcatenateBack(
-          cacheName, convert(listName), convertByteArray(values), ttl, truncateFrontToSize);
+          cacheName, convert(listName), convertByteArrayList(values), ttl, truncateFrontToSize);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -402,20 +401,12 @@ final class ScsDataClient implements Closeable {
     return strings.stream().map(this::convert).collect(Collectors.toSet());
   }
 
-  private List<ByteString> convertStringArray(List<String> stringArrayToEncode) {
-    List<ByteString> byteStringArray = new ArrayList<>();
-    for (int i = 0; i < stringArrayToEncode.size(); i++) {
-      byteStringArray.add(i, convert(stringArrayToEncode.get(i)));
-    }
-    return byteStringArray;
+  private List<ByteString> convertStringList(List<String> strings) {
+    return strings.stream().map(this::convert).collect(Collectors.toList());
   }
 
-  private List<ByteString> convertByteArray(List<byte[]> byteArrayToEncode) {
-    List<ByteString> byteStringArray = new ArrayList<>();
-    for (int i = 0; i < byteArrayToEncode.size(); i++) {
-      byteStringArray.add(i, convert(byteArrayToEncode.get(i)));
-    }
-    return byteStringArray;
+  private List<ByteString> convertByteArrayList(List<byte[]> byteArrays) {
+    return byteArrays.stream().map(this::convert).collect(Collectors.toList());
   }
 
   private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
