@@ -13,6 +13,7 @@ import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
+import momento.sdk.messages.CacheListFetchResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
@@ -402,8 +403,8 @@ public final class CacheClient implements Closeable {
    * Concatenates values to the back of the list.
    *
    * @param cacheName Name of the cache to store the item in
-   * @param listName The field under which the value is to be added.
-   * @param values The amount by which the cache value is to be incremented.
+   * @param listName The list in which the value is to be added.
+   * @param values The elements to add to the list.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(String, Duration)}
    * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
@@ -423,8 +424,8 @@ public final class CacheClient implements Closeable {
    * Concatenates values to the back of the list.
    *
    * @param cacheName Name of the cache to store the item in
-   * @param listName The field under which the value is to be added.
-   * @param values The amount by which the cache value is to be incremented.
+   * @param listName The list in which the value is to be added.
+   * @param values The elements to add to the list.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(String, Duration)}
    * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
@@ -438,6 +439,20 @@ public final class CacheClient implements Closeable {
       CollectionTtl ttl,
       int truncateFrontToSize) {
     return scsDataClient.listConcatenateBack(cacheName, listName, values, ttl, truncateFrontToSize);
+  }
+
+  /**
+   * Fetches all elements of the given list.
+   *
+   * @param cacheName - The cache containing the list.
+   * @param listName - The list to fetch.
+   * @param startIndex - Start inclusive index for fetch operation.
+   * @param endIndex - End exclusive index for fetch operation.
+   * @return Future containing the result of the list concatenate back operation.
+   */
+  public CompletableFuture<CacheListFetchResponse> listFetch(
+      String cacheName, String listName, Integer startIndex, Integer endIndex) {
+    return scsDataClient.listFetch(cacheName, listName, startIndex, endIndex);
   }
 
   @Override

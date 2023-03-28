@@ -4,6 +4,7 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static java.time.Instant.now;
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
 import static momento.sdk.ValidationUtils.checkListNameValid;
+import static momento.sdk.ValidationUtils.checkListSliceStartEndValid;
 import static momento.sdk.ValidationUtils.checkSetNameValid;
 import static momento.sdk.ValidationUtils.ensureValidCacheSet;
 import static momento.sdk.ValidationUtils.ensureValidKey;
@@ -23,6 +24,8 @@ import grpc.cache_client._IncrementRequest;
 import grpc.cache_client._IncrementResponse;
 import grpc.cache_client._ListConcatenateBackRequest;
 import grpc.cache_client._ListConcatenateBackResponse;
+import grpc.cache_client._ListFetchRequest;
+import grpc.cache_client._ListFetchResponse;
 import grpc.cache_client._SetFetchRequest;
 import grpc.cache_client._SetFetchResponse;
 import grpc.cache_client._SetIfNotExistsRequest;
@@ -31,6 +34,7 @@ import grpc.cache_client._SetRequest;
 import grpc.cache_client._SetResponse;
 import grpc.cache_client._SetUnionRequest;
 import grpc.cache_client._SetUnionResponse;
+import grpc.cache_client._Unbounded;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
 import io.opentelemetry.api.OpenTelemetry;
@@ -57,6 +61,7 @@ import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
+import momento.sdk.messages.CacheListFetchResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
@@ -326,6 +331,19 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListFetchResponse> listFetch(
+      String cacheName, String listName, Integer startIndex, Integer endIndex) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      checkListSliceStartEndValid(startIndex, endIndex);
+      return sendListFetch(cacheName, convert(listName), startIndex, endIndex);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -852,6 +870,73 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheListFetchResponse> sendListFetch(
+      String cacheName, ByteString listName, Integer startIndex, Integer endIndex) {
+    final Optional<Span> span = buildSpan("java-sdk-listFetch-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_ListFetchResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .listFetch(buildListFetchRequest(listName, startIndex, endIndex));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheListFetchResponse> returnFuture =
+        new CompletableFuture<CacheListFetchResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_ListFetchResponse>() {
+          @Override
+          public void onSuccess(_ListFetchResponse rsp) {
+            if (rsp.hasFound()) {
+              returnFuture.complete(new CacheListFetchResponse.Hit(rsp.getFound().getValuesList()));
+              span.ifPresent(
+                  theSpan -> {
+                    theSpan.setStatus(StatusCode.OK);
+                    theSpan.end(now());
+                  });
+              scope.ifPresent(Scope::close);
+            } else if (rsp.hasMissing()) {
+              returnFuture.complete(new CacheListFetchResponse.Miss());
+              span.ifPresent(
+                  theSpan -> {
+                    theSpan.setStatus(StatusCode.OK);
+                    theSpan.end(now());
+                  });
+              scope.ifPresent(Scope::close);
+            }
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheListFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
   private static Metadata metadataWithCache(String cacheName) {
     final Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
@@ -924,6 +1009,42 @@ final class ScsDataClient implements Closeable {
             .setTruncateFrontToSize(truncateFrontToSize.byteValue())
             .addAllValues(values)
             .build();
+    return request;
+  }
+
+  private _ListFetchRequest buildListFetchRequest(
+      ByteString listName, Integer startIndex, Integer endIndex) {
+    _ListFetchRequest request;
+    if (startIndex != null && endIndex != null) {
+      request =
+          _ListFetchRequest.newBuilder()
+              .setListName(listName)
+              .setInclusiveStart(startIndex)
+              .setExclusiveEnd(endIndex)
+              .build();
+    } else if (startIndex != null && endIndex == null) {
+      request =
+          _ListFetchRequest.newBuilder()
+              .setListName(listName)
+              .setInclusiveStart(startIndex)
+              .setUnboundedEnd(_Unbounded.newBuilder().build())
+              .build();
+    } else if (startIndex == null && endIndex != null) {
+      request =
+          _ListFetchRequest.newBuilder()
+              .setListName(listName)
+              .setUnboundedStart(_Unbounded.newBuilder().build())
+              .setExclusiveEnd(endIndex)
+              .build();
+    } else {
+      request =
+          _ListFetchRequest.newBuilder()
+              .setListName(listName)
+              .setUnboundedStart(_Unbounded.newBuilder().build())
+              .setUnboundedEnd(_Unbounded.newBuilder().build())
+              .build();
+    }
+
     return request;
   }
 
