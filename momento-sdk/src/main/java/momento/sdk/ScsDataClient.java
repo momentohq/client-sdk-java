@@ -4,6 +4,7 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static java.time.Instant.now;
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
 import static momento.sdk.ValidationUtils.checkListNameValid;
+import static momento.sdk.ValidationUtils.checkSetNameValid;
 import static momento.sdk.ValidationUtils.ensureValidCacheSet;
 import static momento.sdk.ValidationUtils.ensureValidKey;
 
@@ -22,10 +23,14 @@ import grpc.cache_client._IncrementRequest;
 import grpc.cache_client._IncrementResponse;
 import grpc.cache_client._ListConcatenateBackRequest;
 import grpc.cache_client._ListConcatenateBackResponse;
+import grpc.cache_client._SetFetchRequest;
+import grpc.cache_client._SetFetchResponse;
 import grpc.cache_client._SetIfNotExistsRequest;
 import grpc.cache_client._SetIfNotExistsResponse;
 import grpc.cache_client._SetRequest;
 import grpc.cache_client._SetResponse;
+import grpc.cache_client._SetUnionRequest;
+import grpc.cache_client._SetUnionResponse;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
 import io.opentelemetry.api.OpenTelemetry;
@@ -39,8 +44,10 @@ import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -50,6 +57,8 @@ import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
+import momento.sdk.messages.CacheSetAddElementResponse;
+import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.requests.CollectionTtl;
@@ -234,6 +243,49 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetAddElementResponse> setAddElement(
+      String cacheName, String setName, String element, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(setName);
+      ensureValidKey(element);
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+      return sendSetAddElement(cacheName, convert(setName), convert(element), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetAddElementResponse> setAddElement(
+      String cacheName, String setName, byte[] element, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(setName);
+      ensureValidKey(element);
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+      return sendSetAddElement(cacheName, convert(setName), convert(element), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetFetchResponse> setFetch(String cacheName, String setName) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(setName);
+      return sendSetFetch(cacheName, convert(setName));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -613,6 +665,128 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheSetAddElementResponse> sendSetAddElement(
+      String cacheName, ByteString setName, ByteString element, CollectionTtl ttl) {
+    checkCacheNameValid(cacheName);
+    final Optional<Span> span = buildSpan("java-sdk-set-add-element-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SetUnionResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .setUnion(buildSetUnionRequest(setName, Collections.singleton(element), ttl));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSetAddElementResponse> returnFuture =
+        new CompletableFuture<CacheSetAddElementResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SetUnionResponse>() {
+          @Override
+          public void onSuccess(_SetUnionResponse rsp) {
+            returnFuture.complete(new CacheSetAddElementResponse.Success());
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.OK);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheSetAddElementResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheSetFetchResponse> sendSetFetch(
+      String cacheName, ByteString setName) {
+    checkCacheNameValid(cacheName);
+    final Optional<Span> span = buildSpan("java-sdk-set-fetch-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SetFetchResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .setFetch(buildSetFetchRequest(setName));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSetFetchResponse> returnFuture =
+        new CompletableFuture<CacheSetFetchResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SetFetchResponse>() {
+          @Override
+          public void onSuccess(_SetFetchResponse rsp) {
+            if (rsp.hasFound()) {
+              returnFuture.complete(
+                  new CacheSetFetchResponse.Hit(rsp.getFound().getElementsList()));
+            } else {
+              returnFuture.complete(new CacheSetFetchResponse.Miss());
+            }
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.OK);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
   private CompletableFuture<CacheListConcatenateBackResponse> sendListConcatenateBack(
       String cacheName,
       ByteString listName,
@@ -723,6 +897,20 @@ final class ScsDataClient implements Closeable {
         .build();
   }
 
+  private _SetUnionRequest buildSetUnionRequest(
+      ByteString setName, Set<ByteString> elements, CollectionTtl ttl) {
+    return _SetUnionRequest.newBuilder()
+        .setSetName(setName)
+        .addAllElements(elements)
+        .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
+        .setRefreshTtl(ttl.refreshTtl())
+        .build();
+  }
+
+  private _SetFetchRequest buildSetFetchRequest(ByteString setName) {
+    return _SetFetchRequest.newBuilder().setSetName(setName).build();
+  }
+
   private _ListConcatenateBackRequest buildListConcatenateBackRequest(
       ByteString listName,
       List<ByteString> values,
@@ -731,7 +919,7 @@ final class ScsDataClient implements Closeable {
     _ListConcatenateBackRequest request =
         _ListConcatenateBackRequest.newBuilder()
             .setListName(listName)
-            .setTtlMilliseconds(ttl.ttlMilliseconds())
+            .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
             .setRefreshTtl(ttl.refreshTtl())
             .setTruncateFrontToSize(truncateFrontToSize.byteValue())
             .addAllValues(values)
