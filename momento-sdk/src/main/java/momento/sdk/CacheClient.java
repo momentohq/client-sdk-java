@@ -16,6 +16,7 @@ import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheListConcatenateFrontResponse;
 import momento.sdk.messages.CacheListFetchResponse;
 import momento.sdk.messages.CacheListLengthResponse;
+import momento.sdk.messages.CacheListPopBackResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -544,7 +545,7 @@ public final class CacheClient implements Closeable {
    *     building a cache client {@link CacheClient#builder(String, Duration)}
    * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive.
-   * @return Future containing the result of the list concatenate back operation.
+   * @return Future containing the result of the list concatenate front operation.
    */
   public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
       String cacheName,
@@ -566,7 +567,7 @@ public final class CacheClient implements Closeable {
    *     building a cache client {@link CacheClient#builder(String, Duration)}
    * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive.
-   * @return Future containing the result of the list concatenate back operation.
+   * @return Future containing the result of the list concatenate front operation.
    */
   public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
       String cacheName,
@@ -585,7 +586,7 @@ public final class CacheClient implements Closeable {
    * @param listName - The list to fetch.
    * @param startIndex - Start inclusive index for fetch operation.
    * @param endIndex - End exclusive index for fetch operation.
-   * @return Future containing the result of the list concatenate back operation.
+   * @return Future containing the result of the list fetch back operation.
    */
   public CompletableFuture<CacheListFetchResponse> listFetch(
       String cacheName, String listName, Integer startIndex, Integer endIndex) {
@@ -597,10 +598,22 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the list.
    * @param listName - The list to fetch.
-   * @return Future containing the result of the list concatenate back operation.
+   * @return Future containing the result of the list length back operation.
    */
   public CompletableFuture<CacheListLengthResponse> listLength(String cacheName, String listName) {
     return scsDataClient.listLength(cacheName, listName);
+  }
+
+  /**
+   * Fetches the value from the back of the given list.
+   *
+   * @param cacheName - The cache containing the list.
+   * @param listName - The list to fetch the value from.
+   * @return Future containing the result of the list pop back operation.
+   */
+  public CompletableFuture<CacheListPopBackResponse> listPopBack(
+      String cacheName, String listName) {
+    return scsDataClient.listPopBack(cacheName, listName);
   }
 
   @Override
