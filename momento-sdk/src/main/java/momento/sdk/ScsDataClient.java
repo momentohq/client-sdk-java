@@ -360,12 +360,12 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
       String cacheName,
       String listName,
       List<String> values,
       CollectionTtl ttl,
-      Integer truncateFrontToSize) {
+      int truncateFrontToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
@@ -380,7 +380,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
       String cacheName,
       String listName,
       List<byte[]> values,
@@ -400,12 +400,12 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
       String cacheName,
       String listName,
       List<String> values,
       CollectionTtl ttl,
-      Integer truncateBackToSize) {
+      int truncateBackToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
@@ -420,7 +420,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
       String cacheName,
       String listName,
       List<byte[]> values,
@@ -1031,7 +1031,7 @@ final class ScsDataClient implements Closeable {
       ByteString listName,
       List<ByteString> values,
       CollectionTtl ttl,
-      Integer truncateFrontToSize) {
+      int truncateFrontToSize) {
     final Optional<Span> span = buildSpan("java-sdk-listConcatenateBack-request");
     final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
@@ -1096,7 +1096,7 @@ final class ScsDataClient implements Closeable {
       ByteString listName,
       List<ByteString> values,
       CollectionTtl ttl,
-      Integer truncateBackToSize) {
+      int truncateBackToSize) {
     final Optional<Span> span = buildSpan("java-sdk-listConcatenateFront-request");
     final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 

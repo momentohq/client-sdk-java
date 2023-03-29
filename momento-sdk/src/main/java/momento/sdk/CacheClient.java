@@ -477,13 +477,14 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
       String cacheName,
       String listName,
       List<String> values,
       CollectionTtl ttl,
-      Integer truncateFrontToSize) {
-    return scsDataClient.listConcatenateBack(cacheName, listName, values, ttl, truncateFrontToSize);
+      int truncateFrontToSize) {
+    return scsDataClient.listConcatenateBackString(
+        cacheName, listName, values, ttl, truncateFrontToSize);
   }
 
   /**
@@ -498,13 +499,14 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
       String cacheName,
       String listName,
       List<byte[]> values,
       CollectionTtl ttl,
       int truncateFrontToSize) {
-    return scsDataClient.listConcatenateBack(cacheName, listName, values, ttl, truncateFrontToSize);
+    return scsDataClient.listConcatenateBackByteArray(
+        cacheName, listName, values, ttl, truncateFrontToSize);
   }
 
   /**
@@ -519,13 +521,14 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
       String cacheName,
       String listName,
       List<String> values,
       CollectionTtl ttl,
-      Integer truncateBackToSize) {
-    return scsDataClient.listConcatenateFront(cacheName, listName, values, ttl, truncateBackToSize);
+      int truncateBackToSize) {
+    return scsDataClient.listConcatenateFrontString(
+        cacheName, listName, values, ttl, truncateBackToSize);
   }
 
   /**
@@ -540,13 +543,14 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
       String cacheName,
       String listName,
       List<byte[]> values,
       CollectionTtl ttl,
       int truncateBackToSize) {
-    return scsDataClient.listConcatenateFront(cacheName, listName, values, ttl, truncateBackToSize);
+    return scsDataClient.listConcatenateFrontByteArray(
+        cacheName, listName, values, ttl, truncateBackToSize);
   }
 
   /**
