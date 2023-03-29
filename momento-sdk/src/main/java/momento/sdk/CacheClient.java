@@ -406,9 +406,9 @@ public final class CacheClient implements Closeable {
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the add elements operation.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddStringElements(
+  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
       String cacheName, String setName, Set<String> elements, CollectionTtl ttl) {
-    return scsDataClient.setAddStringElements(cacheName, setName, elements, ttl);
+    return scsDataClient.setAddElementsString(cacheName, setName, elements, ttl);
   }
 
   /**
@@ -424,9 +424,9 @@ public final class CacheClient implements Closeable {
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the add elements operation.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddByteArrayElements(
+  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
       String cacheName, String setName, Set<byte[]> elements, CollectionTtl ttl) {
-    return scsDataClient.setAddByteArrayElements(cacheName, setName, elements, ttl);
+    return scsDataClient.setAddElementsByteArray(cacheName, setName, elements, ttl);
   }
 
   /**
@@ -463,9 +463,9 @@ public final class CacheClient implements Closeable {
    * @param elements The values to remove from the set.
    * @return Future containing the result of the remove elements operation.
    */
-  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveStringElements(
+  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsString(
       String cacheName, String setName, Set<String> elements) {
-    return scsDataClient.setRemoveStringElements(cacheName, setName, elements);
+    return scsDataClient.setRemoveElementsString(cacheName, setName, elements);
   }
 
   /**
@@ -476,9 +476,9 @@ public final class CacheClient implements Closeable {
    * @param elements The value to remove from the set.
    * @return Future containing the result of the remove elements operation.
    */
-  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveByteArrayElements(
+  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsByteArray(
       String cacheName, String setName, Set<byte[]> elements) {
-    return scsDataClient.setRemoveByteArrayElements(cacheName, setName, elements);
+    return scsDataClient.setRemoveElementsByteArray(cacheName, setName, elements);
   }
 
   /**
