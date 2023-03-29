@@ -14,6 +14,7 @@ import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
+import momento.sdk.messages.CacheListConcatenateFrontResponse;
 import momento.sdk.messages.CacheListFetchResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
@@ -503,13 +504,14 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
       String cacheName,
       String listName,
       List<String> values,
       CollectionTtl ttl,
-      Integer truncateFrontToSize) {
-    return scsDataClient.listConcatenateBack(cacheName, listName, values, ttl, truncateFrontToSize);
+      int truncateFrontToSize) {
+    return scsDataClient.listConcatenateBackString(
+        cacheName, listName, values, ttl, truncateFrontToSize);
   }
 
   /**
@@ -524,13 +526,58 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
       String cacheName,
       String listName,
       List<byte[]> values,
       CollectionTtl ttl,
       int truncateFrontToSize) {
-    return scsDataClient.listConcatenateBack(cacheName, listName, values, ttl, truncateFrontToSize);
+    return scsDataClient.listConcatenateBackByteArray(
+        cacheName, listName, values, ttl, truncateFrontToSize);
+  }
+
+  /**
+   * Concatenates values to the front of the list.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param listName The list in which the value is to be added.
+   * @param values The elements to add to the list.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list concatenate back operation.
+   */
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
+      String cacheName,
+      String listName,
+      List<String> values,
+      CollectionTtl ttl,
+      int truncateBackToSize) {
+    return scsDataClient.listConcatenateFrontString(
+        cacheName, listName, values, ttl, truncateBackToSize);
+  }
+
+  /**
+   * Concatenates values to the front of the list.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param listName The list in which the value is to be added.
+   * @param values The elements to add to the list.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list concatenate back operation.
+   */
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
+      String cacheName,
+      String listName,
+      List<byte[]> values,
+      CollectionTtl ttl,
+      int truncateBackToSize) {
+    return scsDataClient.listConcatenateFrontByteArray(
+        cacheName, listName, values, ttl, truncateBackToSize);
   }
 
   /**
