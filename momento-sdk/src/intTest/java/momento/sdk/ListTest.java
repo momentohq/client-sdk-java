@@ -12,6 +12,7 @@ import momento.sdk.messages.CacheListConcatenateFrontResponse;
 import momento.sdk.messages.CacheListFetchResponse;
 import momento.sdk.messages.CacheListLengthResponse;
 import momento.sdk.messages.CacheListPopBackResponse;
+import momento.sdk.messages.CacheListPopFrontResponse;
 import momento.sdk.requests.CollectionTtl;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
@@ -567,6 +568,49 @@ public class ListTest extends BaseTestClass {
     assertThat(target.listPopBack(cacheName, null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListPopBackResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void listPopFrontHappyPath() {
+    List<String> values = Arrays.asList("val1", "val2", "val3");
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListFetchResponse.Miss.class);
+
+    assertThat(
+            target.listConcatenateBackString(
+                cacheName, listName, values, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateBackResponse.Success.class);
+
+    // Pop the value as string from back of the list
+    assertThat(target.listPopFront(cacheName, listName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPopFrontResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueString()).isEqualTo("val1"));
+
+    // Pop the value as byte array from the back of the new list
+    assertThat(target.listPopFront(cacheName, listName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPopFrontResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueByteArray()).isEqualTo("val2".getBytes()));
+  }
+
+  @Test
+  public void shouldFailListPopFrontWhenNullCacheName() {
+    assertThat(target.listPopFront(null, listName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPopFrontResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void shouldFailListPopFrontWhenNullListName() {
+    assertThat(target.listPopFront(cacheName, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPopFrontResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 }
