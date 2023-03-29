@@ -12,6 +12,7 @@ import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetRemoveElementResponse;
+import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.requests.CollectionTtl;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
@@ -293,7 +294,7 @@ public class SetTest {
   }
 
   @Test
-  public void setAddElementsReturnsErrorWithNullElement() {
+  public void setAddElementsReturnsErrorWithNullElements() {
     assertThat(
             client.setAddStringElements(cacheName, cacheName, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
@@ -465,6 +466,185 @@ public class SetTest {
     assertThat(client.setRemoveElement(cacheName, cacheName, (byte[]) null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSetRemoveElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void setRemoveStringElementsHappyPath() {
+    final String element1 = "one";
+    final String element2 = "two";
+    final String element3 = "three";
+    final String element4 = "four";
+    final Set<String> elements = Sets.newHashSet(element1, element2, element3);
+
+    // Add some elements to a set
+    assertThat(
+            client.setAddStringElements(cacheName, setName, elements, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetAddElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.valueSetString())
+                    .hasSize(3)
+                    .containsOnly(element1, element2, element3));
+
+    // Remove some elements that are in the set and one that isn't
+    assertThat(
+            client.setRemoveStringElements(
+                cacheName, setName, Sets.newHashSet(element2, element3, element4)))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueSetString()).hasSize(1).containsOnly(element1));
+
+    // Try to remove an element that has already been removed
+    assertThat(client.setRemoveStringElements(cacheName, setName, Collections.singleton(element3)))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueSetString()).hasSize(1).containsOnly(element1));
+
+    // Remove everything
+    assertThat(client.setRemoveStringElements(cacheName, setName, elements))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetFetchResponse.Miss.class);
+
+    // Remove elements from the now non-existent set
+    assertThat(
+            client.setRemoveStringElements(
+                cacheName, setName, Sets.newHashSet(element1, element2, element3, element4)))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetFetchResponse.Miss.class);
+  }
+
+  @Test
+  public void setRemoveByteArrayElementsHappyPath() {
+    final byte[] element1 = "one".getBytes();
+    final byte[] element2 = "two".getBytes();
+    final byte[] element3 = "three".getBytes();
+    final byte[] element4 = "four".getBytes();
+    final Set<byte[]> elements = Sets.newHashSet(element1, element2, element3);
+
+    // Add some elements to a set
+    assertThat(
+            client.setAddByteArrayElements(
+                cacheName, setName, elements, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetAddElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.valueSetByteArray())
+                    .hasSize(3)
+                    .containsOnly(element1, element2, element3));
+
+    // Remove some elements that are in the set and one that isn't
+    assertThat(
+            client.setRemoveByteArrayElements(
+                cacheName, setName, Sets.newHashSet(element2, element3, element4)))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueSetByteArray()).hasSize(1).containsOnly(element1));
+
+    // Try to remove an element that has already been removed
+    assertThat(
+            client.setRemoveByteArrayElements(cacheName, setName, Collections.singleton(element3)))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueSetByteArray()).hasSize(1).containsOnly(element1));
+
+    // Remove everything
+    assertThat(client.setRemoveByteArrayElements(cacheName, setName, elements))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetFetchResponse.Miss.class);
+
+    // Remove elements from the now non-existent set
+    assertThat(
+            client.setRemoveByteArrayElements(
+                cacheName, setName, Sets.newHashSet(element1, element2, element3, element4)))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.setFetch(cacheName, setName))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSetFetchResponse.Miss.class);
+  }
+
+  @Test
+  public void setRemoveElementsReturnsErrorWithNullCacheName() {
+    final Set<String> stringElements = Sets.newHashSet("element");
+    final Set<byte[]> bytesElements = Sets.newHashSet("bytes-element".getBytes());
+
+    assertThat(client.setRemoveStringElements(null, setName, stringElements))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.setRemoveByteArrayElements(null, setName, bytesElements))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void setRemoveElementsReturnsErrorWithNullSetName() {
+    final Set<String> stringElements = Sets.newHashSet("element");
+    final Set<byte[]> bytesElements = Sets.newHashSet("bytes-element".getBytes());
+
+    assertThat(client.setRemoveStringElements(cacheName, null, stringElements))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.setRemoveByteArrayElements(cacheName, null, bytesElements))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void setRemoveElementsReturnsErrorWithNullElements() {
+    assertThat(client.setRemoveStringElements(cacheName, cacheName, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.setRemoveByteArrayElements(cacheName, cacheName, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
