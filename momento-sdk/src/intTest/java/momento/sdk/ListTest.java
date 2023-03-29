@@ -10,6 +10,7 @@ import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheListConcatenateFrontResponse;
 import momento.sdk.messages.CacheListFetchResponse;
+import momento.sdk.messages.CacheListLengthResponse;
 import momento.sdk.requests.CollectionTtl;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
@@ -468,6 +469,60 @@ public class ListTest extends BaseTestClass {
                 cacheName, null, byteArrayValues, CollectionTtl.fromCacheTtl(), 0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateFrontResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void listLengthHappyPath() {
+    final List<String> stringValues = Arrays.asList("val1", "val2", "val3");
+    final List<byte[]> byteArrayValues =
+        Arrays.asList("val1".getBytes(), "val2".getBytes(), "val3".getBytes());
+
+    assertThat(target.listLength(cacheName, listName))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListLengthResponse.Miss.class);
+
+    // add string values to list
+    assertThat(
+            target.listConcatenateFrontString(
+                cacheName, listName, stringValues, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    assertThat(target.listLength(cacheName, listName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListLengthResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.getListLength()).isEqualTo(stringValues.size()));
+
+    // add byte array values to list
+    assertThat(
+            target.listConcatenateFrontByteArray(
+                cacheName, listName, byteArrayValues, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    assertThat(target.listLength(cacheName, listName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListLengthResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.getListLength())
+                    .isEqualTo(stringValues.size() + byteArrayValues.size()));
+  }
+
+  @Test
+  public void shouldFailListLengthWhenNullCacheName() {
+    assertThat(target.listLength(null, listName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListLengthResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void shouldFailListLengthWhenNullListName() {
+    assertThat(target.listLength(cacheName, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListLengthResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 }
