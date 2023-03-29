@@ -15,6 +15,7 @@ import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheListConcatenateFrontResponse;
 import momento.sdk.messages.CacheListFetchResponse;
+import momento.sdk.messages.CacheListLengthResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -589,6 +590,17 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheListFetchResponse> listFetch(
       String cacheName, String listName, Integer startIndex, Integer endIndex) {
     return scsDataClient.listFetch(cacheName, listName, startIndex, endIndex);
+  }
+
+  /**
+   * Fetches length of the given list.
+   *
+   * @param cacheName - The cache containing the list.
+   * @param listName - The list to fetch.
+   * @return Future containing the result of the list concatenate back operation.
+   */
+  public CompletableFuture<CacheListLengthResponse> listLength(String cacheName, String listName) {
+    return scsDataClient.listLength(cacheName, listName);
   }
 
   @Override

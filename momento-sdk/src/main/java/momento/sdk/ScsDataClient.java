@@ -28,6 +28,8 @@ import grpc.cache_client._ListConcatenateFrontRequest;
 import grpc.cache_client._ListConcatenateFrontResponse;
 import grpc.cache_client._ListFetchRequest;
 import grpc.cache_client._ListFetchResponse;
+import grpc.cache_client._ListLengthRequest;
+import grpc.cache_client._ListLengthResponse;
 import grpc.cache_client._SetDifferenceRequest;
 import grpc.cache_client._SetDifferenceResponse;
 import grpc.cache_client._SetFetchRequest;
@@ -59,6 +61,7 @@ import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheListConcatenateFrontResponse;
 import momento.sdk.messages.CacheListFetchResponse;
+import momento.sdk.messages.CacheListLengthResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -460,6 +463,17 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListLengthResponse> listLength(String cacheName, String listName) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      return sendListLength(cacheName, convert(listName));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListLengthResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1084,6 +1098,53 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheListLengthResponse> sendListLength(
+      String cacheName, ByteString listName) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_ListLengthResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .listLength(buildListLengthRequest(listName));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheListLengthResponse> returnFuture =
+        new CompletableFuture<CacheListLengthResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_ListLengthResponse>() {
+          @Override
+          public void onSuccess(_ListLengthResponse rsp) {
+            if (rsp.hasFound()) {
+              returnFuture.complete(new CacheListLengthResponse.Hit(rsp.getFound().getLength()));
+            } else if (rsp.hasMissing()) {
+              returnFuture.complete(new CacheListLengthResponse.Miss());
+            }
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheListLengthResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
   private static Metadata metadataWithCache(String cacheName) {
     final Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
@@ -1220,6 +1281,10 @@ final class ScsDataClient implements Closeable {
     }
 
     return request;
+  }
+
+  private _ListLengthRequest buildListLengthRequest(ByteString listName) {
+    return _ListLengthRequest.newBuilder().setListName(listName).build();
   }
 
   @Override
