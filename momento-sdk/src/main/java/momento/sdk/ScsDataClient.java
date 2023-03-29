@@ -292,7 +292,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetAddElementsResponse> setAddStringElements(
+  CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
       String cacheName, String setName, Set<String> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -308,7 +308,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetAddElementsResponse> setAddByteArrayElements(
+  CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
       String cacheName, String setName, Set<byte[]> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -350,7 +350,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveStringElements(
+  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsString(
       String cacheName, String setName, Set<String> elements) {
     try {
       checkCacheNameValid(cacheName);
@@ -363,7 +363,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveByteArrayElements(
+  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsByteArray(
       String cacheName, String setName, Set<byte[]> elements) {
     try {
       checkCacheNameValid(cacheName);
