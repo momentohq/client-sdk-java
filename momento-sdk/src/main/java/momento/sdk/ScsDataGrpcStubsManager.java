@@ -4,7 +4,6 @@ import grpc.cache_client.ScsGrpc;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import io.opentelemetry.api.OpenTelemetry;
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
@@ -29,29 +28,22 @@ final class ScsDataGrpcStubsManager implements Closeable {
   private final Duration deadline;
 
   ScsDataGrpcStubsManager(
-      @Nonnull String authToken,
-      @Nonnull String endpoint,
-      @Nullable OpenTelemetry openTelemetry,
-      @Nullable Duration requestTimeout) {
+      @Nonnull String authToken, @Nonnull String endpoint, @Nullable Duration requestTimeout) {
     if (requestTimeout != null) {
       this.deadline = requestTimeout;
     } else {
       this.deadline = DEFAULT_DEADLINE;
     }
-    this.channel = setupChannel(authToken, endpoint, openTelemetry);
+    this.channel = setupChannel(authToken, endpoint);
     this.futureStub = ScsGrpc.newFutureStub(channel);
   }
 
-  private static ManagedChannel setupChannel(
-      String authToken, String endpoint, OpenTelemetry openTelemetry) {
+  private static ManagedChannel setupChannel(String authToken, String endpoint) {
     NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(authToken));
-    if (openTelemetry != null) {
-      clientInterceptors.add(new OpenTelemetryClientInterceptor(openTelemetry));
-    }
     channelBuilder.intercept(clientInterceptors);
     return channelBuilder.build();
   }
@@ -68,11 +60,6 @@ final class ScsDataGrpcStubsManager implements Closeable {
    */
   ScsGrpc.ScsFutureStub getStub() {
     return futureStub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
-  }
-
-  /** Return the length in seconds of the deadline that a newly created stub will have. */
-  public long getDeadlineSeconds() {
-    return deadline.getSeconds();
   }
 
   @Override

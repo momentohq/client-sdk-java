@@ -1,7 +1,6 @@
 package momento.sdk;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
-import static java.time.Instant.now;
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
 import static momento.sdk.ValidationUtils.checkListNameValid;
 import static momento.sdk.ValidationUtils.checkListSliceStartEndValid;
@@ -42,19 +41,11 @@ import grpc.cache_client._SetUnionResponse;
 import grpc.cache_client._Unbounded;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
-import io.opentelemetry.api.OpenTelemetry;
-import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.SpanKind;
-import io.opentelemetry.api.trace.StatusCode;
-import io.opentelemetry.api.trace.Tracer;
-import io.opentelemetry.context.ImplicitContextKeyed;
-import io.opentelemetry.context.Scope;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -83,7 +74,6 @@ final class ScsDataClient implements Closeable {
   private static final Metadata.Key<String> CACHE_NAME_KEY =
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
 
-  private final Tracer tracer;
   private final Duration itemDefaultTtl;
   private final ScsDataGrpcStubsManager scsDataGrpcStubsManager;
   private final String endpoint;
@@ -92,16 +82,9 @@ final class ScsDataClient implements Closeable {
       @Nonnull String authToken,
       @Nonnull String endpoint,
       @Nonnull Duration defaultTtl,
-      @Nullable OpenTelemetry openTelemetry,
       @Nullable Duration requestTimeout) {
-    if (openTelemetry != null) {
-      this.tracer = openTelemetry.getTracer("momento-java-scs-client", "1.0.0");
-    } else {
-      this.tracer = null;
-    }
     this.itemDefaultTtl = defaultTtl;
-    this.scsDataGrpcStubsManager =
-        new ScsDataGrpcStubsManager(authToken, endpoint, openTelemetry, requestTimeout);
+    this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(authToken, endpoint, requestTimeout);
     this.endpoint = endpoint;
   }
 
@@ -510,8 +493,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
     checkCacheNameValid(cacheName);
-    final Optional<Span> span = buildSpan("java-sdk-get-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -549,25 +530,12 @@ final class ScsDataClient implements Closeable {
                       new InternalServerException("Unsupported cache Get result: " + result));
             }
             returnFuture.complete(response);
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -578,8 +546,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheDeleteResponse> sendDelete(String cacheName, ByteString key) {
     checkCacheNameValid(cacheName);
-    final Optional<Span> span = buildSpan("java-sdk-delete-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
     final ListenableFuture<_DeleteResponse> rspFuture =
@@ -604,25 +570,12 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onSuccess(_DeleteResponse rsp) {
             returnFuture.complete(new CacheDeleteResponse.Success());
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -634,8 +587,6 @@ final class ScsDataClient implements Closeable {
   private CompletableFuture<CacheSetResponse> sendSet(
       String cacheName, ByteString key, ByteString value, Duration ttl) {
     checkCacheNameValid(cacheName);
-    final Optional<Span> span = buildSpan("java-sdk-set-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -662,25 +613,12 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onSuccess(_SetResponse rsp) {
             returnFuture.complete(new CacheSetResponse.Success(value));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -691,8 +629,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheIncrementResponse> sendIncrement(
       String cacheName, ByteString field, long amount, Duration ttl) {
-    final Optional<Span> span = buildSpan("java-sdk-increment-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -719,25 +655,12 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onSuccess(_IncrementResponse rsp) {
             returnFuture.complete(new CacheIncrementResponse.Success((int) rsp.getValue()));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheIncrementResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         MoreExecutors
@@ -749,8 +672,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSetIfNotExistsResponse> sendSetIfNotExists(
       String cacheName, ByteString key, ByteString value, Duration ttl) {
-    final Optional<Span> span = buildSpan("java-sdk-setIfNotExists-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -778,20 +699,8 @@ final class ScsDataClient implements Closeable {
           public void onSuccess(_SetIfNotExistsResponse rsp) {
             if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.STORED)) {
               returnFuture.complete(new CacheSetIfNotExistsResponse.Stored(key, value));
-              span.ifPresent(
-                  theSpan -> {
-                    theSpan.setStatus(StatusCode.OK);
-                    theSpan.end(now());
-                  });
-              scope.ifPresent(Scope::close);
             } else if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.NOT_STORED)) {
               returnFuture.complete(new CacheSetIfNotExistsResponse.NotStored());
-              span.ifPresent(
-                  theSpan -> {
-                    theSpan.setStatus(StatusCode.OK);
-                    theSpan.end(now());
-                  });
-              scope.ifPresent(Scope::close);
             }
           }
 
@@ -800,13 +709,6 @@ final class ScsDataClient implements Closeable {
             returnFuture.complete(
                 new CacheSetIfNotExistsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         MoreExecutors
@@ -818,8 +720,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSetAddElementResponse> sendSetAddElement(
       String cacheName, ByteString setName, ByteString element, CollectionTtl ttl) {
-    final Optional<Span> span = buildSpan("java-sdk-set-add-element-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -846,12 +746,6 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onSuccess(_SetUnionResponse rsp) {
             returnFuture.complete(new CacheSetAddElementResponse.Success());
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
@@ -859,13 +753,6 @@ final class ScsDataClient implements Closeable {
             returnFuture.complete(
                 new CacheSetAddElementResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -876,8 +763,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSetAddElementsResponse> sendSetAddElements(
       String cacheName, ByteString setName, Set<ByteString> elements, CollectionTtl ttl) {
-    final Optional<Span> span = buildSpan("java-sdk-set-add-elements-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -904,12 +789,6 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onSuccess(_SetUnionResponse rsp) {
             returnFuture.complete(new CacheSetAddElementsResponse.Success());
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
@@ -917,13 +796,6 @@ final class ScsDataClient implements Closeable {
             returnFuture.complete(
                 new CacheSetAddElementsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -934,8 +806,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSetRemoveElementResponse> sendSetRemoveElement(
       String cacheName, ByteString setName, ByteString element) {
-    final Optional<Span> span = buildSpan("java-sdk-set-remove-element-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -962,12 +832,6 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onSuccess(_SetDifferenceResponse rsp) {
             returnFuture.complete(new CacheSetRemoveElementResponse.Success());
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
@@ -975,13 +839,6 @@ final class ScsDataClient implements Closeable {
             returnFuture.complete(
                 new CacheSetRemoveElementResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -992,8 +849,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSetRemoveElementsResponse> sendSetRemoveElements(
       String cacheName, ByteString setName, Set<ByteString> elements) {
-    final Optional<Span> span = buildSpan("java-sdk-set-remove-elements-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -1020,12 +875,6 @@ final class ScsDataClient implements Closeable {
           @Override
           public void onSuccess(_SetDifferenceResponse rsp) {
             returnFuture.complete(new CacheSetRemoveElementsResponse.Success());
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
@@ -1033,13 +882,6 @@ final class ScsDataClient implements Closeable {
             returnFuture.complete(
                 new CacheSetRemoveElementsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1051,8 +893,6 @@ final class ScsDataClient implements Closeable {
   private CompletableFuture<CacheSetFetchResponse> sendSetFetch(
       String cacheName, ByteString setName) {
     checkCacheNameValid(cacheName);
-    final Optional<Span> span = buildSpan("java-sdk-set-fetch-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -1084,25 +924,12 @@ final class ScsDataClient implements Closeable {
             } else {
               returnFuture.complete(new CacheSetFetchResponse.Miss());
             }
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1117,8 +944,6 @@ final class ScsDataClient implements Closeable {
       List<ByteString> values,
       CollectionTtl ttl,
       int truncateFrontToSize) {
-    final Optional<Span> span = buildSpan("java-sdk-listConcatenateBack-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -1147,12 +972,6 @@ final class ScsDataClient implements Closeable {
           public void onSuccess(_ListConcatenateBackResponse rsp) {
             returnFuture.complete(
                 new CacheListConcatenateBackResponse.Success(rsp.getListLength()));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
@@ -1160,13 +979,6 @@ final class ScsDataClient implements Closeable {
             returnFuture.complete(
                 new CacheListConcatenateBackResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         MoreExecutors
@@ -1182,8 +994,6 @@ final class ScsDataClient implements Closeable {
       List<ByteString> values,
       CollectionTtl ttl,
       int truncateBackToSize) {
-    final Optional<Span> span = buildSpan("java-sdk-listConcatenateFront-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -1212,12 +1022,6 @@ final class ScsDataClient implements Closeable {
           public void onSuccess(_ListConcatenateFrontResponse rsp) {
             returnFuture.complete(
                 new CacheListConcatenateFrontResponse.Success(rsp.getListLength()));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.OK);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
 
           @Override
@@ -1225,13 +1029,6 @@ final class ScsDataClient implements Closeable {
             returnFuture.complete(
                 new CacheListConcatenateFrontResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         MoreExecutors
@@ -1243,8 +1040,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheListFetchResponse> sendListFetch(
       String cacheName, ByteString listName, Integer startIndex, Integer endIndex) {
-    final Optional<Span> span = buildSpan("java-sdk-listFetch-request");
-    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -1272,20 +1067,8 @@ final class ScsDataClient implements Closeable {
           public void onSuccess(_ListFetchResponse rsp) {
             if (rsp.hasFound()) {
               returnFuture.complete(new CacheListFetchResponse.Hit(rsp.getFound().getValuesList()));
-              span.ifPresent(
-                  theSpan -> {
-                    theSpan.setStatus(StatusCode.OK);
-                    theSpan.end(now());
-                  });
-              scope.ifPresent(Scope::close);
             } else if (rsp.hasMissing()) {
               returnFuture.complete(new CacheListFetchResponse.Miss());
-              span.ifPresent(
-                  theSpan -> {
-                    theSpan.setStatus(StatusCode.OK);
-                    theSpan.end(now());
-                  });
-              scope.ifPresent(Scope::close);
             }
           }
 
@@ -1293,13 +1076,6 @@ final class ScsDataClient implements Closeable {
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheListFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
-            span.ifPresent(
-                theSpan -> {
-                  theSpan.setStatus(StatusCode.ERROR);
-                  theSpan.recordException(e);
-                  theSpan.end(now());
-                });
-            scope.ifPresent(Scope::close);
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1444,18 +1220,6 @@ final class ScsDataClient implements Closeable {
     }
 
     return request;
-  }
-
-  private Optional<Span> buildSpan(String spanName) {
-    // TODO - We should change this logic so can pass in parent span so returned span becomes a sub
-    // span of a parent span.
-    return Optional.ofNullable(tracer)
-        .map(
-            t ->
-                t.spanBuilder(spanName)
-                    .setSpanKind(SpanKind.CLIENT)
-                    .setStartTimestamp(now())
-                    .startSpan());
   }
 
   @Override

@@ -1,6 +1,5 @@
 package momento.sdk;
 
-import io.opentelemetry.api.OpenTelemetry;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
@@ -41,14 +40,12 @@ public final class CacheClient implements Closeable {
   CacheClient(
       @Nonnull String authToken,
       @Nonnull Duration itemDefaultTtl,
-      @Nullable OpenTelemetry openTelemetry,
       @Nullable Duration requestTimeout) {
     MomentoEndpointsResolver.MomentoEndpoints endpoints =
         MomentoEndpointsResolver.resolve(authToken, Optional.empty());
     this.scsControlClient = new ScsControlClient(authToken, endpoints.controlEndpoint());
     this.scsDataClient =
-        new ScsDataClient(
-            authToken, endpoints.cacheEndpoint(), itemDefaultTtl, openTelemetry, requestTimeout);
+        new ScsDataClient(authToken, endpoints.cacheEndpoint(), itemDefaultTtl, requestTimeout);
   }
 
   public static CacheClientBuilder builder(String authToken, Duration itemDefaultTtl) {

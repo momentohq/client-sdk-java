@@ -23,6 +23,6 @@ public final class CacheClientBuilder {
   }
 
   public CacheClient build() {
-    return new CacheClient(authToken, itemDefaultTtl, null, requestTimeout);
+    return new CacheClient(authToken, itemDefaultTtl, requestTimeout);
   }
 }

@@ -8,15 +8,11 @@ junit = "5.9.2"
 gson = "2.10.1"
 guava = "31.1-android"
 java-protos = "0.54.1"
-opentelemetry = "1.24.0"
 
 [libraries]
 grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpc"}
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
 grpc-nettyshaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
-
-opentelemetry-api = { module = "io.opentelemetry:opentelemetry-api", version.ref = "opentelemetry" }
-opentelemetry-context = { module = "io.opentelemetry:opentelemetry-context", version.ref = "opentelemetry" }
 
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
@@ -31,5 +27,3 @@ protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "p
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
 
-[bundles]
-opentelemetry = ["opentelemetry-api", "opentelemetry-context"]
