@@ -20,6 +20,7 @@ import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetRemoveElementResponse;
+import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
@@ -398,11 +399,11 @@ public final class CacheClient implements Closeable {
    * original elements of the set.
    *
    * @param cacheName Name of the cache to store the item in
-   * @param setName The set to add the element to.
+   * @param setName The set to add the elements to.
    * @param elements The data to add to the set.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
-   * @return Future containing the result of the add element operation.
+   * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddStringElements(
       String cacheName, String setName, Set<String> elements, CollectionTtl ttl) {
@@ -416,11 +417,11 @@ public final class CacheClient implements Closeable {
    * original elements of the set.
    *
    * @param cacheName Name of the cache to store the item in
-   * @param setName The set to add the element to.
+   * @param setName The set to add the elements to.
    * @param elements The data to add to the set.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
-   * @return Future containing the result of the add element operation.
+   * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddByteArrayElements(
       String cacheName, String setName, Set<byte[]> elements, CollectionTtl ttl) {
@@ -451,6 +452,32 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
       String cacheName, String setName, byte[] element) {
     return scsDataClient.setRemoveElement(cacheName, setName, element);
+  }
+
+  /**
+   * Remove several elements from a set.
+   *
+   * @param cacheName Name of the cache containing the set.
+   * @param setName The set to remove the elements from.
+   * @param elements The values to remove from the set.
+   * @return Future containing the result of the remove elements operation.
+   */
+  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveStringElements(
+      String cacheName, String setName, Set<String> elements) {
+    return scsDataClient.setRemoveStringElements(cacheName, setName, elements);
+  }
+
+  /**
+   * Remove several elements from a set.
+   *
+   * @param cacheName Name of the cache containing the set.
+   * @param setName The set to remove the elements from.
+   * @param elements The value to remove from the set.
+   * @return Future containing the result of the remove elements operation.
+   */
+  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveByteArrayElements(
+      String cacheName, String setName, Set<byte[]> elements) {
+    return scsDataClient.setRemoveByteArrayElements(cacheName, setName, elements);
   }
 
   /**

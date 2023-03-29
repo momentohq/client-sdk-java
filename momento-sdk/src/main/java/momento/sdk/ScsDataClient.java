@@ -70,6 +70,7 @@ import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetRemoveElementResponse;
+import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.requests.CollectionTtl;
 
@@ -343,6 +344,32 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveStringElements(
+      String cacheName, String setName, Set<String> elements) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(setName);
+      ensureValidValue(elements);
+      return sendSetRemoveElements(cacheName, convert(setName), convertStringSet(elements));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveByteArrayElements(
+      String cacheName, String setName, Set<byte[]> elements) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(setName);
+      ensureValidValue(elements);
+      return sendSetRemoveElements(cacheName, convert(setName), convertByteArraySet(elements));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -904,6 +931,64 @@ final class ScsDataClient implements Closeable {
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheSetRemoveElementResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheSetRemoveElementsResponse> sendSetRemoveElements(
+      String cacheName, ByteString setName, Set<ByteString> elements) {
+    final Optional<Span> span = buildSpan("java-sdk-set-remove-elements-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SetDifferenceResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .setDifference(buildSetDifferenceRequest(setName, elements));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSetRemoveElementsResponse> returnFuture =
+        new CompletableFuture<CacheSetRemoveElementsResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SetDifferenceResponse>() {
+          @Override
+          public void onSuccess(_SetDifferenceResponse rsp) {
+            returnFuture.complete(new CacheSetRemoveElementsResponse.Success());
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.OK);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheSetRemoveElementsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
                 theSpan -> {
