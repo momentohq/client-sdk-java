@@ -19,6 +19,7 @@ import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
+import momento.sdk.messages.CacheSetRemoveElementResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
@@ -424,6 +425,32 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSetAddElementsResponse> setAddByteArrayElements(
       String cacheName, String setName, Set<byte[]> elements, CollectionTtl ttl) {
     return scsDataClient.setAddByteArrayElements(cacheName, setName, elements, ttl);
+  }
+
+  /**
+   * Remove an element from a set.
+   *
+   * @param cacheName Name of the cache containing the set.
+   * @param setName The set to remove the element from.
+   * @param element The value to remove from the set.
+   * @return Future containing the result of the remove element operation.
+   */
+  public CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
+      String cacheName, String setName, String element) {
+    return scsDataClient.setRemoveElement(cacheName, setName, element);
+  }
+
+  /**
+   * Remove an element from a set.
+   *
+   * @param cacheName Name of the cache containing the set.
+   * @param setName The set to remove the element from.
+   * @param element The value to remove from the set.
+   * @return Future containing the result of the remove element operation.
+   */
+  public CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
+      String cacheName, String setName, byte[] element) {
+    return scsDataClient.setRemoveElement(cacheName, setName, element);
   }
 
   /**

@@ -27,6 +27,8 @@ import grpc.cache_client._ListConcatenateBackRequest;
 import grpc.cache_client._ListConcatenateBackResponse;
 import grpc.cache_client._ListFetchRequest;
 import grpc.cache_client._ListFetchResponse;
+import grpc.cache_client._SetDifferenceRequest;
+import grpc.cache_client._SetDifferenceResponse;
 import grpc.cache_client._SetFetchRequest;
 import grpc.cache_client._SetFetchResponse;
 import grpc.cache_client._SetIfNotExistsRequest;
@@ -67,6 +69,7 @@ import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
 import momento.sdk.messages.CacheSetIfNotExistsResponse;
+import momento.sdk.messages.CacheSetRemoveElementResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.requests.CollectionTtl;
 
@@ -314,6 +317,32 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
+      String cacheName, String setName, String element) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(setName);
+      ensureValidValue(element);
+      return sendSetRemoveElement(cacheName, convert(setName), convert(element));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
+      String cacheName, String setName, byte[] element) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(setName);
+      ensureValidValue(element);
+      return sendSetRemoveElement(cacheName, convert(setName), convert(element));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -719,7 +748,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSetAddElementResponse> sendSetAddElement(
       String cacheName, ByteString setName, ByteString element, CollectionTtl ttl) {
-    checkCacheNameValid(cacheName);
     final Optional<Span> span = buildSpan("java-sdk-set-add-element-request");
     final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
@@ -778,7 +806,6 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSetAddElementsResponse> sendSetAddElements(
       String cacheName, ByteString setName, Set<ByteString> elements, CollectionTtl ttl) {
-    checkCacheNameValid(cacheName);
     final Optional<Span> span = buildSpan("java-sdk-set-add-elements-request");
     final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
 
@@ -819,6 +846,64 @@ final class ScsDataClient implements Closeable {
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheSetAddElementsResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheSetRemoveElementResponse> sendSetRemoveElement(
+      String cacheName, ByteString setName, ByteString element) {
+    final Optional<Span> span = buildSpan("java-sdk-set-remove-element-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SetDifferenceResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .setDifference(buildSetDifferenceRequest(setName, Collections.singleton(element)));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSetRemoveElementResponse> returnFuture =
+        new CompletableFuture<CacheSetRemoveElementResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SetDifferenceResponse>() {
+          @Override
+          public void onSuccess(_SetDifferenceResponse rsp) {
+            returnFuture.complete(new CacheSetRemoveElementResponse.Success());
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.OK);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheSetRemoveElementResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
             span.ifPresent(
                 theSpan -> {
@@ -1082,6 +1167,20 @@ final class ScsDataClient implements Closeable {
         .addAllElements(elements)
         .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
         .setRefreshTtl(ttl.refreshTtl())
+        .build();
+  }
+
+  private _SetDifferenceRequest buildSetDifferenceRequest(
+      ByteString setName, Set<ByteString> elements) {
+    return _SetDifferenceRequest.newBuilder()
+        .setSetName(setName)
+        .setSubtrahend(
+            _SetDifferenceRequest._Subtrahend.newBuilder()
+                .setSet(
+                    _SetDifferenceRequest._Subtrahend._Set.newBuilder()
+                        .addAllElements(elements)
+                        .build())
+                .build())
         .build();
   }
 
