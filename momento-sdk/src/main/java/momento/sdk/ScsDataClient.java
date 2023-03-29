@@ -25,6 +25,8 @@ import grpc.cache_client._IncrementRequest;
 import grpc.cache_client._IncrementResponse;
 import grpc.cache_client._ListConcatenateBackRequest;
 import grpc.cache_client._ListConcatenateBackResponse;
+import grpc.cache_client._ListConcatenateFrontRequest;
+import grpc.cache_client._ListConcatenateFrontResponse;
 import grpc.cache_client._ListFetchRequest;
 import grpc.cache_client._ListFetchResponse;
 import grpc.cache_client._SetDifferenceRequest;
@@ -64,6 +66,7 @@ import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
+import momento.sdk.messages.CacheListConcatenateFrontResponse;
 import momento.sdk.messages.CacheListFetchResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
@@ -394,6 +397,46 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+      String cacheName,
+      String listName,
+      List<String> values,
+      CollectionTtl ttl,
+      Integer truncateBackToSize) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+      return sendListConcatenateFront(
+          cacheName, convert(listName), convertStringList(values), ttl, truncateBackToSize);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+      String cacheName,
+      String listName,
+      List<byte[]> values,
+      CollectionTtl ttl,
+      int truncateBackToSize) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+      return sendListConcatenateFront(
+          cacheName, convert(listName), convertByteArrayList(values), ttl, truncateBackToSize);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1048,6 +1091,71 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheListConcatenateFrontResponse> sendListConcatenateFront(
+      String cacheName,
+      ByteString listName,
+      List<ByteString> values,
+      CollectionTtl ttl,
+      Integer truncateBackToSize) {
+    final Optional<Span> span = buildSpan("java-sdk-listConcatenateFront-request");
+    final Optional<Scope> scope = (span.map(ImplicitContextKeyed::makeCurrent));
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_ListConcatenateFrontResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .listConcatenateFront(
+                buildListConcatenateFrontRequest(listName, values, ttl, truncateBackToSize));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheListConcatenateFrontResponse> returnFuture =
+        new CompletableFuture<CacheListConcatenateFrontResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_ListConcatenateFrontResponse>() {
+          @Override
+          public void onSuccess(_ListConcatenateFrontResponse rsp) {
+            returnFuture.complete(
+                new CacheListConcatenateFrontResponse.Success(rsp.getListLength()));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.OK);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheListConcatenateFrontResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+            span.ifPresent(
+                theSpan -> {
+                  theSpan.setStatus(StatusCode.ERROR);
+                  theSpan.recordException(e);
+                  theSpan.end(now());
+                });
+            scope.ifPresent(Scope::close);
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
   private CompletableFuture<CacheListFetchResponse> sendListFetch(
       String cacheName, ByteString listName, Integer startIndex, Integer endIndex) {
     final Optional<Span> span = buildSpan("java-sdk-listFetch-request");
@@ -1199,6 +1307,19 @@ final class ScsDataClient implements Closeable {
             .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
             .setRefreshTtl(ttl.refreshTtl())
             .setTruncateFrontToSize(truncateFrontToSize.byteValue())
+            .addAllValues(values)
+            .build();
+    return request;
+  }
+
+  private _ListConcatenateFrontRequest buildListConcatenateFrontRequest(
+      ByteString listName, List<ByteString> values, CollectionTtl ttl, Integer truncateBackToSize) {
+    _ListConcatenateFrontRequest request =
+        _ListConcatenateFrontRequest.newBuilder()
+            .setListName(listName)
+            .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
+            .setRefreshTtl(ttl.refreshTtl())
+            .setTruncateBackToSize(truncateBackToSize.byteValue())
             .addAllValues(values)
             .build();
     return request;
