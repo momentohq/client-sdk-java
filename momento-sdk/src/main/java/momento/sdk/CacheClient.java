@@ -473,8 +473,24 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add element operation.
    */
   public CompletableFuture<CacheSetAddElementResponse> setAddElement(
-      String cacheName, String setName, String element, CollectionTtl ttl) {
+      String cacheName, String setName, String element, @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElement(cacheName, setName, element, ttl);
+  }
+
+  /**
+   * Add an element to a set in the cache.
+   *
+   * <p>After this operation the set will contain the union of the element passed in and the
+   * original elements of the set.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param setName The set to add the element to.
+   * @param element The data to add to the set.
+   * @return Future containing the result of the add element operation.
+   */
+  public CompletableFuture<CacheSetAddElementResponse> setAddElement(
+      String cacheName, String setName, String element) {
+    return scsDataClient.setAddElement(cacheName, setName, element, null);
   }
 
   /**
@@ -491,8 +507,24 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add element operation.
    */
   public CompletableFuture<CacheSetAddElementResponse> setAddElement(
-      String cacheName, String setName, byte[] element, CollectionTtl ttl) {
+      String cacheName, String setName, byte[] element, @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElement(cacheName, setName, element, ttl);
+  }
+
+  /**
+   * Add an element to a set in the cache.
+   *
+   * <p>After this operation the set will contain the union of the element passed in and the
+   * original elements of the set.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param setName The set to add the element to.
+   * @param element The data to add to the set.
+   * @return Future containing the result of the add element operation.
+   */
+  public CompletableFuture<CacheSetAddElementResponse> setAddElement(
+      String cacheName, String setName, byte[] element) {
+    return scsDataClient.setAddElement(cacheName, setName, element, null);
   }
 
   /**
@@ -509,8 +541,24 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
-      String cacheName, String setName, Set<String> elements, CollectionTtl ttl) {
+      String cacheName, String setName, Set<String> elements, @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElementsString(cacheName, setName, elements, ttl);
+  }
+
+  /**
+   * Add several string elements to a set in the cache.
+   *
+   * <p>After this operation the set will contain the union of the elements passed in and the
+   * original elements of the set.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param setName The set to add the elements to.
+   * @param elements The data to add to the set.
+   * @return Future containing the result of the add elements operation.
+   */
+  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
+      String cacheName, String setName, Set<String> elements) {
+    return scsDataClient.setAddElementsString(cacheName, setName, elements, null);
   }
 
   /**
@@ -527,8 +575,24 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
-      String cacheName, String setName, Set<byte[]> elements, CollectionTtl ttl) {
+      String cacheName, String setName, Set<byte[]> elements, @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElementsByteArray(cacheName, setName, elements, ttl);
+  }
+
+  /**
+   * Add several byte array elements to a set in the cache.
+   *
+   * <p>After this operation the set will contain the union of the elements passed in and the
+   * original elements of the set.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param setName The set to add the elements to.
+   * @param elements The data to add to the set.
+   * @return Future containing the result of the add elements operation.
+   */
+  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
+      String cacheName, String setName, Set<byte[]> elements) {
+    return scsDataClient.setAddElementsByteArray(cacheName, setName, elements, null);
   }
 
   /**
