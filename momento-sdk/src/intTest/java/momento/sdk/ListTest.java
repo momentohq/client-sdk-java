@@ -15,6 +15,7 @@ import momento.sdk.messages.CacheListPopBackResponse;
 import momento.sdk.messages.CacheListPopFrontResponse;
 import momento.sdk.messages.CacheListPushBackResponse;
 import momento.sdk.messages.CacheListPushFrontResponse;
+import momento.sdk.messages.CacheListRemoveValueResponse;
 import momento.sdk.requests.CollectionTtl;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
@@ -1082,6 +1083,105 @@ public class ListTest extends BaseTestClass {
     assertThat(target.listPushFront(cacheName, listName, (byte[]) null, 0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListPushFrontResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void listRemoveValueStringHappyPath() {
+    List<String> values = Arrays.asList("val1", "val1", "val2", "val3", "val4");
+
+    assertThat(
+            target.listConcatenateFrontString(
+                cacheName, listName, values, 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    // Remove value from list
+    String removeValue = "val1";
+    assertThat(target.listRemoveValue(cacheName, listName, removeValue))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListRemoveValueResponse.Success.class);
+
+    List<String> expectedList = Arrays.asList("val2", "val3", "val4");
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(3).containsAll(expectedList));
+  }
+
+  @Test
+  public void listRemoveValueByteArrayHappyPath() {
+    List<byte[]> values =
+        Arrays.asList(
+            "val1".getBytes(),
+            "val1".getBytes(),
+            "val2".getBytes(),
+            "val3".getBytes(),
+            "val4".getBytes());
+
+    assertThat(
+            target.listConcatenateFrontByteArray(
+                cacheName, listName, values, 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    // Remove value from list
+    byte[] removeValue = "val1".getBytes();
+    assertThat(target.listRemoveValue(cacheName, listName, removeValue))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListRemoveValueResponse.Success.class);
+
+    List<byte[]> expectedList =
+        Arrays.asList("val2".getBytes(), "val3".getBytes(), "val4".getBytes());
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(
+            hit -> assertThat(hit.valueListByteArray()).hasSize(3).containsAll(expectedList));
+  }
+
+  @Test
+  public void shouldFailListRemoveValueWhenNullCacheName() {
+    String stringValue = "val1";
+    byte[] byteArrayValue = "val1".getBytes();
+
+    assertThat(target.listRemoveValue(null, listName, stringValue))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListRemoveValueResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(target.listRemoveValue(null, listName, byteArrayValue))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListRemoveValueResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void shouldFailListRemoveValueWhenNullListName() {
+    String stringValue = "val1";
+    byte[] byteArrayValue = "val1".getBytes();
+
+    assertThat(target.listRemoveValue(cacheName, null, stringValue))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListRemoveValueResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(target.listRemoveValue(cacheName, null, byteArrayValue))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListRemoveValueResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void shouldFailListRemoveValueWhenNullElement() {
+    assertThat(target.listRemoveValue(cacheName, listName, (String) null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListRemoveValueResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(target.listRemoveValue(null, listName, (byte[]) null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListRemoveValueResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 }

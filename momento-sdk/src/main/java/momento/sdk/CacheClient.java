@@ -20,6 +20,7 @@ import momento.sdk.messages.CacheListPopBackResponse;
 import momento.sdk.messages.CacheListPopFrontResponse;
 import momento.sdk.messages.CacheListPushBackResponse;
 import momento.sdk.messages.CacheListPushFrontResponse;
+import momento.sdk.messages.CacheListRemoveValueResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -1001,6 +1002,32 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheListPushFrontResponse> listPushFront(
       String cacheName, String listName, byte[] value, int truncateBackToSize) {
     return scsDataClient.listPushFront(cacheName, listName, value, truncateBackToSize, null);
+  }
+
+  /**
+   * Removes value from the given list.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which the value is to be removed.
+   * @param value The element to add to the list.
+   * @return Future containing the result of the list remove value operation.
+   */
+  public CompletableFuture<CacheListRemoveValueResponse> listRemoveValue(
+      String cacheName, String listName, String value) {
+    return scsDataClient.listRemoveValue(cacheName, listName, value);
+  }
+
+  /**
+   * Removes value from the given list.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which the value is to be removed.
+   * @param value The element to add to the list.
+   * @return Future containing the result of the list remove value operation.
+   */
+  public CompletableFuture<CacheListRemoveValueResponse> listRemoveValue(
+      String cacheName, String listName, byte[] value) {
+    return scsDataClient.listRemoveValue(cacheName, listName, value);
   }
 
   @Override

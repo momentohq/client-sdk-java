@@ -38,6 +38,8 @@ import grpc.cache_client._ListPushBackRequest;
 import grpc.cache_client._ListPushBackResponse;
 import grpc.cache_client._ListPushFrontRequest;
 import grpc.cache_client._ListPushFrontResponse;
+import grpc.cache_client._ListRemoveRequest;
+import grpc.cache_client._ListRemoveResponse;
 import grpc.cache_client._SetDifferenceRequest;
 import grpc.cache_client._SetDifferenceResponse;
 import grpc.cache_client._SetFetchRequest;
@@ -74,6 +76,7 @@ import momento.sdk.messages.CacheListPopBackResponse;
 import momento.sdk.messages.CacheListPopFrontResponse;
 import momento.sdk.messages.CacheListPushBackResponse;
 import momento.sdk.messages.CacheListPushFrontResponse;
+import momento.sdk.messages.CacheListRemoveValueResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -627,6 +630,34 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListRemoveValueResponse> listRemoveValue(
+      String cacheName, String listName, String value) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      ensureValidValue(value);
+
+      return sendListRemoveValue(cacheName, convert(listName), convert(value));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListRemoveValueResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListRemoveValueResponse> listRemoveValue(
+      String cacheName, String listName, byte[] value) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      ensureValidValue(value);
+
+      return sendListRemoveValue(cacheName, convert(listName), convert(value));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListRemoveValueResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1488,6 +1519,50 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheListRemoveValueResponse> sendListRemoveValue(
+      String cacheName, ByteString listName, ByteString value) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_ListRemoveResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .listRemove(buildListRemoveValueRequest(listName, value));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheListRemoveValueResponse> returnFuture =
+        new CompletableFuture<CacheListRemoveValueResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_ListRemoveResponse>() {
+          @Override
+          public void onSuccess(_ListRemoveResponse rsp) {
+            returnFuture.complete(new CacheListRemoveValueResponse.Success());
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheListRemoveValueResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
   private static Metadata metadataWithCache(String cacheName) {
     final Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
@@ -1657,6 +1732,15 @@ final class ScsDataClient implements Closeable {
             .setRefreshTtl(ttl.refreshTtl())
             .setTruncateBackToSize(truncateBackToSize)
             .setValue(value)
+            .build();
+    return request;
+  }
+
+  private _ListRemoveRequest buildListRemoveValueRequest(ByteString listName, ByteString value) {
+    _ListRemoveRequest request =
+        _ListRemoveRequest.newBuilder()
+            .setListName(listName)
+            .setAllElementsWithValue(value)
             .build();
     return request;
   }
