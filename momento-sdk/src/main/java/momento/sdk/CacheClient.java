@@ -18,6 +18,7 @@ import momento.sdk.messages.CacheListFetchResponse;
 import momento.sdk.messages.CacheListLengthResponse;
 import momento.sdk.messages.CacheListPopBackResponse;
 import momento.sdk.messages.CacheListPopFrontResponse;
+import momento.sdk.messages.CacheListPushBackResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -508,7 +509,7 @@ public final class CacheClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateFrontToSize) {
     return scsDataClient.listConcatenateBackString(
         cacheName, listName, values, ttl, truncateFrontToSize);
@@ -530,7 +531,7 @@ public final class CacheClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateFrontToSize) {
     return scsDataClient.listConcatenateBackByteArray(
         cacheName, listName, values, ttl, truncateFrontToSize);
@@ -552,7 +553,7 @@ public final class CacheClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateBackToSize) {
     return scsDataClient.listConcatenateFrontString(
         cacheName, listName, values, ttl, truncateBackToSize);
@@ -574,7 +575,7 @@ public final class CacheClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateBackToSize) {
     return scsDataClient.listConcatenateFrontByteArray(
         cacheName, listName, values, ttl, truncateBackToSize);
@@ -627,6 +628,48 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheListPopFrontResponse> listPopFront(
       String cacheName, String listName) {
     return scsDataClient.listPopFront(cacheName, listName);
+  }
+
+  /**
+   * Pushes a value to the back of the list.
+   *
+   * @param cacheName Name of the cache to store the value in
+   * @param listName The list in which the value is to be added.
+   * @param value The element to add to the list.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list push back operation.
+   */
+  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+      String cacheName,
+      String listName,
+      String value,
+      @Nullable CollectionTtl ttl,
+      int truncateFrontToSize) {
+    return scsDataClient.listPushBack(cacheName, listName, value, ttl, truncateFrontToSize);
+  }
+
+  /**
+   * Pushes a value to the back of the list.
+   *
+   * @param cacheName Name of the cache to store the value in
+   * @param listName The list in which the value is to be added.
+   * @param value The element to add to the list.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list push back operation.
+   */
+  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+      String cacheName,
+      String listName,
+      byte[] value,
+      @Nullable CollectionTtl ttl,
+      int truncateFrontToSize) {
+    return scsDataClient.listPushBack(cacheName, listName, value, ttl, truncateFrontToSize);
   }
 
   @Override

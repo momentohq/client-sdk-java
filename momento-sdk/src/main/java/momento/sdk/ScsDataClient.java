@@ -34,6 +34,8 @@ import grpc.cache_client._ListPopBackRequest;
 import grpc.cache_client._ListPopBackResponse;
 import grpc.cache_client._ListPopFrontRequest;
 import grpc.cache_client._ListPopFrontResponse;
+import grpc.cache_client._ListPushBackRequest;
+import grpc.cache_client._ListPushBackResponse;
 import grpc.cache_client._SetDifferenceRequest;
 import grpc.cache_client._SetDifferenceResponse;
 import grpc.cache_client._SetFetchRequest;
@@ -68,6 +70,7 @@ import momento.sdk.messages.CacheListFetchResponse;
 import momento.sdk.messages.CacheListLengthResponse;
 import momento.sdk.messages.CacheListPopBackResponse;
 import momento.sdk.messages.CacheListPopFrontResponse;
+import momento.sdk.messages.CacheListPushBackResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -383,14 +386,17 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateFrontToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
+      ensureValidValue(values);
+
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
+
       return sendListConcatenateBack(
           cacheName, convert(listName), convertStringList(values), ttl, truncateFrontToSize);
     } catch (Exception e) {
@@ -403,14 +409,17 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateFrontToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
+      ensureValidValue(values);
+
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
+
       return sendListConcatenateBack(
           cacheName, convert(listName), convertByteArrayList(values), ttl, truncateFrontToSize);
     } catch (Exception e) {
@@ -423,14 +432,17 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateBackToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
+      ensureValidValue(values);
+
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
+
       return sendListConcatenateFront(
           cacheName, convert(listName), convertStringList(values), ttl, truncateBackToSize);
     } catch (Exception e) {
@@ -443,14 +455,17 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateBackToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
+      ensureValidValue(values);
+
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
+
       return sendListConcatenateFront(
           cacheName, convert(listName), convertByteArrayList(values), ttl, truncateBackToSize);
     } catch (Exception e) {
@@ -502,6 +517,52 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListPopFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListPushBackResponse> listPushBack(
+      String cacheName,
+      String listName,
+      String value,
+      @Nullable CollectionTtl ttl,
+      int truncateFrontToSize) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      ensureValidValue(value);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendListPushBack(
+          cacheName, convert(listName), convert(value), ttl, truncateFrontToSize);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListPushBackResponse> listPushBack(
+      String cacheName,
+      String listName,
+      byte[] value,
+      @Nullable CollectionTtl ttl,
+      int truncateFrontToSize) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      ensureValidValue(value);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendListPushBack(
+          cacheName, convert(listName), convert(value), ttl, truncateFrontToSize);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1220,6 +1281,54 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheListPushBackResponse> sendListPushBack(
+      String cacheName,
+      ByteString listName,
+      ByteString value,
+      CollectionTtl ttl,
+      int truncateFrontToSize) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_ListPushBackResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .listPushBack(buildListPushBackRequest(listName, value, ttl, truncateFrontToSize));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheListPushBackResponse> returnFuture =
+        new CompletableFuture<CacheListPushBackResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_ListPushBackResponse>() {
+          @Override
+          public void onSuccess(_ListPushBackResponse rsp) {
+            returnFuture.complete(new CacheListPushBackResponse.Success(rsp.getListLength()));
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheListPushBackResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
   private CompletableFuture<CacheListPopFrontResponse> sendListPopFront(
       String cacheName, ByteString listName) {
 
@@ -1341,29 +1450,26 @@ final class ScsDataClient implements Closeable {
   }
 
   private _ListConcatenateBackRequest buildListConcatenateBackRequest(
-      ByteString listName,
-      List<ByteString> values,
-      CollectionTtl ttl,
-      Integer truncateFrontToSize) {
+      ByteString listName, List<ByteString> values, CollectionTtl ttl, int truncateFrontToSize) {
     _ListConcatenateBackRequest request =
         _ListConcatenateBackRequest.newBuilder()
             .setListName(listName)
             .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
             .setRefreshTtl(ttl.refreshTtl())
-            .setTruncateFrontToSize(truncateFrontToSize.byteValue())
+            .setTruncateFrontToSize(truncateFrontToSize)
             .addAllValues(values)
             .build();
     return request;
   }
 
   private _ListConcatenateFrontRequest buildListConcatenateFrontRequest(
-      ByteString listName, List<ByteString> values, CollectionTtl ttl, Integer truncateBackToSize) {
+      ByteString listName, List<ByteString> values, CollectionTtl ttl, int truncateBackToSize) {
     _ListConcatenateFrontRequest request =
         _ListConcatenateFrontRequest.newBuilder()
             .setListName(listName)
             .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
             .setRefreshTtl(ttl.refreshTtl())
-            .setTruncateBackToSize(truncateBackToSize.byteValue())
+            .setTruncateBackToSize(truncateBackToSize)
             .addAllValues(values)
             .build();
     return request;
@@ -1415,6 +1521,19 @@ final class ScsDataClient implements Closeable {
 
   private _ListPopFrontRequest buildListPopFrontRequest(ByteString listName) {
     return _ListPopFrontRequest.newBuilder().setListName(listName).build();
+  }
+
+  private _ListPushBackRequest buildListPushBackRequest(
+      ByteString listName, ByteString value, CollectionTtl ttl, int truncateFrontToSize) {
+    _ListPushBackRequest request =
+        _ListPushBackRequest.newBuilder()
+            .setListName(listName)
+            .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
+            .setRefreshTtl(ttl.refreshTtl())
+            .setTruncateFrontToSize(truncateFrontToSize)
+            .setValue(value)
+            .build();
+    return request;
   }
 
   @Override
