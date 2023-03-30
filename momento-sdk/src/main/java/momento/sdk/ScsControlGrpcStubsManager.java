@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
+import momento.sdk.auth.CredentialProvider;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Control Plane.
@@ -25,17 +26,18 @@ final class ScsControlGrpcStubsManager implements Closeable {
   private final ManagedChannel channel;
   private final ScsControlGrpc.ScsControlBlockingStub controlBlockingStub;
 
-  ScsControlGrpcStubsManager(@Nonnull String authToken, @Nonnull String endpoint) {
-    this.channel = setupConnection(authToken, endpoint);
+  ScsControlGrpcStubsManager(@Nonnull CredentialProvider credentialProvider) {
+    this.channel = setupConnection(credentialProvider);
     this.controlBlockingStub = ScsControlGrpc.newBlockingStub(channel);
   }
 
-  private static ManagedChannel setupConnection(String authToken, String endpoint) {
-    NettyChannelBuilder channelBuilder = NettyChannelBuilder.forAddress(endpoint, 443);
+  private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
+    final NettyChannelBuilder channelBuilder =
+        NettyChannelBuilder.forAddress(credentialProvider.getControlEndpoint(), 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
-    List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(new UserHeaderInterceptor(authToken));
+    final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
+    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
     channelBuilder.intercept(clientInterceptors);
     return channelBuilder.build();
   }

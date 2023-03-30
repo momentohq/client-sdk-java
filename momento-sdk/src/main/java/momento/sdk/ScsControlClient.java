@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import javax.annotation.Nonnull;
+import momento.sdk.auth.CredentialProvider;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
@@ -37,10 +38,12 @@ import momento.sdk.messages.SigningKey;
 /** Client for interacting with Scs Control Plane. */
 final class ScsControlClient implements Closeable {
 
+  private final CredentialProvider credentialProvider;
   private final ScsControlGrpcStubsManager controlGrpcStubsManager;
 
-  ScsControlClient(@Nonnull String authToken, @Nonnull String endpoint) {
-    this.controlGrpcStubsManager = new ScsControlGrpcStubsManager(authToken, endpoint);
+  ScsControlClient(@Nonnull CredentialProvider credentialProvider) {
+    this.credentialProvider = credentialProvider;
+    this.controlGrpcStubsManager = new ScsControlGrpcStubsManager(credentialProvider);
   }
 
   CreateCacheResponse createCache(String cacheName) {
@@ -86,14 +89,14 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-  CreateSigningKeyResponse createSigningKey(Duration ttl, String endpoint) {
+  CreateSigningKeyResponse createSigningKey(Duration ttl) {
     try {
       ensureValidTtlMinutes(ttl);
       return convert(
           controlGrpcStubsManager
               .getBlockingStub()
               .createSigningKey(buildCreateSigningKeyRequest(ttl)),
-          endpoint);
+          credentialProvider.getCacheEndpoint());
     } catch (Exception e) {
       return new CreateSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
     }
@@ -111,11 +114,13 @@ final class ScsControlClient implements Closeable {
     }
   }
 
-  ListSigningKeysResponse listSigningKeys(String endpoint) {
+  ListSigningKeysResponse listSigningKeys() {
     try {
       final _ListSigningKeysRequest request =
           _ListSigningKeysRequest.newBuilder().setNextToken("").build();
-      return convert(controlGrpcStubsManager.getBlockingStub().listSigningKeys(request), endpoint);
+      return convert(
+          controlGrpcStubsManager.getBlockingStub().listSigningKeys(request),
+          credentialProvider.getCacheEndpoint());
     } catch (Exception e) {
       return new ListSigningKeysResponse.Error(CacheServiceExceptionMapper.convert(e));
     }

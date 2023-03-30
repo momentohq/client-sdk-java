@@ -6,6 +6,8 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import momento.sdk.auth.CredentialProvider;
+import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheListConcatenateFrontResponse;
@@ -27,7 +29,10 @@ public class ListTest extends BaseTestClass {
 
   private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
   private CacheClient target;
-  private String cacheName;
+
+  private final CredentialProvider credentialProvider =
+      new EnvVarCredentialProvider("TEST_AUTH_TOKEN");
+  private final String cacheName = System.getenv("TEST_CACHE_NAME");
 
   private final List<String> values = Arrays.asList("val1", "val2", "val3", "val4");
 
@@ -35,8 +40,7 @@ public class ListTest extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    target = CacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), DEFAULT_TTL_SECONDS).build();
-    cacheName = System.getenv("TEST_CACHE_NAME");
+    target = CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS).build();
     target.createCache(cacheName);
   }
 
