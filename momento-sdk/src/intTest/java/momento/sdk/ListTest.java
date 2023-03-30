@@ -585,13 +585,13 @@ public class ListTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateBackResponse.Success.class);
 
-    // Pop the value as string from back of the list
+    // Pop the value as string from front of the list
     assertThat(target.listPopFront(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListPopFrontResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueString()).isEqualTo("val1"));
 
-    // Pop the value as byte array from the back of the new list
+    // Pop the value as byte array from the front of the new list
     assertThat(target.listPopFront(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListPopFrontResponse.Hit.class))

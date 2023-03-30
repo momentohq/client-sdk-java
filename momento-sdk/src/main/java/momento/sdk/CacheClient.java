@@ -606,7 +606,7 @@ public final class CacheClient implements Closeable {
   }
 
   /**
-   * Fetches the value from the back of the given list.
+   * Fetches and removes the value from the back of the given list.
    *
    * @param cacheName - The cache containing the list.
    * @param listName - The list to fetch the value from.
@@ -618,7 +618,7 @@ public final class CacheClient implements Closeable {
   }
 
   /**
-   * Fetches the value from the front of the given list.
+   * Fetches and removes the value from the front of the given list.
    *
    * @param cacheName - The cache containing the list.
    * @param listName - The list to fetch the value from.

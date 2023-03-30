@@ -9,7 +9,7 @@ import momento.sdk.internal.StringHelpers;
 /** Response for a list pop front operation */
 public interface CacheListPopFrontResponse {
 
-  /** A successful list pop front operation that found elements. */
+  /** A successful list pop front operation that found element. */
   class Hit implements CacheListPopFrontResponse {
     private ByteString byteStringValue;
 
