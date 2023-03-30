@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
+import momento.sdk.auth.CredentialProvider;
+import momento.sdk.auth.EnvVarCredentialProvider;
+import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.BadRequestException;
@@ -24,13 +27,13 @@ final class CacheControlPlaneTest extends BaseTestClass {
 
   private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
+  private final CredentialProvider credentialProvider =
+      new EnvVarCredentialProvider("TEST_AUTH_TOKEN");
   private CacheClient target;
-  private String authToken;
 
   @BeforeEach
   void setup() {
-    authToken = System.getenv("TEST_AUTH_TOKEN");
-    target = CacheClient.builder(authToken, DEFAULT_TTL_SECONDS).build();
+    target = CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS).build();
   }
 
   @AfterEach
@@ -138,8 +141,10 @@ final class CacheControlPlaneTest extends BaseTestClass {
         "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b"
             + "2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmml"
             + "s76573jnajhjjjhjdhnndy";
+    final CredentialProvider badTokenProvider = new StringCredentialProvider(badToken);
 
-    try (final CacheClient client = CacheClient.builder(badToken, Duration.ofSeconds(10)).build()) {
+    try (final CacheClient client =
+        CacheClient.builder(badTokenProvider, Duration.ofSeconds(10)).build()) {
       final CreateCacheResponse createResponse = client.createCache(cacheName);
       assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
       assertThat(((CreateCacheResponse.Error) createResponse))
@@ -163,7 +168,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
             () ->
-                CacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
+                CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS)
                     .requestTimeout(Duration.ofMillis(0))
                     .build());
   }
@@ -174,7 +179,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
             () ->
-                CacheClient.builder(authToken, DEFAULT_TTL_SECONDS)
+                CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS)
                     .requestTimeout(Duration.ofMillis(-1))
                     .build());
   }
@@ -184,6 +189,9 @@ final class CacheControlPlaneTest extends BaseTestClass {
     //noinspection resource
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
-            () -> CacheClient.builder(authToken, DEFAULT_TTL_SECONDS).requestTimeout(null).build());
+            () ->
+                CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS)
+                    .requestTimeout(null)
+                    .build());
   }
 }

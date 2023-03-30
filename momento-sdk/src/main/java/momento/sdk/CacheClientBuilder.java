@@ -2,16 +2,18 @@ package momento.sdk;
 
 import java.time.Duration;
 import javax.annotation.Nonnull;
+import momento.sdk.auth.CredentialProvider;
 
 /** Builder for {@link CacheClient} */
 public final class CacheClientBuilder {
 
-  private final String authToken;
+  private final CredentialProvider credentialProvider;
   private final Duration itemDefaultTtl;
   private Duration requestTimeout = null;
 
-  CacheClientBuilder(@Nonnull String authToken, @Nonnull Duration itemDefaultTtl) {
-    this.authToken = authToken;
+  CacheClientBuilder(
+      @Nonnull CredentialProvider credentialProvider, @Nonnull Duration itemDefaultTtl) {
+    this.credentialProvider = credentialProvider;
     ValidationUtils.ensureValidTtl(itemDefaultTtl);
     this.itemDefaultTtl = itemDefaultTtl;
   }
@@ -23,6 +25,6 @@ public final class CacheClientBuilder {
   }
 
   public CacheClient build() {
-    return new CacheClient(authToken, itemDefaultTtl, requestTimeout);
+    return new CacheClient(credentialProvider, itemDefaultTtl, requestTimeout);
   }
 }

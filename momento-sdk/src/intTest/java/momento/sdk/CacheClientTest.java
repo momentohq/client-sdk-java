@@ -5,6 +5,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
+import momento.sdk.auth.CredentialProvider;
+import momento.sdk.auth.EnvVarCredentialProvider;
+import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
@@ -25,6 +28,9 @@ final class CacheClientTest extends BaseTestClass {
 
   private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
+  private final CredentialProvider credentialProvider =
+      new EnvVarCredentialProvider("TEST_AUTH_TOKEN");
+
   private CacheClient target;
 
   private String cacheName;
@@ -35,10 +41,13 @@ final class CacheClientTest extends BaseTestClass {
 
   // {"sub":"squirrel","cp":"invalidcontrol.cell-alpha-dev.preprod.a.momentohq.com","c":"cache.cell-alpha-dev.preprod.a.momentohq.com"}
   private static final String JWT_PAYLOAD_BAD_CONTROL_PLANE_BASE64 =
-      "eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiaW52YWxpZGNvbnRyb2wuY2VsbC1hbHBoYS1kZXYucHJlcHJvZC5hLm1vbWVudG9ocS5jb20iLCJjIjoiY2FjaGUuY2VsbC1hbHBoYS1kZXYucHJlcHJvZC5hLm1vbWVudG9ocS5jb20ifQ";
+      "eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiaW52YWxpZGNvbnRyb2wuY2VsbC1hbHBoYS1kZXYucHJlcHJvZC5hLm1vb"
+          + "WVudG9ocS5jb20iLCJjIjoiY2FjaGUuY2VsbC1hbHBoYS1kZXYucHJlcHJvZC5hLm1vbWVudG9ocS5jb20ifQ";
+
   // {"sub":"squirrel","cp":"control.cell-alpha-dev.preprod.a.momentohq.com","c":"invalidcache.cell-alpha-dev.preprod.a.momentohq.com"}
   private static final String JWT_PAYLOAD_BAD_DATA_PLANE_BASE64 =
-      "eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSIsImMiOiJpbnZhbGlkY2FjaGUuY2VsbC1hbHBoYS1kZXYucHJlcHJvZC5hLm1vbWVudG9ocS5jb20ifQ";
+      "eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxL"
+          + "mNvbSIsImMiOiJpbnZhbGlkY2FjaGUuY2VsbC1hbHBoYS1kZXYucHJlcHJvZC5hLm1vbWVudG9ocS5jb20ifQ";
 
   // These JWTs will result in UNAUTHENTICATED from the reachable backend since they have made up
   // signatures
@@ -48,16 +57,20 @@ final class CacheClientTest extends BaseTestClass {
           + JWT_PAYLOAD_BAD_CONTROL_PLANE_BASE64
           + "."
           + JWT_INVALID_SIGNATURE_BASE64;
+  private static final CredentialProvider BAD_CONTROL_PLANE_PROVIDER =
+      new StringCredentialProvider(BAD_CONTROL_PLANE_JWT);
   private static final String BAD_DATA_PLANE_JWT =
       JWT_HEADER_BASE64
           + "."
           + JWT_PAYLOAD_BAD_DATA_PLANE_BASE64
           + "."
           + JWT_INVALID_SIGNATURE_BASE64;
+  private static final CredentialProvider BAD_DATA_PLANE_PROVIDER =
+      new StringCredentialProvider(BAD_DATA_PLANE_JWT);
 
   @BeforeEach
   void setup() {
-    target = CacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), DEFAULT_TTL_SECONDS).build();
+    target = CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS).build();
     cacheName = System.getenv("TEST_CACHE_NAME");
     target.createCache(cacheName);
   }
@@ -137,15 +150,13 @@ final class CacheClientTest extends BaseTestClass {
   public void throwsExceptionWhenClientUsesNegativeDefaultTtl() {
     //noinspection resource
     assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(
-            () ->
-                CacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), Duration.ofDays(-1)).build());
+        .isThrownBy(() -> CacheClient.builder(credentialProvider, Duration.ofDays(-1)).build());
   }
 
   @Test
   public void initializesSdkAndCanHitDataPlaneForUnreachableControlPlane() {
     try (final CacheClient client =
-        CacheClient.builder(BAD_CONTROL_PLANE_JWT, DEFAULT_TTL_SECONDS).build()) {
+        CacheClient.builder(BAD_CONTROL_PLANE_PROVIDER, DEFAULT_TTL_SECONDS).build()) {
       // Unable to hit control plane
       final CreateCacheResponse createResponse = client.createCache(randomString("cacheName"));
       assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
@@ -171,7 +182,7 @@ final class CacheClientTest extends BaseTestClass {
   @Test
   public void initializesSdkAndCanHitControlPlaneForUnreachableDataPlane() {
     try (final CacheClient client =
-        CacheClient.builder(BAD_DATA_PLANE_JWT, DEFAULT_TTL_SECONDS).build()) {
+        CacheClient.builder(BAD_DATA_PLANE_PROVIDER, DEFAULT_TTL_SECONDS).build()) {
 
       // Can reach control plane.
       final CreateCacheResponse createResponse = client.createCache(randomString("cacheName"));

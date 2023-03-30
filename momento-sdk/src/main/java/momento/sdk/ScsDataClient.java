@@ -63,6 +63,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import momento.sdk.auth.CredentialProvider;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.messages.CacheDeleteResponse;
@@ -94,20 +95,13 @@ final class ScsDataClient implements Closeable {
 
   private final Duration itemDefaultTtl;
   private final ScsDataGrpcStubsManager scsDataGrpcStubsManager;
-  private final String endpoint;
 
   ScsDataClient(
-      @Nonnull String authToken,
-      @Nonnull String endpoint,
+      @Nonnull CredentialProvider credentialProvider,
       @Nonnull Duration defaultTtl,
       @Nullable Duration requestTimeout) {
     this.itemDefaultTtl = defaultTtl;
-    this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(authToken, endpoint, requestTimeout);
-    this.endpoint = endpoint;
-  }
-
-  public String getEndpoint() {
-    return endpoint;
+    this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(credentialProvider, requestTimeout);
   }
 
   CompletableFuture<CacheGetResponse> get(String cacheName, byte[] key) {

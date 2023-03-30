@@ -1,6 +1,8 @@
 package momento.sdk;
 
 import java.time.Duration;
+import momento.sdk.auth.CredentialProvider;
+import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.exceptions.AlreadyExistsException;
 import org.junit.jupiter.api.BeforeAll;
 
@@ -20,8 +22,9 @@ class BaseTestClass {
   }
 
   private static void ensureTestCacheExists() {
+    final CredentialProvider credentialProvider = new EnvVarCredentialProvider("TEST_AUTH_TOKEN");
     try (CacheClient client =
-        CacheClient.builder(System.getenv("TEST_AUTH_TOKEN"), Duration.ofSeconds(10)).build()) {
+        CacheClient.builder(credentialProvider, Duration.ofSeconds(10)).build()) {
       client.createCache(System.getenv("TEST_CACHE_NAME"));
     } catch (AlreadyExistsException e) {
       // do nothing. Cache already exists.
