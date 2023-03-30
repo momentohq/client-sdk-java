@@ -17,6 +17,7 @@ import momento.sdk.messages.CacheListConcatenateFrontResponse;
 import momento.sdk.messages.CacheListFetchResponse;
 import momento.sdk.messages.CacheListLengthResponse;
 import momento.sdk.messages.CacheListPopBackResponse;
+import momento.sdk.messages.CacheListPopFrontResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -605,7 +606,7 @@ public final class CacheClient implements Closeable {
   }
 
   /**
-   * Fetches the value from the back of the given list.
+   * Fetches and removes the value from the back of the given list.
    *
    * @param cacheName - The cache containing the list.
    * @param listName - The list to fetch the value from.
@@ -614,6 +615,18 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheListPopBackResponse> listPopBack(
       String cacheName, String listName) {
     return scsDataClient.listPopBack(cacheName, listName);
+  }
+
+  /**
+   * Fetches and removes the value from the front of the given list.
+   *
+   * @param cacheName - The cache containing the list.
+   * @param listName - The list to fetch the value from.
+   * @return Future containing the result of the list pop front operation.
+   */
+  public CompletableFuture<CacheListPopFrontResponse> listPopFront(
+      String cacheName, String listName) {
+    return scsDataClient.listPopFront(cacheName, listName);
   }
 
   @Override
