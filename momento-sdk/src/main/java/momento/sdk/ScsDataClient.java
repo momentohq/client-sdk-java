@@ -408,25 +408,6 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
-      String cacheName, String listName, List<String> values, int truncateFrontToSize) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkListNameValid(listName);
-      ensureValidValue(values);
-
-      return sendListConcatenateBack(
-          cacheName,
-          convert(listName),
-          convertStringList(values),
-          CollectionTtl.of(itemDefaultTtl),
-          truncateFrontToSize);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
   CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
       String cacheName,
       String listName,
@@ -444,25 +425,6 @@ final class ScsDataClient implements Closeable {
 
       return sendListConcatenateBack(
           cacheName, convert(listName), convertByteArrayList(values), ttl, truncateFrontToSize);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
-      String cacheName, String listName, List<byte[]> values, int truncateFrontToSize) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkListNameValid(listName);
-      ensureValidValue(values);
-
-      return sendListConcatenateBack(
-          cacheName,
-          convert(listName),
-          convertByteArrayList(values),
-          CollectionTtl.of(itemDefaultTtl),
-          truncateFrontToSize);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -492,25 +454,6 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
-      String cacheName, String listName, List<String> values, int truncateBackToSize) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkListNameValid(listName);
-      ensureValidValue(values);
-
-      return sendListConcatenateFront(
-          cacheName,
-          convert(listName),
-          convertStringList(values),
-          CollectionTtl.of(itemDefaultTtl),
-          truncateBackToSize);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
   CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
       String cacheName,
       String listName,
@@ -528,25 +471,6 @@ final class ScsDataClient implements Closeable {
 
       return sendListConcatenateFront(
           cacheName, convert(listName), convertByteArrayList(values), ttl, truncateBackToSize);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
-      String cacheName, String listName, List<byte[]> values, int truncateBackToSize) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkListNameValid(listName);
-      ensureValidValue(values);
-
-      return sendListConcatenateFront(
-          cacheName,
-          convert(listName),
-          convertByteArrayList(values),
-          CollectionTtl.of(itemDefaultTtl),
-          truncateBackToSize);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -623,25 +547,6 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheListPushBackResponse> listPushBack(
-      String cacheName, String listName, String value, int truncateFrontToSize) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkListNameValid(listName);
-      ensureValidValue(value);
-
-      return sendListPushBack(
-          cacheName,
-          convert(listName),
-          convert(value),
-          CollectionTtl.of(itemDefaultTtl),
-          truncateFrontToSize);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheListPushBackResponse> listPushBack(
       String cacheName,
       String listName,
       byte[] value,
@@ -658,25 +563,6 @@ final class ScsDataClient implements Closeable {
 
       return sendListPushBack(
           cacheName, convert(listName), convert(value), ttl, truncateFrontToSize);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheListPushBackResponse> listPushBack(
-      String cacheName, String listName, byte[] value, int truncateFrontToSize) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkListNameValid(listName);
-      ensureValidValue(value);
-
-      return sendListPushBack(
-          cacheName,
-          convert(listName),
-          convert(value),
-          CollectionTtl.of(itemDefaultTtl),
-          truncateFrontToSize);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -707,25 +593,6 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheListPushFrontResponse> listPushFront(
-      String cacheName, String listName, String value, int truncateBackToSize) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkListNameValid(listName);
-      ensureValidValue(value);
-
-      return sendListPushFront(
-          cacheName,
-          convert(listName),
-          convert(value),
-          CollectionTtl.of(itemDefaultTtl),
-          truncateBackToSize);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheListPushFrontResponse> listPushFront(
       String cacheName,
       String listName,
       byte[] value,
@@ -742,25 +609,6 @@ final class ScsDataClient implements Closeable {
 
       return sendListPushFront(
           cacheName, convert(listName), convert(value), ttl, truncateBackToSize);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheListPushFrontResponse> listPushFront(
-      String cacheName, String listName, byte[] value, int truncateBackToSize) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkListNameValid(listName);
-      ensureValidValue(value);
-
-      return sendListPushFront(
-          cacheName,
-          convert(listName),
-          convert(value),
-          CollectionTtl.of(itemDefaultTtl),
-          truncateBackToSize);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
