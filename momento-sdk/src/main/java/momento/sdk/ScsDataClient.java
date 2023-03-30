@@ -148,8 +148,11 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, ByteBuffer value, Duration ttl) {
+      String cacheName, String key, ByteBuffer value, @Nullable Duration ttl) {
     try {
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
       ensureValidCacheSet(key, value, ttl);
       return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
@@ -158,13 +161,12 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetResponse> set(String cacheName, String key, ByteBuffer value) {
-    return set(cacheName, key, value, itemDefaultTtl);
-  }
-
   CompletableFuture<CacheSetResponse> set(
-      String cacheName, byte[] key, byte[] value, Duration ttl) {
+      String cacheName, byte[] key, byte[] value, @Nullable Duration ttl) {
     try {
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
       ensureValidCacheSet(key, value, ttl);
       return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
@@ -173,13 +175,12 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetResponse> set(String cacheName, byte[] key, byte[] value) {
-    return set(cacheName, key, value, itemDefaultTtl);
-  }
-
   CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, String value, Duration ttl) {
+      String cacheName, String key, String value, @Nullable Duration ttl) {
     try {
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
       ensureValidCacheSet(key, value, ttl);
       return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
@@ -189,9 +190,12 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, String field, long amount, Duration ttl) {
+      String cacheName, String field, long amount, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
       return sendIncrement(cacheName, convert(field), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
@@ -200,9 +204,12 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, byte[] field, long amount, Duration ttl) {
+      String cacheName, byte[] field, long amount, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
       return sendIncrement(cacheName, convert(field), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
@@ -210,14 +217,13 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
-    return set(cacheName, key, value, itemDefaultTtl);
-  }
-
   CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
-      String cacheName, String key, String value, Duration ttl) {
+      String cacheName, String key, String value, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
       return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
@@ -226,9 +232,12 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
-      String cacheName, String key, byte[] value, Duration ttl) {
+      String cacheName, String key, byte[] value, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
       return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
@@ -237,9 +246,12 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
-      String cacheName, byte[] key, String value, Duration ttl) {
+      String cacheName, byte[] key, String value, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
       return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
@@ -248,9 +260,12 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
-      String cacheName, byte[] key, byte[] value, Duration ttl) {
+      String cacheName, byte[] key, byte[] value, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
       return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
