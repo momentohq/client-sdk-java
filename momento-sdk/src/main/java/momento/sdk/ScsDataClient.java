@@ -404,8 +404,8 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      @Nullable CollectionTtl ttl,
-      int truncateFrontToSize) {
+      int truncateFrontToSize,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
@@ -427,8 +427,8 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      @Nullable CollectionTtl ttl,
-      int truncateFrontToSize) {
+      int truncateFrontToSize,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
@@ -450,8 +450,8 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      @Nullable CollectionTtl ttl,
-      int truncateBackToSize) {
+      int truncateBackToSize,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
@@ -473,8 +473,8 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      @Nullable CollectionTtl ttl,
-      int truncateBackToSize) {
+      int truncateBackToSize,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
@@ -542,8 +542,8 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       String value,
-      @Nullable CollectionTtl ttl,
-      int truncateFrontToSize) {
+      int truncateFrontToSize,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
@@ -565,8 +565,8 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       byte[] value,
-      @Nullable CollectionTtl ttl,
-      int truncateFrontToSize) {
+      int truncateFrontToSize,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
@@ -588,8 +588,8 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       String value,
-      @Nullable CollectionTtl ttl,
-      int truncateBackToSize) {
+      int truncateBackToSize,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
@@ -611,8 +611,8 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       byte[] value,
-      @Nullable CollectionTtl ttl,
-      int truncateBackToSize) {
+      int truncateBackToSize,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
