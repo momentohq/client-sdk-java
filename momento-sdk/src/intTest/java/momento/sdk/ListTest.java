@@ -14,6 +14,7 @@ import momento.sdk.messages.CacheListLengthResponse;
 import momento.sdk.messages.CacheListPopBackResponse;
 import momento.sdk.messages.CacheListPopFrontResponse;
 import momento.sdk.messages.CacheListPushBackResponse;
+import momento.sdk.messages.CacheListPushFrontResponse;
 import momento.sdk.requests.CollectionTtl;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
@@ -782,6 +783,143 @@ public class ListTest extends BaseTestClass {
                 cacheName, listName, (byte[]) null, CollectionTtl.fromCacheTtl(), 0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListPushBackResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void listPushFrontStringHappyPath() {
+    String oldValue = "val1";
+    String newValue = "val2";
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListFetchResponse.Miss.class);
+
+    assertThat(target.listPushFront(cacheName, listName, oldValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListPushFrontResponse.Success.class);
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(1).containsOnly(oldValue));
+
+    // Add the same value
+    assertThat(target.listPushFront(cacheName, listName, oldValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListPushFrontResponse.Success.class);
+
+    List<String> expectedList = Arrays.asList("val1", "val1");
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(2).containsAll(expectedList));
+
+    // Add a new value
+    assertThat(target.listPushFront(cacheName, listName, newValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListPushFrontResponse.Success.class);
+
+    List<String> newExpectedList = Arrays.asList("val2", "val1", "val1");
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(
+            hit -> assertThat(hit.valueListString()).hasSize(3).containsAll(newExpectedList));
+  }
+
+  @Test
+  public void listPushFrontByteArrayHappyPath() {
+    byte[] oldValue = "val1".getBytes();
+    byte[] newValue = "val2".getBytes();
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListFetchResponse.Miss.class);
+
+    assertThat(target.listPushFront(cacheName, listName, oldValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListPushFrontResponse.Success.class);
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListByteArray()).hasSize(1).containsOnly(oldValue));
+
+    // Add the same value
+    assertThat(target.listPushFront(cacheName, listName, oldValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListPushFrontResponse.Success.class);
+
+    List<byte[]> expectedList = Arrays.asList("val1".getBytes(), "val1".getBytes());
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(
+            hit -> assertThat(hit.valueListByteArray()).hasSize(2).containsAll(expectedList));
+
+    // Add a new value
+    assertThat(target.listPushFront(cacheName, listName, newValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListPushFrontResponse.Success.class);
+
+    List<byte[]> newExpectedList =
+        Arrays.asList("val2".getBytes(), "val1".getBytes(), "val1".getBytes());
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(
+            hit -> assertThat(hit.valueListByteArray()).hasSize(3).containsAll(newExpectedList));
+  }
+
+  @Test
+  public void shouldFailListPushFrontWhenNullCacheName() {
+    final String stringValue = "val1";
+    final byte[] byteArrayValue = "val1".getBytes();
+
+    assertThat(target.listPushFront(null, listName, stringValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPushFrontResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(
+            target.listPushFront(null, listName, byteArrayValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPushFrontResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void shouldFailListPushFrontWhenNullListName() {
+    final String stringValue = "val1";
+    final byte[] byteArrayValue = "val1".getBytes();
+
+    assertThat(target.listPushFront(cacheName, null, stringValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPushFrontResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(
+            target.listPushFront(cacheName, null, byteArrayValue, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPushFrontResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void shouldFailListPushFrontWhenNullElement() {
+    assertThat(
+            target.listPushFront(
+                cacheName, listName, (String) null, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPushFrontResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(
+            target.listPushFront(
+                cacheName, listName, (byte[]) null, CollectionTtl.fromCacheTtl(), 0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListPushFrontResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 }
