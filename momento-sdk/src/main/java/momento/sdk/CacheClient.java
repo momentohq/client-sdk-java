@@ -522,6 +522,22 @@ public final class CacheClient implements Closeable {
    * @param cacheName Name of the cache to store the item in
    * @param listName The list in which the value is to be added.
    * @param values The elements to add to the list.
+   * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list concatenate back operation.
+   */
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
+      String cacheName, String listName, List<String> values, int truncateFrontToSize) {
+    return scsDataClient.listConcatenateBackString(
+        cacheName, listName, values, truncateFrontToSize);
+  }
+
+  /**
+   * Concatenates values to the back of the list.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param listName The list in which the value is to be added.
+   * @param values The elements to add to the list.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(String, Duration)}
    * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
@@ -536,6 +552,22 @@ public final class CacheClient implements Closeable {
       int truncateFrontToSize) {
     return scsDataClient.listConcatenateBackByteArray(
         cacheName, listName, values, ttl, truncateFrontToSize);
+  }
+
+  /**
+   * Concatenates values to the back of the list.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param listName The list in which the value is to be added.
+   * @param values The elements to add to the list.
+   * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list concatenate back operation.
+   */
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
+      String cacheName, String listName, List<byte[]> values, int truncateFrontToSize) {
+    return scsDataClient.listConcatenateBackByteArray(
+        cacheName, listName, values, truncateFrontToSize);
   }
 
   /**
@@ -566,6 +598,22 @@ public final class CacheClient implements Closeable {
    * @param cacheName Name of the cache to store the item in
    * @param listName The list in which the value is to be added.
    * @param values The elements to add to the list.
+   * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list concatenate front operation.
+   */
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
+      String cacheName, String listName, List<String> values, int truncateBackToSize) {
+    return scsDataClient.listConcatenateFrontString(
+        cacheName, listName, values, truncateBackToSize);
+  }
+
+  /**
+   * Concatenates values to the front of the list.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param listName The list in which the value is to be added.
+   * @param values The elements to add to the list.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(String, Duration)}
    * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
@@ -580,6 +628,22 @@ public final class CacheClient implements Closeable {
       int truncateBackToSize) {
     return scsDataClient.listConcatenateFrontByteArray(
         cacheName, listName, values, ttl, truncateBackToSize);
+  }
+
+  /**
+   * Concatenates values to the front of the list.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param listName The list in which the value is to be added.
+   * @param values The elements to add to the list.
+   * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list concatenate front operation.
+   */
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
+      String cacheName, String listName, List<byte[]> values, int truncateBackToSize) {
+    return scsDataClient.listConcatenateFrontByteArray(
+        cacheName, listName, values, truncateBackToSize);
   }
 
   /**
@@ -658,6 +722,21 @@ public final class CacheClient implements Closeable {
    * @param cacheName Name of the cache to store the value in
    * @param listName The list in which the value is to be added.
    * @param value The element to add to the list.
+   * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list push back operation.
+   */
+  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+      String cacheName, String listName, String value, int truncateFrontToSize) {
+    return scsDataClient.listPushBack(cacheName, listName, value, truncateFrontToSize);
+  }
+
+  /**
+   * Pushes a value to the back of the list.
+   *
+   * @param cacheName Name of the cache to store the value in
+   * @param listName The list in which the value is to be added.
+   * @param value The element to add to the list.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(String, Duration)}
    * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
@@ -671,6 +750,21 @@ public final class CacheClient implements Closeable {
       @Nullable CollectionTtl ttl,
       int truncateFrontToSize) {
     return scsDataClient.listPushBack(cacheName, listName, value, ttl, truncateFrontToSize);
+  }
+
+  /**
+   * Pushes a value to the back of the list.
+   *
+   * @param cacheName Name of the cache to store the value in
+   * @param listName The list in which the value is to be added.
+   * @param value The element to add to the list.
+   * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list push back operation.
+   */
+  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+      String cacheName, String listName, byte[] value, int truncateFrontToSize) {
+    return scsDataClient.listPushBack(cacheName, listName, value, truncateFrontToSize);
   }
 
   /**
@@ -700,6 +794,21 @@ public final class CacheClient implements Closeable {
    * @param cacheName Name of the cache to store the value in
    * @param listName The list in which the value is to be added.
    * @param value The element to add to the list.
+   * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list push front operation.
+   */
+  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+      String cacheName, String listName, String value, int truncateBackToSize) {
+    return scsDataClient.listPushFront(cacheName, listName, value, truncateBackToSize);
+  }
+
+  /**
+   * Pushes a value to the front of the list.
+   *
+   * @param cacheName Name of the cache to store the value in
+   * @param listName The list in which the value is to be added.
+   * @param value The element to add to the list.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(String, Duration)}
    * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
@@ -713,6 +822,21 @@ public final class CacheClient implements Closeable {
       @Nullable CollectionTtl ttl,
       int truncateBackToSize) {
     return scsDataClient.listPushFront(cacheName, listName, value, ttl, truncateBackToSize);
+  }
+
+  /**
+   * Pushes a value to the front of the list.
+   *
+   * @param cacheName Name of the cache to store the value in
+   * @param listName The list in which the value is to be added.
+   * @param value The element to add to the list.
+   * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive.
+   * @return Future containing the result of the list push front operation.
+   */
+  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+      String cacheName, String listName, byte[] value, int truncateBackToSize) {
+    return scsDataClient.listPushFront(cacheName, listName, value, truncateBackToSize);
   }
 
   @Override
