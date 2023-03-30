@@ -386,12 +386,17 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateFrontToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
       ensureValidValue(values);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
       return sendListConcatenateBack(
           cacheName, convert(listName), convertStringList(values), ttl, truncateFrontToSize);
     } catch (Exception e) {
@@ -404,12 +409,17 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateFrontToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
       ensureValidValue(values);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
       return sendListConcatenateBack(
           cacheName, convert(listName), convertByteArrayList(values), ttl, truncateFrontToSize);
     } catch (Exception e) {
@@ -422,12 +432,17 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateBackToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
       ensureValidValue(values);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
       return sendListConcatenateFront(
           cacheName, convert(listName), convertStringList(values), ttl, truncateBackToSize);
     } catch (Exception e) {
@@ -440,12 +455,17 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateBackToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
       ensureValidValue(values);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
       return sendListConcatenateFront(
           cacheName, convert(listName), convertByteArrayList(values), ttl, truncateBackToSize);
     } catch (Exception e) {
@@ -501,11 +521,20 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheListPushBackResponse> listPushBack(
-      String cacheName, String listName, String value, CollectionTtl ttl, int truncateFrontToSize) {
+      String cacheName,
+      String listName,
+      String value,
+      @Nullable CollectionTtl ttl,
+      int truncateFrontToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
       ensureValidValue(value);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
       return sendListPushBack(
           cacheName, convert(listName), convert(value), ttl, truncateFrontToSize);
     } catch (Exception e) {
@@ -515,11 +544,20 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheListPushBackResponse> listPushBack(
-      String cacheName, String listName, byte[] value, CollectionTtl ttl, int truncateFrontToSize) {
+      String cacheName,
+      String listName,
+      byte[] value,
+      @Nullable CollectionTtl ttl,
+      int truncateFrontToSize) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
       ensureValidValue(value);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
       return sendListPushBack(
           cacheName, convert(listName), convert(value), ttl, truncateFrontToSize);
     } catch (Exception e) {

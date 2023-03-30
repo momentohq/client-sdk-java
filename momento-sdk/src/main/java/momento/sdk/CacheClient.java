@@ -509,7 +509,7 @@ public final class CacheClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateFrontToSize) {
     return scsDataClient.listConcatenateBackString(
         cacheName, listName, values, ttl, truncateFrontToSize);
@@ -531,7 +531,7 @@ public final class CacheClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateFrontToSize) {
     return scsDataClient.listConcatenateBackByteArray(
         cacheName, listName, values, ttl, truncateFrontToSize);
@@ -553,7 +553,7 @@ public final class CacheClient implements Closeable {
       String cacheName,
       String listName,
       List<String> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateBackToSize) {
     return scsDataClient.listConcatenateFrontString(
         cacheName, listName, values, ttl, truncateBackToSize);
@@ -575,7 +575,7 @@ public final class CacheClient implements Closeable {
       String cacheName,
       String listName,
       List<byte[]> values,
-      CollectionTtl ttl,
+      @Nullable CollectionTtl ttl,
       int truncateBackToSize) {
     return scsDataClient.listConcatenateFrontByteArray(
         cacheName, listName, values, ttl, truncateBackToSize);
@@ -643,7 +643,11 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the list push back operation.
    */
   public CompletableFuture<CacheListPushBackResponse> listPushBack(
-      String cacheName, String listName, String value, CollectionTtl ttl, int truncateFrontToSize) {
+      String cacheName,
+      String listName,
+      String value,
+      @Nullable CollectionTtl ttl,
+      int truncateFrontToSize) {
     return scsDataClient.listPushBack(cacheName, listName, value, ttl, truncateFrontToSize);
   }
 
@@ -660,7 +664,11 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the list push back operation.
    */
   public CompletableFuture<CacheListPushBackResponse> listPushBack(
-      String cacheName, String listName, byte[] value, CollectionTtl ttl, int truncateFrontToSize) {
+      String cacheName,
+      String listName,
+      byte[] value,
+      @Nullable CollectionTtl ttl,
+      int truncateFrontToSize) {
     return scsDataClient.listPushBack(cacheName, listName, value, ttl, truncateFrontToSize);
   }
 
