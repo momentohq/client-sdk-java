@@ -179,7 +179,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, ByteBuffer value, Duration ttl) {
+      String cacheName, String key, ByteBuffer value, @Nullable Duration ttl) {
     return scsDataClient.set(cacheName, key, value, ttl);
   }
 
@@ -196,7 +196,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(String cacheName, String key, ByteBuffer value) {
-    return scsDataClient.set(cacheName, key, value);
+    return set(cacheName, key, value, null);
   }
 
   /**
@@ -212,7 +212,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(
-      String cacheName, byte[] key, byte[] value, Duration ttl) {
+      String cacheName, byte[] key, byte[] value, @Nullable Duration ttl) {
     return scsDataClient.set(cacheName, key, value, ttl);
   }
 
@@ -229,7 +229,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(String cacheName, byte[] key, byte[] value) {
-    return scsDataClient.set(cacheName, key, value);
+    return set(cacheName, key, value, null);
   }
 
   /**
@@ -245,7 +245,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, String value, Duration ttl) {
+      String cacheName, String key, String value, @Nullable Duration ttl) {
     return scsDataClient.set(cacheName, key, value, ttl);
   }
 
@@ -262,7 +262,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
-    return scsDataClient.set(cacheName, key, value);
+    return set(cacheName, key, value, null);
   }
 
   /**
@@ -277,8 +277,25 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
-      String cacheName, String key, String value, Duration ttl) {
+      String cacheName, String key, String value, @Nullable Duration ttl) {
     return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
+  }
+
+  /**
+   * Associates a key with a value. If a value for this key is already present it is not replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(String, Duration)}
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param key {String} The key under which the value is to be added.
+   * @param value {String} The value to be stored.
+   * @return Future containing the result of the set operation.
+   */
+  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, String key, String value) {
+    return setIfNotExists(cacheName, key, value, null);
   }
 
   /**
@@ -293,8 +310,25 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
-      String cacheName, String key, byte[] value, Duration ttl) {
+      String cacheName, String key, byte[] value, @Nullable Duration ttl) {
     return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
+  }
+
+  /**
+   * Associates a key with a value. If a value for this key is already present it is not replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(String, Duration)}
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param key {String} The key under which the value is to be added.
+   * @param value {Byte Array} The value to be stored.
+   * @return Future containing the result of the set operation.
+   */
+  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, String key, byte[] value) {
+    return setIfNotExists(cacheName, key, value, null);
   }
 
   /**
@@ -309,8 +343,25 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
-      String cacheName, byte[] key, String value, Duration ttl) {
+      String cacheName, byte[] key, String value, @Nullable Duration ttl) {
     return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
+  }
+
+  /**
+   * Associates a key with a value. If a value for this key is already present it is not replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(String, Duration)}
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param key {Byte Array} The key under which the value is to be added.
+   * @param value {String} The value to be stored.
+   * @return Future containing the result of the set operation.
+   */
+  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, byte[] key, String value) {
+    return setIfNotExists(cacheName, key, value, null);
   }
 
   /**
@@ -325,23 +376,25 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
-      String cacheName, byte[] key, byte[] value, Duration ttl) {
+      String cacheName, byte[] key, byte[] value, @Nullable Duration ttl) {
     return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
   }
 
   /**
-   * Increments the value in the cache by an amount.
+   * Associates a key with a value. If a value for this key is already present it is not replaced by
+   * the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(String, Duration)}
    *
    * @param cacheName Name of the cache to store the item in
-   * @param field The field under which the value is to be added.
-   * @param amount The amount by which the cache value is to be incremented.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
-   *     building a cache client {@link CacheClient#builder(String, Duration)}
-   * @return Future containing the result of the increment operation.
+   * @param key {Byte Array} The key under which the value is to be added.
+   * @param value {Byte Array} The value to be stored.
+   * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, String field, long amount, Duration ttl) {
-    return scsDataClient.increment(cacheName, field, amount, ttl);
+  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+      String cacheName, byte[] key, byte[] value) {
+    return setIfNotExists(cacheName, key, value, null);
   }
 
   /**
@@ -355,8 +408,55 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheIncrementResponse> increment(
-      String cacheName, byte[] field, long amount, Duration ttl) {
+      String cacheName, String field, long amount, @Nullable Duration ttl) {
     return scsDataClient.increment(cacheName, field, amount, ttl);
+  }
+
+  /**
+   * Increments the value in the cache by an amount.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(String, Duration)}
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param field The field under which the value is to be added.
+   * @param amount The amount by which the cache value is to be incremented.
+   * @return Future containing the result of the increment operation.
+   */
+  public CompletableFuture<CacheIncrementResponse> increment(
+      String cacheName, String field, long amount) {
+    return increment(cacheName, field, amount, null);
+  }
+
+  /**
+   * Increments the value in the cache by an amount.
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param field The field under which the value is to be added.
+   * @param amount The amount by which the cache value is to be incremented.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(String, Duration)}
+   * @return Future containing the result of the increment operation.
+   */
+  public CompletableFuture<CacheIncrementResponse> increment(
+      String cacheName, byte[] field, long amount, @Nullable Duration ttl) {
+    return scsDataClient.increment(cacheName, field, amount, ttl);
+  }
+
+  /**
+   * Increments the value in the cache by an amount.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(String, Duration)}
+   *
+   * @param cacheName Name of the cache to store the item in
+   * @param field The field under which the value is to be added.
+   * @param amount The amount by which the cache value is to be incremented.
+   * @return Future containing the result of the increment operation.
+   */
+  public CompletableFuture<CacheIncrementResponse> increment(
+      String cacheName, byte[] field, long amount) {
+    return increment(cacheName, field, amount, null);
   }
 
   /**

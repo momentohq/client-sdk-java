@@ -204,12 +204,14 @@ final class CacheClientTest extends BaseTestClass {
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
 
+    // increment with ttl specified
     incrementResponse = target.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
 
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
 
-    incrementResponse = target.increment(cacheName, field, -1051, DEFAULT_TTL_SECONDS).join();
+    // increment without ttl specified
+    incrementResponse = target.increment(cacheName, field, -1051).join();
 
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
@@ -220,7 +222,7 @@ final class CacheClientTest extends BaseTestClass {
   }
 
   @Test
-  public void shouldReturnCacheIncrementedValuesWithUint8ArrayField() {
+  public void shouldReturnCacheIncrementedValuesWithByteArrayField() {
     final byte[] field = "field".getBytes();
 
     CacheIncrementResponse incrementResponse =
@@ -229,12 +231,14 @@ final class CacheClientTest extends BaseTestClass {
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
 
+    // increment with ttl specified
     incrementResponse = target.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
 
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
 
-    incrementResponse = target.increment(cacheName, field, -1051, DEFAULT_TTL_SECONDS).join();
+    // increment without ttl specified
+    incrementResponse = target.increment(cacheName, field, -1051).join();
 
     assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
     assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
@@ -248,8 +252,13 @@ final class CacheClientTest extends BaseTestClass {
   public void shouldFailCacheIncrementedValuesWhenNullCacheName() {
     final String field = "field";
 
+    // With ttl specified
     CacheIncrementResponse cacheIncrementResponse =
         target.increment(null, field, 1, DEFAULT_TTL_SECONDS).join();
+    assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
+
+    // Without ttl specified
+    cacheIncrementResponse = target.increment(null, field, 1).join();
     assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
   }
 
@@ -258,13 +267,18 @@ final class CacheClientTest extends BaseTestClass {
     final String cacheName = "fake-cache";
     final String field = "field";
 
+    // With ttl specified
     CacheIncrementResponse cacheIncrementResponse =
         target.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
+    assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
+
+    // Without ttl specified
+    cacheIncrementResponse = target.increment(cacheName, field, 1).join();
     assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
   }
 
   @Test
-  public void shouldSetStringValueToStringKeyWhenKeyNotExists() {
+  public void shouldSetStringValueToStringKeyWhenKeyNotExistsWithTtl() {
     final String key = randomString("test-key");
     final String value = randomString("test-value");
 
@@ -283,7 +297,26 @@ final class CacheClientTest extends BaseTestClass {
   }
 
   @Test
-  public void shouldSetByteArrayValueToStringKeyWhenKeyNotExists() {
+  public void shouldSetStringValueToStringKeyWhenKeyNotExistsWithoutTtl() {
+    final String key = randomString("test-key");
+    final String value = randomString("test-value");
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, value).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
+        .isEqualTo(key);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+        .isEqualTo(value);
+
+    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(value);
+  }
+
+  @Test
+  public void shouldSetByteArrayValueToStringKeyWhenKeyNotExistsWithTtl() {
     final String key = randomString("test-key");
     final byte[] value = "test-value".getBytes();
 
@@ -302,7 +335,26 @@ final class CacheClientTest extends BaseTestClass {
   }
 
   @Test
-  public void shouldSetStringValueToByteArrayKeyWhenKeyNotExists() {
+  public void shouldSetByteArrayValueToStringKeyWhenKeyNotExistsWithoutTtl() {
+    final String key = randomString("test-key");
+    final byte[] value = "test-value".getBytes();
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, value).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
+        .isEqualTo(key);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueByteArray())
+        .isEqualTo(value);
+
+    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueByteArray()).isEqualTo(value);
+  }
+
+  @Test
+  public void shouldSetStringValueToByteArrayKeyWhenKeyNotExistsWithTtl() {
     final byte[] key = "test-key".getBytes();
     final String value = "test-value";
 
@@ -321,12 +373,50 @@ final class CacheClientTest extends BaseTestClass {
   }
 
   @Test
-  public void shouldSetByteArrayValueToByteArrayKeyWhenKeyNotExists() {
+  public void shouldSetStringValueToByteArrayKeyWhenKeyNotExistsWithoutTtl() {
+    final byte[] key = "test-key".getBytes();
+    final String value = "test-value";
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, value).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyByteArray())
+        .isEqualTo(key);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+        .isEqualTo(value);
+
+    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(value);
+  }
+
+  @Test
+  public void shouldSetByteArrayValueToByteArrayKeyWhenKeyNotExistsWithttl() {
     final byte[] key = "test-key".getBytes();
     final byte[] value = "test-value".getBytes();
 
     CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyByteArray())
+        .isEqualTo(key);
+    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueByteArray())
+        .isEqualTo(value);
+
+    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueByteArray()).isEqualTo(value);
+  }
+
+  @Test
+  public void shouldSetByteArrayValueToByteArrayKeyWhenKeyNotExistsWithoutTtl() {
+    final byte[] key = "test-key".getBytes();
+    final byte[] value = "test-value".getBytes();
+
+    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+        target.setIfNotExists(cacheName, key, value).join();
 
     assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
     assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyByteArray())
@@ -354,6 +444,7 @@ final class CacheClientTest extends BaseTestClass {
     assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
         .isEqualTo(oldValue);
 
+    // When ttl is specified
     cacheSetIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, newValue, DEFAULT_TTL_SECONDS).join();
 
@@ -361,6 +452,16 @@ final class CacheClientTest extends BaseTestClass {
         .isInstanceOf(CacheSetIfNotExistsResponse.NotStored.class);
 
     CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
+    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
+    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(oldValue);
+
+    // When ttl is not specified
+    cacheSetIfNotExistsResponse = target.setIfNotExists(cacheName, key, newValue).join();
+
+    assertThat(cacheSetIfNotExistsResponse)
+        .isInstanceOf(CacheSetIfNotExistsResponse.NotStored.class);
+
+    cacheGetResponse = target.get(cacheName, key).join();
     assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
     assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(oldValue);
   }
@@ -371,8 +472,14 @@ final class CacheClientTest extends BaseTestClass {
     final String key = "test-key";
     final String value = "old-test-value";
 
+    // With ttl specified
     CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
+
+    // Without ttl specified
+    cacheSetIfNotExistsResponse = target.setIfNotExists(cacheName, key, value).join();
 
     assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
   }
@@ -382,8 +489,14 @@ final class CacheClientTest extends BaseTestClass {
     final String key = "test-key";
     final String value = "old-test-value";
 
+    // With ttl specified
     CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
         target.setIfNotExists(null, key, value, DEFAULT_TTL_SECONDS).join();
+
+    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
+
+    // Without ttl specified
+    cacheSetIfNotExistsResponse = target.setIfNotExists(null, key, value).join();
 
     assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
   }
