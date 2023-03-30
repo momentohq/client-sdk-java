@@ -49,7 +49,7 @@ public class SetTest {
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSetFetchResponse.Miss.class);
 
-    assertThat(client.setAddElement(cacheName, setName, element1, CollectionTtl.fromCacheTtl()))
+    assertThat(client.setAddElement(cacheName, setName, element1))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSetAddElementResponse.Success.class);
 
@@ -85,7 +85,7 @@ public class SetTest {
     final byte[] element1 = "one".getBytes();
     final byte[] element2 = "two".getBytes();
 
-    assertThat(client.setAddElement(cacheName, setName, element1, CollectionTtl.fromCacheTtl()))
+    assertThat(client.setAddElement(cacheName, setName, element1))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSetAddElementResponse.Success.class);
 
@@ -168,8 +168,7 @@ public class SetTest {
     final Set<String> firstSet = Sets.newHashSet("one", "two");
     final Set<String> secondSet = Sets.newHashSet("two", "three");
 
-    assertThat(
-            client.setAddElementsString(cacheName, setName, firstSet, CollectionTtl.fromCacheTtl()))
+    assertThat(client.setAddElementsString(cacheName, setName, firstSet))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSetAddElementsResponse.Success.class);
 
@@ -212,9 +211,7 @@ public class SetTest {
     final Set<byte[]> firstSet = Sets.newHashSet("one".getBytes(), "two".getBytes());
     final Set<byte[]> secondSet = Sets.newHashSet("two".getBytes(), "three".getBytes());
 
-    assertThat(
-            client.setAddElementsByteArray(
-                cacheName, setName, firstSet, CollectionTtl.fromCacheTtl()))
+    assertThat(client.setAddElementsByteArray(cacheName, setName, firstSet))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSetAddElementsResponse.Success.class);
 
