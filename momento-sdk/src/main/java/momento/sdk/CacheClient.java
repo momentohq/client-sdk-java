@@ -21,6 +21,7 @@ import momento.sdk.messages.CacheListPopFrontResponse;
 import momento.sdk.messages.CacheListPushBackResponse;
 import momento.sdk.messages.CacheListPushFrontResponse;
 import momento.sdk.messages.CacheListRemoveValueResponse;
+import momento.sdk.messages.CacheListRetainResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -1026,6 +1027,20 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheListRemoveValueResponse> listRemoveValue(
       String cacheName, String listName, byte[] value) {
     return scsDataClient.listRemoveValue(cacheName, listName, value);
+  }
+
+  /**
+   * Retain values from the given list.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list to retain the value from.
+   * @param startIndex - Start inclusive index for list retain operation.
+   * @param endIndex - End exclusive index for list retain operation.
+   * @return Future containing the result of the list retain value operation.
+   */
+  public CompletableFuture<CacheListRetainResponse> listRetain(
+      String cacheName, String listName, Integer startIndex, Integer endIndex) {
+    return scsDataClient.listRetain(cacheName, listName, startIndex, endIndex);
   }
 
   @Override

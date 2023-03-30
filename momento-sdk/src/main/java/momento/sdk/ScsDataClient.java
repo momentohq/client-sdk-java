@@ -40,6 +40,8 @@ import grpc.cache_client._ListPushFrontRequest;
 import grpc.cache_client._ListPushFrontResponse;
 import grpc.cache_client._ListRemoveRequest;
 import grpc.cache_client._ListRemoveResponse;
+import grpc.cache_client._ListRetainRequest;
+import grpc.cache_client._ListRetainResponse;
 import grpc.cache_client._SetDifferenceRequest;
 import grpc.cache_client._SetDifferenceResponse;
 import grpc.cache_client._SetFetchRequest;
@@ -78,6 +80,7 @@ import momento.sdk.messages.CacheListPopFrontResponse;
 import momento.sdk.messages.CacheListPushBackResponse;
 import momento.sdk.messages.CacheListPushFrontResponse;
 import momento.sdk.messages.CacheListRemoveValueResponse;
+import momento.sdk.messages.CacheListRetainResponse;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
 import momento.sdk.messages.CacheSetFetchResponse;
@@ -652,6 +655,20 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListRemoveValueResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheListRetainResponse> listRetain(
+      String cacheName, String listName, Integer startIndex, Integer endIndex) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      checkListSliceStartEndValid(startIndex, endIndex);
+
+      return sendListRetain(cacheName, convert(listName), startIndex, endIndex);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheListRetainResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1557,6 +1574,50 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheListRetainResponse> sendListRetain(
+      String cacheName, ByteString listName, Integer startIndex, Integer endIndex) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_ListRetainResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .listRetain(buildListRetainRequest(listName, startIndex, endIndex));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheListRetainResponse> returnFuture =
+        new CompletableFuture<CacheListRetainResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_ListRetainResponse>() {
+          @Override
+          public void onSuccess(_ListRetainResponse rsp) {
+            returnFuture.complete(new CacheListRetainResponse.Success());
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheListRetainResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
   private static Metadata metadataWithCache(String cacheName) {
     final Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
@@ -1736,6 +1797,42 @@ final class ScsDataClient implements Closeable {
             .setListName(listName)
             .setAllElementsWithValue(value)
             .build();
+    return request;
+  }
+
+  private _ListRetainRequest buildListRetainRequest(
+      ByteString listName, Integer startIndex, Integer endIndex) {
+    _ListRetainRequest request;
+    if (startIndex != null && endIndex != null) {
+      request =
+          _ListRetainRequest.newBuilder()
+              .setListName(listName)
+              .setInclusiveStart(startIndex)
+              .setExclusiveEnd(endIndex)
+              .build();
+    } else if (startIndex != null && endIndex == null) {
+      request =
+          _ListRetainRequest.newBuilder()
+              .setListName(listName)
+              .setInclusiveStart(startIndex)
+              .setUnboundedEnd(_Unbounded.newBuilder().build())
+              .build();
+    } else if (startIndex == null && endIndex != null) {
+      request =
+          _ListRetainRequest.newBuilder()
+              .setListName(listName)
+              .setUnboundedStart(_Unbounded.newBuilder().build())
+              .setExclusiveEnd(endIndex)
+              .build();
+    } else {
+      request =
+          _ListRetainRequest.newBuilder()
+              .setListName(listName)
+              .setUnboundedStart(_Unbounded.newBuilder().build())
+              .setUnboundedEnd(_Unbounded.newBuilder().build())
+              .build();
+    }
+
     return request;
   }
 

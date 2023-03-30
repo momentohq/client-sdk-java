@@ -18,6 +18,7 @@ import momento.sdk.messages.CacheListPopFrontResponse;
 import momento.sdk.messages.CacheListPushBackResponse;
 import momento.sdk.messages.CacheListPushFrontResponse;
 import momento.sdk.messages.CacheListRemoveValueResponse;
+import momento.sdk.messages.CacheListRetainResponse;
 import momento.sdk.requests.CollectionTtl;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
@@ -1186,6 +1187,207 @@ public class ListTest extends BaseTestClass {
     assertThat(target.listRemoveValue(null, listName, (byte[]) null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListRemoveValueResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void shouldRetainAllValuesWhenListRetainWithPositiveStartEndIndices() {
+    final String listName = "listName";
+    final List<String> stringValues = Arrays.asList("val1", "val2", "val3", "val4");
+
+    assertThat(
+            target.listConcatenateFrontString(
+                cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(4).containsAll(stringValues));
+
+    assertThat(target.listRetain(cacheName, listName, 1, 3))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListRetainResponse.Success.class);
+
+    List<String> expectedList = Arrays.asList("val2", "val3");
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(2).containsAll(expectedList));
+  }
+
+  @Test
+  public void shouldRetainAllValuesWhenListRetainWithNegativeStartEndIndices() {
+    final String listName = "listName";
+    final List<String> stringValues = Arrays.asList("val1", "val2", "val3", "val4");
+
+    assertThat(
+            target.listConcatenateFrontString(
+                cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(4).containsAll(stringValues));
+
+    assertThat(target.listRetain(cacheName, listName, -3, -1))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListRetainResponse.Success.class);
+
+    List<String> expectedList = Arrays.asList("val2", "val3");
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(2).containsAll(expectedList));
+  }
+
+  @Test
+  public void shouldRetainAllValuesWhenListRetainWithNullStartIndex() {
+    final String listName = "listName";
+    final List<String> stringValues =
+        Arrays.asList("val1", "val2", "val3", "val4", "val5", "val6", "val7", "val8");
+
+    assertThat(
+            target.listConcatenateFrontString(
+                cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(8).containsAll(stringValues));
+
+    // valid case for null startIndex and positive endIndex
+    assertThat(target.listRetain(cacheName, listName, null, 7))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListRetainResponse.Success.class);
+
+    List<String> expectedList =
+        Arrays.asList("val1", "val2", "val3", "val4", "val5", "val6", "val7");
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(7).containsAll(expectedList));
+
+    // valid case for null startIndex and negative endIndex
+    assertThat(target.listRetain(cacheName, listName, null, -3))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListRetainResponse.Success.class);
+
+    List<String> newExpectedList = Arrays.asList("val1", "val2", "val3", "val4");
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(
+            hit -> assertThat(hit.valueListString()).hasSize(4).containsAll(newExpectedList));
+  }
+
+  @Test
+  public void shouldRetainAllValuesWhenListRetainWithNullEndIndex() {
+    final String listName = "listName";
+    final List<String> stringValues =
+        Arrays.asList("val1", "val2", "val3", "val4", "val5", "val6", "val7", "val8");
+
+    assertThat(
+            target.listConcatenateFrontString(
+                cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(8).containsAll(stringValues));
+
+    // valid case for positive startIndex and null endIndex
+    assertThat(target.listRetain(cacheName, listName, 2, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListRetainResponse.Success.class);
+
+    List<String> expectedList = Arrays.asList("val3", "val4", "val5", "val6", "val7", "val8");
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(6).containsAll(expectedList));
+
+    // valid case for negative startIndex and null endIndex
+    assertThat(target.listRetain(cacheName, listName, -4, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListRetainResponse.Success.class);
+
+    List<String> newExpectedList = Arrays.asList("val5", "val6", "val7", "val8");
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(
+            hit -> assertThat(hit.valueListString()).hasSize(4).containsAll(newExpectedList));
+  }
+
+  @Test
+  public void shouldRetainAllValuesWhenListRetainWithNullStartAndEndIndices() {
+    final String listName = "listName";
+    final List<String> stringValues =
+        Arrays.asList("val1", "val2", "val3", "val4", "val5", "val6", "val7", "val8");
+
+    assertThat(
+            target.listConcatenateFrontString(
+                cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(8).containsAll(stringValues));
+
+    // valid case for null startIndex and null endIndex
+    assertThat(target.listRetain(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListRetainResponse.Success.class);
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(8).containsAll(stringValues));
+  }
+
+  @Test
+  public void shouldRetainAllValuesWhenListRetainWithInvalidIndices() {
+    final String listName = "listName";
+    final List<String> stringValues =
+        Arrays.asList("val1", "val2", "val3", "val4", "val5", "val6", "val7", "val8");
+
+    assertThat(
+            target.listConcatenateFrontString(
+                cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
+
+    assertThat(target.listFetch(cacheName, listName, null, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListFetchResponse.Hit.class))
+        .satisfies(hit -> assertThat(hit.valueListString()).hasSize(8).containsAll(stringValues));
+
+    // the positive startIndex is larger than the positive endIndex
+    assertThat(target.listRetain(null, listName, 3, 1))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListRetainResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // the positive startIndex is the same value as the positive endIndex
+    assertThat(target.listRetain(null, listName, 3, 3))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListRetainResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // the negative startIndex is the larger than the negative endIndex
+    assertThat(target.listRetain(null, listName, -3, -5))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheListRetainResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 }
