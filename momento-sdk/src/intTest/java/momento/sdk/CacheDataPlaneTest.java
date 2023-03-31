@@ -7,6 +7,7 @@ import java.time.Duration;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
+import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.TimeoutException;
@@ -30,7 +31,10 @@ final class CacheDataPlaneTest extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    client = CacheClient.builder(credentialProvider, DEFAULT_ITEM_TTL_SECONDS).build();
+    client =
+        CacheClient.builder(
+                credentialProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+            .build();
   }
 
   @AfterEach
@@ -85,7 +89,9 @@ final class CacheDataPlaneTest extends BaseTestClass {
             + "W9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
     final CredentialProvider badTokenProvider = new StringCredentialProvider(badToken);
     try (final CacheClient client =
-        CacheClient.builder(badTokenProvider, DEFAULT_ITEM_TTL_SECONDS).build()) {
+        CacheClient.builder(
+                badTokenProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+            .build()) {
 
       final CacheGetResponse response = client.get(cacheName, "").join();
       assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
@@ -111,8 +117,9 @@ final class CacheDataPlaneTest extends BaseTestClass {
   @Test
   public void getWithShortTimeoutReturnsError() {
     try (final CacheClient client =
-        CacheClient.builder(credentialProvider, DEFAULT_ITEM_TTL_SECONDS)
-            .requestTimeout(Duration.ofMillis(1))
+        CacheClient.builder(
+                credentialProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+            .setDeadline(Duration.ofMillis(1))
             .build()) {
 
       final CacheGetResponse response = client.get("cache", "key").join();
@@ -151,8 +158,9 @@ final class CacheDataPlaneTest extends BaseTestClass {
   @Test
   public void setWithShortTimeoutReturnsError() {
     try (CacheClient client =
-        CacheClient.builder(credentialProvider, DEFAULT_ITEM_TTL_SECONDS)
-            .requestTimeout(Duration.ofMillis(1))
+        CacheClient.builder(
+                credentialProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+            .setDeadline(Duration.ofMillis(1))
             .build()) {
 
       final CacheSetResponse response = client.set("cache", "key", "value").join();

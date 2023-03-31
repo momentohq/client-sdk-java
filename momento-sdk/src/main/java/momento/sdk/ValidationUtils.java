@@ -5,14 +5,13 @@ import momento.sdk.exceptions.InvalidArgumentException;
 
 // Should rely on server for all validations. However, there are some that cannot be delegated and
 // instead fail in grpc client, like providing null inputs or a negative ttl.
-final class ValidationUtils {
+public final class ValidationUtils {
 
-  static final String REQUEST_TIMEOUT_MUST_BE_POSITIVE = "Request timeout must be positive";
+  static final String REQUEST_DEADLINE_MUST_BE_POSITIVE = "Request deadline must be positive";
   static final String CACHE_ITEM_TTL_CANNOT_BE_NEGATIVE = "Cache item TTL cannot be negative.";
   static final String A_NON_NULL_KEY_IS_REQUIRED = "A non-null key is required.";
   static final String A_NON_NULL_VALUE_IS_REQUIRED = "A non-null value is required.";
   static final String CACHE_NAME_IS_REQUIRED = "Cache name is required.";
-
   static final String SET_NAME_CANNOT_BE_NULL = "Set name cannot be null.";
   static final String LIST_NAME_CANNOT_BE_NULL = "List name cannot be null.";
   static final String LIST_SLICE_START_END_INVALID =
@@ -21,9 +20,9 @@ final class ValidationUtils {
 
   ValidationUtils() {}
 
-  static void ensureRequestTimeoutValid(Duration requestTimeout) {
-    if (requestTimeout == null || requestTimeout.isNegative() || requestTimeout.isZero()) {
-      throw new InvalidArgumentException(REQUEST_TIMEOUT_MUST_BE_POSITIVE);
+  public static void ensureRequestDeadlineValid(Duration requestDeadline) {
+    if (requestDeadline == null || requestDeadline.isNegative() || requestDeadline.isZero()) {
+      throw new InvalidArgumentException(REQUEST_DEADLINE_MUST_BE_POSITIVE);
     }
   }
 
