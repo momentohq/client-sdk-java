@@ -8,6 +8,7 @@ import java.util.Collections;
 import java.util.List;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
+import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
 import momento.sdk.messages.CacheListConcatenateFrontResponse;
@@ -41,7 +42,9 @@ public class ListTest extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    target = CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS).build();
+    target =
+        CacheClient.builder(credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+            .build();
     target.createCache(cacheName);
   }
 

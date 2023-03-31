@@ -10,8 +10,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
 import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.Configuration;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Data Plane.
@@ -22,19 +22,14 @@ import momento.sdk.auth.CredentialProvider;
  */
 final class ScsDataGrpcStubsManager implements Closeable {
 
-  private static final Duration DEFAULT_DEADLINE = Duration.ofSeconds(5);
-
   private final ManagedChannel channel;
   private final ScsGrpc.ScsFutureStub futureStub;
   private final Duration deadline;
 
   ScsDataGrpcStubsManager(
-      @Nonnull CredentialProvider credentialProvider, @Nullable Duration requestTimeout) {
-    if (requestTimeout != null) {
-      this.deadline = requestTimeout;
-    } else {
-      this.deadline = DEFAULT_DEADLINE;
-    }
+      @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
+    this.deadline = configuration.getTransportStrategy().getGrpcConfiguration().getDeadline();
+
     this.channel = setupChannel(credentialProvider);
     this.futureStub = ScsGrpc.newFutureStub(channel);
   }

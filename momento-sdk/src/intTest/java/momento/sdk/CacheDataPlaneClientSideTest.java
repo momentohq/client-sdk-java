@@ -6,6 +6,7 @@ import java.nio.ByteBuffer;
 import java.time.Duration;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
+import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheGetResponse;
@@ -26,7 +27,10 @@ final class CacheDataPlaneClientSideTest extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    client = CacheClient.builder(credentialProvider, DEFAULT_ITEM_TTL_SECONDS).build();
+    client =
+        CacheClient.builder(
+                credentialProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+            .build();
   }
 
   @AfterEach

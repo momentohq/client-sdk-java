@@ -8,6 +8,7 @@ import java.time.Duration;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
+import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
@@ -70,7 +71,9 @@ final class CacheClientTest extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    target = CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS).build();
+    target =
+        CacheClient.builder(credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+            .build();
     cacheName = System.getenv("TEST_CACHE_NAME");
     target.createCache(cacheName);
   }
@@ -150,13 +153,19 @@ final class CacheClientTest extends BaseTestClass {
   public void throwsExceptionWhenClientUsesNegativeDefaultTtl() {
     //noinspection resource
     assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(() -> CacheClient.builder(credentialProvider, Duration.ofDays(-1)).build());
+        .isThrownBy(
+            () ->
+                CacheClient.builder(
+                        credentialProvider, Configurations.Laptop.Latest(), Duration.ofDays(-1))
+                    .build());
   }
 
   @Test
   public void initializesSdkAndCanHitDataPlaneForUnreachableControlPlane() {
     try (final CacheClient client =
-        CacheClient.builder(BAD_CONTROL_PLANE_PROVIDER, DEFAULT_TTL_SECONDS).build()) {
+        CacheClient.builder(
+                BAD_CONTROL_PLANE_PROVIDER, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+            .build()) {
       // Unable to hit control plane
       final CreateCacheResponse createResponse = client.createCache(randomString("cacheName"));
       assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
@@ -182,7 +191,9 @@ final class CacheClientTest extends BaseTestClass {
   @Test
   public void initializesSdkAndCanHitControlPlaneForUnreachableDataPlane() {
     try (final CacheClient client =
-        CacheClient.builder(BAD_DATA_PLANE_PROVIDER, DEFAULT_TTL_SECONDS).build()) {
+        CacheClient.builder(
+                BAD_DATA_PLANE_PROVIDER, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+            .build()) {
 
       // Can reach control plane.
       final CreateCacheResponse createResponse = client.createCache(randomString("cacheName"));

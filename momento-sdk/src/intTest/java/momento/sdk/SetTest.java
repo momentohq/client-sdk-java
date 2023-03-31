@@ -9,6 +9,7 @@ import java.util.Collections;
 import java.util.Set;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
+import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheSetAddElementResponse;
 import momento.sdk.messages.CacheSetAddElementsResponse;
@@ -34,7 +35,9 @@ public class SetTest {
 
   @BeforeEach
   void setup() {
-    client = CacheClient.builder(credentialProvider, DEFAULT_TTL).build();
+    client =
+        CacheClient.builder(credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL)
+            .build();
     client.createCache(cacheName);
   }
 

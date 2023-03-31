@@ -8,6 +8,7 @@ import java.time.Duration;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
+import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.BadRequestException;
@@ -33,7 +34,9 @@ final class CacheControlPlaneTest extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    target = CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS).build();
+    target =
+        CacheClient.builder(credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+            .build();
   }
 
   @AfterEach
@@ -144,7 +147,9 @@ final class CacheControlPlaneTest extends BaseTestClass {
     final CredentialProvider badTokenProvider = new StringCredentialProvider(badToken);
 
     try (final CacheClient client =
-        CacheClient.builder(badTokenProvider, Duration.ofSeconds(10)).build()) {
+        CacheClient.builder(
+                badTokenProvider, Configurations.Laptop.Latest(), Duration.ofSeconds(10))
+            .build()) {
       final CreateCacheResponse createResponse = client.createCache(cacheName);
       assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
       assertThat(((CreateCacheResponse.Error) createResponse))
@@ -168,8 +173,9 @@ final class CacheControlPlaneTest extends BaseTestClass {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
             () ->
-                CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS)
-                    .requestTimeout(Duration.ofMillis(0))
+                CacheClient.builder(
+                        credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+                    .setDeadline(Duration.ofMillis(0))
                     .build());
   }
 
@@ -179,8 +185,9 @@ final class CacheControlPlaneTest extends BaseTestClass {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
             () ->
-                CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS)
-                    .requestTimeout(Duration.ofMillis(-1))
+                CacheClient.builder(
+                        credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+                    .setDeadline(Duration.ofMillis(-1))
                     .build());
   }
 
@@ -190,8 +197,9 @@ final class CacheControlPlaneTest extends BaseTestClass {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(
             () ->
-                CacheClient.builder(credentialProvider, DEFAULT_TTL_SECONDS)
-                    .requestTimeout(null)
+                CacheClient.builder(
+                        credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+                    .setDeadline(null)
                     .build());
   }
 }
