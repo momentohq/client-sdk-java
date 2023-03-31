@@ -1030,7 +1030,7 @@ public final class CacheClient implements Closeable {
   }
 
   /**
-   * Retain values from the given list.
+   * Retain only the elements within the given indices.
    *
    * @param cacheName The cache containing the list.
    * @param listName The list to retain the value from.
