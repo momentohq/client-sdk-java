@@ -112,9 +112,9 @@ public class DictionaryTest extends BaseTestClass {
   }
 
   @Test
-  public void dictionarySetFieldAndDictionaryFetchAndHappyPathWithNullTtl() {
+  public void dictionarySetFieldAndDictionaryFetchAndHappyPathWithNoTtl() {
     // Set String key, String Value
-    assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "b", null))
+    assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "b"))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
 
@@ -126,7 +126,7 @@ public class DictionaryTest extends BaseTestClass {
                 assertThat(hit.valueDictionaryStringString()).hasSize(1).containsEntry("a", "b"));
 
     // Set String key, ByteArray Value
-    assertThat(target.dictionarySetField(cacheName, dictionaryName, "c", "d".getBytes(), null))
+    assertThat(target.dictionarySetField(cacheName, dictionaryName, "c", "d".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
 
@@ -140,7 +140,7 @@ public class DictionaryTest extends BaseTestClass {
                     .containsEntry("c", "d".getBytes()));
 
     // Set ByteArray key, String Value
-    assertThat(target.dictionarySetField(cacheName, dictionaryName, "e".getBytes(), "f", null))
+    assertThat(target.dictionarySetField(cacheName, dictionaryName, "e".getBytes(), "f"))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
 
@@ -155,9 +155,7 @@ public class DictionaryTest extends BaseTestClass {
             });
 
     //     Set ByteArray key, ByteArray Value
-    assertThat(
-            target.dictionarySetField(
-                cacheName, dictionaryName, "g".getBytes(), "h".getBytes(), null))
+    assertThat(target.dictionarySetField(cacheName, dictionaryName, "g".getBytes(), "h".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
 

@@ -1066,7 +1066,7 @@ public final class CacheClient implements Closeable {
   /**
    * Fetches all elements of the given dictionary.
    *
-   * @param cacheName - The cache containing the list.
+   * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to fetch.
    * @return Future containing the result of the dictionary fetch back operation.
    */
@@ -1078,7 +1078,7 @@ public final class CacheClient implements Closeable {
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the list.
+   * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
@@ -1095,7 +1095,7 @@ public final class CacheClient implements Closeable {
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the list.
+   * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
@@ -1109,7 +1109,7 @@ public final class CacheClient implements Closeable {
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the list.
+   * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
@@ -1126,7 +1126,7 @@ public final class CacheClient implements Closeable {
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the list.
+   * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
@@ -1140,7 +1140,7 @@ public final class CacheClient implements Closeable {
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the list.
+   * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
@@ -1157,7 +1157,7 @@ public final class CacheClient implements Closeable {
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the list.
+   * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
@@ -1171,7 +1171,7 @@ public final class CacheClient implements Closeable {
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the list.
+   * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
@@ -1188,7 +1188,7 @@ public final class CacheClient implements Closeable {
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the list.
+   * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.

@@ -699,6 +699,8 @@ final class ScsDataClient implements Closeable {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(value);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
@@ -717,6 +719,8 @@ final class ScsDataClient implements Closeable {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(value);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
@@ -735,6 +739,8 @@ final class ScsDataClient implements Closeable {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(value);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
@@ -753,6 +759,8 @@ final class ScsDataClient implements Closeable {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(value);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
