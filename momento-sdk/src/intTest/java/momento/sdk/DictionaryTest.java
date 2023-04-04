@@ -3,9 +3,7 @@ package momento.sdk;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
@@ -30,31 +28,10 @@ public class DictionaryTest extends BaseTestClass {
   private final String cacheName = System.getenv("TEST_CACHE_NAME");
   private final String dictionaryName = "test-dictionary";
 
-  AbstractMap.SimpleEntry<String, String> stringStringPair1 =
-      new AbstractMap.SimpleEntry<>("a", "b");
-  AbstractMap.SimpleEntry<String, String> stringStringPair2 =
-      new AbstractMap.SimpleEntry<>("aa", "bb");
-  AbstractMap.SimpleEntry<String, byte[]> stringBytesPair1 =
-      new AbstractMap.SimpleEntry<>("c", "d".getBytes());
-  AbstractMap.SimpleEntry<String, byte[]> stringBytesPair2 =
-      new AbstractMap.SimpleEntry<>("cc", "dd".getBytes());
-  AbstractMap.SimpleEntry<byte[], String> bytesStringPair1 =
-      new AbstractMap.SimpleEntry<>("e".getBytes(), "f");
-  AbstractMap.SimpleEntry<byte[], String> bytesStringPair2 =
-      new AbstractMap.SimpleEntry<>("ee".getBytes(), "ff");
-  AbstractMap.SimpleEntry<byte[], byte[]> bytesBytesPair1 =
-      new AbstractMap.SimpleEntry<>("g".getBytes(), "h".getBytes());
-  AbstractMap.SimpleEntry<byte[], byte[]> bytesBytesPair2 =
-      new AbstractMap.SimpleEntry<>("gg".getBytes(), "hh".getBytes());
-
-  List<AbstractMap.SimpleEntry<String, String>> stringStringPairList =
-      Arrays.asList(stringStringPair1, stringStringPair2);
-  List<AbstractMap.SimpleEntry<String, byte[]>> stringBytesPairList =
-      Arrays.asList(stringBytesPair1, stringBytesPair2);
-  List<AbstractMap.SimpleEntry<byte[], String>> bytesStringPairList =
-      Arrays.asList(bytesStringPair1, bytesStringPair2);
-  List<AbstractMap.SimpleEntry<byte[], byte[]>> bytesBytesPairList =
-      Arrays.asList(bytesBytesPair1, bytesBytesPair2);
+  Map<String, String> stringStringMap = new HashMap<>();
+  Map<String, byte[]> stringBytesMap = new HashMap<>();
+  Map<byte[], String> bytesStringMap = new HashMap<>();
+  Map<byte[], byte[]> bytesBytesMap = new HashMap<>();
 
   @BeforeEach
   void setup() {
@@ -374,10 +351,12 @@ public class DictionaryTest extends BaseTestClass {
 
   @Test
   public void dictionarySetFieldsAndDictionaryFetchAndHappyPath() {
+    populateTestMaps();
+
     // Set String key, String value
     assertThat(
             target.dictionarySetFieldsStringString(
-                cacheName, dictionaryName, stringStringPairList, CollectionTtl.fromCacheTtl()))
+                cacheName, dictionaryName, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -394,7 +373,7 @@ public class DictionaryTest extends BaseTestClass {
     // Set String key, byte array value
     assertThat(
             target.dictionarySetFieldsStringBytes(
-                cacheName, dictionaryName, stringBytesPairList, CollectionTtl.fromCacheTtl()))
+                cacheName, dictionaryName, stringBytesMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -411,7 +390,7 @@ public class DictionaryTest extends BaseTestClass {
     // Set byte array key, String value
     assertThat(
             target.dictionarySetFieldsBytesString(
-                cacheName, dictionaryName, bytesStringPairList, CollectionTtl.fromCacheTtl()))
+                cacheName, dictionaryName, bytesStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -430,7 +409,7 @@ public class DictionaryTest extends BaseTestClass {
     // Set byte array key, byte array value
     assertThat(
             target.dictionarySetFieldsBytesBytes(
-                cacheName, dictionaryName, bytesBytesPairList, CollectionTtl.fromCacheTtl()))
+                cacheName, dictionaryName, bytesBytesMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -449,9 +428,10 @@ public class DictionaryTest extends BaseTestClass {
 
   @Test
   public void dictionarySetFieldsAndDictionaryFetchAndHappyPathWithNoTtl() {
+    populateTestMaps();
+
     // Set String key, String value
-    assertThat(
-            target.dictionarySetFieldsStringString(cacheName, dictionaryName, stringStringPairList))
+    assertThat(target.dictionarySetFieldsStringString(cacheName, dictionaryName, stringStringMap))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -466,8 +446,7 @@ public class DictionaryTest extends BaseTestClass {
             });
 
     // Set String key, byte array value
-    assertThat(
-            target.dictionarySetFieldsStringBytes(cacheName, dictionaryName, stringBytesPairList))
+    assertThat(target.dictionarySetFieldsStringBytes(cacheName, dictionaryName, stringBytesMap))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -482,8 +461,7 @@ public class DictionaryTest extends BaseTestClass {
             });
 
     // Set byte array key, String value
-    assertThat(
-            target.dictionarySetFieldsBytesString(cacheName, dictionaryName, bytesStringPairList))
+    assertThat(target.dictionarySetFieldsBytesString(cacheName, dictionaryName, bytesStringMap))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -500,7 +478,7 @@ public class DictionaryTest extends BaseTestClass {
             });
 
     // Set byte array key, byte array value
-    assertThat(target.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, bytesBytesPairList))
+    assertThat(target.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, bytesBytesMap))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -519,10 +497,12 @@ public class DictionaryTest extends BaseTestClass {
 
   @Test
   public void dictionarySetFieldsReturnsErrorWithNullCacheName() {
+    populateTestMaps();
+
     // String Key and String value
     assertThat(
             target.dictionarySetFieldsStringString(
-                null, dictionaryName, stringStringPairList, CollectionTtl.fromCacheTtl()))
+                null, dictionaryName, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -530,7 +510,7 @@ public class DictionaryTest extends BaseTestClass {
     // String Key and Byte value
     assertThat(
             target.dictionarySetFieldsStringBytes(
-                null, dictionaryName, stringBytesPairList, CollectionTtl.fromCacheTtl()))
+                null, dictionaryName, stringBytesMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -538,7 +518,7 @@ public class DictionaryTest extends BaseTestClass {
     // Byte key and String value
     assertThat(
             target.dictionarySetFieldsBytesString(
-                null, dictionaryName, bytesStringPairList, CollectionTtl.fromCacheTtl()))
+                null, dictionaryName, bytesStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -546,7 +526,7 @@ public class DictionaryTest extends BaseTestClass {
     // Byte key and Byte value
     assertThat(
             target.dictionarySetFieldsBytesBytes(
-                null, dictionaryName, bytesBytesPairList, CollectionTtl.fromCacheTtl()))
+                null, dictionaryName, bytesBytesMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -554,10 +534,12 @@ public class DictionaryTest extends BaseTestClass {
 
   @Test
   public void dictionarySetFieldsReturnsErrorWithNullDictionaryName() {
+    populateTestMaps();
+
     // String Key and String value
     assertThat(
             target.dictionarySetFieldsStringString(
-                cacheName, null, stringStringPairList, CollectionTtl.fromCacheTtl()))
+                cacheName, null, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -565,7 +547,7 @@ public class DictionaryTest extends BaseTestClass {
     // String Key and Byte value
     assertThat(
             target.dictionarySetFieldsStringBytes(
-                cacheName, null, stringBytesPairList, CollectionTtl.fromCacheTtl()))
+                cacheName, null, stringBytesMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -573,7 +555,7 @@ public class DictionaryTest extends BaseTestClass {
     // Byte key and String value
     assertThat(
             target.dictionarySetFieldsBytesString(
-                cacheName, null, bytesStringPairList, CollectionTtl.fromCacheTtl()))
+                cacheName, null, bytesStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -581,7 +563,7 @@ public class DictionaryTest extends BaseTestClass {
     // Byte key and Byte value
     assertThat(
             target.dictionarySetFieldsBytesBytes(
-                cacheName, null, bytesBytesPairList, CollectionTtl.fromCacheTtl()))
+                cacheName, null, bytesBytesMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -620,5 +602,19 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  private void populateTestMaps() {
+    stringStringMap.put("a", "b");
+    stringStringMap.put("aa", "bb");
+
+    stringBytesMap.put("c", "d".getBytes());
+    stringBytesMap.put("cc", "dd".getBytes());
+
+    bytesStringMap.put("e".getBytes(), "f");
+    bytesStringMap.put("ee".getBytes(), "ff");
+
+    bytesBytesMap.put("g".getBytes(), "h".getBytes());
+    bytesBytesMap.put("gg".getBytes(), "hh".getBytes());
   }
 }

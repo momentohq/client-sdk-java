@@ -64,9 +64,9 @@ import io.grpc.stub.MetadataUtils;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.AbstractMap;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
@@ -777,10 +777,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<String, String>> items,
-      CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<String, String> items, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -799,10 +796,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<String, byte[]>> items,
-      CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<String, byte[]> items, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -821,10 +815,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesString(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<byte[], String>> items,
-      CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<byte[], String> items, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -843,10 +834,7 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<byte[], byte[]>> items,
-      CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<byte[], byte[]> items, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -892,44 +880,28 @@ final class ScsDataClient implements Closeable {
     return byteArrays.stream().map(this::convert).collect(Collectors.toList());
   }
 
-  private List<AbstractMap.SimpleEntry<ByteString, ByteString>> convertStringStringEntryList(
-      List<AbstractMap.SimpleEntry<String, String>> items) {
-    return items.stream()
-        .map(
-            item ->
-                new AbstractMap.SimpleEntry<ByteString, ByteString>(
-                    convert(item.getKey()), convert(item.getValue())))
-        .collect(Collectors.toList());
+  private Map<ByteString, ByteString> convertStringStringEntryList(Map<String, String> items) {
+    return items.entrySet().stream()
+        .collect(
+            Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
   }
 
-  private List<AbstractMap.SimpleEntry<ByteString, ByteString>> convertStringBytesEntryList(
-      List<AbstractMap.SimpleEntry<String, byte[]>> items) {
-    return items.stream()
-        .map(
-            item ->
-                new AbstractMap.SimpleEntry<ByteString, ByteString>(
-                    convert(item.getKey()), convert(item.getValue())))
-        .collect(Collectors.toList());
+  private Map<ByteString, ByteString> convertStringBytesEntryList(Map<String, byte[]> items) {
+    return items.entrySet().stream()
+        .collect(
+            Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
   }
 
-  private List<AbstractMap.SimpleEntry<ByteString, ByteString>> convertBytesStringEntryList(
-      List<AbstractMap.SimpleEntry<byte[], String>> items) {
-    return items.stream()
-        .map(
-            item ->
-                new AbstractMap.SimpleEntry<ByteString, ByteString>(
-                    convert(item.getKey()), convert(item.getValue())))
-        .collect(Collectors.toList());
+  private Map<ByteString, ByteString> convertBytesStringEntryList(Map<byte[], String> items) {
+    return items.entrySet().stream()
+        .collect(
+            Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
   }
 
-  private List<AbstractMap.SimpleEntry<ByteString, ByteString>> convertBytesBytesEntryList(
-      List<AbstractMap.SimpleEntry<byte[], byte[]>> items) {
-    return items.stream()
-        .map(
-            item ->
-                new AbstractMap.SimpleEntry<ByteString, ByteString>(
-                    convert(item.getKey()), convert(item.getValue())))
-        .collect(Collectors.toList());
+  private Map<ByteString, ByteString> convertBytesBytesEntryList(Map<byte[], byte[]> items) {
+    return items.entrySet().stream()
+        .collect(
+            Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
   }
 
   private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
@@ -1950,7 +1922,7 @@ final class ScsDataClient implements Closeable {
   private CompletableFuture<CacheDictionarySetFieldsResponse> sendDictionarySetFields(
       String cacheName,
       ByteString dictionaryName,
-      List<AbstractMap.SimpleEntry<ByteString, ByteString>> items,
+      Map<ByteString, ByteString> items,
       CollectionTtl ttl) {
 
     // Submit request to non-blocking stub
@@ -2234,9 +2206,7 @@ final class ScsDataClient implements Closeable {
   }
 
   private _DictionarySetRequest buildDictionarySetFieldsRequest(
-      ByteString dictionaryName,
-      List<AbstractMap.SimpleEntry<ByteString, ByteString>> items,
-      CollectionTtl ttl) {
+      ByteString dictionaryName, Map<ByteString, ByteString> items, CollectionTtl ttl) {
     return _DictionarySetRequest.newBuilder()
         .setDictionaryName(dictionaryName)
         .addAllItems(toDictionaryFieldValuePairs(items))
@@ -2246,8 +2216,8 @@ final class ScsDataClient implements Closeable {
   }
 
   private List<_DictionaryFieldValuePair> toDictionaryFieldValuePairs(
-      List<AbstractMap.SimpleEntry<ByteString, ByteString>> fieldValuepairs) {
-    return fieldValuepairs.stream()
+      Map<ByteString, ByteString> fieldValuepairs) {
+    return fieldValuepairs.entrySet().stream()
         .map(
             fieldValuePair ->
                 _DictionaryFieldValuePair.newBuilder()

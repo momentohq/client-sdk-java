@@ -3,8 +3,8 @@ package momento.sdk;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
-import java.util.AbstractMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
@@ -1213,10 +1213,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the dictionary fetch back operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<String, String>> items,
-      CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<String, String> items, CollectionTtl ttl) {
     return scsDataClient.dictionarySetFieldsStringString(cacheName, dictionaryName, items, ttl);
   }
 
@@ -1232,9 +1229,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the dictionary fetch back operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<String, String>> items) {
+      String cacheName, String dictionaryName, Map<String, String> items) {
     return scsDataClient.dictionarySetFieldsStringString(cacheName, dictionaryName, items, null);
   }
 
@@ -1250,10 +1245,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the dictionary fetch back operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<String, byte[]>> items,
-      CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<String, byte[]> items, CollectionTtl ttl) {
     return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, items, ttl);
   }
 
@@ -1269,9 +1261,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the dictionary fetch back operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<String, byte[]>> items) {
+      String cacheName, String dictionaryName, Map<String, byte[]> items) {
     return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, items, null);
   }
 
@@ -1287,10 +1277,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the dictionary fetch back operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesString(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<byte[], String>> items,
-      CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<byte[], String> items, CollectionTtl ttl) {
     return scsDataClient.dictionarySetFieldsBytesString(cacheName, dictionaryName, items, ttl);
   }
 
@@ -1306,9 +1293,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the dictionary fetch back operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesString(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<byte[], String>> items) {
+      String cacheName, String dictionaryName, Map<byte[], String> items) {
     return scsDataClient.dictionarySetFieldsBytesString(cacheName, dictionaryName, items, null);
   }
 
@@ -1324,10 +1309,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the dictionary fetch back operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<byte[], byte[]>> items,
-      CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<byte[], byte[]> items, CollectionTtl ttl) {
     return scsDataClient.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, items, ttl);
   }
 
@@ -1343,9 +1325,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the dictionary fetch back operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
-      String cacheName,
-      String dictionaryName,
-      List<AbstractMap.SimpleEntry<byte[], byte[]>> items) {
+      String cacheName, String dictionaryName, Map<byte[], byte[]> items) {
     return scsDataClient.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, items, null);
   }
 
