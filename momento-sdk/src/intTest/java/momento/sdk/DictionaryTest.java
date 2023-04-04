@@ -355,7 +355,7 @@ public class DictionaryTest extends BaseTestClass {
 
     // Set String key, String value
     assertThat(
-            target.dictionarySetFieldsStringString(
+            target.dictionarySetFields(
                 cacheName, dictionaryName, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
@@ -431,7 +431,7 @@ public class DictionaryTest extends BaseTestClass {
     populateTestMaps();
 
     // Set String key, String value
-    assertThat(target.dictionarySetFieldsStringString(cacheName, dictionaryName, stringStringMap))
+    assertThat(target.dictionarySetFields(cacheName, dictionaryName, stringStringMap))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -501,7 +501,7 @@ public class DictionaryTest extends BaseTestClass {
 
     // String Key and String value
     assertThat(
-            target.dictionarySetFieldsStringString(
+            target.dictionarySetFields(
                 null, dictionaryName, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
@@ -538,7 +538,7 @@ public class DictionaryTest extends BaseTestClass {
 
     // String Key and String value
     assertThat(
-            target.dictionarySetFieldsStringString(
+            target.dictionarySetFields(
                 cacheName, null, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
@@ -573,7 +573,7 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionarySetFieldsReturnsErrorWithNullItem() {
     // String Key and String value
     assertThat(
-            target.dictionarySetFieldsStringString(
+            target.dictionarySetFields(
                 cacheName, dictionaryName, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
