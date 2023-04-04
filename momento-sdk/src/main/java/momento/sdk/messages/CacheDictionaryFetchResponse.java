@@ -1,12 +1,10 @@
 package momento.sdk.messages;
 
-import com.google.common.base.Suppliers;
 import com.google.protobuf.ByteString;
 import grpc.cache_client._DictionaryFieldValuePair;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.internal.StringHelpers;
@@ -16,45 +14,7 @@ public interface CacheDictionaryFetchResponse {
 
   /** A successful dictionary fetch operation that found elements. */
   class Hit implements CacheDictionaryFetchResponse {
-    private Map<ByteString, ByteString> byteStringKeysValues;
-    private final Supplier<Map<byte[], byte[]>> bytesBytesElementsSupplier =
-        Suppliers.memoize(
-                () ->
-                    byteStringKeysValues.entrySet().stream()
-                        .collect(
-                            Collectors.toMap(
-                                entry -> entry.getKey().toByteArray(),
-                                entry -> entry.getValue().toByteArray())))
-            ::get;
-    private final Supplier<Map<String, String>> stringStringElementsSupplier =
-        Suppliers.memoize(
-                () ->
-                    byteStringKeysValues.entrySet().stream()
-                        .collect(
-                            Collectors.toMap(
-                                entry -> entry.getKey().toStringUtf8(),
-                                entry -> entry.getValue().toStringUtf8())))
-            ::get;
-
-    private final Supplier<Map<byte[], String>> bytesStringElementsSupplier =
-        Suppliers.memoize(
-                () ->
-                    byteStringKeysValues.entrySet().stream()
-                        .collect(
-                            Collectors.toMap(
-                                entry -> entry.getKey().toByteArray(),
-                                entry -> entry.getValue().toStringUtf8())))
-            ::get;
-
-    private final Supplier<Map<String, byte[]>> stringBytesElementsSupplier =
-        Suppliers.memoize(
-                () ->
-                    byteStringKeysValues.entrySet().stream()
-                        .collect(
-                            Collectors.toMap(
-                                entry -> entry.getKey().toStringUtf8(),
-                                entry -> entry.getValue().toByteArray())))
-            ::get;
+    private final Map<ByteString, ByteString> byteStringKeysValues;
 
     /**
      * Constructs a dictionary fetch hit with a list of encoded keys and values.
@@ -75,7 +35,10 @@ public interface CacheDictionaryFetchResponse {
      * @return the dictionary.
      */
     public Map<byte[], byte[]> valueDictionaryBytesBytes() {
-      return bytesBytesElementsSupplier.get();
+      return byteStringKeysValues.entrySet().stream()
+          .collect(
+              Collectors.toMap(
+                  entry -> entry.getKey().toByteArray(), entry -> entry.getValue().toByteArray()));
     }
 
     /**
@@ -84,7 +47,11 @@ public interface CacheDictionaryFetchResponse {
      * @return the dictionary.
      */
     public Map<String, String> valueDictionaryStringString() {
-      return stringStringElementsSupplier.get();
+      return byteStringKeysValues.entrySet().stream()
+          .collect(
+              Collectors.toMap(
+                  entry -> entry.getKey().toStringUtf8(),
+                  entry -> entry.getValue().toStringUtf8()));
     }
 
     /**
@@ -93,7 +60,10 @@ public interface CacheDictionaryFetchResponse {
      * @return the dictionary.
      */
     public Map<String, byte[]> valueDictionaryStringBytes() {
-      return stringBytesElementsSupplier.get();
+      return byteStringKeysValues.entrySet().stream()
+          .collect(
+              Collectors.toMap(
+                  entry -> entry.getKey().toStringUtf8(), entry -> entry.getValue().toByteArray()));
     }
 
     /**
@@ -102,7 +72,10 @@ public interface CacheDictionaryFetchResponse {
      * @return the dictionary.
      */
     public Map<byte[], String> valueDictionaryBytesString() {
-      return bytesStringElementsSupplier.get();
+      return byteStringKeysValues.entrySet().stream()
+          .collect(
+              Collectors.toMap(
+                  entry -> entry.getKey().toByteArray(), entry -> entry.getValue().toStringUtf8()));
     }
 
     /**

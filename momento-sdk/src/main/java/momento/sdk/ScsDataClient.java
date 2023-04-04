@@ -316,7 +316,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
+  CompletableFuture<CacheSetAddElementsResponse> setAddElements(
       String cacheName, String setName, Set<String> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -374,7 +374,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsString(
+  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElements(
       String cacheName, String setName, Set<String> elements) {
     try {
       checkCacheNameValid(cacheName);
@@ -411,7 +411,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
+  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
       String cacheName,
       String listName,
       List<String> values,
@@ -457,7 +457,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
+  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
       String cacheName,
       String listName,
       List<String> values,
@@ -776,19 +776,19 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
-      String cacheName, String dictionaryName, Map<String, String> items, CollectionTtl ttl) {
+  CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
+      String cacheName, String dictionaryName, Map<String, String> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
-      ensureValidValue(items);
+      ensureValidValue(elements);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
 
       return sendDictionarySetFields(
-          cacheName, convert(dictionaryName), convertStringStringEntryList(items), ttl);
+          cacheName, convert(dictionaryName), convertStringStringEntryList(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -796,18 +796,18 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
-      String cacheName, String dictionaryName, Map<String, byte[]> items, CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<String, byte[]> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
-      ensureValidValue(items);
+      ensureValidValue(elements);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
 
       return sendDictionarySetFields(
-          cacheName, convert(dictionaryName), convertStringBytesEntryList(items), ttl);
+          cacheName, convert(dictionaryName), convertStringBytesEntryList(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -815,18 +815,18 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesString(
-      String cacheName, String dictionaryName, Map<byte[], String> items, CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<byte[], String> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
-      ensureValidValue(items);
+      ensureValidValue(elements);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
 
       return sendDictionarySetFields(
-          cacheName, convert(dictionaryName), convertBytesStringEntryList(items), ttl);
+          cacheName, convert(dictionaryName), convertBytesStringEntryList(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -834,18 +834,18 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
-      String cacheName, String dictionaryName, Map<byte[], byte[]> items, CollectionTtl ttl) {
+      String cacheName, String dictionaryName, Map<byte[], byte[]> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
-      ensureValidValue(items);
+      ensureValidValue(elements);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
 
       return sendDictionarySetFields(
-          cacheName, convert(dictionaryName), convertBytesBytesEntryList(items), ttl);
+          cacheName, convert(dictionaryName), convertBytesBytesEntryList(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -880,26 +880,26 @@ final class ScsDataClient implements Closeable {
     return byteArrays.stream().map(this::convert).collect(Collectors.toList());
   }
 
-  private Map<ByteString, ByteString> convertStringStringEntryList(Map<String, String> items) {
-    return items.entrySet().stream()
+  private Map<ByteString, ByteString> convertStringStringEntryList(Map<String, String> elements) {
+    return elements.entrySet().stream()
         .collect(
             Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
   }
 
-  private Map<ByteString, ByteString> convertStringBytesEntryList(Map<String, byte[]> items) {
-    return items.entrySet().stream()
+  private Map<ByteString, ByteString> convertStringBytesEntryList(Map<String, byte[]> elements) {
+    return elements.entrySet().stream()
         .collect(
             Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
   }
 
-  private Map<ByteString, ByteString> convertBytesStringEntryList(Map<byte[], String> items) {
-    return items.entrySet().stream()
+  private Map<ByteString, ByteString> convertBytesStringEntryList(Map<byte[], String> elements) {
+    return elements.entrySet().stream()
         .collect(
             Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
   }
 
-  private Map<ByteString, ByteString> convertBytesBytesEntryList(Map<byte[], byte[]> items) {
-    return items.entrySet().stream()
+  private Map<ByteString, ByteString> convertBytesBytesEntryList(Map<byte[], byte[]> elements) {
+    return elements.entrySet().stream()
         .collect(
             Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
   }
@@ -1922,14 +1922,14 @@ final class ScsDataClient implements Closeable {
   private CompletableFuture<CacheDictionarySetFieldsResponse> sendDictionarySetFields(
       String cacheName,
       ByteString dictionaryName,
-      Map<ByteString, ByteString> items,
+      Map<ByteString, ByteString> elements,
       CollectionTtl ttl) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
     final ListenableFuture<_DictionarySetResponse> rspFuture =
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-            .dictionarySet(buildDictionarySetFieldsRequest(dictionaryName, items, ttl));
+            .dictionarySet(buildDictionarySetFieldsRequest(dictionaryName, elements, ttl));
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<CacheDictionarySetFieldsResponse> returnFuture =
@@ -2206,10 +2206,10 @@ final class ScsDataClient implements Closeable {
   }
 
   private _DictionarySetRequest buildDictionarySetFieldsRequest(
-      ByteString dictionaryName, Map<ByteString, ByteString> items, CollectionTtl ttl) {
+      ByteString dictionaryName, Map<ByteString, ByteString> elements, CollectionTtl ttl) {
     return _DictionarySetRequest.newBuilder()
         .setDictionaryName(dictionaryName)
-        .addAllItems(toDictionaryFieldValuePairs(items))
+        .addAllItems(toDictionaryFieldValuePairs(elements))
         .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
         .setRefreshTtl(ttl.refreshTtl())
         .build();

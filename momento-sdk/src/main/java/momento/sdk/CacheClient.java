@@ -554,9 +554,9 @@ public final class CacheClient implements Closeable {
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the add elements operation.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
+  public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
       String cacheName, String setName, Set<String> elements, @Nullable CollectionTtl ttl) {
-    return scsDataClient.setAddElementsString(cacheName, setName, elements, ttl);
+    return scsDataClient.setAddElements(cacheName, setName, elements, ttl);
   }
 
   /**
@@ -570,9 +570,9 @@ public final class CacheClient implements Closeable {
    * @param elements The data to add to the set.
    * @return Future containing the result of the add elements operation.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
+  public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
       String cacheName, String setName, Set<String> elements) {
-    return scsDataClient.setAddElementsString(cacheName, setName, elements, null);
+    return scsDataClient.setAddElements(cacheName, setName, elements, null);
   }
 
   /**
@@ -643,9 +643,9 @@ public final class CacheClient implements Closeable {
    * @param elements The values to remove from the set.
    * @return Future containing the result of the remove elements operation.
    */
-  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsString(
+  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElements(
       String cacheName, String setName, Set<String> elements) {
-    return scsDataClient.setRemoveElementsString(cacheName, setName, elements);
+    return scsDataClient.setRemoveElements(cacheName, setName, elements);
   }
 
   /**
@@ -685,14 +685,13 @@ public final class CacheClient implements Closeable {
    *     Duration)}
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
       String cacheName,
       String listName,
       List<String> values,
       int truncateFrontToSize,
       @Nullable CollectionTtl ttl) {
-    return scsDataClient.listConcatenateBackString(
-        cacheName, listName, values, truncateFrontToSize, ttl);
+    return scsDataClient.listConcatenateBack(cacheName, listName, values, truncateFrontToSize, ttl);
   }
 
   /**
@@ -705,9 +704,9 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
       String cacheName, String listName, List<String> values, int truncateFrontToSize) {
-    return scsDataClient.listConcatenateBackString(
+    return scsDataClient.listConcatenateBack(
         cacheName, listName, values, truncateFrontToSize, null);
   }
 
@@ -763,14 +762,13 @@ public final class CacheClient implements Closeable {
    *     Duration)}
    * @return Future containing the result of the list concatenate front operation.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
       String cacheName,
       String listName,
       List<String> values,
       int truncateBackToSize,
       @Nullable CollectionTtl ttl) {
-    return scsDataClient.listConcatenateFrontString(
-        cacheName, listName, values, truncateBackToSize, ttl);
+    return scsDataClient.listConcatenateFront(cacheName, listName, values, truncateBackToSize, ttl);
   }
 
   /**
@@ -783,9 +781,9 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate front operation.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
       String cacheName, String listName, List<String> values, int truncateBackToSize) {
-    return scsDataClient.listConcatenateFrontString(
+    return scsDataClient.listConcatenateFront(
         cacheName, listName, values, truncateBackToSize, null);
   }
 
@@ -1070,7 +1068,7 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to fetch.
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary fetch operation.
    */
   public CompletableFuture<CacheDictionaryFetchResponse> dictionaryFetch(
       String cacheName, String dictionaryName) {
@@ -1087,7 +1085,7 @@ public final class CacheClient implements Closeable {
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set field operation.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
       String cacheName, String dictionaryName, String field, String value, CollectionTtl ttl) {
@@ -1101,7 +1099,7 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set field operation.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
       String cacheName, String dictionaryName, String field, String value) {
@@ -1118,7 +1116,7 @@ public final class CacheClient implements Closeable {
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set field operation.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
       String cacheName, String dictionaryName, String field, byte[] value, CollectionTtl ttl) {
@@ -1132,7 +1130,7 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set field operation.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
       String cacheName, String dictionaryName, String field, byte[] value) {
@@ -1149,7 +1147,7 @@ public final class CacheClient implements Closeable {
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set field operation.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
       String cacheName, String dictionaryName, byte[] field, String value, CollectionTtl ttl) {
@@ -1163,7 +1161,7 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set field operation.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
       String cacheName, String dictionaryName, byte[] field, String value) {
@@ -1180,7 +1178,7 @@ public final class CacheClient implements Closeable {
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set field operation.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
       String cacheName, String dictionaryName, byte[] field, byte[] value, CollectionTtl ttl) {
@@ -1194,7 +1192,7 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set field operation.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
       String cacheName, String dictionaryName, byte[] field, byte[] value) {
@@ -1206,15 +1204,15 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the list.
    * @param dictionaryName - The dictionary to set the field in.
-   * @param items - The fields to set.
+   * @param elements - The fields to set.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set fields operation.
    */
-  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
-      String cacheName, String dictionaryName, Map<String, String> items, CollectionTtl ttl) {
-    return scsDataClient.dictionarySetFieldsStringString(cacheName, dictionaryName, items, ttl);
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
+      String cacheName, String dictionaryName, Map<String, String> elements, CollectionTtl ttl) {
+    return scsDataClient.dictionarySetFields(cacheName, dictionaryName, elements, ttl);
   }
 
   /**
@@ -1225,12 +1223,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
-   * @param items - The fields to set.
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @param elements - The fields to set.
+   * @return Future containing the result of the dictionary set fields operation.
    */
-  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
-      String cacheName, String dictionaryName, Map<String, String> items) {
-    return scsDataClient.dictionarySetFieldsStringString(cacheName, dictionaryName, items, null);
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
+      String cacheName, String dictionaryName, Map<String, String> elements) {
+    return scsDataClient.dictionarySetFields(cacheName, dictionaryName, elements, null);
   }
 
   /**
@@ -1238,15 +1236,15 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
-   * @param items - The fields to set.
+   * @param elements - The fields to set.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set fields operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
-      String cacheName, String dictionaryName, Map<String, byte[]> items, CollectionTtl ttl) {
-    return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, items, ttl);
+      String cacheName, String dictionaryName, Map<String, byte[]> elements, CollectionTtl ttl) {
+    return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, elements, ttl);
   }
 
   /**
@@ -1257,12 +1255,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
-   * @param items - The fields to set.
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @param elements - The fields to set.
+   * @return Future containing the result of the dictionary set fields operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
-      String cacheName, String dictionaryName, Map<String, byte[]> items) {
-    return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, items, null);
+      String cacheName, String dictionaryName, Map<String, byte[]> elements) {
+    return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, elements, null);
   }
 
   /**
@@ -1270,15 +1268,15 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
-   * @param items - The fields to set.
+   * @param elements - The fields to set.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set fields operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesString(
-      String cacheName, String dictionaryName, Map<byte[], String> items, CollectionTtl ttl) {
-    return scsDataClient.dictionarySetFieldsBytesString(cacheName, dictionaryName, items, ttl);
+      String cacheName, String dictionaryName, Map<byte[], String> elements, CollectionTtl ttl) {
+    return scsDataClient.dictionarySetFieldsBytesString(cacheName, dictionaryName, elements, ttl);
   }
 
   /**
@@ -1289,12 +1287,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
-   * @param items - The fields to set.
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @param elements - The fields to set.
+   * @return Future containing the result of the dictionary set fields operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesString(
-      String cacheName, String dictionaryName, Map<byte[], String> items) {
-    return scsDataClient.dictionarySetFieldsBytesString(cacheName, dictionaryName, items, null);
+      String cacheName, String dictionaryName, Map<byte[], String> elements) {
+    return scsDataClient.dictionarySetFieldsBytesString(cacheName, dictionaryName, elements, null);
   }
 
   /**
@@ -1302,15 +1300,15 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
-   * @param items - The fields to set.
+   * @param elements - The fields to set.
    * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @return Future containing the result of the dictionary set fields operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
-      String cacheName, String dictionaryName, Map<byte[], byte[]> items, CollectionTtl ttl) {
-    return scsDataClient.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, items, ttl);
+      String cacheName, String dictionaryName, Map<byte[], byte[]> elements, CollectionTtl ttl) {
+    return scsDataClient.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, elements, ttl);
   }
 
   /**
@@ -1321,12 +1319,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
-   * @param items - The fields to set.
-   * @return Future containing the result of the dictionary fetch back operation.
+   * @param elements - The fields to set.
+   * @return Future containing the result of the dictionary set fields operation.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
-      String cacheName, String dictionaryName, Map<byte[], byte[]> items) {
-    return scsDataClient.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, items, null);
+      String cacheName, String dictionaryName, Map<byte[], byte[]> elements) {
+    return scsDataClient.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, elements, null);
   }
 
   @Override
