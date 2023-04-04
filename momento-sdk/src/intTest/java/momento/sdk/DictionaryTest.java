@@ -376,7 +376,7 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionarySetFieldsAndDictionaryFetchAndHappyPath() {
     // Set String key, String value
     assertThat(
-            target.dictionarySetFieldsStringString(
+            target.dictionarySetFields(
                 cacheName, dictionaryName, stringStringPairList, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
@@ -450,8 +450,7 @@ public class DictionaryTest extends BaseTestClass {
   @Test
   public void dictionarySetFieldsAndDictionaryFetchAndHappyPathWithNoTtl() {
     // Set String key, String value
-    assertThat(
-            target.dictionarySetFieldsStringString(cacheName, dictionaryName, stringStringPairList))
+    assertThat(target.dictionarySetFields(cacheName, dictionaryName, stringStringPairList))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
 
@@ -521,7 +520,7 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionarySetFieldsReturnsErrorWithNullCacheName() {
     // String Key and String value
     assertThat(
-            target.dictionarySetFieldsStringString(
+            target.dictionarySetFields(
                 null, dictionaryName, stringStringPairList, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
@@ -556,7 +555,7 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionarySetFieldsReturnsErrorWithNullDictionaryName() {
     // String Key and String value
     assertThat(
-            target.dictionarySetFieldsStringString(
+            target.dictionarySetFields(
                 cacheName, null, stringStringPairList, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
@@ -591,7 +590,7 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionarySetFieldsReturnsErrorWithNullItem() {
     // String Key and String value
     assertThat(
-            target.dictionarySetFieldsStringString(
+            target.dictionarySetFields(
                 cacheName, dictionaryName, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
