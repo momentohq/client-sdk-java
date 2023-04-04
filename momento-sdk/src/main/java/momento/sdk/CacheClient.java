@@ -4,6 +4,7 @@ import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
@@ -13,6 +14,7 @@ import momento.sdk.config.Configuration;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheDictionaryFetchResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
+import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
@@ -1197,6 +1199,134 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
       String cacheName, String dictionaryName, byte[] field, byte[] value) {
     return scsDataClient.dictionarySetField(cacheName, dictionaryName, field, value, null);
+  }
+
+  /**
+   * Sets all the fields in the given dictionary.
+   *
+   * @param cacheName - The cache containing the list.
+   * @param dictionaryName - The dictionary to set the field in.
+   * @param items - The fields to set.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
+   *     Duration)}
+   * @return Future containing the result of the dictionary fetch back operation.
+   */
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
+      String cacheName, String dictionaryName, Map<String, String> items, CollectionTtl ttl) {
+    return scsDataClient.dictionarySetFieldsStringString(cacheName, dictionaryName, items, ttl);
+  }
+
+  /**
+   * Sets all the fields in the given dictionary.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to set the field in.
+   * @param items - The fields to set.
+   * @return Future containing the result of the dictionary fetch back operation.
+   */
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
+      String cacheName, String dictionaryName, Map<String, String> items) {
+    return scsDataClient.dictionarySetFieldsStringString(cacheName, dictionaryName, items, null);
+  }
+
+  /**
+   * Sets all the fields in the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to set the field in.
+   * @param items - The fields to set.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
+   *     Duration)}
+   * @return Future containing the result of the dictionary fetch back operation.
+   */
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
+      String cacheName, String dictionaryName, Map<String, byte[]> items, CollectionTtl ttl) {
+    return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, items, ttl);
+  }
+
+  /**
+   * Sets all the fields in the given dictionary.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to set the field in.
+   * @param items - The fields to set.
+   * @return Future containing the result of the dictionary fetch back operation.
+   */
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
+      String cacheName, String dictionaryName, Map<String, byte[]> items) {
+    return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, items, null);
+  }
+
+  /**
+   * Sets all the fields in the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to set the field in.
+   * @param items - The fields to set.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
+   *     Duration)}
+   * @return Future containing the result of the dictionary fetch back operation.
+   */
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesString(
+      String cacheName, String dictionaryName, Map<byte[], String> items, CollectionTtl ttl) {
+    return scsDataClient.dictionarySetFieldsBytesString(cacheName, dictionaryName, items, ttl);
+  }
+
+  /**
+   * Sets all the fields in the given dictionary.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to set the field in.
+   * @param items - The fields to set.
+   * @return Future containing the result of the dictionary fetch back operation.
+   */
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesString(
+      String cacheName, String dictionaryName, Map<byte[], String> items) {
+    return scsDataClient.dictionarySetFieldsBytesString(cacheName, dictionaryName, items, null);
+  }
+
+  /**
+   * Sets all the fields in the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to set the field in.
+   * @param items - The fields to set.
+   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
+   *     Duration)}
+   * @return Future containing the result of the dictionary fetch back operation.
+   */
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
+      String cacheName, String dictionaryName, Map<byte[], byte[]> items, CollectionTtl ttl) {
+    return scsDataClient.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, items, ttl);
+  }
+
+  /**
+   * Sets all the fields in the given dictionary.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to set the field in.
+   * @param items - The fields to set.
+   * @return Future containing the result of the dictionary fetch back operation.
+   */
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
+      String cacheName, String dictionaryName, Map<byte[], byte[]> items) {
+    return scsDataClient.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, items, null);
   }
 
   @Override
