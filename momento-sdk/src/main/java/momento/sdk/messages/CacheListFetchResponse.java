@@ -1,10 +1,8 @@
 package momento.sdk.messages;
 
-import com.google.common.base.Suppliers;
 import com.google.protobuf.ByteString;
 import java.util.Base64;
 import java.util.List;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.internal.StringHelpers;
@@ -15,20 +13,6 @@ public interface CacheListFetchResponse {
   /** A successful list fetch operation that found elements. */
   class Hit implements CacheListFetchResponse {
     private List<ByteString> byteStringValues;
-    private final Supplier<List<byte[]>> byteArrayElementsSupplier =
-        Suppliers.memoize(
-                () ->
-                    byteStringValues.stream()
-                        .map(ByteString::toByteArray)
-                        .collect(Collectors.toList()))
-            ::get;
-    private final Supplier<List<String>> stringElementsSupplier =
-        Suppliers.memoize(
-                () ->
-                    byteStringValues.stream()
-                        .map(ByteString::toStringUtf8)
-                        .collect(Collectors.toList()))
-            ::get;
 
     /**
      * Constructs a list fetch hit with a list of encoded values.
@@ -45,7 +29,7 @@ public interface CacheListFetchResponse {
      * @return the values.
      */
     public List<byte[]> valueListByteArray() {
-      return byteArrayElementsSupplier.get();
+      return byteStringValues.stream().map(ByteString::toByteArray).collect(Collectors.toList());
     }
 
     /**
@@ -54,7 +38,7 @@ public interface CacheListFetchResponse {
      * @return the values.
      */
     public List<String> valueListString() {
-      return stringElementsSupplier.get();
+      return byteStringValues.stream().map(ByteString::toStringUtf8).collect(Collectors.toList());
     }
 
     /**
