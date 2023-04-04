@@ -64,7 +64,7 @@ public class ListTest extends BaseTestClass {
         .isInstanceOf(CacheListFetchResponse.Miss.class);
 
     assertThat(
-            target.listConcatenateBackString(
+            target.listConcatenateBack(
                 cacheName, listName, oldValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateBackResponse.Success.class);
@@ -76,7 +76,7 @@ public class ListTest extends BaseTestClass {
 
     // Add same list
     assertThat(
-            target.listConcatenateBackString(
+            target.listConcatenateBack(
                 cacheName, listName, oldValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateBackResponse.Success.class);
@@ -88,7 +88,7 @@ public class ListTest extends BaseTestClass {
         .satisfies(hit -> assertThat(hit.valueListString()).hasSize(6).containsAll(expectedList));
 
     // Add a new values list without specifying ttl
-    assertThat(target.listConcatenateBackString(cacheName, listName, newValues, 0))
+    assertThat(target.listConcatenateBack(cacheName, listName, newValues, 0))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateBackResponse.Success.class);
 
@@ -173,14 +173,14 @@ public class ListTest extends BaseTestClass {
 
     // With ttl specified in method signature
     assertThat(
-            target.listConcatenateBackString(
+            target.listConcatenateBack(
                 null, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateBackResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // Without ttl specified in method signature
-    assertThat(target.listConcatenateBackString(null, listName, stringValues, 0))
+    assertThat(target.listConcatenateBack(null, listName, stringValues, 0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateBackResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -208,14 +208,14 @@ public class ListTest extends BaseTestClass {
 
     // With ttl specified in method signature
     assertThat(
-            target.listConcatenateBackString(
+            target.listConcatenateBack(
                 cacheName, null, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateBackResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // Without ttl specified in method signature
-    assertThat(target.listConcatenateBackString(cacheName, null, stringValues, 0))
+    assertThat(target.listConcatenateBack(cacheName, null, stringValues, 0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateBackResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -239,14 +239,13 @@ public class ListTest extends BaseTestClass {
   public void shouldFailListConcatenateBackWhenNullElement() {
     // With ttl specified in method signature
     assertThat(
-            target.listConcatenateBackString(
-                cacheName, listName, null, 0, CollectionTtl.fromCacheTtl()))
+            target.listConcatenateBack(cacheName, listName, null, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateBackResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // Without ttl specified in method signature
-    assertThat(target.listConcatenateBackString(cacheName, listName, null, 0))
+    assertThat(target.listConcatenateBack(cacheName, listName, null, 0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateBackResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -270,8 +269,7 @@ public class ListTest extends BaseTestClass {
   public void shouldFetchAllValuesWhenListFetchWithPositiveStartEndIndices() {
     final String listName = "listName";
     target
-        .listConcatenateBackString(
-            cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
+        .listConcatenateBack(cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
         .join();
 
     CacheListFetchResponse cacheListFetchResponse =
@@ -288,8 +286,7 @@ public class ListTest extends BaseTestClass {
   public void shouldFetchAllValuesWhenListFetchWithNegativeStartEndIndices() {
     final String listName = "listName";
     target
-        .listConcatenateBackString(
-            cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
+        .listConcatenateBack(cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
         .join();
 
     CacheListFetchResponse cacheListFetchResponse =
@@ -306,8 +303,7 @@ public class ListTest extends BaseTestClass {
   public void shouldFetchAllValuesWhenListFetchWithNullStartIndex() {
     final String listName = "listName";
     target
-        .listConcatenateBackString(
-            cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
+        .listConcatenateBack(cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
         .join();
 
     // valid case for null startIndex and positive endIndex
@@ -334,8 +330,7 @@ public class ListTest extends BaseTestClass {
   public void shouldFetchAllValuesWhenListFetchWithNullEndIndex() {
     final String listName = "listName";
     target
-        .listConcatenateBackString(
-            cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
+        .listConcatenateBack(cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
         .join();
 
     // valid case for positive startIndex and null endIndex
@@ -362,8 +357,7 @@ public class ListTest extends BaseTestClass {
   public void shouldFetchAllValuesWhenListFetchWithInvalidIndices() {
     final String listName = "listName";
     target
-        .listConcatenateBackString(
-            cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
+        .listConcatenateBack(cacheName, listName, values, 0, CollectionTtl.of(DEFAULT_TTL_SECONDS))
         .join();
 
     // the positive startIndex is larger than the positive endIndex
@@ -393,7 +387,7 @@ public class ListTest extends BaseTestClass {
         .isInstanceOf(CacheListFetchResponse.Miss.class);
 
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, oldValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
@@ -405,7 +399,7 @@ public class ListTest extends BaseTestClass {
 
     // Add same list
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, oldValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
@@ -417,7 +411,7 @@ public class ListTest extends BaseTestClass {
         .satisfies(hit -> assertThat(hit.valueListString()).hasSize(6).containsAll(expectedList));
 
     // Add a new values list without specifying ttl
-    assertThat(target.listConcatenateFrontString(cacheName, listName, newValues, 0))
+    assertThat(target.listConcatenateFront(cacheName, listName, newValues, 0))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
 
@@ -502,14 +496,14 @@ public class ListTest extends BaseTestClass {
 
     // With ttl specified in method signature
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 null, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateFrontResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // Without ttl specified in method signature
-    assertThat(target.listConcatenateFrontString(null, listName, stringValues, 0))
+    assertThat(target.listConcatenateFront(null, listName, stringValues, 0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateFrontResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -539,14 +533,14 @@ public class ListTest extends BaseTestClass {
 
     // With ttl specified in method signature
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, null, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateFrontResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // Without ttl specified in method signature
-    assertThat(target.listConcatenateFrontString(cacheName, null, stringValues, 0))
+    assertThat(target.listConcatenateFront(cacheName, null, stringValues, 0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateFrontResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -570,14 +564,13 @@ public class ListTest extends BaseTestClass {
   public void shouldFailListConcatenateFrontWhenNullElement() {
     // With ttl specified in method signature
     assertThat(
-            target.listConcatenateFrontString(
-                cacheName, listName, null, 0, CollectionTtl.fromCacheTtl()))
+            target.listConcatenateFront(cacheName, listName, null, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateFrontResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // Without ttl specified in method signature
-    assertThat(target.listConcatenateFrontString(cacheName, listName, null, 0))
+    assertThat(target.listConcatenateFront(cacheName, listName, null, 0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheListConcatenateFrontResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -609,7 +602,7 @@ public class ListTest extends BaseTestClass {
 
     // add string values to list
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
@@ -660,7 +653,7 @@ public class ListTest extends BaseTestClass {
         .isInstanceOf(CacheListFetchResponse.Miss.class);
 
     assertThat(
-            target.listConcatenateBackString(
+            target.listConcatenateBack(
                 cacheName, listName, values, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateBackResponse.Success.class);
@@ -703,7 +696,7 @@ public class ListTest extends BaseTestClass {
         .isInstanceOf(CacheListFetchResponse.Miss.class);
 
     assertThat(
-            target.listConcatenateBackString(
+            target.listConcatenateBack(
                 cacheName, listName, values, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateBackResponse.Success.class);
@@ -1099,7 +1092,7 @@ public class ListTest extends BaseTestClass {
     List<String> values = Arrays.asList("val1", "val1", "val2", "val3", "val4");
 
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, values, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
@@ -1199,7 +1192,7 @@ public class ListTest extends BaseTestClass {
     final List<String> stringValues = Arrays.asList("val1", "val2", "val3", "val4");
 
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
@@ -1226,7 +1219,7 @@ public class ListTest extends BaseTestClass {
     final List<String> stringValues = Arrays.asList("val1", "val2", "val3", "val4");
 
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
@@ -1254,7 +1247,7 @@ public class ListTest extends BaseTestClass {
         Arrays.asList("val1", "val2", "val3", "val4", "val5", "val6", "val7", "val8");
 
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
@@ -1296,7 +1289,7 @@ public class ListTest extends BaseTestClass {
         Arrays.asList("val1", "val2", "val3", "val4", "val5", "val6", "val7", "val8");
 
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
@@ -1337,7 +1330,7 @@ public class ListTest extends BaseTestClass {
         Arrays.asList("val1", "val2", "val3", "val4", "val5", "val6", "val7", "val8");
 
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);
@@ -1365,7 +1358,7 @@ public class ListTest extends BaseTestClass {
         Arrays.asList("val1", "val2", "val3", "val4", "val5", "val6", "val7", "val8");
 
     assertThat(
-            target.listConcatenateFrontString(
+            target.listConcatenateFront(
                 cacheName, listName, stringValues, 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheListConcatenateFrontResponse.Success.class);

@@ -1,11 +1,9 @@
 package momento.sdk.messages;
 
-import com.google.common.base.Suppliers;
 import com.google.protobuf.ByteString;
 import java.util.Base64;
 import java.util.List;
 import java.util.Set;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.internal.StringHelpers;
@@ -15,21 +13,7 @@ public interface CacheSetFetchResponse {
 
   /** A successful set fetch operation that found elements. */
   class Hit implements CacheSetFetchResponse {
-    private List<ByteString> byteStringValues;
-    private final Supplier<Set<byte[]>> byteArrayElementsSupplier =
-        Suppliers.memoize(
-                () ->
-                    byteStringValues.stream()
-                        .map(ByteString::toByteArray)
-                        .collect(Collectors.toSet()))
-            ::get;
-    private final Supplier<Set<String>> stringElementsSupplier =
-        Suppliers.memoize(
-                () ->
-                    byteStringValues.stream()
-                        .map(ByteString::toStringUtf8)
-                        .collect(Collectors.toSet()))
-            ::get;
+    private final List<ByteString> byteStringValues;
 
     /**
      * Constructs a set fetch hit with a list of encoded values.
@@ -46,7 +30,7 @@ public interface CacheSetFetchResponse {
      * @return the values.
      */
     public Set<byte[]> valueSetByteArray() {
-      return byteArrayElementsSupplier.get();
+      return byteStringValues.stream().map(ByteString::toByteArray).collect(Collectors.toSet());
     }
 
     /**
@@ -55,7 +39,7 @@ public interface CacheSetFetchResponse {
      * @return the values.
      */
     public Set<String> valueSetString() {
-      return stringElementsSupplier.get();
+      return byteStringValues.stream().map(ByteString::toStringUtf8).collect(Collectors.toSet());
     }
 
     /**
