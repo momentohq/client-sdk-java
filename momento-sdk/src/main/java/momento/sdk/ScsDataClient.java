@@ -2,6 +2,7 @@ package momento.sdk;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
+import static momento.sdk.ValidationUtils.checkDictionaryNameValid;
 import static momento.sdk.ValidationUtils.checkListNameValid;
 import static momento.sdk.ValidationUtils.checkListSliceStartEndValid;
 import static momento.sdk.ValidationUtils.checkSetNameValid;
@@ -18,6 +19,11 @@ import grpc.cache_client.ECacheResult;
 import grpc.cache_client.ScsGrpc;
 import grpc.cache_client._DeleteRequest;
 import grpc.cache_client._DeleteResponse;
+import grpc.cache_client._DictionaryFetchRequest;
+import grpc.cache_client._DictionaryFetchResponse;
+import grpc.cache_client._DictionaryFieldValuePair;
+import grpc.cache_client._DictionarySetRequest;
+import grpc.cache_client._DictionarySetResponse;
 import grpc.cache_client._GetRequest;
 import grpc.cache_client._GetResponse;
 import grpc.cache_client._IncrementRequest;
@@ -70,6 +76,8 @@ import momento.sdk.config.Configuration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.messages.CacheDeleteResponse;
+import momento.sdk.messages.CacheDictionaryFetchResponse;
+import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheIncrementResponse;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
@@ -670,6 +678,99 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheListRetainResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheDictionaryFetchResponse> dictionaryFetch(
+      String cacheName, String dictionaryName) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkDictionaryNameValid(dictionaryName);
+
+      return sendDictionaryFetch(cacheName, convert(dictionaryName));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDictionaryFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+      String cacheName, String dictionaryName, String field, String value, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(value);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendDictionarySetField(
+          cacheName, convert(dictionaryName), convert(field), convert(value), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+      String cacheName, String dictionaryName, String field, byte[] value, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(value);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendDictionarySetField(
+          cacheName, convert(dictionaryName), convert(field), convert(value), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+      String cacheName, String dictionaryName, byte[] field, String value, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(value);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendDictionarySetField(
+          cacheName, convert(dictionaryName), convert(field), convert(value), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+      String cacheName, String dictionaryName, byte[] field, byte[] value, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(value);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendDictionarySetField(
+          cacheName, convert(dictionaryName), convert(field), convert(value), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1619,6 +1720,103 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheDictionaryFetchResponse> sendDictionaryFetch(
+      String cacheName, ByteString dictionaryName) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_DictionaryFetchResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .dictionaryFetch(buildDictionaryFetchRequest(dictionaryName));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheDictionaryFetchResponse> returnFuture =
+        new CompletableFuture<CacheDictionaryFetchResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_DictionaryFetchResponse>() {
+          @Override
+          public void onSuccess(_DictionaryFetchResponse rsp) {
+            if (rsp.hasFound()) {
+              returnFuture.complete(
+                  new CacheDictionaryFetchResponse.Hit(rsp.getFound().getItemsList()));
+            } else if (rsp.hasMissing()) {
+              returnFuture.complete(new CacheDictionaryFetchResponse.Miss());
+            }
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheDictionaryFetchResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheDictionarySetFieldResponse> sendDictionarySetField(
+      String cacheName,
+      ByteString dictionaryName,
+      ByteString field,
+      ByteString value,
+      CollectionTtl ttl) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_DictionarySetResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .dictionarySet(buildDictionarySetFieldRequest(dictionaryName, field, value, ttl));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheDictionarySetFieldResponse> returnFuture =
+        new CompletableFuture<CacheDictionarySetFieldResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_DictionarySetResponse>() {
+          @Override
+          public void onSuccess(_DictionarySetResponse rsp) {
+            returnFuture.complete(new CacheDictionarySetFieldResponse.Success());
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheDictionarySetFieldResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
   private static Metadata metadataWithCache(String cacheName) {
     final Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
@@ -1835,6 +2033,27 @@ final class ScsDataClient implements Closeable {
     }
 
     return request;
+  }
+
+  private _DictionaryFetchRequest buildDictionaryFetchRequest(ByteString dictionaryName) {
+    return _DictionaryFetchRequest.newBuilder().setDictionaryName(dictionaryName).build();
+  }
+
+  private _DictionarySetRequest buildDictionarySetFieldRequest(
+      ByteString dictionaryName, ByteString field, ByteString value, CollectionTtl ttl) {
+    return _DictionarySetRequest.newBuilder()
+        .setDictionaryName(dictionaryName)
+        .addItems(toSingletonFieldValuePair(field, value))
+        .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
+        .setRefreshTtl(ttl.refreshTtl())
+        .build();
+  }
+
+  private _DictionaryFieldValuePair toSingletonFieldValuePair(ByteString field, ByteString value) {
+    _DictionaryFieldValuePair dictionaryFieldValuePair =
+        _DictionaryFieldValuePair.newBuilder().setField(field).setValue(value).build();
+
+    return dictionaryFieldValuePair;
   }
 
   @Override

@@ -158,13 +158,13 @@ public class SetTest {
   @Test
   public void setAddElementReturnsErrorWithNullElement() {
     assertThat(
-            client.setAddElement(cacheName, cacheName, (String) null, CollectionTtl.fromCacheTtl()))
+            client.setAddElement(cacheName, setName, (String) null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSetAddElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
-            client.setAddElement(cacheName, cacheName, (byte[]) null, CollectionTtl.fromCacheTtl()))
+            client.setAddElement(cacheName, setName, (byte[]) null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSetAddElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
