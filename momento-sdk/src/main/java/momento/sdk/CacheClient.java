@@ -554,9 +554,9 @@ public final class CacheClient implements Closeable {
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the add elements operation.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
+  public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
       String cacheName, String setName, Set<String> elements, @Nullable CollectionTtl ttl) {
-    return scsDataClient.setAddElementsString(cacheName, setName, elements, ttl);
+    return scsDataClient.setAddElements(cacheName, setName, elements, ttl);
   }
 
   /**
@@ -570,9 +570,9 @@ public final class CacheClient implements Closeable {
    * @param elements The data to add to the set.
    * @return Future containing the result of the add elements operation.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
+  public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
       String cacheName, String setName, Set<String> elements) {
-    return scsDataClient.setAddElementsString(cacheName, setName, elements, null);
+    return scsDataClient.setAddElements(cacheName, setName, elements, null);
   }
 
   /**
@@ -643,9 +643,9 @@ public final class CacheClient implements Closeable {
    * @param elements The values to remove from the set.
    * @return Future containing the result of the remove elements operation.
    */
-  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsString(
+  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElements(
       String cacheName, String setName, Set<String> elements) {
-    return scsDataClient.setRemoveElementsString(cacheName, setName, elements);
+    return scsDataClient.setRemoveElements(cacheName, setName, elements);
   }
 
   /**
@@ -685,14 +685,13 @@ public final class CacheClient implements Closeable {
    *     Duration)}
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
       String cacheName,
       String listName,
       List<String> values,
       int truncateFrontToSize,
       @Nullable CollectionTtl ttl) {
-    return scsDataClient.listConcatenateBackString(
-        cacheName, listName, values, truncateFrontToSize, ttl);
+    return scsDataClient.listConcatenateBack(cacheName, listName, values, truncateFrontToSize, ttl);
   }
 
   /**
@@ -705,9 +704,9 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate back operation.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
       String cacheName, String listName, List<String> values, int truncateFrontToSize) {
-    return scsDataClient.listConcatenateBackString(
+    return scsDataClient.listConcatenateBack(
         cacheName, listName, values, truncateFrontToSize, null);
   }
 
@@ -763,14 +762,13 @@ public final class CacheClient implements Closeable {
    *     Duration)}
    * @return Future containing the result of the list concatenate front operation.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
       String cacheName,
       String listName,
       List<String> values,
       int truncateBackToSize,
       @Nullable CollectionTtl ttl) {
-    return scsDataClient.listConcatenateFrontString(
-        cacheName, listName, values, truncateBackToSize, ttl);
+    return scsDataClient.listConcatenateFront(cacheName, listName, values, truncateBackToSize, ttl);
   }
 
   /**
@@ -783,9 +781,9 @@ public final class CacheClient implements Closeable {
    *     list. Must be positive.
    * @return Future containing the result of the list concatenate front operation.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
       String cacheName, String listName, List<String> values, int truncateBackToSize) {
-    return scsDataClient.listConcatenateFrontString(
+    return scsDataClient.listConcatenateFront(
         cacheName, listName, values, truncateBackToSize, null);
   }
 
@@ -1212,9 +1210,9 @@ public final class CacheClient implements Closeable {
    *     Duration)}
    * @return Future containing the result of the dictionary fetch back operation.
    */
-  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
       String cacheName, String dictionaryName, Map<String, String> items, CollectionTtl ttl) {
-    return scsDataClient.dictionarySetFieldsStringString(cacheName, dictionaryName, items, ttl);
+    return scsDataClient.dictionarySetFields(cacheName, dictionaryName, items, ttl);
   }
 
   /**
@@ -1228,9 +1226,9 @@ public final class CacheClient implements Closeable {
    * @param items - The fields to set.
    * @return Future containing the result of the dictionary fetch back operation.
    */
-  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
+  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
       String cacheName, String dictionaryName, Map<String, String> items) {
-    return scsDataClient.dictionarySetFieldsStringString(cacheName, dictionaryName, items, null);
+    return scsDataClient.dictionarySetFields(cacheName, dictionaryName, items, null);
   }
 
   /**

@@ -316,7 +316,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetAddElementsResponse> setAddElementsString(
+  CompletableFuture<CacheSetAddElementsResponse> setAddElements(
       String cacheName, String setName, Set<String> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -374,7 +374,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsString(
+  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElements(
       String cacheName, String setName, Set<String> elements) {
     try {
       checkCacheNameValid(cacheName);
@@ -411,7 +411,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackString(
+  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
       String cacheName,
       String listName,
       List<String> values,
@@ -457,7 +457,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontString(
+  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
       String cacheName,
       String listName,
       List<String> values,
@@ -776,7 +776,7 @@ final class ScsDataClient implements Closeable {
     }
   }
 
-  CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringString(
+  CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
       String cacheName, String dictionaryName, Map<String, String> items, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
