@@ -10,6 +10,7 @@ import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheDictionaryFetchResponse;
+import momento.sdk.messages.CacheDictionaryGetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.requests.CollectionTtl;
@@ -601,6 +602,86 @@ public class DictionaryTest extends BaseTestClass {
                 cacheName, dictionaryName, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryGetFieldHappyPath() {
+    // Get field/value as string
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              assertThat(hit.fieldString()).isEqualTo("a");
+              assertThat(hit.valueString()).isEqualTo("b");
+            });
+
+    // Get field/value as byte array
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "c", "d", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "c".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              assertThat(hit.fieldByteArray()).isEqualTo("c".getBytes());
+              assertThat(hit.valueByteArray()).isEqualTo("d".getBytes());
+            });
+  }
+
+  @Test
+  public void dictionaryGetFieldReturnsErrorWithNullCacheName() {
+    // String field
+    assertThat(target.dictionaryGetField(null, dictionaryName, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array field
+    assertThat(target.dictionaryGetField(null, dictionaryName, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryGetFieldReturnsErrorWithNullDictionaryName() {
+    // String field
+    assertThat(target.dictionaryGetField(cacheName, null, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array field
+    assertThat(target.dictionaryGetField(cacheName, null, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryGetFieldReturnsErrorWithNullField() {
+    // String field
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, (String) null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array field
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, (byte[]) null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
