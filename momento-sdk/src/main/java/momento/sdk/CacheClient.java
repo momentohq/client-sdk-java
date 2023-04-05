@@ -13,6 +13,7 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheDictionaryFetchResponse;
+import momento.sdk.messages.CacheDictionaryGetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.messages.CacheGetResponse;
@@ -1325,6 +1326,32 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
       String cacheName, String dictionaryName, Map<byte[], byte[]> elements) {
     return scsDataClient.dictionarySetFieldsBytesBytes(cacheName, dictionaryName, elements, null);
+  }
+
+  /**
+   * Gets the field and value from the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to get the field from.
+   * @param field - The field to get.
+   * @return Future containing the result of the dictionary get field operation.
+   */
+  public CompletableFuture<CacheDictionaryGetFieldResponse> dictionaryGetField(
+      String cacheName, String dictionaryName, String field) {
+    return scsDataClient.dictionaryGetField(cacheName, dictionaryName, field);
+  }
+
+  /**
+   * Gets the field and value from the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to get the field from.
+   * @param field - The field to get.
+   * @return Future containing the result of the dictionary get field operation.
+   */
+  public CompletableFuture<CacheDictionaryGetFieldResponse> dictionaryGetField(
+      String cacheName, String dictionaryName, byte[] field) {
+    return scsDataClient.dictionaryGetField(cacheName, dictionaryName, field);
   }
 
   @Override
