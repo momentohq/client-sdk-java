@@ -5,7 +5,6 @@ import grpc.cache_client.ECacheResult;
 import grpc.cache_client._DictionaryGetResponse;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -19,24 +18,19 @@ public interface CacheDictionaryGetFieldsResponse {
    * A successful dictionary get fields operation that found the keys with values in the dictionary.
    */
   class Hit implements CacheDictionaryGetFieldsResponse {
-    private final List<ByteString> fields;
-    private final List<_DictionaryGetResponse._DictionaryGetResponsePart> elements;
-
     public final List<CacheDictionaryGetFieldResponse> responsesList = new ArrayList<>();
 
     /**
      * Constructs a dictionary get fields hit with a list of encoded keys and values.
      *
-     * @param responses the retrieved resdictionary.
+     * @param responses the retrieved dictionary.
      */
     public Hit(
         List<ByteString> fields,
         List<_DictionaryGetResponse._DictionaryGetResponsePart> responses) {
-      this.fields = fields;
-      this.elements = responses;
 
       int counter = 0;
-      for (_DictionaryGetResponse._DictionaryGetResponsePart element : elements) {
+      for (_DictionaryGetResponse._DictionaryGetResponsePart element : responses) {
         if (element.getResult() == ECacheResult.Hit) {
           responsesList.add(
               new CacheDictionaryGetFieldResponse.Hit(fields.get(counter), element.getCacheBody()));
@@ -59,15 +53,12 @@ public interface CacheDictionaryGetFieldsResponse {
      * @return the dictionary.
      */
     public Map<String, String> valueDictionaryStringString() {
-      Map<String, String> map = new HashMap<>();
-      for (int i = 0; i < this.elements.size(); i++) {
-        if (this.elements.get(i).getResult() == ECacheResult.Hit) {
-          map.put(
-              this.fields.get(i).toStringUtf8(),
-              this.elements.get(i).getCacheBody().toStringUtf8());
-        }
-      }
-      return map;
+      return responsesList.stream()
+          .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
+          .collect(
+              Collectors.toMap(
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).fieldString(),
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).valueString()));
     }
 
     /**
@@ -76,14 +67,12 @@ public interface CacheDictionaryGetFieldsResponse {
      * @return the dictionary.
      */
     public Map<String, byte[]> valueDictionaryStringBytes() {
-      Map<String, byte[]> map = new HashMap<>();
-      for (int i = 0; i < this.elements.size(); i++) {
-        if (this.elements.get(i).getResult() == ECacheResult.Hit) {
-          map.put(
-              this.fields.get(i).toStringUtf8(), this.elements.get(i).getCacheBody().toByteArray());
-        }
-      }
-      return map;
+      return responsesList.stream()
+          .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
+          .collect(
+              Collectors.toMap(
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).fieldString(),
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).valueByteArray()));
     }
 
     /**
@@ -92,14 +81,12 @@ public interface CacheDictionaryGetFieldsResponse {
      * @return the dictionary.
      */
     public Map<byte[], String> valueDictionaryBytesString() {
-      Map<byte[], String> map = new HashMap<>();
-      for (int i = 0; i < this.elements.size(); i++) {
-        if (this.elements.get(i).getResult() == ECacheResult.Hit) {
-          map.put(
-              this.fields.get(i).toByteArray(), this.elements.get(i).getCacheBody().toStringUtf8());
-        }
-      }
-      return map;
+      return responsesList.stream()
+          .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
+          .collect(
+              Collectors.toMap(
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).fieldByteArray(),
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).valueString()));
     }
 
     /**
@@ -108,14 +95,12 @@ public interface CacheDictionaryGetFieldsResponse {
      * @return the dictionary.
      */
     public Map<byte[], byte[]> valueDictionaryBytesBytes() {
-      Map<byte[], byte[]> map = new HashMap<>();
-      for (int i = 0; i < this.elements.size(); i++) {
-        if (this.elements.get(i).getResult() == ECacheResult.Hit) {
-          map.put(
-              this.fields.get(i).toByteArray(), this.elements.get(i).getCacheBody().toByteArray());
-        }
-      }
-      return map;
+      return responsesList.stream()
+          .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
+          .collect(
+              Collectors.toMap(
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).fieldByteArray(),
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).valueByteArray()));
     }
 
     @Override

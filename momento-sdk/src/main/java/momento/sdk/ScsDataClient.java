@@ -923,14 +923,14 @@ final class ScsDataClient implements Closeable {
 
   private ByteString convert(String stringToEncode) {
     if (stringToEncode == null) {
-      return ByteString.copyFromUtf8("null");
+      return ByteString.EMPTY;
     }
     return ByteString.copyFromUtf8(stringToEncode);
   }
 
   private ByteString convert(byte[] bytes) {
     if (bytes == null) {
-      return ByteString.copyFromUtf8("null");
+      return ByteString.EMPTY;
     }
     return ByteString.copyFrom(bytes);
   }
