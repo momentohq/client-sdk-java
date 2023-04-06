@@ -17,6 +17,7 @@ import momento.sdk.messages.CacheDictionaryGetFieldResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
 import momento.sdk.messages.CacheDictionaryIncrementResponse;
 import momento.sdk.messages.CacheDictionaryRemoveFieldResponse;
+import momento.sdk.messages.CacheDictionaryRemoveFieldsResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.messages.CacheGetResponse;
@@ -1459,6 +1460,32 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheDictionaryRemoveFieldResponse> dictionaryRemoveField(
       String cacheName, String dictionaryName, byte[] field) {
     return scsDataClient.dictionaryRemoveField(cacheName, dictionaryName, field);
+  }
+
+  /**
+   * Removes the fields from the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to remove the fields from.
+   * @param fields - The fields to remove.
+   * @return Future containing the result of the dictionary remove fields operation.
+   */
+  public CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFields(
+      String cacheName, String dictionaryName, List<String> fields) {
+    return scsDataClient.dictionaryRemoveFields(cacheName, dictionaryName, fields);
+  }
+
+  /**
+   * Removes the fields from the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to remove the fields from.
+   * @param fields - The fields to remove.
+   * @return Future containing the result of the dictionary remove fields operation.
+   */
+  public CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFieldsByteArray(
+      String cacheName, String dictionaryName, List<byte[]> fields) {
+    return scsDataClient.dictionaryRemoveFieldsByteArray(cacheName, dictionaryName, fields);
   }
 
   @Override
