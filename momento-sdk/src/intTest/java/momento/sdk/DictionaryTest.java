@@ -3,7 +3,10 @@ package momento.sdk;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
@@ -11,6 +14,7 @@ import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheDictionaryFetchResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldResponse;
+import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.requests.CollectionTtl;
@@ -683,6 +687,334 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryGetFieldReturnsMissWhenFieldNotExists() {
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    // String field
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "c"))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+
+    // ByteArray field
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "c".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+  }
+
+  @Test
+  public void dictionaryGetFieldReturnsMissWhenDictionaryNotExists() {
+    // String field
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+
+    // ByteArray field
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+  }
+
+  @Test
+  public void dictionaryGetFieldsStringHappyPath() {
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "c", "d", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "e", "f", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    // Gets a map of string keys and string values
+    assertThat(target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "c", "e")))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final Map<String, String> stringStringMap = hit.valueDictionaryStringString();
+              assertThat(stringStringMap.keySet()).hasSize(3).contains("a", "c", "e");
+              assertThat(stringStringMap.values()).contains("b", "d", "f");
+            });
+
+    // Gets a map of string keys and byte array values
+    assertThat(target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "c", "e")))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final Map<String, byte[]> stringStringMap = hit.valueDictionaryStringBytes();
+              assertThat(stringStringMap.keySet()).hasSize(3).contains("a", "c", "e");
+              assertThat(stringStringMap.values())
+                  .contains("b".getBytes(), "d".getBytes(), "f".getBytes());
+            });
+
+    // Gets a map of byte keys and string values
+    assertThat(target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "c", "e")))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final Map<byte[], String> stringStringMap = hit.valueDictionaryBytesString();
+              assertThat(stringStringMap.keySet())
+                  .hasSize(3)
+                  .contains("a".getBytes(), "c".getBytes(), "e".getBytes());
+              assertThat(stringStringMap.values()).contains("b", "d", "f");
+            });
+
+    // Gets a map of byte array keys and byte array values
+    assertThat(target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "c", "e")))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final Map<byte[], byte[]> stringStringMap = hit.valueDictionaryBytesBytes();
+              assertThat(stringStringMap.keySet())
+                  .hasSize(3)
+                  .contains("a".getBytes(), "c".getBytes(), "e".getBytes());
+              assertThat(stringStringMap.values())
+                  .contains("b".getBytes(), "d".getBytes(), "f".getBytes());
+            });
+  }
+
+  @Test
+  public void dictionaryGetFieldsByteArrayHappyPath() {
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "c", "d", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "e", "f", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    // Gets a map of string keys and string values
+    assertThat(
+            target.dictionaryGetFieldsByteArray(
+                cacheName,
+                dictionaryName,
+                Arrays.asList("a".getBytes(), "c".getBytes(), "e".getBytes())))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final Map<String, String> stringStringMap = hit.valueDictionaryStringString();
+              assertThat(stringStringMap.keySet()).hasSize(3).contains("a", "c", "e");
+              assertThat(stringStringMap.values()).contains("b", "d", "f");
+            });
+
+    // Gets a map of string keys and byte array values
+    assertThat(
+            target.dictionaryGetFieldsByteArray(
+                cacheName,
+                dictionaryName,
+                Arrays.asList("a".getBytes(), "c".getBytes(), "e".getBytes())))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final Map<String, byte[]> stringStringMap = hit.valueDictionaryStringBytes();
+              assertThat(stringStringMap.keySet()).hasSize(3).contains("a", "c", "e");
+              assertThat(stringStringMap.values())
+                  .contains("b".getBytes(), "d".getBytes(), "f".getBytes());
+            });
+
+    // Gets a map of byte keys and string values
+    assertThat(
+            target.dictionaryGetFieldsByteArray(
+                cacheName,
+                dictionaryName,
+                Arrays.asList("a".getBytes(), "c".getBytes(), "e".getBytes())))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final Map<byte[], String> stringStringMap = hit.valueDictionaryBytesString();
+              assertThat(stringStringMap.keySet())
+                  .hasSize(3)
+                  .contains("a".getBytes(), "c".getBytes(), "e".getBytes());
+              assertThat(stringStringMap.values()).contains("b", "d", "f");
+            });
+
+    // Gets a map of byte array keys and byte array values
+    assertThat(
+            target.dictionaryGetFieldsByteArray(
+                cacheName,
+                dictionaryName,
+                Arrays.asList("a".getBytes(), "c".getBytes(), "e".getBytes())))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final Map<byte[], byte[]> stringStringMap = hit.valueDictionaryBytesBytes();
+              assertThat(stringStringMap.keySet())
+                  .hasSize(3)
+                  .contains("a".getBytes(), "c".getBytes(), "e".getBytes());
+              assertThat(stringStringMap.values())
+                  .contains("b".getBytes(), "d".getBytes(), "f".getBytes());
+            });
+  }
+
+  @Test
+  public void dictionaryGetFieldsReturnsErrorWithNullCacheName() {
+    // String fields
+    assertThat(target.dictionaryGetFields(null, dictionaryName, Arrays.asList("a", "c", "e")))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array fields
+    assertThat(
+            target.dictionaryGetFieldsByteArray(
+                null,
+                dictionaryName,
+                Arrays.asList("a".getBytes(), "c".getBytes(), "e".getBytes())))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryGetFieldsReturnsErrorWithNullDictionaryName() {
+    // String fields
+    assertThat(target.dictionaryGetFields(cacheName, null, Arrays.asList("a", "c", "e")))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array fields
+    assertThat(
+            target.dictionaryGetFieldsByteArray(
+                cacheName, null, Arrays.asList("a".getBytes(), "c".getBytes(), "e".getBytes())))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryGetFieldsReturnsErrorWithNullFields() {
+    // String fields
+    assertThat(target.dictionaryGetFields(cacheName, dictionaryName, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    List<String> stringListWithAtleastOneNullField = Arrays.asList("a", null);
+
+    assertThat(
+            target.dictionaryGetFields(
+                cacheName, dictionaryName, stringListWithAtleastOneNullField))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array fields
+    assertThat(target.dictionaryGetFieldsByteArray(cacheName, dictionaryName, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    List<byte[]> bytesListWithAtleastOneNullField = Arrays.asList("a".getBytes(), null);
+
+    assertThat(
+            target.dictionaryGetFieldsByteArray(
+                cacheName, dictionaryName, bytesListWithAtleastOneNullField))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryGetFieldsReturnsMissOrHitWhenFieldsNotExistsOrExistsRespectively() {
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "c", "d", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    // get raw responses and validate Hit/Miss
+    CacheDictionaryGetFieldsResponse response =
+        target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "c", "r")).join();
+
+    assertThat(response).isInstanceOf(CacheDictionaryGetFieldsResponse.Hit.class);
+
+    List<CacheDictionaryGetFieldResponse> responseList =
+        ((CacheDictionaryGetFieldsResponse.Hit) response).responsesList;
+    assertThat(responseList).hasSize(3);
+
+    assertThat(responseList.get(0)).isInstanceOf(CacheDictionaryGetFieldResponse.Hit.class);
+    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(0)).fieldString())
+        .isEqualTo("a");
+    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(0)).fieldByteArray())
+        .isEqualTo("a".getBytes());
+    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(0)).valueString())
+        .isEqualTo("b");
+    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(0)).valueByteArray())
+        .isEqualTo("b".getBytes());
+
+    assertThat(((CacheDictionaryGetFieldsResponse.Hit) response).responsesList.get(1))
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Hit.class);
+    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(1)).fieldString())
+        .isEqualTo("c");
+    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(1)).fieldByteArray())
+        .isEqualTo("c".getBytes());
+    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(1)).valueString())
+        .isEqualTo("d");
+    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(1)).valueByteArray())
+        .isEqualTo("d".getBytes());
+
+    assertThat(((CacheDictionaryGetFieldsResponse.Hit) response).responsesList.get(2))
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+    assertThat(((CacheDictionaryGetFieldResponse.Miss) responseList.get(2)).fieldString())
+        .isEqualTo("r");
+    assertThat(((CacheDictionaryGetFieldResponse.Miss) responseList.get(2)).fieldByteArray())
+        .isEqualTo("r".getBytes());
+  }
+
+  @Test
+  public void dictionaryGetFieldsReturnsMissWhenDictionaryNotExists() {
+    // String field
+    assertThat(
+            target.dictionaryGetFields(cacheName, dictionaryName, Collections.singletonList("a")))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldsResponse.Miss.class);
+
+    // ByteArray field
+    assertThat(
+            target.dictionaryGetFieldsByteArray(
+                cacheName, dictionaryName, Collections.singletonList("a".getBytes())))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldsResponse.Miss.class);
   }
 
   private void populateTestMaps() {

@@ -132,14 +132,50 @@ public interface CacheDictionaryGetFieldResponse {
    * message is a copy of the message of the cause.
    */
   class Error extends SdkException implements CacheDictionaryGetFieldResponse {
+    private final ByteString field;
 
     /**
      * Constructs a cache dictionary get field error with a cause.
      *
      * @param cause the cause.
+     * @param field
      */
-    public Error(SdkException cause) {
+    public Error(SdkException cause, ByteString field) {
       super(cause);
+      this.field = field;
+    }
+
+    /**
+     * Gets the field as a byte array.
+     *
+     * @return the field.
+     */
+    public byte[] fieldByteArray() {
+      return field.toByteArray();
+    }
+
+    /**
+     * Gets the field as a UTF-8 {@link String}.
+     *
+     * @return the field.
+     */
+    public String fieldString() {
+      return field.toStringUtf8();
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Truncates the internal fields to 20 characters to bound the size of the string.
+     */
+    @Override
+    public String toString() {
+      return super.toString()
+          + ": fieldString: \""
+          + StringHelpers.truncate(fieldString())
+          + "\" fieldByteArray: \""
+          + StringHelpers.truncate(Base64.getEncoder().encodeToString(fieldByteArray()))
+          + "\"";
     }
   }
 }
