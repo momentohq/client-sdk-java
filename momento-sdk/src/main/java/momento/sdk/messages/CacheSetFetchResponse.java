@@ -43,6 +43,15 @@ public interface CacheSetFetchResponse {
     }
 
     /**
+     * Gets the retrieved value as a set of UTF-8 Strings
+     *
+     * @return the values.
+     */
+    public Set<String> valueSet() {
+      return byteStringValues.stream().map(ByteString::toStringUtf8).collect(Collectors.toSet());
+    }
+
+    /**
      * {@inheritDoc}
      *
      * <p>Truncates the internal fields to 20 characters to bound the size of the string.
