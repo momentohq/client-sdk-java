@@ -11,10 +11,13 @@ import java.util.Map;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
+import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.InvalidArgumentException;
+import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.messages.CacheDictionaryFetchResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
+import momento.sdk.messages.CacheDictionaryIncrementResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.requests.CollectionTtl;
@@ -1015,6 +1018,191 @@ public class DictionaryTest extends BaseTestClass {
                 cacheName, dictionaryName, Collections.singletonList("a".getBytes())))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDictionaryGetFieldsResponse.Miss.class);
+  }
+
+  @Test
+  public void dictionaryIncrementStringFieldHappyPath() {
+    // Increment with ttl
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a", 1, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(1));
+
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a", 41, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(42));
+
+    // Increment without ttl
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a", -1042, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(-1000));
+
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              assertThat(hit.fieldString()).isEqualTo("a");
+              assertThat(hit.valueString()).isEqualTo("-1000");
+            });
+  }
+
+  @Test
+  public void dictionaryIncrementByteArrayFieldHappyPath() {
+    // Increment with ttl
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a".getBytes(), 1, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(1));
+
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a".getBytes(), 41, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(42));
+
+    // Increment without ttl
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a".getBytes(), -1042, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(-1000));
+
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              assertThat(hit.fieldByteArray()).isEqualTo("a".getBytes());
+              assertThat(hit.valueByteArray()).isEqualTo("-1000".getBytes());
+            });
+  }
+
+  @Test
+  public void dictionaryIncrementSetAndResetHappyPath() {
+    // Set field
+    assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "10"))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a", 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(10));
+
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a", 90, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(100));
+
+    // Reset field
+    assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "0"))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a", 0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(0));
+  }
+
+  @Test
+  public void dictionaryIncrementReturnsErrorWithNullCacheName() {
+    // String field
+    assertThat(
+            target.dictionaryIncrement(null, dictionaryName, "a", 1, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array field
+    assertThat(
+            target.dictionaryIncrement(
+                null, dictionaryName, "a".getBytes(), 1, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryIncrementReturnsErrorWithNullDictionaryName() {
+    // String field
+    assertThat(target.dictionaryIncrement(cacheName, null, "a", 1, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array field
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, null, "a".getBytes(), 1, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryIncrementReturnsErrorWithNullField() {
+    // String field
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, (String) null, 1, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array field
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, (byte[]) null, 1, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryIncrementReturnsBadRequestError() {
+    assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "xyz"))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(
+            target.dictionaryIncrement(
+                cacheName, dictionaryName, "a", 1, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .satisfies(
+            error -> {
+              assertThat(error).hasCauseInstanceOf(BadRequestException.class);
+              assertThat(error.getErrorCode()).isEqualTo(MomentoErrorCode.BAD_REQUEST_ERROR);
+            });
   }
 
   private void populateTestMaps() {

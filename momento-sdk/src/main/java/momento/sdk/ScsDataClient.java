@@ -24,6 +24,8 @@ import grpc.cache_client._DictionaryFetchResponse;
 import grpc.cache_client._DictionaryFieldValuePair;
 import grpc.cache_client._DictionaryGetRequest;
 import grpc.cache_client._DictionaryGetResponse;
+import grpc.cache_client._DictionaryIncrementRequest;
+import grpc.cache_client._DictionaryIncrementResponse;
 import grpc.cache_client._DictionarySetRequest;
 import grpc.cache_client._DictionarySetResponse;
 import grpc.cache_client._GetRequest;
@@ -82,6 +84,7 @@ import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheDictionaryFetchResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
+import momento.sdk.messages.CacheDictionaryIncrementResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.messages.CacheGetResponse;
@@ -918,6 +921,46 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDictionaryGetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
+      String cacheName, String dictionaryName, String field, long amount, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(amount);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendDictionaryIncrement(
+          cacheName, convert(dictionaryName), convert(field), amount, ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDictionaryIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
+      String cacheName, String dictionaryName, byte[] field, long amount, CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(field);
+      ensureValidValue(amount);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendDictionaryIncrement(
+          cacheName, convert(dictionaryName), convert(field), amount, ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDictionaryIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -2152,6 +2195,56 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheDictionaryIncrementResponse> sendDictionaryIncrement(
+      String cacheName,
+      ByteString dictionaryName,
+      ByteString field,
+      long amount,
+      CollectionTtl ttl) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_DictionaryIncrementResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .dictionaryIncrement(
+                buildDictionaryIncrementRequest(dictionaryName, field, amount, ttl));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheDictionaryIncrementResponse> returnFuture =
+        new CompletableFuture<CacheDictionaryIncrementResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_DictionaryIncrementResponse>() {
+          @Override
+          public void onSuccess(_DictionaryIncrementResponse rsp) {
+            returnFuture.complete(
+                new CacheDictionaryIncrementResponse.Success((int) rsp.getValue()));
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheDictionaryIncrementResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
   private static Metadata metadataWithCache(String cacheName) {
     final Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
@@ -2426,6 +2519,17 @@ final class ScsDataClient implements Closeable {
     return _DictionaryGetRequest.newBuilder()
         .setDictionaryName(dictionaryName)
         .addAllFields(fields)
+        .build();
+  }
+
+  private _DictionaryIncrementRequest buildDictionaryIncrementRequest(
+      ByteString dictionaryName, ByteString field, long amount, CollectionTtl ttl) {
+    return _DictionaryIncrementRequest.newBuilder()
+        .setDictionaryName(dictionaryName)
+        .setField(field)
+        .setAmount(amount)
+        .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
+        .setRefreshTtl(ttl.refreshTtl())
         .build();
   }
 

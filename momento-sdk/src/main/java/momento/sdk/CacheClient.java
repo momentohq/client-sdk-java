@@ -15,6 +15,7 @@ import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheDictionaryFetchResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
+import momento.sdk.messages.CacheDictionaryIncrementResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.messages.CacheGetResponse;
@@ -1379,6 +1380,58 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheDictionaryGetFieldsResponse> dictionaryGetFieldsByteArray(
       String cacheName, String dictionaryName, List<byte[]> fields) {
     return scsDataClient.dictionaryGetFieldsByteArray(cacheName, dictionaryName, fields);
+  }
+
+  /**
+   * Increments the field's value in the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to increment the value in.
+   * @param field - The field for which the value is to be incremented.
+   * @return Future containing the result of the dictionary increment operation.
+   */
+  public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
+      String cacheName, String dictionaryName, String field, long amount, CollectionTtl ttl) {
+    return scsDataClient.dictionaryIncrement(cacheName, dictionaryName, field, amount, ttl);
+  }
+
+  /**
+   * Increments the field's value in the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to increment the value in.
+   * @param field - The field for which the value is to be incremented.
+   * @return Future containing the result of the dictionary increment operation.
+   */
+  public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
+      String cacheName, String dictionaryName, String field, long amount) {
+    return scsDataClient.dictionaryIncrement(cacheName, dictionaryName, field, amount, null);
+  }
+
+  /**
+   * Increments the field's value in the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to increment the value in.
+   * @param field - The field for which the value is to be incremented.
+   * @return Future containing the result of the dictionary increment operation.
+   */
+  public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
+      String cacheName, String dictionaryName, byte[] field, long amount, CollectionTtl ttl) {
+    return scsDataClient.dictionaryIncrement(cacheName, dictionaryName, field, amount, ttl);
+  }
+
+  /**
+   * Increments the field's value in the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to increment the value in.
+   * @param field - The field for which the value is to be incremented.
+   * @return Future containing the result of the dictionary increment operation.
+   */
+  public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
+      String cacheName, String dictionaryName, byte[] field, long amount) {
+    return scsDataClient.dictionaryIncrement(cacheName, dictionaryName, field, amount, null);
   }
 
   @Override
