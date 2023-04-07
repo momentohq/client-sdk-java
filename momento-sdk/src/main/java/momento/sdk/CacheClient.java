@@ -16,6 +16,7 @@ import momento.sdk.messages.CacheDictionaryFetchResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
 import momento.sdk.messages.CacheDictionaryIncrementResponse;
+import momento.sdk.messages.CacheDictionaryRemoveFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.messages.CacheGetResponse;
@@ -1432,6 +1433,32 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
       String cacheName, String dictionaryName, byte[] field, long amount) {
     return scsDataClient.dictionaryIncrement(cacheName, dictionaryName, field, amount, null);
+  }
+
+  /**
+   * Remove the field from the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to remove the field from.
+   * @param field - The field to remove.
+   * @return Future containing the result of the dictionary remove field operation.
+   */
+  public CompletableFuture<CacheDictionaryRemoveFieldResponse> dictionaryRemoveField(
+      String cacheName, String dictionaryName, String field) {
+    return scsDataClient.dictionaryRemoveField(cacheName, dictionaryName, field);
+  }
+
+  /**
+   * Remove the field from the given dictionary.
+   *
+   * @param cacheName - The cache containing the dictionary.
+   * @param dictionaryName - The dictionary to remove the field from.
+   * @param field - The field to remove.
+   * @return Future containing the result of the dictionary remove field operation.
+   */
+  public CompletableFuture<CacheDictionaryRemoveFieldResponse> dictionaryRemoveField(
+      String cacheName, String dictionaryName, byte[] field) {
+    return scsDataClient.dictionaryRemoveField(cacheName, dictionaryName, field);
   }
 
   @Override

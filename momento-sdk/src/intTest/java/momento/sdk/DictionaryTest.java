@@ -18,6 +18,7 @@ import momento.sdk.messages.CacheDictionaryFetchResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
 import momento.sdk.messages.CacheDictionaryIncrementResponse;
+import momento.sdk.messages.CacheDictionaryRemoveFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.requests.CollectionTtl;
@@ -1203,6 +1204,117 @@ public class DictionaryTest extends BaseTestClass {
               assertThat(error).hasCauseInstanceOf(BadRequestException.class);
               assertThat(error.getErrorCode()).isEqualTo(MomentoErrorCode.BAD_REQUEST_ERROR);
             });
+  }
+
+  @Test
+  public void dictionaryRemoveFieldStringHappyPath() {
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              assertThat(hit.fieldString()).isEqualTo("a");
+              assertThat(hit.valueString()).isEqualTo("b");
+            });
+
+    assertThat(target.dictionaryRemoveField(cacheName, dictionaryName, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryRemoveFieldResponse.Success.class);
+
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+  }
+
+  @Test
+  public void dictionaryRemoveFieldByteArrayHappyPath() {
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+
+    assertThat(
+            target.dictionarySetField(
+                cacheName, dictionaryName, "a".getBytes(), "b", CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              assertThat(hit.fieldByteArray()).isEqualTo("a".getBytes());
+              assertThat(hit.valueString()).isEqualTo("b");
+            });
+
+    assertThat(target.dictionaryRemoveField(cacheName, dictionaryName, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryRemoveFieldResponse.Success.class);
+
+    assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+  }
+
+  @Test
+  public void dictionaryRemoveFieldReturnsErrorWithNullCacheName() {
+    // String field
+    assertThat(target.dictionaryRemoveField(null, dictionaryName, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array field
+    assertThat(target.dictionaryRemoveField(null, dictionaryName, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryRemoveFieldReturnsErrorWithNullDictionaryName() {
+    // String field
+    assertThat(target.dictionaryRemoveField(cacheName, null, "a"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array field
+    assertThat(target.dictionaryRemoveField(cacheName, null, "a".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void dictionaryRemoveFieldReturnsErrorWithNullField() {
+    // String field
+    assertThat(target.dictionaryRemoveField(cacheName, dictionaryName, (String) null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    // Byte Array field
+    assertThat(target.dictionaryRemoveField(cacheName, dictionaryName, (byte[]) null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
   private void populateTestMaps() {
