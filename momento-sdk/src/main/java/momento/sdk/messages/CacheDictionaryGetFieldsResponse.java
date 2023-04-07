@@ -62,6 +62,20 @@ public interface CacheDictionaryGetFieldsResponse {
     }
 
     /**
+     * Gets the retrieved dictionary of string keys and string values.
+     *
+     * @return the dictionary.
+     */
+    public Map<String, String> valueDictionary() {
+      return responsesList.stream()
+          .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
+          .collect(
+              Collectors.toMap(
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).fieldString(),
+                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).valueString()));
+    }
+
+    /**
      * Gets the retrieved dictionary of string keys and byte array values.
      *
      * @return the dictionary.

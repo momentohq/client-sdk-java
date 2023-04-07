@@ -41,6 +41,15 @@ public interface CacheListPopBackResponse {
     }
 
     /**
+     * Gets the retrieved value as a UTF-8 String
+     *
+     * @return the value.
+     */
+    public String value() {
+      return this.byteStringValue.toString(StandardCharsets.UTF_8);
+    }
+
+    /**
      * {@inheritDoc}
      *
      * <p>Truncates the internal fields to 20 characters to bound the size of the string.
