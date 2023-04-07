@@ -15,8 +15,10 @@ public final class ValidationUtils {
   static final String DICTIONARY_NAME_IS_REQUIRED = "Dictionary name is required.";
   static final String SET_NAME_CANNOT_BE_NULL = "Set name cannot be null.";
   static final String LIST_NAME_CANNOT_BE_NULL = "List name cannot be null.";
-  static final String LIST_SLICE_START_END_INVALID =
+  static final String INDEX_RANGE_INVALID =
       "endIndex (exclusive) must be larger than startIndex (inclusive).";
+  static final String SCORE_RANGE_INVALID =
+      "maxScore (inclusive) must be greater than or equal to minScore (inclusive).";
   static final String SIGNING_KEY_TTL_CANNOT_BE_NEGATIVE = "Signing key TTL cannot be negative.";
 
   ValidationUtils() {}
@@ -51,10 +53,31 @@ public final class ValidationUtils {
     }
   }
 
-  static void checkListSliceStartEndValid(Integer startIndex, Integer endIndex) {
+  static void checkIndexRangeValid(Integer startIndex, Integer endIndex) {
     if (startIndex == null || endIndex == null) return;
     if (endIndex <= startIndex) {
-      throw new InvalidArgumentException(LIST_SLICE_START_END_INVALID);
+      throw new InvalidArgumentException(INDEX_RANGE_INVALID);
+    }
+  }
+
+  static void checkScoreRangeValid(Double minScore, Double maxScore) {
+    if (minScore == null || maxScore == null) {
+      return;
+    }
+    if (maxScore < minScore) {
+      throw new InvalidArgumentException(SCORE_RANGE_INVALID);
+    }
+  }
+
+  static void checkSortedSetOffsetValid(Integer offset) {
+    if (offset != null && offset < 0) {
+      throw new InvalidArgumentException("Offset must be greater than or equal to 0.");
+    }
+  }
+
+  static void checkSortedSetCountValid(Integer count) {
+    if (count != null && count <= 0) {
+      throw new InvalidArgumentException("Count must be greater than 0.");
     }
   }
 

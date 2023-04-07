@@ -3,9 +3,12 @@ package momento.sdk;
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
 import static momento.sdk.ValidationUtils.checkDictionaryNameValid;
+import static momento.sdk.ValidationUtils.checkIndexRangeValid;
 import static momento.sdk.ValidationUtils.checkListNameValid;
-import static momento.sdk.ValidationUtils.checkListSliceStartEndValid;
+import static momento.sdk.ValidationUtils.checkScoreRangeValid;
 import static momento.sdk.ValidationUtils.checkSetNameValid;
+import static momento.sdk.ValidationUtils.checkSortedSetCountValid;
+import static momento.sdk.ValidationUtils.checkSortedSetOffsetValid;
 import static momento.sdk.ValidationUtils.ensureValidCacheSet;
 import static momento.sdk.ValidationUtils.ensureValidKey;
 import static momento.sdk.ValidationUtils.ensureValidValue;
@@ -64,6 +67,11 @@ import grpc.cache_client._SetRequest;
 import grpc.cache_client._SetResponse;
 import grpc.cache_client._SetUnionRequest;
 import grpc.cache_client._SetUnionResponse;
+import grpc.cache_client._SortedSetElement;
+import grpc.cache_client._SortedSetFetchRequest;
+import grpc.cache_client._SortedSetFetchResponse;
+import grpc.cache_client._SortedSetPutRequest;
+import grpc.cache_client._SortedSetPutResponse;
 import grpc.cache_client._Unbounded;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
@@ -110,6 +118,10 @@ import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetRemoveElementResponse;
 import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.messages.CacheSetResponse;
+import momento.sdk.messages.CacheSortedSetFetchResponse;
+import momento.sdk.messages.CacheSortedSetPutElementResponse;
+import momento.sdk.messages.CacheSortedSetPutElementsResponse;
+import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
 
 /** Client for interacting with Scs Data plane. */
@@ -422,6 +434,137 @@ final class ScsDataClient implements Closeable {
     }
   }
 
+  CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+      String cacheName,
+      String sortedSetName,
+      String element,
+      double score,
+      @Nullable CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendSortedSetPutElement(
+          cacheName, convert(sortedSetName), convert(element), score, ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetPutElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+      String cacheName,
+      String sortedSetName,
+      byte[] element,
+      double score,
+      @Nullable CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendSortedSetPutElement(
+          cacheName, convert(sortedSetName), convert(element), score, ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetPutElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+      String cacheName,
+      String sortedSetName,
+      Map<String, Double> elements,
+      @Nullable CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(elements);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendSortedSetPutElements(
+          cacheName, convert(sortedSetName), convertStringScoreMap(elements), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElementsByteArray(
+      String cacheName,
+      String sortedSetName,
+      Map<byte[], Double> elements,
+      @Nullable CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(elements);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendSortedSetPutElements(
+          cacheName, convert(sortedSetName), convertBytesScoreMap(elements), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
+      String cacheName,
+      String sortedSetName,
+      @Nullable Integer startRank,
+      @Nullable Integer endRank,
+      @Nullable SortOrder order) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      checkIndexRangeValid(startRank, endRank);
+
+      return sendSortedSetFetchByRank(cacheName, convert(sortedSetName), startRank, endRank, order);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
+      String cacheName,
+      String sortedSetName,
+      @Nullable Double minScore,
+      @Nullable Double maxScore,
+      @Nullable SortOrder order,
+      @Nullable Integer offset,
+      @Nullable Integer count) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      checkScoreRangeValid(minScore, maxScore);
+      checkSortedSetOffsetValid(offset);
+      checkSortedSetCountValid(count);
+
+      return sendSortedSetFetchByScore(
+          cacheName, convert(sortedSetName), minScore, maxScore, order, offset, count);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
   CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
       String cacheName,
       String listName,
@@ -519,7 +662,7 @@ final class ScsDataClient implements Closeable {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
-      checkListSliceStartEndValid(startIndex, endIndex);
+      checkIndexRangeValid(startIndex, endIndex);
       return sendListFetch(cacheName, convert(listName), startIndex, endIndex);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
@@ -685,7 +828,7 @@ final class ScsDataClient implements Closeable {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(listName);
-      checkListSliceStartEndValid(startIndex, endIndex);
+      checkIndexRangeValid(startIndex, endIndex);
 
       return sendListRetain(cacheName, convert(listName), startIndex, endIndex);
     } catch (Exception e) {
@@ -1088,6 +1231,16 @@ final class ScsDataClient implements Closeable {
     return elements.entrySet().stream()
         .collect(
             Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
+  }
+
+  private Map<ByteString, Double> convertStringScoreMap(Map<String, Double> elements) {
+    return elements.entrySet().stream()
+        .collect(Collectors.toMap(entry -> convert(entry.getKey()), Map.Entry::getValue));
+  }
+
+  private Map<ByteString, Double> convertBytesScoreMap(Map<byte[], Double> elements) {
+    return elements.entrySet().stream()
+        .collect(Collectors.toMap(entry -> convert(entry.getKey()), Map.Entry::getValue));
   }
 
   private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
@@ -1529,6 +1682,211 @@ final class ScsDataClient implements Closeable {
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new CacheSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheSortedSetPutElementResponse> sendSortedSetPutElement(
+      String cacheName,
+      ByteString setName,
+      ByteString element,
+      double score,
+      CollectionTtl collectionTtl) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SortedSetPutResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .sortedSetPut(
+                buildSortedSetPutRequest(
+                    setName, Collections.singletonMap(element, score), collectionTtl));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSortedSetPutElementResponse> returnFuture =
+        new CompletableFuture<CacheSortedSetPutElementResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SortedSetPutResponse>() {
+          @Override
+          public void onSuccess(_SortedSetPutResponse rsp) {
+            returnFuture.complete(new CacheSortedSetPutElementResponse.Success());
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheSortedSetPutElementResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheSortedSetPutElementsResponse> sendSortedSetPutElements(
+      String cacheName,
+      ByteString setName,
+      Map<ByteString, Double> elements,
+      CollectionTtl collectionTtl) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SortedSetPutResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .sortedSetPut(buildSortedSetPutRequest(setName, elements, collectionTtl));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSortedSetPutElementsResponse> returnFuture =
+        new CompletableFuture<CacheSortedSetPutElementsResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SortedSetPutResponse>() {
+          @Override
+          public void onSuccess(_SortedSetPutResponse rsp) {
+            returnFuture.complete(new CacheSortedSetPutElementsResponse.Success());
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheSortedSetPutElementsResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheSortedSetFetchResponse> sendSortedSetFetchByRank(
+      String cacheName,
+      ByteString setName,
+      @Nullable Integer startRank,
+      @Nullable Integer endRank,
+      @Nullable SortOrder order) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SortedSetFetchResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .sortedSetFetch(buildSortedSetFetchRequestByRank(setName, startRank, endRank, order));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSortedSetFetchResponse> returnFuture =
+        new CompletableFuture<CacheSortedSetFetchResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SortedSetFetchResponse>() {
+          @Override
+          public void onSuccess(_SortedSetFetchResponse rsp) {
+            if (rsp.hasFound()) {
+              returnFuture.complete(
+                  new CacheSortedSetFetchResponse.Hit(
+                      rsp.getFound().getValuesWithScores().getElementsList()));
+            } else {
+              returnFuture.complete(new CacheSortedSetFetchResponse.Miss());
+            }
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheSortedSetFetchResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
+  private CompletableFuture<CacheSortedSetFetchResponse> sendSortedSetFetchByScore(
+      String cacheName,
+      ByteString setName,
+      @Nullable Double minScore,
+      @Nullable Double maxScore,
+      @Nullable SortOrder order,
+      @Nullable Integer offset,
+      @Nullable Integer count) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_SortedSetFetchResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .sortedSetFetch(
+                buildSortedSetFetchRequestByScore(
+                    setName, minScore, maxScore, order, offset, count));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheSortedSetFetchResponse> returnFuture =
+        new CompletableFuture<CacheSortedSetFetchResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_SortedSetFetchResponse>() {
+          @Override
+          public void onSuccess(_SortedSetFetchResponse rsp) {
+            if (rsp.hasFound()) {
+              returnFuture.complete(
+                  new CacheSortedSetFetchResponse.Hit(
+                      rsp.getFound().getValuesWithScores().getElementsList()));
+            } else {
+              returnFuture.complete(new CacheSortedSetFetchResponse.Miss());
+            }
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheSortedSetFetchResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2472,6 +2830,106 @@ final class ScsDataClient implements Closeable {
 
   private _SetFetchRequest buildSetFetchRequest(ByteString setName) {
     return _SetFetchRequest.newBuilder().setSetName(setName).build();
+  }
+
+  private _SortedSetPutRequest buildSortedSetPutRequest(
+      ByteString sortedSetName, Map<ByteString, Double> elements, CollectionTtl ttl) {
+    return _SortedSetPutRequest.newBuilder()
+        .setSetName(sortedSetName)
+        .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
+        .setRefreshTtl(ttl.refreshTtl())
+        .addAllElements(
+            elements.entrySet().stream()
+                .map(
+                    e ->
+                        _SortedSetElement.newBuilder()
+                            .setValue(e.getKey())
+                            .setScore(e.getValue())
+                            .build())
+                .collect(Collectors.toSet()))
+        .build();
+  }
+
+  private _SortedSetFetchRequest buildSortedSetFetchRequestByRank(
+      ByteString sortedSetName,
+      @Nullable Integer startRank,
+      @Nullable Integer endRank,
+      @Nullable SortOrder order) {
+
+    final _SortedSetFetchRequest._ByIndex.Builder indexBuilder =
+        _SortedSetFetchRequest._ByIndex.newBuilder();
+    if (startRank != null) {
+      indexBuilder.setInclusiveStartIndex(startRank);
+    } else {
+      indexBuilder.setUnboundedStart(_Unbounded.newBuilder());
+    }
+    if (endRank != null) {
+      indexBuilder.setExclusiveEndIndex(endRank);
+    } else {
+      indexBuilder.setUnboundedEnd(_Unbounded.newBuilder());
+    }
+
+    final _SortedSetFetchRequest.Builder requestBuilder =
+        _SortedSetFetchRequest.newBuilder()
+            .setSetName(sortedSetName)
+            .setWithScores(true)
+            .setByIndex(indexBuilder);
+
+    if (order == SortOrder.ASCENDING) {
+      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
+    } else if (order == SortOrder.DESCENDING) {
+      requestBuilder.setOrder(_SortedSetFetchRequest.Order.DESCENDING);
+    }
+
+    return requestBuilder.build();
+  }
+
+  private _SortedSetFetchRequest buildSortedSetFetchRequestByScore(
+      ByteString sortedSetName,
+      @Nullable Double minScore,
+      @Nullable Double maxScore,
+      @Nullable SortOrder order,
+      @Nullable Integer offset,
+      @Nullable Integer count) {
+
+    final _SortedSetFetchRequest._ByScore.Builder scoreBuilder =
+        _SortedSetFetchRequest._ByScore.newBuilder();
+    if (minScore != null) {
+      scoreBuilder.setMinScore(
+          _SortedSetFetchRequest._ByScore._Score.newBuilder().setScore(minScore));
+    } else {
+      scoreBuilder.setUnboundedMin(_Unbounded.newBuilder());
+    }
+    if (maxScore != null) {
+      scoreBuilder.setMaxScore(
+          _SortedSetFetchRequest._ByScore._Score.newBuilder().setScore(maxScore));
+    } else {
+      scoreBuilder.setUnboundedMax(_Unbounded.newBuilder());
+    }
+    if (offset != null) {
+      scoreBuilder.setOffset(offset);
+    } else {
+      scoreBuilder.setOffset(0);
+    }
+    if (count != null) {
+      scoreBuilder.setCount(count);
+    } else {
+      scoreBuilder.setCount(-1);
+    }
+
+    final _SortedSetFetchRequest.Builder requestBuilder =
+        _SortedSetFetchRequest.newBuilder()
+            .setSetName(sortedSetName)
+            .setWithScores(true)
+            .setByScore(scoreBuilder);
+
+    if (order == SortOrder.ASCENDING) {
+      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
+    } else if (order == SortOrder.DESCENDING) {
+      requestBuilder.setOrder(_SortedSetFetchRequest.Order.DESCENDING);
+    }
+
+    return requestBuilder.build();
   }
 
   private _ListConcatenateBackRequest buildListConcatenateBackRequest(
