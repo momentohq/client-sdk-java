@@ -88,6 +88,7 @@ import momento.sdk.messages.CacheDictionaryGetFieldResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
 import momento.sdk.messages.CacheDictionaryIncrementResponse;
 import momento.sdk.messages.CacheDictionaryRemoveFieldResponse;
+import momento.sdk.messages.CacheDictionaryRemoveFieldsResponse;
 import momento.sdk.messages.CacheDictionarySetFieldResponse;
 import momento.sdk.messages.CacheDictionarySetFieldsResponse;
 import momento.sdk.messages.CacheGetResponse;
@@ -992,6 +993,42 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDictionaryRemoveFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFields(
+      String cacheName, String dictionaryName, List<String> fields) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(fields);
+      for (String field : fields) {
+        ensureValidKey(field);
+      }
+
+      return sendDictionaryRemoveFields(
+          cacheName, convert(dictionaryName), convertStringList(fields));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDictionaryRemoveFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFieldsByteArray(
+      String cacheName, String dictionaryName, List<byte[]> fields) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkDictionaryNameValid(dictionaryName);
+      ensureValidKey(fields);
+      for (byte[] field : fields) {
+        ensureValidKey(field);
+      }
+
+      return sendDictionaryRemoveFields(
+          cacheName, convert(dictionaryName), convertByteArrayList(fields));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheDictionaryRemoveFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -2320,6 +2357,50 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheDictionaryRemoveFieldsResponse> sendDictionaryRemoveFields(
+      String cacheName, ByteString dictionaryName, List<ByteString> fields) {
+
+    // Submit request to non-blocking stub
+    final Metadata metadata = metadataWithCache(cacheName);
+    final ListenableFuture<_DictionaryDeleteResponse> rspFuture =
+        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+            .dictionaryDelete(buildDictionaryRemoveFieldsRequest(dictionaryName, fields));
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<CacheDictionaryRemoveFieldsResponse> returnFuture =
+        new CompletableFuture<CacheDictionaryRemoveFieldsResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<_DictionaryDeleteResponse>() {
+          @Override
+          public void onSuccess(_DictionaryDeleteResponse rsp) {
+            returnFuture.complete(new CacheDictionaryRemoveFieldsResponse.Success());
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(
+                new CacheDictionaryRemoveFieldsResponse.Error(
+                    CacheServiceExceptionMapper.convert(e, metadata)));
+          }
+        },
+        MoreExecutors
+            .directExecutor()); // Execute on same thread that called execute on CompletionStage
+    // returned
+
+    return returnFuture;
+  }
+
   private static Metadata metadataWithCache(String cacheName) {
     final Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
@@ -2618,6 +2699,18 @@ final class ScsDataClient implements Closeable {
 
   private _DictionaryDeleteRequest.Some addSomeFieldsToRemove(ByteString field) {
     return _DictionaryDeleteRequest.Some.newBuilder().addFields(field).build();
+  }
+
+  private _DictionaryDeleteRequest buildDictionaryRemoveFieldsRequest(
+      ByteString dictionaryName, List<ByteString> fields) {
+    return _DictionaryDeleteRequest.newBuilder()
+        .setDictionaryName(dictionaryName)
+        .setSome(addSomeFieldsToRemove(fields))
+        .build();
+  }
+
+  private _DictionaryDeleteRequest.Some addSomeFieldsToRemove(List<ByteString> fields) {
+    return _DictionaryDeleteRequest.Some.newBuilder().addAllFields(fields).build();
   }
 
   @Override
