@@ -46,7 +46,7 @@ public interface CacheListPopBackResponse {
      * @return the value.
      */
     public String value() {
-      return this.byteStringValue.toString(StandardCharsets.UTF_8);
+      return valueString();
     }
 
     /**

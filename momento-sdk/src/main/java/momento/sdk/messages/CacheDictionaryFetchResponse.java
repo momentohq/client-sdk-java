@@ -60,11 +60,7 @@ public interface CacheDictionaryFetchResponse {
      * @return the dictionary.
      */
     public Map<String, String> valueDictionary() {
-      return byteStringKeysValues.entrySet().stream()
-          .collect(
-              Collectors.toMap(
-                  entry -> entry.getKey().toStringUtf8(),
-                  entry -> entry.getValue().toStringUtf8()));
+      return valueDictionaryStringString();
     }
 
     /**

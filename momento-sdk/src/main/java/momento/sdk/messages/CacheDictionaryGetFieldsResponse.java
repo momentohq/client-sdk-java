@@ -67,12 +67,7 @@ public interface CacheDictionaryGetFieldsResponse {
      * @return the dictionary.
      */
     public Map<String, String> valueDictionary() {
-      return responsesList.stream()
-          .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
-          .collect(
-              Collectors.toMap(
-                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).fieldString(),
-                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).valueString()));
+      return valueDictionaryStringString();
     }
 
     /**

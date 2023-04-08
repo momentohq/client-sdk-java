@@ -47,7 +47,7 @@ public interface CacheListFetchResponse {
      * @return the values.
      */
     public List<String> valueList() {
-      return byteStringValues.stream().map(ByteString::toStringUtf8).collect(Collectors.toList());
+      return valueListString();
     }
 
     /**

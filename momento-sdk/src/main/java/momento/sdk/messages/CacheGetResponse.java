@@ -46,7 +46,7 @@ public interface CacheGetResponse {
      * @return the value.
      */
     public String value() {
-      return value.toString(StandardCharsets.UTF_8);
+      return valueString();
     }
 
     /**

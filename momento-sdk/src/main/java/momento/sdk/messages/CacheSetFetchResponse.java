@@ -48,7 +48,7 @@ public interface CacheSetFetchResponse {
      * @return the values.
      */
     public Set<String> valueSet() {
-      return byteStringValues.stream().map(ByteString::toStringUtf8).collect(Collectors.toSet());
+      return valueSetString();
     }
 
     /**

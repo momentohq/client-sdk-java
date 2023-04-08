@@ -76,7 +76,7 @@ public interface CacheDictionaryGetFieldResponse {
      * @return the value.
      */
     public String value() {
-      return value.toStringUtf8();
+      return valueString();
     }
 
     /**
