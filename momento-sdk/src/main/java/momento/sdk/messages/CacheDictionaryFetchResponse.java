@@ -55,6 +55,15 @@ public interface CacheDictionaryFetchResponse {
     }
 
     /**
+     * Gets the retrieved values as a dictionary of UTF-8 string keys and values.
+     *
+     * @return the dictionary.
+     */
+    public Map<String, String> valueDictionary() {
+      return valueDictionaryStringString();
+    }
+
+    /**
      * Gets the retrieved value as a dictionary of UTF-8 String keys and byte array values
      *
      * @return the dictionary.

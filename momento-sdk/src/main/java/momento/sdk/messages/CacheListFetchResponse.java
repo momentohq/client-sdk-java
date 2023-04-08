@@ -42,6 +42,15 @@ public interface CacheListFetchResponse {
     }
 
     /**
+     * Gets the retrieved value as a list of UTF-8 Strings
+     *
+     * @return the values.
+     */
+    public List<String> valueList() {
+      return valueListString();
+    }
+
+    /**
      * {@inheritDoc}
      *
      * <p>Truncates the internal fields to 20 characters to bound the size of the string.

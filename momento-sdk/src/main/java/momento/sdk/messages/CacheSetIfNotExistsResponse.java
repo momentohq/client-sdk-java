@@ -64,6 +64,15 @@ public interface CacheSetIfNotExistsResponse {
       return value.toString(StandardCharsets.UTF_8);
     }
 
+    /**
+     * Gets the retrieved value as a UTF-8 {@link String}
+     *
+     * @return the value.
+     */
+    public String value() {
+      return valueString();
+    }
+
     @Override
     public String toString() {
       return super.toString()

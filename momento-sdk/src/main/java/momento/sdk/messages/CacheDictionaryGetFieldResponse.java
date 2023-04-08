@@ -44,6 +44,15 @@ public interface CacheDictionaryGetFieldResponse {
     }
 
     /**
+     * Gets the retrieved field as a UTF-8 {@link String}.
+     *
+     * @return the field.
+     */
+    public String field() {
+      return field.toStringUtf8();
+    }
+
+    /**
      * Gets the retrieved value as a byte array
      *
      * @return the value.
@@ -59,6 +68,15 @@ public interface CacheDictionaryGetFieldResponse {
      */
     public String valueString() {
       return value.toStringUtf8();
+    }
+
+    /**
+     * Gets the retrieved value as a UTF-8 {@link String}
+     *
+     * @return the value.
+     */
+    public String value() {
+      return valueString();
     }
 
     /**

@@ -62,6 +62,15 @@ public interface CacheDictionaryGetFieldsResponse {
     }
 
     /**
+     * Gets the retrieved dictionary of string keys and string values.
+     *
+     * @return the dictionary.
+     */
+    public Map<String, String> valueDictionary() {
+      return valueDictionaryStringString();
+    }
+
+    /**
      * Gets the retrieved dictionary of string keys and byte array values.
      *
      * @return the dictionary.
