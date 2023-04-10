@@ -121,7 +121,6 @@ import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CacheSortedSetFetchResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
-import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
 
 /** Client for interacting with Scs Data plane. */
@@ -528,14 +527,13 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       String sortedSetName,
       @Nullable Integer startRank,
-      @Nullable Integer endRank,
-      @Nullable SortOrder order) {
+      @Nullable Integer endRank) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
       checkIndexRangeValid(startRank, endRank);
 
-      return sendSortedSetFetchByRank(cacheName, convert(sortedSetName), startRank, endRank, order);
+      return sendSortedSetFetchByRank(cacheName, convert(sortedSetName), startRank, endRank);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -547,7 +545,6 @@ final class ScsDataClient implements Closeable {
       String sortedSetName,
       @Nullable Double minScore,
       @Nullable Double maxScore,
-      @Nullable SortOrder order,
       @Nullable Integer offset,
       @Nullable Integer count) {
     try {
@@ -558,7 +555,7 @@ final class ScsDataClient implements Closeable {
       checkSortedSetCountValid(count);
 
       return sendSortedSetFetchByScore(
-          cacheName, convert(sortedSetName), minScore, maxScore, order, offset, count);
+          cacheName, convert(sortedSetName), minScore, maxScore, offset, count);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1789,14 +1786,13 @@ final class ScsDataClient implements Closeable {
       String cacheName,
       ByteString setName,
       @Nullable Integer startRank,
-      @Nullable Integer endRank,
-      @Nullable SortOrder order) {
+      @Nullable Integer endRank) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
     final ListenableFuture<_SortedSetFetchResponse> rspFuture =
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-            .sortedSetFetch(buildSortedSetFetchRequestByRank(setName, startRank, endRank, order));
+            .sortedSetFetch(buildSortedSetFetchRequestByRank(setName, startRank, endRank));
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<CacheSortedSetFetchResponse> returnFuture =
@@ -1843,7 +1839,6 @@ final class ScsDataClient implements Closeable {
       ByteString setName,
       @Nullable Double minScore,
       @Nullable Double maxScore,
-      @Nullable SortOrder order,
       @Nullable Integer offset,
       @Nullable Integer count) {
 
@@ -1852,8 +1847,7 @@ final class ScsDataClient implements Closeable {
     final ListenableFuture<_SortedSetFetchResponse> rspFuture =
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
             .sortedSetFetch(
-                buildSortedSetFetchRequestByScore(
-                    setName, minScore, maxScore, order, offset, count));
+                buildSortedSetFetchRequestByScore(setName, minScore, maxScore, offset, count));
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<CacheSortedSetFetchResponse> returnFuture =
@@ -2851,10 +2845,7 @@ final class ScsDataClient implements Closeable {
   }
 
   private _SortedSetFetchRequest buildSortedSetFetchRequestByRank(
-      ByteString sortedSetName,
-      @Nullable Integer startRank,
-      @Nullable Integer endRank,
-      @Nullable SortOrder order) {
+      ByteString sortedSetName, @Nullable Integer startRank, @Nullable Integer endRank) {
 
     final _SortedSetFetchRequest._ByIndex.Builder indexBuilder =
         _SortedSetFetchRequest._ByIndex.newBuilder();
@@ -2869,26 +2860,18 @@ final class ScsDataClient implements Closeable {
       indexBuilder.setUnboundedEnd(_Unbounded.newBuilder());
     }
 
-    final _SortedSetFetchRequest.Builder requestBuilder =
-        _SortedSetFetchRequest.newBuilder()
-            .setSetName(sortedSetName)
-            .setWithScores(true)
-            .setByIndex(indexBuilder);
-
-    if (order == SortOrder.ASCENDING) {
-      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
-    } else if (order == SortOrder.DESCENDING) {
-      requestBuilder.setOrder(_SortedSetFetchRequest.Order.DESCENDING);
-    }
-
-    return requestBuilder.build();
+    return _SortedSetFetchRequest.newBuilder()
+        .setSetName(sortedSetName)
+        .setWithScores(true)
+        .setOrder(_SortedSetFetchRequest.Order.ASCENDING)
+        .setByIndex(indexBuilder)
+        .build();
   }
 
   private _SortedSetFetchRequest buildSortedSetFetchRequestByScore(
       ByteString sortedSetName,
       @Nullable Double minScore,
       @Nullable Double maxScore,
-      @Nullable SortOrder order,
       @Nullable Integer offset,
       @Nullable Integer count) {
 
@@ -2917,19 +2900,12 @@ final class ScsDataClient implements Closeable {
       scoreBuilder.setCount(-1);
     }
 
-    final _SortedSetFetchRequest.Builder requestBuilder =
-        _SortedSetFetchRequest.newBuilder()
-            .setSetName(sortedSetName)
-            .setWithScores(true)
-            .setByScore(scoreBuilder);
-
-    if (order == SortOrder.ASCENDING) {
-      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
-    } else if (order == SortOrder.DESCENDING) {
-      requestBuilder.setOrder(_SortedSetFetchRequest.Order.DESCENDING);
-    }
-
-    return requestBuilder.build();
+    return _SortedSetFetchRequest.newBuilder()
+        .setSetName(sortedSetName)
+        .setWithScores(true)
+        .setOrder(_SortedSetFetchRequest.Order.ASCENDING)
+        .setByScore(scoreBuilder)
+        .build();
   }
 
   private _ListConcatenateBackRequest buildListConcatenateBackRequest(

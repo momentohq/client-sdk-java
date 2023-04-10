@@ -7,6 +7,8 @@ import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.NavigableSet;
+import java.util.Set;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
@@ -15,7 +17,7 @@ import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.messages.CacheSortedSetFetchResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
-import momento.sdk.messages.SortOrder;
+import momento.sdk.messages.ScoredElement;
 import momento.sdk.requests.CollectionTtl;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
@@ -68,7 +70,12 @@ public class SortedSetTest {
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
-        .satisfies(hit -> assertThat(hit.elementsMap()).containsEntry(element, score));
+        .satisfies(
+            hit -> {
+              final Set<ScoredElement> scoredElements = hit.elementsSet();
+              assertThat(scoredElements).map(ScoredElement::getElement).containsOnly(element);
+              assertThat(scoredElements).map(ScoredElement::getScore).containsOnly(score);
+            });
   }
 
   @Test
@@ -91,9 +98,11 @@ public class SortedSetTest {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<byte[], Double> scoredBytes = hit.elementsByteArrayMap();
-              assertThat(scoredBytes.keySet()).containsOnly(element);
-              assertThat(scoredBytes.values()).containsOnly(score);
+              final Set<ScoredElement> scoredElements = hit.elementsSet();
+              assertThat(scoredElements)
+                  .map(ScoredElement::getElementByteArray)
+                  .containsOnly(element);
+              assertThat(scoredElements).map(ScoredElement::getScore).containsOnly(score);
             });
   }
 
@@ -160,7 +169,16 @@ public class SortedSetTest {
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
-        .satisfies(hit -> assertThat(hit.elementsMap()).containsAllEntriesOf(elements));
+        .satisfies(
+            hit -> {
+              final Set<ScoredElement> scoredElements = hit.elementsSet();
+              assertThat(scoredElements)
+                  .map(ScoredElement::getElement)
+                  .containsAll(elements.keySet());
+              assertThat(scoredElements)
+                  .map(ScoredElement::getScore)
+                  .containsAll(elements.values());
+            });
   }
 
   @Test
@@ -185,9 +203,13 @@ public class SortedSetTest {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<byte[], Double> scoredBytes = hit.elementsByteArrayMap();
-              assertThat(scoredBytes.keySet()).containsAll(elements.keySet());
-              assertThat(scoredBytes.values()).containsAll(elements.values());
+              final Set<ScoredElement> scoredElements = hit.elementsSet();
+              assertThat(scoredElements)
+                  .map(ScoredElement::getElementByteArray)
+                  .containsAll(elements.keySet());
+              assertThat(scoredElements)
+                  .map(ScoredElement::getScore)
+                  .containsAll(elements.values());
             });
   }
 
@@ -268,28 +290,32 @@ public class SortedSetTest {
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
 
-    // Full set ascending, end index larger than set
-    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 0, 6, SortOrder.ASCENDING))
+    // Full set, end index larger than set
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 0, 6))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, Double> scoredElements = hit.elementsMap();
-              assertThat(scoredElements).hasSize(5).containsAllEntriesOf(elements);
+              final Set<ScoredElement> scoredElements = hit.elementsSet();
+              assertThat(scoredElements).hasSize(5);
               // check ordering
-              assertThat(scoredElements.keySet()).containsSequence(one, three, two, five, four);
+              assertThat(scoredElements)
+                  .map(ScoredElement::getElement)
+                  .containsSequence(one, three, two, five, four);
             });
 
-    // Partial set descending
-    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 1, 4, SortOrder.DESCENDING))
+    // Partial set
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 1, 4))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, Double> scoredElements = hit.elementsMap();
+              final NavigableSet<ScoredElement> scoredElements = hit.elementsSet();
               assertThat(scoredElements).hasSize(3);
               // check ordering
-              assertThat(scoredElements.keySet()).containsSequence(five, two, three);
+              assertThat(scoredElements.descendingSet())
+                  .map(ScoredElement::getElement)
+                  .containsSequence(five, two, three);
             });
   }
 
@@ -316,34 +342,38 @@ public class SortedSetTest {
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
 
-    // Full set ascending, end index larger than set
-    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 0, 6, SortOrder.ASCENDING))
+    // Full set, end index larger than set
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 0, 6))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<byte[], Double> scoredElements = hit.elementsByteArrayMap();
+              final Set<ScoredElement> scoredElements = hit.elementsSet();
               assertThat(scoredElements).hasSize(5);
               // check ordering
-              assertThat(scoredElements.keySet()).containsSequence(one, three, two, five, four);
+              assertThat(scoredElements)
+                  .map(ScoredElement::getElementByteArray)
+                  .containsSequence(one, three, two, five, four);
             });
 
-    // Partial set descending
-    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 1, 4, SortOrder.DESCENDING))
+    // Partial set
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 1, 4))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<byte[], Double> scoredElements = hit.elementsByteArrayMap();
+              final NavigableSet<ScoredElement> scoredElements = hit.elementsSet();
               assertThat(scoredElements).hasSize(3);
               // check ordering
-              assertThat(scoredElements.keySet()).containsSequence(five, two, three);
+              assertThat(scoredElements.descendingSet())
+                  .map(ScoredElement::getElementByteArray)
+                  .containsSequence(five, two, three);
             });
   }
 
   @Test
   public void sortedSetFetchByRankReturnsErrorWithInvalidIndexRange() {
-    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 1000, -5, SortOrder.ASCENDING))
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 1000, -5))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -390,7 +420,7 @@ public class SortedSetTest {
     elements.put(four, 2.0);
     elements.put(five, 1.5);
 
-    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName))
+    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName, null, null))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSortedSetFetchResponse.Miss.class);
 
@@ -398,54 +428,52 @@ public class SortedSetTest {
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
 
-    // Full set ascending, end index larger than set
-    assertThat(
-            client.sortedSetFetchByScore(
-                cacheName, sortedSetName, 0.0, 9.9, SortOrder.ASCENDING, null, null))
+    // Full set, end index larger than set
+    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName, 0.0, 9.9, null, null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, Double> scoredElements = hit.elementsMap();
-              assertThat(scoredElements).hasSize(5).containsAllEntriesOf(elements);
+              final NavigableSet<ScoredElement> scoredElements = hit.elementsSet();
+              assertThat(scoredElements).hasSize(5);
               // check ordering
-              assertThat(scoredElements.keySet()).containsSequence(one, three, two, five, four);
+              assertThat(scoredElements)
+                  .map(ScoredElement::getElement)
+                  .containsSequence(one, three, two, five, four);
             });
 
-    // Partial set descending
-    assertThat(
-            client.sortedSetFetchByScore(
-                cacheName, sortedSetName, 0.2, 1.9, SortOrder.DESCENDING, 0, 99))
+    // Partial set
+    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName, 0.2, 1.9, 0, 99))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, Double> scoredElements = hit.elementsMap();
+              final NavigableSet<ScoredElement> scoredElements = hit.elementsSet();
               assertThat(scoredElements).hasSize(3);
               // check ordering
-              assertThat(scoredElements.keySet()).containsSequence(five, two, three);
+              assertThat(scoredElements.descendingSet())
+                  .map(ScoredElement::getElement)
+                  .containsSequence(five, two, three);
             });
 
     // Partial set limited by offset and count
-    assertThat(
-            client.sortedSetFetchByScore(
-                cacheName, sortedSetName, null, null, SortOrder.ASCENDING, 1, 3))
+    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName, 1, 3))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, Double> scoredElements = hit.elementsMap();
+              final NavigableSet<ScoredElement> scoredElements = hit.elementsSet();
               assertThat(scoredElements).hasSize(3);
               // check ordering
-              assertThat(scoredElements.keySet()).containsSequence(three, two, five);
+              assertThat(scoredElements)
+                  .map(ScoredElement::getElement)
+                  .containsSequence(three, two, five);
             });
   }
 
   @Test
   public void sortedSetFetchByScoreReturnsErrorWithInvalidScoreRange() {
-    assertThat(
-            client.sortedSetFetchByScore(
-                null, sortedSetName, 10.0, 0.5, SortOrder.ASCENDING, null, null))
+    assertThat(client.sortedSetFetchByScore(null, sortedSetName, 10.0, 0.5, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -453,7 +481,7 @@ public class SortedSetTest {
 
   @Test
   public void sortedSetFetchByScoreReturnsErrorWithNullCacheName() {
-    assertThat(client.sortedSetFetchByScore(null, sortedSetName))
+    assertThat(client.sortedSetFetchByScore(null, sortedSetName, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -461,7 +489,7 @@ public class SortedSetTest {
 
   @Test
   public void sortedSetFetchByScoreReturnsErrorWithNonexistentCacheName() {
-    assertThat(client.sortedSetFetchByScore(randomString("cache"), sortedSetName))
+    assertThat(client.sortedSetFetchByScore(randomString("cache"), sortedSetName, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
@@ -469,7 +497,7 @@ public class SortedSetTest {
 
   @Test
   public void sortedSetFetchByScoreReturnsErrorWithNullSetName() {
-    assertThat(client.sortedSetFetchByScore(cacheName, null))
+    assertThat(client.sortedSetFetchByScore(cacheName, null, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));

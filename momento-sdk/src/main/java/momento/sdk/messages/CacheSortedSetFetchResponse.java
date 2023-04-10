@@ -1,9 +1,7 @@
 package momento.sdk.messages;
 
 import grpc.cache_client._SortedSetElement;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -25,54 +23,17 @@ public interface CacheSortedSetFetchResponse {
       this.elements = elements;
     }
 
-    public NavigableSet<ScoredElement<String>> elementsSet() {
+    /**
+     * Gets a navigable set of the retrieved elements and their scores. The set is in ascending
+     * order by default and can be viewed in descending order with {@link
+     * NavigableSet#descendingSet()}.
+     *
+     * @return An ordered set of elements to scores
+     */
+    public NavigableSet<ScoredElement> elementsSet() {
       return elements.stream()
-          .map(e -> new ScoredElement<>(e.getValue().toStringUtf8(), e.getScore()))
+          .map(e -> new ScoredElement(e.getValue(), e.getScore()))
           .collect(Collectors.toCollection(TreeSet::new));
-    }
-
-    public List<ScoredElement<String>> elementsList() {
-      return elements.stream()
-          .map(e -> new ScoredElement<>(e.getValue().toStringUtf8(), e.getScore()))
-          .collect(Collectors.toList());
-    }
-
-    public List<ScoredElement<byte[]>> elementsByteArrayList() {
-      return elements.stream()
-          .map(e -> new ScoredElement<>(e.getValue().toByteArray(), e.getScore()))
-          .collect(Collectors.toList());
-    }
-
-    /**
-     * Gets a map of the retrieved elements as UTF-8 strings to their scores. The order of the map
-     * is determined by the options used in the method call.
-     *
-     * @return An ordered map of String elements to scores
-     */
-    public Map<String, Double> elementsMap() {
-      return elements.stream()
-          .collect(
-              Collectors.toMap(
-                  e -> e.getValue().toStringUtf8(),
-                  _SortedSetElement::getScore,
-                  (u, v) -> u,
-                  LinkedHashMap::new));
-    }
-
-    /**
-     * Gets a map of the retrieved elements as byte arrays to their scores. The order of the map is
-     * determined by the options used in the method call.
-     *
-     * @return An ordered map of byte[] elements to scores
-     */
-    public Map<byte[], Double> elementsByteArrayMap() {
-      return elements.stream()
-          .collect(
-              Collectors.toMap(
-                  e -> e.getValue().toByteArray(),
-                  _SortedSetElement::getScore,
-                  (u, v) -> u,
-                  LinkedHashMap::new));
     }
   }
 
