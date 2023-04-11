@@ -40,6 +40,7 @@ import momento.sdk.messages.CacheSetRemoveElementResponse;
 import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CacheSortedSetFetchResponse;
+import momento.sdk.messages.CacheSortedSetGetRankResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
 import momento.sdk.messages.CreateCacheResponse;
@@ -896,6 +897,32 @@ public final class CacheClient implements Closeable {
       String cacheName, String sortedSetName, @Nullable Integer offset, @Nullable Integer count) {
     return scsDataClient.sortedSetFetchByScore(
         cacheName, sortedSetName, null, null, null, offset, count);
+  }
+
+  /**
+   * Look up the rank of an element in the sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose rank we are retrieving.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+      String cacheName, String sortedSetName, String element) {
+    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element);
+  }
+
+  /**
+   * Look up the rank of an element in the sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose rank we are retrieving.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+      String cacheName, String sortedSetName, byte[] element) {
+    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element);
   }
 
   /**
