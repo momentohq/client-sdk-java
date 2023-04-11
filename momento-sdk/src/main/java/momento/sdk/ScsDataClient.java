@@ -1689,7 +1689,7 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSortedSetPutElementResponse> sendSortedSetPutElement(
       String cacheName,
-      ByteString setName,
+      ByteString sortedSetName,
       ByteString element,
       double score,
       CollectionTtl collectionTtl) {
@@ -1700,7 +1700,7 @@ final class ScsDataClient implements Closeable {
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
             .sortedSetPut(
                 buildSortedSetPutRequest(
-                    setName, Collections.singletonMap(element, score), collectionTtl));
+                    sortedSetName, Collections.singletonMap(element, score), collectionTtl));
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<CacheSortedSetPutElementResponse> returnFuture =
@@ -1738,7 +1738,7 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSortedSetPutElementsResponse> sendSortedSetPutElements(
       String cacheName,
-      ByteString setName,
+      ByteString sortedSetName,
       Map<ByteString, Double> elements,
       CollectionTtl collectionTtl) {
 
@@ -1746,7 +1746,7 @@ final class ScsDataClient implements Closeable {
     final Metadata metadata = metadataWithCache(cacheName);
     final ListenableFuture<_SortedSetPutResponse> rspFuture =
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-            .sortedSetPut(buildSortedSetPutRequest(setName, elements, collectionTtl));
+            .sortedSetPut(buildSortedSetPutRequest(sortedSetName, elements, collectionTtl));
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<CacheSortedSetPutElementsResponse> returnFuture =
@@ -1784,7 +1784,7 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSortedSetFetchResponse> sendSortedSetFetchByRank(
       String cacheName,
-      ByteString setName,
+      ByteString sortedSetName,
       @Nullable Integer startRank,
       @Nullable Integer endRank) {
 
@@ -1792,7 +1792,7 @@ final class ScsDataClient implements Closeable {
     final Metadata metadata = metadataWithCache(cacheName);
     final ListenableFuture<_SortedSetFetchResponse> rspFuture =
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-            .sortedSetFetch(buildSortedSetFetchRequestByRank(setName, startRank, endRank));
+            .sortedSetFetch(buildSortedSetFetchRequestByRank(sortedSetName, startRank, endRank));
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<CacheSortedSetFetchResponse> returnFuture =
@@ -1836,7 +1836,7 @@ final class ScsDataClient implements Closeable {
 
   private CompletableFuture<CacheSortedSetFetchResponse> sendSortedSetFetchByScore(
       String cacheName,
-      ByteString setName,
+      ByteString sortedSetName,
       @Nullable Double minScore,
       @Nullable Double maxScore,
       @Nullable Integer offset,
@@ -1847,7 +1847,8 @@ final class ScsDataClient implements Closeable {
     final ListenableFuture<_SortedSetFetchResponse> rspFuture =
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
             .sortedSetFetch(
-                buildSortedSetFetchRequestByScore(setName, minScore, maxScore, offset, count));
+                buildSortedSetFetchRequestByScore(
+                    sortedSetName, minScore, maxScore, offset, count));
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<CacheSortedSetFetchResponse> returnFuture =

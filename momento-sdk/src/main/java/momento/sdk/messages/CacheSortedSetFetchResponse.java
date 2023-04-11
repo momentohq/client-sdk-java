@@ -1,11 +1,13 @@
 package momento.sdk.messages;
 
 import grpc.cache_client._SortedSetElement;
+import java.util.Base64;
 import java.util.List;
 import java.util.NavigableSet;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.internal.StringHelpers;
 
 /** Response for a sorted set fetch operation */
 public interface CacheSortedSetFetchResponse {
@@ -34,6 +36,27 @@ public interface CacheSortedSetFetchResponse {
       return elements.stream()
           .map(e -> new ScoredElement(e.getValue(), e.getScore()))
           .collect(Collectors.toCollection(TreeSet::new));
+    }
+
+    /**
+     * {@inheritDoc}
+     *
+     * <p>Truncates the internal fields to 20 characters to bound the size of the string.
+     */
+    @Override
+    public String toString() {
+      return elements.stream()
+          .limit(5)
+          .map(
+              e ->
+                  "valueString: "
+                      + StringHelpers.truncate(e.getValue().toStringUtf8())
+                      + " valueBytes: "
+                      + StringHelpers.truncate(
+                          Base64.getEncoder().encodeToString(e.getValue().toByteArray()))
+                      + " score: "
+                      + e.getScore())
+          .collect(Collectors.joining(", ", "", "..."));
     }
   }
 
