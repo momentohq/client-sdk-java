@@ -49,6 +49,7 @@ import momento.sdk.messages.FlushCacheResponse;
 import momento.sdk.messages.ListCachesResponse;
 import momento.sdk.messages.ListSigningKeysResponse;
 import momento.sdk.messages.RevokeSigningKeyResponse;
+import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
 
 /** Client to perform operations against the Momento Cache Service */
@@ -828,14 +829,16 @@ public final class CacheClient implements Closeable {
    * @param endRank - The rank of the last element to fetch. This rank is exclusive, ie the element
    *     at this rank will not be fetched. Defaults to null, which fetches up until and including
    *     the last element.
+   * @param order - The order to fetch the elements in. Defaults to ascending.
    * @return Future containing the result of the fetch operation.
    */
   public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
       String cacheName,
       String sortedSetName,
       @Nullable Integer startRank,
-      @Nullable Integer endRank) {
-    return scsDataClient.sortedSetFetchByRank(cacheName, sortedSetName, startRank, endRank);
+      @Nullable Integer endRank,
+      @Nullable SortOrder order) {
+    return scsDataClient.sortedSetFetchByRank(cacheName, sortedSetName, startRank, endRank, order);
   }
 
   /**
@@ -847,7 +850,7 @@ public final class CacheClient implements Closeable {
    */
   public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
       String cacheName, String sortedSetName) {
-    return scsDataClient.sortedSetFetchByRank(cacheName, sortedSetName, null, null);
+    return scsDataClient.sortedSetFetchByRank(cacheName, sortedSetName, null, null, null);
   }
 
   /**
@@ -859,6 +862,7 @@ public final class CacheClient implements Closeable {
    *     infinity.
    * @param maxScore - The maximum score (inclusive) of the elements to fetch. Defaults to positive
    *     infinity.
+   * @param order - The order to fetch the elements in. Defaults to ascending.
    * @param offset - The number of elements to skip before returning the first element. Defaults to
    *     0. Note: this is not the rank of the first element to return, but the number of elements of
    *     the result set to skip before returning the first element.
@@ -870,10 +874,11 @@ public final class CacheClient implements Closeable {
       String sortedSetName,
       @Nullable Double minScore,
       @Nullable Double maxScore,
+      @Nullable SortOrder order,
       @Nullable Integer offset,
       @Nullable Integer count) {
     return scsDataClient.sortedSetFetchByScore(
-        cacheName, sortedSetName, minScore, maxScore, offset, count);
+        cacheName, sortedSetName, minScore, maxScore, order, offset, count);
   }
 
   /**
@@ -889,7 +894,8 @@ public final class CacheClient implements Closeable {
    */
   public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
       String cacheName, String sortedSetName, @Nullable Integer offset, @Nullable Integer count) {
-    return scsDataClient.sortedSetFetchByScore(cacheName, sortedSetName, null, null, offset, count);
+    return scsDataClient.sortedSetFetchByScore(
+        cacheName, sortedSetName, null, null, null, offset, count);
   }
 
   /**

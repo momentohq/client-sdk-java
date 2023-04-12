@@ -3,8 +3,6 @@ package momento.sdk.messages;
 import grpc.cache_client._SortedSetElement;
 import java.util.Base64;
 import java.util.List;
-import java.util.NavigableSet;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.internal.StringHelpers;
@@ -26,16 +24,15 @@ public interface CacheSortedSetFetchResponse {
     }
 
     /**
-     * Gets a navigable set of the retrieved elements and their scores. The set is in ascending
-     * order by default and can be viewed in descending order with {@link
-     * NavigableSet#descendingSet()}.
+     * Gets a list of the retrieved elements and their scores. The set is ordered by the {@link
+     * SortOrder} used in the fetch method call or ascending if no order was specified.
      *
-     * @return An ordered set of elements to scores
+     * @return An ordered list of elements and their scores
      */
-    public NavigableSet<ScoredElement> elementsSet() {
+    public List<ScoredElement> elementsList() {
       return elements.stream()
           .map(e -> new ScoredElement(e.getValue(), e.getScore()))
-          .collect(Collectors.toCollection(TreeSet::new));
+          .collect(Collectors.toList());
     }
 
     /**
