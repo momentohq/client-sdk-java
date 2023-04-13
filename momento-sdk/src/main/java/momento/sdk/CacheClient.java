@@ -40,6 +40,7 @@ import momento.sdk.messages.CacheSetRemoveElementResponse;
 import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CacheSortedSetFetchResponse;
+import momento.sdk.messages.CacheSortedSetGetRankResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
 import momento.sdk.messages.CreateCacheResponse;
@@ -896,6 +897,36 @@ public final class CacheClient implements Closeable {
       String cacheName, String sortedSetName, @Nullable Integer offset, @Nullable Integer count) {
     return scsDataClient.sortedSetFetchByScore(
         cacheName, sortedSetName, null, null, null, offset, count);
+  }
+
+  /**
+   * Look up the rank of an element in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose rank we are retrieving.
+   * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
+   *     ascending, i.e. the rank of the element with the lowest score will be 0.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+      String cacheName, String sortedSetName, String element, @Nullable SortOrder order) {
+    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element, order);
+  }
+
+  /**
+   * Look up the rank of an element in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose rank we are retrieving.
+   * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
+   *     ascending, i.e. the rank of the element with the lowest score will be 0.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+      String cacheName, String sortedSetName, byte[] element, @Nullable SortOrder order) {
+    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element, order);
   }
 
   /**

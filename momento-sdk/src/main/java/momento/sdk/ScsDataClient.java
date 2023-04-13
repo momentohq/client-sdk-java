@@ -70,6 +70,8 @@ import grpc.cache_client._SetUnionResponse;
 import grpc.cache_client._SortedSetElement;
 import grpc.cache_client._SortedSetFetchRequest;
 import grpc.cache_client._SortedSetFetchResponse;
+import grpc.cache_client._SortedSetGetRankRequest;
+import grpc.cache_client._SortedSetGetRankResponse;
 import grpc.cache_client._SortedSetPutRequest;
 import grpc.cache_client._SortedSetPutResponse;
 import grpc.cache_client._Unbounded;
@@ -83,6 +85,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -119,6 +123,7 @@ import momento.sdk.messages.CacheSetRemoveElementResponse;
 import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CacheSortedSetFetchResponse;
+import momento.sdk.messages.CacheSortedSetGetRankResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
 import momento.sdk.messages.SortOrder;
@@ -562,6 +567,34 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+      String cacheName, String sortedSetName, String element, @Nullable SortOrder order) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(element), order);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+      String cacheName, String sortedSetName, byte[] element, @Nullable SortOrder order) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(element), order);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1896,6 +1929,32 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private CompletableFuture<CacheSortedSetGetRankResponse> sendSortedSetGetRank(
+      String cacheName, ByteString sortedSetName, ByteString element, @Nullable SortOrder order) {
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_SortedSetGetRankResponse>> rspSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .sortedSetGetRank(buildSortedSetGetRank(sortedSetName, element, order));
+
+    final Function<_SortedSetGetRankResponse, CacheSortedSetGetRankResponse> success =
+        rsp -> {
+          if (rsp.hasElementRank()) {
+            return new CacheSortedSetGetRankResponse.Hit(rsp.getElementRank().getRank());
+          } else {
+            return new CacheSortedSetGetRankResponse.Miss();
+          }
+        };
+
+    final Function<Throwable, CacheSortedSetGetRankResponse> failure =
+        e ->
+            new CacheSortedSetGetRankResponse.Error(
+                CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(rspSupplier, success, failure);
+  }
+
   private CompletableFuture<CacheListConcatenateBackResponse> sendListConcatenateBack(
       String cacheName,
       ByteString listName,
@@ -2760,6 +2819,46 @@ final class ScsDataClient implements Closeable {
     return returnFuture;
   }
 
+  private <SdkResponse, GrpcResponse> CompletableFuture<SdkResponse> executeGrpcFunction(
+      Supplier<ListenableFuture<GrpcResponse>> rpcSupplier,
+      Function<GrpcResponse, SdkResponse> successFunction,
+      Function<Throwable, SdkResponse> errorFunction) {
+
+    // Submit request to non-blocking stub
+    final ListenableFuture<GrpcResponse> rspFuture = rpcSupplier.get();
+
+    // Build a CompletableFuture to return to caller
+    final CompletableFuture<SdkResponse> returnFuture =
+        new CompletableFuture<SdkResponse>() {
+          @Override
+          public boolean cancel(boolean mayInterruptIfRunning) {
+            // propagate cancel to the listenable future if called on returned completable future
+            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+            super.cancel(mayInterruptIfRunning);
+            return result;
+          }
+        };
+
+    // Convert returned ListenableFuture to CompletableFuture
+    Futures.addCallback(
+        rspFuture,
+        new FutureCallback<GrpcResponse>() {
+          @Override
+          public void onSuccess(GrpcResponse rsp) {
+            returnFuture.complete(successFunction.apply(rsp));
+          }
+
+          @Override
+          public void onFailure(@Nonnull Throwable e) {
+            returnFuture.complete(errorFunction.apply(e));
+          }
+        },
+        // Execute on same thread that called execute on CompletionStage
+        MoreExecutors.directExecutor());
+
+    return returnFuture;
+  }
+
   private static Metadata metadataWithCache(String cacheName) {
     final Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
@@ -2876,10 +2975,10 @@ final class ScsDataClient implements Closeable {
             .setWithScores(true)
             .setByIndex(indexBuilder);
 
-    if (order == SortOrder.ASCENDING) {
-      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
-    } else if (order == SortOrder.DESCENDING) {
+    if (order == SortOrder.DESCENDING) {
       requestBuilder.setOrder(_SortedSetFetchRequest.Order.DESCENDING);
+    } else {
+      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
     }
 
     return requestBuilder.build();
@@ -2924,10 +3023,24 @@ final class ScsDataClient implements Closeable {
             .setWithScores(true)
             .setByScore(scoreBuilder);
 
-    if (order == SortOrder.ASCENDING) {
-      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
-    } else if (order == SortOrder.DESCENDING) {
+    if (order == SortOrder.DESCENDING) {
       requestBuilder.setOrder(_SortedSetFetchRequest.Order.DESCENDING);
+    } else {
+      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
+    }
+
+    return requestBuilder.build();
+  }
+
+  private _SortedSetGetRankRequest buildSortedSetGetRank(
+      ByteString sortedSetName, ByteString element, @Nullable SortOrder order) {
+    final _SortedSetGetRankRequest.Builder requestBuilder =
+        _SortedSetGetRankRequest.newBuilder().setSetName(sortedSetName).setValue(element);
+
+    if (order == SortOrder.DESCENDING) {
+      requestBuilder.setOrder(_SortedSetGetRankRequest.Order.DESCENDING);
+    } else {
+      requestBuilder.setOrder(_SortedSetGetRankRequest.Order.ASCENDING);
     }
 
     return requestBuilder.build();
