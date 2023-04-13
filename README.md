@@ -90,8 +90,8 @@ Here is a quickstart you can use in your own project:
 ```kotlin
 package momento.client.example;
 
-import java.util.Optional;
-import momento.sdk.SimpleCacheClient;
+import java.time.Duration;
+import momento.sdk.CacheClient;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheInfo;
@@ -103,48 +103,54 @@ public class MomentoCacheApplication {
   private static final String CACHE_NAME = "cache";
   private static final String KEY = "key";
   private static final String VALUE = "value";
-  private static final int DEFAULT_ITEM_TTL_SECONDS = 60;
+  private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   public static void main(String[] args) {
     printStartBanner();
-    try (SimpleCacheClient simpleCacheClient =
-        SimpleCacheClient.builder(MOMENTO_AUTH_TOKEN, DEFAULT_ITEM_TTL_SECONDS).build()) {
+    try (final CacheClient cacheClient =
+        CacheClient.builder(MOMENTO_AUTH_TOKEN, DEFAULT_ITEM_TTL).build()) {
 
-      createCache(simpleCacheClient, CACHE_NAME);
+      createCache(cacheClient, CACHE_NAME);
 
-      listCaches(simpleCacheClient);
+      listCaches(cacheClient);
 
-      System.out.println(String.format("Setting key=`%s` , value=`%s`", KEY, VALUE));
-      simpleCacheClient.set(CACHE_NAME, KEY, VALUE);
+      System.out.printf("Setting key '%s', value '%s'%n", KEY, VALUE);
+      cacheClient.set(CACHE_NAME, KEY, VALUE).join();
 
-      System.out.println(String.format("Getting value for key=`%s`", KEY));
+      System.out.printf("Getting value for key '%s'%n", KEY);
 
-      CacheGetResponse getResponse = simpleCacheClient.get(CACHE_NAME, KEY);
-      System.out.println(String.format("Lookup resulted in: `%s`", getResponse.status()));
-      System.out.println(
-          String.format("Looked up value=`%s`", getResponse.string().orElse("NOT FOUND")));
+      final CacheGetResponse getResponse = cacheClient.get(CACHE_NAME, KEY).join();
+      if (getResponse instanceof CacheGetResponse.Hit hit) {
+        System.out.printf("Found value for key '%s': '%s'%n", KEY, hit.valueString());
+      } else if (getResponse instanceof CacheGetResponse.Miss) {
+        System.out.println("Found no value for key " + KEY);
+      } else if (getResponse instanceof CacheGetResponse.Error error) {
+        System.out.printf("Error occurred when looking up value for key '%s':%n", KEY);
+        System.out.println(error.getMessage());
+      }
     }
     printEndBanner();
   }
 
-  private static void createCache(SimpleCacheClient simpleCacheClient, String cacheName) {
+  private static void createCache(CacheClient cacheClient, String cacheName) {
     try {
-      simpleCacheClient.createCache(cacheName);
+      cacheClient.createCache(cacheName);
     } catch (AlreadyExistsException e) {
-      System.out.println(String.format("Cache with name `%s` already exists.", cacheName));
+      System.out.printf("Cache with name '%s' already exists.%n", cacheName);
     }
   }
 
-  private static void listCaches(SimpleCacheClient simpleCacheClient) {
+  private static void listCaches(CacheClient cacheClient) {
     System.out.println("Listing caches:");
-    Optional<String> token = Optional.empty();
-    do {
-      ListCachesResponse listCachesResponse = simpleCacheClient.listCaches(token);
-      for (CacheInfo cacheInfo : listCachesResponse.caches()) {
+    final ListCachesResponse listCachesResponse = cacheClient.listCaches();
+    if (listCachesResponse instanceof ListCachesResponse.Success success) {
+      for (CacheInfo cacheInfo : success.getCaches()) {
         System.out.println(cacheInfo.name());
       }
-      token = listCachesResponse.nextPageToken();
-    } while (token.isPresent());
+    } else if (listCachesResponse instanceof ListCachesResponse.Error error) {
+      System.out.println("Error occurred listing caches:");
+      System.out.println(error.getMessage());
+    }
   }
 
   private static void printStartBanner() {
