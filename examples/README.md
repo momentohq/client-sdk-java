@@ -57,10 +57,6 @@ Update your Gradle build to include the components
 **build.gradle.kts**
 
 ```kotlin
-repositories {
-    maven("https://momento.jfrog.io/artifactory/maven-public")
-}
-
 dependencies {
     implementation("software.momento.java:sdk:0.24.0")
 }

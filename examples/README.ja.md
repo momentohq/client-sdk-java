@@ -7,11 +7,11 @@ _他言語もあります_: [English](README.md)
 ## SDK コード例を実行する
 
 - Gradle のインストールは必要ありません。
-- このコード例を実行するには JDK 11 もしくはそれ以上が必要です。
+- このコード例を実行するには JDK 14 もしくはそれ以上が必要です。
 - Momento オーストークンが必要です。トークン発行は[Momento CLI](https://github.com/momentohq/momento-cli)から行えます。
 
 ```bash
-MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew run
+MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew basic
 ```
 
 SDK コード例: [MomentoApplication.java](lib/src/main/java/momento/client/example/BasicExample.java)
@@ -25,11 +25,7 @@ SDK コード例: [MomentoApplication.java](lib/src/main/java/momento/client/exa
 **build.gradle.kts**
 
 ```kotlin
-repositories {
-    maven("https://momento.jfrog.io/artifactory/maven-public")
-}
-
 dependencies {
-    implementation("momento.sandbox:momento-sdk:0.18.0")
+    implementation("softwaremomento.java:sdk:0.24.0")
 }
 ```

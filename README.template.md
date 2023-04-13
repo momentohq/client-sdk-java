@@ -4,7 +4,8 @@
 
 ### Requirements
 
-- A Momento Auth Token is required, you can generate one using the [Momento CLI](https://github.com/momentohq/momento-cli)
+- A Momento Auth Token is required, you can generate one using
+  the [Momento CLI](https://github.com/momentohq/momento-cli)
 - At least the java 8 run time installed
 - mvn or gradle for downloading the sdk
 
@@ -15,45 +16,32 @@ how to use the SDK.
 
 ### Installation
 
-Gradle
+#### Gradle
 
-Add our mvn repository to your `gradle.build.kts` file and sdk as a dependency
+Add our dependency to your `gradle.build.kts`
 
 ```kotlin
 buildscript {
-    repositories {
-        mavenCentral()
-        
-        maven("https://momento.jfrog.io/artifactory/maven-public")
-    }
-
     dependencies {
-            implementation("momento.sandbox:momento-sdk:0.20.0")
+        implementation("software.momento.java:sdk:0.24.0")
     }
 }
 ```
 
-Maven
+#### Maven
 
-Add our mvn repository to your `pom.xml` file and sdk as a dependency
+Add our dependency your `pom.xml`
 
 ```xml
 
 <project>
     ...
-    <repositories>
-        <repository>
-            <id>momento-sdk</id>
-            <url>https://momento.jfrog.io/artifactory/maven-public</url>
-        </repository>
-    </repositories>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>momento.sandbox</groupId>
-                <artifactId>momento-sdk</artifactId>
-                <version>0.20.0</version>
+                <groupId>software.momento.java</groupId>
+                <artifactId>sdk</artifactId>
+                <version>0.24.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -67,16 +55,33 @@ Checkout our [examples](./examples/README.md) directory for complete examples of
 
 Here is a quickstart you can use in your own project:
 
-```kotlin
-{{ usageExampleCode }}
+```java
+{{usageExampleCode}}
 ```
 
 ### Error Handling
 
-Coming soon
+The SDK will only throw exceptions from errors encountered when setting up a client. All errors that occur when calling
+the client methods will result in an error response. All methods have an `Error` response subclass alongside the other
+response types they can return.
+
+Here is an example of how the response can be matched to different outcomes:
+
+```java
+final CacheListFetchResponse fetchResponse=client.listFetch(...).join();
+if (fetchResponse instanceof CacheListFetchResponse.Hit hit) {
+  // A successful call that returned a result.
+} else if(fetchResponse instanceof CacheListFetchResponse.Miss miss) {
+  // A successful call that didn't find anything
+}else if(fetchResponse instanceof CacheListFetchResponse.Error error) {
+  // An error result. It is an exception and can be thrown if desired.
+}
+```
 
 ### Tuning
 
-Coming soon
+SDK tuning is done through the Configuration object passed into the client builder. Preset Configuration objects for
+different environments are defined
+in [Configurations](momento-sdk/src/main/java/momento/sdk/config/Configurations.java).
 
 {{ ossFooter }}
