@@ -39,6 +39,9 @@ import momento.sdk.messages.CacheSetIfNotExistsResponse;
 import momento.sdk.messages.CacheSetRemoveElementResponse;
 import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.messages.CacheSetResponse;
+import momento.sdk.messages.CacheSortedSetFetchResponse;
+import momento.sdk.messages.CacheSortedSetPutElementResponse;
+import momento.sdk.messages.CacheSortedSetPutElementsResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
 import momento.sdk.messages.DeleteCacheResponse;
@@ -46,6 +49,7 @@ import momento.sdk.messages.FlushCacheResponse;
 import momento.sdk.messages.ListCachesResponse;
 import momento.sdk.messages.ListSigningKeysResponse;
 import momento.sdk.messages.RevokeSigningKeyResponse;
+import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
 
 /** Client to perform operations against the Momento Cache Service */
@@ -675,6 +679,223 @@ public final class CacheClient implements Closeable {
    */
   public CompletableFuture<CacheSetFetchResponse> setFetch(String cacheName, String setName) {
     return scsDataClient.setFetch(cacheName, setName);
+  }
+
+  /**
+   * Adds an element to the given sorted set. If the element already exists, its score is updated.
+   * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param element - The element to add.
+   * @param score - The score to assign to the element.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the put element operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+      String cacheName,
+      String sortedSetName,
+      String element,
+      double score,
+      @Nullable CollectionTtl ttl) {
+    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, element, score, ttl);
+  }
+
+  /**
+   * Adds an element to the given sorted set. If the element already exists, its score is updated.
+   * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param element - The element to add.
+   * @param score - The score to assign to the element.
+   * @return Future containing the result of the put element operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+      String cacheName, String sortedSetName, String element, double score) {
+    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, element, score, null);
+  }
+
+  /**
+   * Adds an element to the given sorted set. If the element already exists, its score is updated.
+   * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param element - The element to add.
+   * @param score - The score to assign to the element.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the put element operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+      String cacheName,
+      String sortedSetName,
+      byte[] element,
+      double score,
+      @Nullable CollectionTtl ttl) {
+    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, element, score, ttl);
+  }
+
+  /**
+   * Adds an element to the given sorted set. If the element already exists, its score is updated.
+   * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param element - The element to add.
+   * @param score - The score to assign to the element.
+   * @return Future containing the result of the put element operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+      String cacheName, String sortedSetName, byte[] element, double score) {
+    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, element, score, null);
+  }
+
+  /**
+   * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
+   * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param elements - The value to score map to add to the sorted set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the put elements operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+      String cacheName,
+      String sortedSetName,
+      Map<String, Double> elements,
+      @Nullable CollectionTtl ttl) {
+    return scsDataClient.sortedSetPutElements(cacheName, sortedSetName, elements, ttl);
+  }
+
+  /**
+   * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
+   * * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param elements - The value to score map to add to the sorted set.
+   * @return Future containing the result of the put elements operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+      String cacheName, String sortedSetName, Map<String, Double> elements) {
+    return scsDataClient.sortedSetPutElements(cacheName, sortedSetName, elements, null);
+  }
+
+  /**
+   * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
+   * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param elements - The value to score map to add to the sorted set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the put elements operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElementsByteArray(
+      String cacheName,
+      String sortedSetName,
+      Map<byte[], Double> elements,
+      @Nullable CollectionTtl ttl) {
+    return scsDataClient.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements, ttl);
+  }
+
+  /**
+   * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
+   * * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param elements - The value to score map to add to the sorted set.
+   * @return Future containing the result of the put elements operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElementsByteArray(
+      String cacheName, String sortedSetName, Map<byte[], Double> elements) {
+    return scsDataClient.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements, null);
+  }
+
+  /**
+   * Fetch the elements in the given sorted set by index (rank).
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param startRank - The rank of the first element to fetch. Defaults to 0. This rank is
+   *     inclusive, i.e. the element at this rank will be fetched.
+   * @param endRank - The rank of the last element to fetch. This rank is exclusive, ie the element
+   *     at this rank will not be fetched. Defaults to null, which fetches up until and including
+   *     the last element.
+   * @param order - The order to fetch the elements in. Defaults to ascending.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
+      String cacheName,
+      String sortedSetName,
+      @Nullable Integer startRank,
+      @Nullable Integer endRank,
+      @Nullable SortOrder order) {
+    return scsDataClient.sortedSetFetchByRank(cacheName, sortedSetName, startRank, endRank, order);
+  }
+
+  /**
+   * Fetch all elements in the given sorted set by index (rank) in ascending order.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
+      String cacheName, String sortedSetName) {
+    return scsDataClient.sortedSetFetchByRank(cacheName, sortedSetName, null, null, null);
+  }
+
+  /**
+   * Fetch the elements in the given sorted set by score.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param minScore - The minimum score (inclusive) of the elements to fetch. Defaults to negative
+   *     infinity.
+   * @param maxScore - The maximum score (inclusive) of the elements to fetch. Defaults to positive
+   *     infinity.
+   * @param order - The order to fetch the elements in. Defaults to ascending.
+   * @param offset - The number of elements to skip before returning the first element. Defaults to
+   *     0. Note: this is not the rank of the first element to return, but the number of elements of
+   *     the result set to skip before returning the first element.
+   * @param count - The maximum number of elements to return. Defaults to all elements.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
+      String cacheName,
+      String sortedSetName,
+      @Nullable Double minScore,
+      @Nullable Double maxScore,
+      @Nullable SortOrder order,
+      @Nullable Integer offset,
+      @Nullable Integer count) {
+    return scsDataClient.sortedSetFetchByScore(
+        cacheName, sortedSetName, minScore, maxScore, order, offset, count);
+  }
+
+  /**
+   * Fetch all elements in the given sorted set by score in ascending order.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param offset - The number of elements to skip before returning the first element. Defaults to
+   *     0. Note: this is not the rank of the first element to return, but the number of elements of
+   *     the result set to skip before returning the first element.
+   * @param count - The maximum number of elements to return. Defaults to all elements.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
+      String cacheName, String sortedSetName, @Nullable Integer offset, @Nullable Integer count) {
+    return scsDataClient.sortedSetFetchByScore(
+        cacheName, sortedSetName, null, null, null, offset, count);
   }
 
   /**
