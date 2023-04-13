@@ -4,11 +4,12 @@ import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
@@ -728,7 +729,7 @@ public class SortedSetTest {
   public void sortedSetGetScoresStringHappyPath() {
     final String one = "1";
     final String two = "2";
-    final List<String> elements = new ArrayList<>();
+    final Set<String> elements = new HashSet<>();
     elements.add(one);
     elements.add(two);
 
@@ -773,14 +774,14 @@ public class SortedSetTest {
 
   @Test
   public void sortedSetGetScoresReturnsErrorWithNullCacheName() {
-    assertThat(client.sortedSetGetScores(null, sortedSetName, Collections.singletonList("element")))
+    assertThat(client.sortedSetGetScores(null, sortedSetName, Collections.singleton("element")))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
             client.sortedSetGetScoresByteArray(
-                null, sortedSetName, Collections.singletonList("element".getBytes())))
+                null, sortedSetName, Collections.singleton("element".getBytes())))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -790,16 +791,14 @@ public class SortedSetTest {
   public void sortedSetGetScoresReturnsErrorWithNonexistentCacheName() {
     assertThat(
             client.sortedSetGetScores(
-                randomString("cache"), sortedSetName, Collections.singletonList("element")))
+                randomString("cache"), sortedSetName, Collections.singleton("element")))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
 
     assertThat(
             client.sortedSetGetScoresByteArray(
-                randomString("cache"),
-                sortedSetName,
-                Collections.singletonList("element".getBytes())))
+                randomString("cache"), sortedSetName, Collections.singleton("element".getBytes())))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
@@ -807,14 +806,14 @@ public class SortedSetTest {
 
   @Test
   public void sortedSetGetScoresReturnsErrorWithNullSetName() {
-    assertThat(client.sortedSetGetScores(cacheName, null, Collections.singletonList("element")))
+    assertThat(client.sortedSetGetScores(cacheName, null, Collections.singleton("element")))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
             client.sortedSetGetScoresByteArray(
-                cacheName, null, Collections.singletonList("element".getBytes())))
+                cacheName, null, Collections.singleton("element".getBytes())))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));

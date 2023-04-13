@@ -967,7 +967,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the get scores operation.
    */
   public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
-      String cacheName, String sortedSetName, List<String> elements) {
+      String cacheName, String sortedSetName, Set<String> elements) {
     return scsDataClient.sortedSetGetScores(cacheName, sortedSetName, elements);
   }
 
@@ -980,7 +980,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the get scores operation.
    */
   public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
-      String cacheName, String sortedSetName, List<byte[]> elements) {
+      String cacheName, String sortedSetName, Set<byte[]> elements) {
     return scsDataClient.sortedSetGetScoresByteArray(cacheName, sortedSetName, elements);
   }
 

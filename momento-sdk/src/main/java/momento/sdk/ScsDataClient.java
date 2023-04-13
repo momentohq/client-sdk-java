@@ -637,13 +637,28 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
-      String cacheName, String sortedSetName, List<String> elements) {
+      String cacheName, String sortedSetName, Set<String> elements) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
       ensureValidValue(elements);
 
-      return sendSortedSetGetScores(cacheName, convert(sortedSetName), convertStringList(elements));
+      return sendSortedSetGetScores(cacheName, convert(sortedSetName), convertStringSet(elements));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
+      String cacheName, String sortedSetName, Set<byte[]> elements) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(elements);
+
+      return sendSortedSetGetScores(
+          cacheName, convert(sortedSetName), convertByteArraySet(elements));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -693,21 +708,6 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
-      String cacheName, String sortedSetName, List<byte[]> elements) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
-      ensureValidValue(elements);
-
-      return sendSortedSetGetScores(
-          cacheName, convert(sortedSetName), convertByteArrayList(elements));
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -2113,13 +2113,18 @@ final class ScsDataClient implements Closeable {
   }
 
   private CompletableFuture<CacheSortedSetGetScoresResponse> sendSortedSetGetScores(
-      String cacheName, ByteString sortedSetName, List<ByteString> elements) {
+      String cacheName, ByteString sortedSetName, Set<ByteString> elements) {
+
+    // We need to know the order of the elements so that we can
+    // match them up with the values returned from the server.
+    final List<ByteString> orderedElements = new ArrayList<>(elements);
+
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_SortedSetGetScoreResponse>> stubSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-                .sortedSetGetScore(buildSortedSetGetScores(sortedSetName, elements));
+                .sortedSetGetScore(buildSortedSetGetScores(sortedSetName, orderedElements));
 
     final Function<_SortedSetGetScoreResponse, CacheSortedSetGetScoresResponse> success =
         rsp -> {
@@ -2132,9 +2137,10 @@ final class ScsDataClient implements Closeable {
               final _SortedSetGetScoreResponse._SortedSetGetScoreResponsePart part = scores.get(i);
               if (part.getResult().equals(ECacheResult.Hit)) {
                 scoreResponses.add(
-                    new CacheSortedSetGetScoreResponse.Hit(elements.get(i), part.getScore()));
+                    new CacheSortedSetGetScoreResponse.Hit(
+                        orderedElements.get(i), part.getScore()));
               } else if (part.getResult().equals(ECacheResult.Miss)) {
-                scoreResponses.add(new CacheSortedSetGetScoreResponse.Miss(elements.get(i)));
+                scoreResponses.add(new CacheSortedSetGetScoreResponse.Miss(orderedElements.get(i)));
               } else {
                 scoreResponses.add(
                     new CacheSortedSetGetScoreResponse.Error(
