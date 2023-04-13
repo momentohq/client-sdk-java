@@ -74,6 +74,8 @@ import grpc.cache_client._SortedSetGetRankRequest;
 import grpc.cache_client._SortedSetGetRankResponse;
 import grpc.cache_client._SortedSetGetScoreRequest;
 import grpc.cache_client._SortedSetGetScoreResponse;
+import grpc.cache_client._SortedSetIncrementRequest;
+import grpc.cache_client._SortedSetIncrementResponse;
 import grpc.cache_client._SortedSetPutRequest;
 import grpc.cache_client._SortedSetPutResponse;
 import grpc.cache_client._Unbounded;
@@ -131,6 +133,7 @@ import momento.sdk.messages.CacheSortedSetFetchResponse;
 import momento.sdk.messages.CacheSortedSetGetRankResponse;
 import momento.sdk.messages.CacheSortedSetGetScoreResponse;
 import momento.sdk.messages.CacheSortedSetGetScoresResponse;
+import momento.sdk.messages.CacheSortedSetIncrementScoreResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
 import momento.sdk.messages.SortOrder;
@@ -644,6 +647,52 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+      String cacheName,
+      String sortedSetName,
+      String element,
+      double amount,
+      @Nullable CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendSortedSetIncrementScore(
+          cacheName, convert(sortedSetName), convert(element), amount, ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+      String cacheName,
+      String sortedSetName,
+      byte[] element,
+      double amount,
+      @Nullable CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendSortedSetIncrementScore(
+          cacheName, convert(sortedSetName), convert(element), amount, ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -2106,6 +2155,30 @@ final class ScsDataClient implements Closeable {
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
+  private CompletableFuture<CacheSortedSetIncrementScoreResponse> sendSortedSetIncrementScore(
+      String cacheName,
+      ByteString sortedSetName,
+      ByteString element,
+      double amount,
+      CollectionTtl ttl) {
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_SortedSetIncrementResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .sortedSetIncrement(buildSortedSetIncrement(sortedSetName, element, amount, ttl));
+
+    final Function<_SortedSetIncrementResponse, CacheSortedSetIncrementScoreResponse> success =
+        rsp -> new CacheSortedSetIncrementScoreResponse.Success(rsp.getScore());
+
+    final Function<Throwable, CacheSortedSetIncrementScoreResponse> failure =
+        e ->
+            new CacheSortedSetIncrementScoreResponse.Error(
+                CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
   private CompletableFuture<CacheListConcatenateBackResponse> sendListConcatenateBack(
       String cacheName,
       ByteString listName,
@@ -3202,6 +3275,17 @@ final class ScsDataClient implements Closeable {
     return _SortedSetGetScoreRequest.newBuilder()
         .setSetName(sortedSetName)
         .addAllValues(elements)
+        .build();
+  }
+
+  private _SortedSetIncrementRequest buildSortedSetIncrement(
+      ByteString sortedSetName, ByteString element, double amount, CollectionTtl ttl) {
+    return _SortedSetIncrementRequest.newBuilder()
+        .setSetName(sortedSetName)
+        .setValue(element)
+        .setAmount(amount)
+        .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
+        .setRefreshTtl(ttl.refreshTtl())
         .build();
   }
 

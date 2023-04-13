@@ -43,6 +43,7 @@ import momento.sdk.messages.CacheSortedSetFetchResponse;
 import momento.sdk.messages.CacheSortedSetGetRankResponse;
 import momento.sdk.messages.CacheSortedSetGetScoreResponse;
 import momento.sdk.messages.CacheSortedSetGetScoresResponse;
+import momento.sdk.messages.CacheSortedSetIncrementScoreResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
 import momento.sdk.messages.CreateCacheResponse;
@@ -909,7 +910,7 @@ public final class CacheClient implements Closeable {
    * @param element - The element whose rank we are retrieving.
    * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
    *     ascending, i.e. the rank of the element with the lowest score will be 0.
-   * @return Future containing the result of the fetch operation.
+   * @return Future containing the result of the get rank operation.
    */
   public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
       String cacheName, String sortedSetName, String element, @Nullable SortOrder order) {
@@ -924,7 +925,7 @@ public final class CacheClient implements Closeable {
    * @param element - The element whose rank we are retrieving.
    * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
    *     ascending, i.e. the rank of the element with the lowest score will be 0.
-   * @return Future containing the result of the fetch operation.
+   * @return Future containing the result of the get rank operation.
    */
   public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
       String cacheName, String sortedSetName, byte[] element, @Nullable SortOrder order) {
@@ -937,7 +938,7 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
    * @param element - The element whose score we are retrieving.
-   * @return Future containing the result of the fetch operation.
+   * @return Future containing the result of the get score operation.
    */
   public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
       String cacheName, String sortedSetName, String element) {
@@ -950,7 +951,7 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
    * @param element - The element whose score we are retrieving.
-   * @return Future containing the result of the fetch operation.
+   * @return Future containing the result of the get score operation.
    */
   public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
       String cacheName, String sortedSetName, byte[] element) {
@@ -963,7 +964,7 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
    * @param elements - The elements whose scores we are retrieving.
-   * @return Future containing the result of the fetch operation.
+   * @return Future containing the result of the get scores operation.
    */
   public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
       String cacheName, String sortedSetName, List<String> elements) {
@@ -976,11 +977,79 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
    * @param elements - The elements whose scores we are retrieving.
-   * @return Future containing the result of the fetch operation.
+   * @return Future containing the result of the get scores operation.
    */
   public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
       String cacheName, String sortedSetName, List<byte[]> elements) {
     return scsDataClient.sortedSetGetScoresByteArray(cacheName, sortedSetName, elements);
+  }
+
+  /**
+   * Increment the score of an element in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose score we are incrementing.
+   * @param amount - The quantity to add to the score. May be positive, negative, or zero.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the increment operation.
+   */
+  public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+      String cacheName,
+      String sortedSetName,
+      String element,
+      double amount,
+      @Nullable CollectionTtl ttl) {
+    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, element, amount, ttl);
+  }
+
+  /**
+   * Increment the score of an element in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose score we are incrementing.
+   * @param amount - The quantity to add to the score. May be positive, negative, or zero.
+   * @return Future containing the result of the increment operation.
+   */
+  public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+      String cacheName, String sortedSetName, String element, double amount) {
+    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, element, amount, null);
+  }
+
+  /**
+   * Increment the score of an element in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose score we are incrementing.
+   * @param amount - The quantity to add to the score. May be positive, negative, or zero.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the increment operation.
+   */
+  public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+      String cacheName,
+      String sortedSetName,
+      byte[] element,
+      double amount,
+      @Nullable CollectionTtl ttl) {
+    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, element, amount, ttl);
+  }
+
+  /**
+   * Increment the score of an element in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose score we are incrementing.
+   * @param amount - The quantity to add to the score. May be positive, negative, or zero.
+   * @return Future containing the result of the increment operation.
+   */
+  public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+      String cacheName, String sortedSetName, byte[] element, double amount) {
+    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, element, amount, null);
   }
 
   /**

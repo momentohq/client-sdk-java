@@ -18,6 +18,7 @@ import momento.sdk.messages.CacheSortedSetFetchResponse;
 import momento.sdk.messages.CacheSortedSetGetRankResponse;
 import momento.sdk.messages.CacheSortedSetGetScoreResponse;
 import momento.sdk.messages.CacheSortedSetGetScoresResponse;
+import momento.sdk.messages.CacheSortedSetIncrementScoreResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
 import momento.sdk.messages.ScoredElement;
@@ -829,6 +830,160 @@ public class SortedSetTest {
     assertThat(client.sortedSetGetScoresByteArray(cacheName, sortedSetName, null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  // sortedSetIncrementScore
+
+  @Test
+  public void sortedSetIncrementScoreStringHappyPath() {
+    final String one = "1";
+
+    assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, 1.0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .satisfies(success -> assertThat(success.score()).isEqualTo(1.0));
+
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.elementsList())
+                    .hasSize(1)
+                    .map(ScoredElement::getScore)
+                    .containsOnly(1.0));
+
+    assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, 14.5))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .satisfies(success -> assertThat(success.score()).isEqualTo(15.5));
+
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.elementsList())
+                    .hasSize(1)
+                    .map(ScoredElement::getScore)
+                    .containsOnly(15.5));
+
+    assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, -115.5))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .satisfies(success -> assertThat(success.score()).isEqualTo(-100));
+  }
+
+  @Test
+  public void sortedSetIncrementScoreBytesHappyPath() {
+    final byte[] one = "1".getBytes();
+
+    assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, 1.0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .satisfies(success -> assertThat(success.score()).isEqualTo(1.0));
+
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.elementsList())
+                    .hasSize(1)
+                    .map(ScoredElement::getScore)
+                    .containsOnly(1.0));
+
+    assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, 14.5))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .satisfies(success -> assertThat(success.score()).isEqualTo(15.5));
+
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.elementsList())
+                    .hasSize(1)
+                    .map(ScoredElement::getScore)
+                    .containsOnly(15.5));
+
+    assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, -115.5))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .satisfies(success -> assertThat(success.score()).isEqualTo(-100));
+  }
+
+  @Test
+  public void sortedSetIncrementScoreReturnsErrorWithNullCacheName() {
+    assertThat(client.sortedSetIncrementScore(null, sortedSetName, "element", 1.0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.sortedSetIncrementScore(null, sortedSetName, "element".getBytes(), 1.0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void sortedSetIncrementScoreReturnsErrorWithNonexistentCacheName() {
+    assertThat(client.sortedSetIncrementScore(randomString("cache"), sortedSetName, "element", 1.0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+
+    assertThat(
+            client.sortedSetIncrementScore(
+                randomString("cache"), sortedSetName, "element".getBytes(), 1.0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+  }
+
+  @Test
+  public void sortedSetIncrementScoreReturnsErrorWithNullSetName() {
+    assertThat(client.sortedSetIncrementScore(cacheName, null, "element", 1.0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.sortedSetIncrementScore(cacheName, null, "element".getBytes(), 1.0))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void sortedSetIncrementScoreReturnsErrorWithNullElement() {
+    assertThat(
+            client.sortedSetIncrementScore(
+                cacheName, sortedSetName, (String) null, 1.0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(
+            client.sortedSetIncrementScore(
+                cacheName, sortedSetName, (byte[]) null, 1.0, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 }
