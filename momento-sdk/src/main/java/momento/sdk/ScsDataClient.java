@@ -78,6 +78,8 @@ import grpc.cache_client._SortedSetIncrementRequest;
 import grpc.cache_client._SortedSetIncrementResponse;
 import grpc.cache_client._SortedSetPutRequest;
 import grpc.cache_client._SortedSetPutResponse;
+import grpc.cache_client._SortedSetRemoveRequest;
+import grpc.cache_client._SortedSetRemoveResponse;
 import grpc.cache_client._Unbounded;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
@@ -136,6 +138,8 @@ import momento.sdk.messages.CacheSortedSetGetScoresResponse;
 import momento.sdk.messages.CacheSortedSetIncrementScoreResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
+import momento.sdk.messages.CacheSortedSetRemoveElementResponse;
+import momento.sdk.messages.CacheSortedSetRemoveElementsResponse;
 import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
 
@@ -708,6 +712,64 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
+      String cacheName, String sortedSetName, String element) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(element));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
+      String cacheName, String sortedSetName, byte[] element) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(element));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElements(
+      String cacheName, String sortedSetName, Set<String> elements) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(elements);
+
+      return sendSortedSetRemoveElements(
+          cacheName, convert(sortedSetName), convertStringSet(elements));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
+      String cacheName, String sortedSetName, Set<byte[]> elements) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(elements);
+
+      return sendSortedSetRemoveElements(
+          cacheName, convert(sortedSetName), convertByteArraySet(elements));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -2185,6 +2247,47 @@ final class ScsDataClient implements Closeable {
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
+  private CompletableFuture<CacheSortedSetRemoveElementResponse> sendSortedSetRemoveElement(
+      String cacheName, ByteString sortedSetName, ByteString element) {
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_SortedSetRemoveResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .sortedSetRemove(
+                    buildSortedSetRemove(sortedSetName, Collections.singleton(element)));
+
+    final Function<_SortedSetRemoveResponse, CacheSortedSetRemoveElementResponse> success =
+        rsp -> new CacheSortedSetRemoveElementResponse.Success();
+
+    final Function<Throwable, CacheSortedSetRemoveElementResponse> failure =
+        e ->
+            new CacheSortedSetRemoveElementResponse.Error(
+                CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
+  private CompletableFuture<CacheSortedSetRemoveElementsResponse> sendSortedSetRemoveElements(
+      String cacheName, ByteString sortedSetName, Set<ByteString> elements) {
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_SortedSetRemoveResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .sortedSetRemove(buildSortedSetRemove(sortedSetName, elements));
+
+    final Function<_SortedSetRemoveResponse, CacheSortedSetRemoveElementsResponse> success =
+        rsp -> new CacheSortedSetRemoveElementsResponse.Success();
+
+    final Function<Throwable, CacheSortedSetRemoveElementsResponse> failure =
+        e ->
+            new CacheSortedSetRemoveElementsResponse.Error(
+                CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
   private CompletableFuture<CacheListConcatenateBackResponse> sendListConcatenateBack(
       String cacheName,
       ByteString listName,
@@ -3292,6 +3395,14 @@ final class ScsDataClient implements Closeable {
         .setAmount(amount)
         .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
         .setRefreshTtl(ttl.refreshTtl())
+        .build();
+  }
+
+  private _SortedSetRemoveRequest buildSortedSetRemove(
+      ByteString sortedSetName, Set<ByteString> elements) {
+    return _SortedSetRemoveRequest.newBuilder()
+        .setSetName(sortedSetName)
+        .setSome(_SortedSetRemoveRequest._Some.newBuilder().addAllValues(elements).build())
         .build();
   }
 

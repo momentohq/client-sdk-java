@@ -46,6 +46,8 @@ import momento.sdk.messages.CacheSortedSetGetScoresResponse;
 import momento.sdk.messages.CacheSortedSetIncrementScoreResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
+import momento.sdk.messages.CacheSortedSetRemoveElementResponse;
+import momento.sdk.messages.CacheSortedSetRemoveElementsResponse;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
 import momento.sdk.messages.DeleteCacheResponse;
@@ -1050,6 +1052,58 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
       String cacheName, String sortedSetName, byte[] element, double amount) {
     return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, element, amount, null);
+  }
+
+  /**
+   * Remove an element from a sorted set
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to remove from.
+   * @param element - The element to remove from the set.
+   * @return Future containing the result of the remove operation.
+   */
+  public CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
+      String cacheName, String sortedSetName, String element) {
+    return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, element);
+  }
+
+  /**
+   * Remove an element from a sorted set
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to remove from.
+   * @param element - The element to remove from the set.
+   * @return Future containing the result of the remove operation.
+   */
+  public CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
+      String cacheName, String sortedSetName, byte[] element) {
+    return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, element);
+  }
+
+  /**
+   * Remove elements from a sorted set
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to remove from.
+   * @param elements - The elements to remove from the set.
+   * @return Future containing the result of the remove operation.
+   */
+  public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElements(
+      String cacheName, String sortedSetName, Set<String> elements) {
+    return scsDataClient.sortedSetRemoveElements(cacheName, sortedSetName, elements);
+  }
+
+  /**
+   * Remove elements from a sorted set
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to remove from.
+   * @param elements - The elements to remove from the set.
+   * @return Future containing the result of the remove operation.
+   */
+  public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
+      String cacheName, String sortedSetName, Set<byte[]> elements) {
+    return scsDataClient.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, elements);
   }
 
   /**

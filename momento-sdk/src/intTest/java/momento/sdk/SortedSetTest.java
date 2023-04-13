@@ -3,6 +3,8 @@ package momento.sdk;
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Sets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,6 +24,8 @@ import momento.sdk.messages.CacheSortedSetGetScoresResponse;
 import momento.sdk.messages.CacheSortedSetIncrementScoreResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
+import momento.sdk.messages.CacheSortedSetRemoveElementResponse;
+import momento.sdk.messages.CacheSortedSetRemoveElementsResponse;
 import momento.sdk.messages.ScoredElement;
 import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
@@ -983,6 +987,258 @@ public class SortedSetTest {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(
             InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  // sortedSetRemoveElement
+
+  @Test
+  public void sortedSetRemoveElementStringHappyPath() {
+    final String one = "1";
+    final String two = "2";
+    final String three = "3";
+    final Map<String, Double> elements = ImmutableMap.of(one, 1.0, two, 2.0, three, 3.0);
+
+    assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, one))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetRemoveElementResponse.Success.class);
+
+    assertThat(client.sortedSetPutElements(cacheName, sortedSetName, elements))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+
+    assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, one))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetRemoveElementResponse.Success.class);
+
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.elementsList())
+                    .hasSize(2)
+                    .map(ScoredElement::getElement)
+                    .containsOnly(two, three));
+  }
+
+  @Test
+  public void sortedSetRemoveElementBytesHappyPath() {
+    final byte[] one = "1".getBytes();
+    final byte[] two = "2".getBytes();
+    final byte[] three = "3".getBytes();
+    final Map<byte[], Double> elements = ImmutableMap.of(one, 1.0, two, 2.0, three, 3.0);
+
+    assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, one))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetRemoveElementResponse.Success.class);
+
+    assertThat(client.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+
+    assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, one))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetRemoveElementResponse.Success.class);
+
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.elementsList())
+                    .hasSize(2)
+                    .map(ScoredElement::getElementByteArray)
+                    .containsOnly(two, three));
+  }
+
+  @Test
+  public void sortedSetRemoveElementReturnsErrorWithNullCacheName() {
+    assertThat(client.sortedSetRemoveElement(null, sortedSetName, "element"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.sortedSetRemoveElement(null, sortedSetName, "element".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void sortedSetRemoveElementReturnsErrorWithNonexistentCacheName() {
+    assertThat(client.sortedSetRemoveElement(randomString("cache"), sortedSetName, "element"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+
+    assertThat(
+            client.sortedSetRemoveElement(
+                randomString("cache"), sortedSetName, "element".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+  }
+
+  @Test
+  public void sortedSetRemoveElementReturnsErrorWithNullSetName() {
+    assertThat(client.sortedSetRemoveElement(cacheName, null, "element"))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.sortedSetRemoveElement(cacheName, null, "element".getBytes()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void sortedSetRemoveElementReturnsErrorWithNullElement() {
+    assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, (String) null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, (byte[]) null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  // sortedSetRemoveElements
+
+  @Test
+  public void sortedSetRemoveElementsStringHappyPath() {
+    final String one = "1";
+    final String two = "2";
+    final String three = "3";
+    final Map<String, Double> elements = ImmutableMap.of(one, 1.0, two, 2.0, three, 3.0);
+
+    assertThat(client.sortedSetRemoveElements(cacheName, sortedSetName, elements.keySet()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.sortedSetPutElements(cacheName, sortedSetName, elements))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+
+    assertThat(client.sortedSetRemoveElements(cacheName, sortedSetName, Sets.newHashSet(one, two)))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.elementsList())
+                    .hasSize(1)
+                    .map(ScoredElement::getElement)
+                    .containsOnly(three));
+  }
+
+  @Test
+  public void sortedSetRemoveElementsBytesHappyPath() {
+    final byte[] one = "1".getBytes();
+    final byte[] two = "2".getBytes();
+    final byte[] three = "3".getBytes();
+    final Map<byte[], Double> elements = ImmutableMap.of(one, 1.0, two, 2.0, three, 3.0);
+
+    assertThat(client.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, elements.keySet()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+
+    assertThat(
+            client.sortedSetRemoveElementsByteArray(
+                cacheName, sortedSetName, Sets.newHashSet(one, two)))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetRemoveElementsResponse.Success.class);
+
+    assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit ->
+                assertThat(hit.elementsList())
+                    .hasSize(1)
+                    .map(ScoredElement::getElementByteArray)
+                    .containsOnly(three));
+  }
+
+  @Test
+  public void sortedSetRemoveElementsReturnsErrorWithNullCacheName() {
+    assertThat(client.sortedSetRemoveElements(null, sortedSetName, Collections.emptySet()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.sortedSetRemoveElementsByteArray(null, sortedSetName, Collections.emptySet()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void sortedSetRemoveElementsReturnsErrorWithNonexistentCacheName() {
+    assertThat(
+            client.sortedSetRemoveElements(
+                randomString("cache"), sortedSetName, Collections.emptySet()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+
+    assertThat(
+            client.sortedSetRemoveElementsByteArray(
+                randomString("cache"), sortedSetName, Collections.emptySet()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+  }
+
+  @Test
+  public void sortedSetRemoveElementsReturnsErrorWithNullSetName() {
+    assertThat(client.sortedSetRemoveElements(cacheName, null, Collections.emptySet()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.sortedSetRemoveElementsByteArray(cacheName, null, Collections.emptySet()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void sortedSetRemoveElementsReturnsErrorWithNullElements() {
+    assertThat(client.sortedSetRemoveElements(cacheName, sortedSetName, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+
+    assertThat(client.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, null))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(
+            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 }
