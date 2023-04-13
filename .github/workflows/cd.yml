@@ -31,7 +31,7 @@ jobs:
         project_stability: experimental
         project_type: sdk
         sdk_language: Java
-        usage_example_path: ./examples/lib/src/main/java/momento/client/example/MomentoCacheApplication.java
+        usage_example_path: ./examples/lib/src/main/java/momento/client/example/BasicExample.java
 
     - name: Set release
       id: semrel
