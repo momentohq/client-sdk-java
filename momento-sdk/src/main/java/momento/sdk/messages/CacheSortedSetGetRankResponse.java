@@ -10,14 +10,19 @@ public interface CacheSortedSetGetRankResponse {
     private final long rank;
 
     /**
-     * Constructs a cache get hit with an encoded value.
+     * Constructs a sorted set get rank response with a rank.
      *
-     * @param rank the retrieved value.
+     * @param rank the retrieved rank.
      */
     public Hit(long rank) {
       this.rank = rank;
     }
 
+    /**
+     * Gets the rank of the element.
+     *
+     * @return the rank.
+     */
     public long rank() {
       return this.rank;
     }

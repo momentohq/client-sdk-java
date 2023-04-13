@@ -900,29 +900,33 @@ public final class CacheClient implements Closeable {
   }
 
   /**
-   * Look up the rank of an element in the sorted set.
+   * Look up the rank of an element in a sorted set.
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
    * @param element - The element whose rank we are retrieving.
+   * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
+   *     ascending, i.e. the rank of the element with the lowest score will be 0.
    * @return Future containing the result of the fetch operation.
    */
   public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, String element) {
-    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element);
+      String cacheName, String sortedSetName, String element, @Nullable SortOrder order) {
+    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element, order);
   }
 
   /**
-   * Look up the rank of an element in the sorted set.
+   * Look up the rank of an element in a sorted set.
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
    * @param element - The element whose rank we are retrieving.
+   * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
+   *     ascending, i.e. the rank of the element with the lowest score will be 0.
    * @return Future containing the result of the fetch operation.
    */
   public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, byte[] element) {
-    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element);
+      String cacheName, String sortedSetName, byte[] element, @Nullable SortOrder order) {
+    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element, order);
   }
 
   /**

@@ -571,13 +571,13 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, String element) {
+      String cacheName, String sortedSetName, String element, @Nullable SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
       ensureValidValue(element);
 
-      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(element));
+      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(element), order);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -585,13 +585,13 @@ final class ScsDataClient implements Closeable {
   }
 
   CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, byte[] element) {
+      String cacheName, String sortedSetName, byte[] element, @Nullable SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
       ensureValidValue(element);
 
-      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(element));
+      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(element), order);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1930,13 +1930,13 @@ final class ScsDataClient implements Closeable {
   }
 
   private CompletableFuture<CacheSortedSetGetRankResponse> sendSortedSetGetRank(
-      String cacheName, ByteString sortedSetName, ByteString element) {
+      String cacheName, ByteString sortedSetName, ByteString element, @Nullable SortOrder order) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_SortedSetGetRankResponse>> rspSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-                .sortedSetGetRank(buildSortedSetGetRank(sortedSetName, element));
+                .sortedSetGetRank(buildSortedSetGetRank(sortedSetName, element, order));
 
     final Function<_SortedSetGetRankResponse, CacheSortedSetGetRankResponse> success =
         rsp -> {
@@ -2975,10 +2975,10 @@ final class ScsDataClient implements Closeable {
             .setWithScores(true)
             .setByIndex(indexBuilder);
 
-    if (order == SortOrder.ASCENDING) {
-      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
-    } else if (order == SortOrder.DESCENDING) {
+    if (order == SortOrder.DESCENDING) {
       requestBuilder.setOrder(_SortedSetFetchRequest.Order.DESCENDING);
+    } else {
+      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
     }
 
     return requestBuilder.build();
@@ -3023,21 +3023,27 @@ final class ScsDataClient implements Closeable {
             .setWithScores(true)
             .setByScore(scoreBuilder);
 
-    if (order == SortOrder.ASCENDING) {
-      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
-    } else if (order == SortOrder.DESCENDING) {
+    if (order == SortOrder.DESCENDING) {
       requestBuilder.setOrder(_SortedSetFetchRequest.Order.DESCENDING);
+    } else {
+      requestBuilder.setOrder(_SortedSetFetchRequest.Order.ASCENDING);
     }
 
     return requestBuilder.build();
   }
 
   private _SortedSetGetRankRequest buildSortedSetGetRank(
-      ByteString sortedSetName, ByteString element) {
-    return _SortedSetGetRankRequest.newBuilder()
-        .setSetName(sortedSetName)
-        .setValue(element)
-        .build();
+      ByteString sortedSetName, ByteString element, @Nullable SortOrder order) {
+    final _SortedSetGetRankRequest.Builder requestBuilder =
+        _SortedSetGetRankRequest.newBuilder().setSetName(sortedSetName).setValue(element);
+
+    if (order == SortOrder.DESCENDING) {
+      requestBuilder.setOrder(_SortedSetGetRankRequest.Order.DESCENDING);
+    } else {
+      requestBuilder.setOrder(_SortedSetGetRankRequest.Order.ASCENDING);
+    }
+
+    return requestBuilder.build();
   }
 
   private _ListConcatenateBackRequest buildListConcatenateBackRequest(
