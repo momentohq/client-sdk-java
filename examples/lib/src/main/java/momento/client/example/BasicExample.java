@@ -1,24 +1,21 @@
 package momento.client.example;
 
-import java.time.Duration;
 import momento.sdk.CacheClient;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheInfo;
+import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.ListCachesResponse;
 
-public class MomentoCacheApplication {
+public class BasicExample extends AbstractExample {
 
-  private static final String MOMENTO_AUTH_TOKEN = System.getenv("MOMENTO_AUTH_TOKEN");
   private static final String CACHE_NAME = "cache";
   private static final String KEY = "key";
   private static final String VALUE = "value";
-  private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   public static void main(String[] args) {
-    printStartBanner();
-    try (final CacheClient cacheClient =
-        CacheClient.builder(MOMENTO_AUTH_TOKEN, DEFAULT_ITEM_TTL).build()) {
+    printStartBanner("Basic");
+    try (final CacheClient cacheClient = buildCacheClient()) {
 
       createCache(cacheClient, CACHE_NAME);
 
@@ -39,14 +36,17 @@ public class MomentoCacheApplication {
         System.out.println(error.getMessage());
       }
     }
-    printEndBanner();
+    printEndBanner("Basic");
   }
 
   private static void createCache(CacheClient cacheClient, String cacheName) {
-    try {
-      cacheClient.createCache(cacheName);
-    } catch (AlreadyExistsException e) {
-      System.out.printf("Cache with name '%s' already exists.%n", cacheName);
+    final CreateCacheResponse createCacheResponse = cacheClient.createCache(cacheName);
+    if (createCacheResponse instanceof CreateCacheResponse.Error error) {
+      if (error.getCause() instanceof AlreadyExistsException) {
+        System.out.println("Cache with name '" + cacheName + "' already exists.");
+      } else {
+        System.out.println("Unable to create cache with error: " + error.getMessage());
+      }
     }
   }
 
@@ -61,17 +61,5 @@ public class MomentoCacheApplication {
       System.out.println("Error occurred listing caches:");
       System.out.println(error.getMessage());
     }
-  }
-
-  private static void printStartBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("*                      Momento Example Start                     *");
-    System.out.println("******************************************************************");
-  }
-
-  private static void printEndBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("*                       Momento Example End                      *");
-    System.out.println("******************************************************************");
   }
 }

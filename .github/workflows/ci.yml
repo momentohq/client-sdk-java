@@ -30,7 +30,7 @@ jobs:
         project_stability: experimental
         project_type: sdk
         sdk_language: Java
-        usage_example_path: ./examples/lib/src/main/java/momento/client/example/MomentoCacheApplication.java
+        usage_example_path: ./examples/lib/src/main/java/momento/client/example/BasicExample.java
 
     - name: Commitlint and Other Shared Build Steps
       uses: momentohq/standards-and-practices/github-actions/shared-build@gh-actions-v1

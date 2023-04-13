@@ -31,7 +31,7 @@ jobs:
         project_stability: experimental
         project_type: sdk
         sdk_language: Java
-        usage_example_path: ./examples/lib/src/main/java/momento/client/example/MomentoCacheApplication.java
+        usage_example_path: ./examples/lib/src/main/java/momento/client/example/BasicExample.java
 
     - name: Set release
       id: semrel
@@ -50,4 +50,4 @@ jobs:
         ORG_GRADLE_PROJECT_version: ${{ steps.semrel.outputs.version }}
       uses: gradle/gradle-build-action@v2
       with:
-        arguments: publishToSonatype closeSonatypeStagingRepository  #TODO: closeAndReleaseStagingRepository
+        arguments: publishToSonatype closeAndReleaseStagingRepository
