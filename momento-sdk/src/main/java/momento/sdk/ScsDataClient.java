@@ -72,6 +72,8 @@ import grpc.cache_client._SortedSetFetchRequest;
 import grpc.cache_client._SortedSetFetchResponse;
 import grpc.cache_client._SortedSetGetRankRequest;
 import grpc.cache_client._SortedSetGetRankResponse;
+import grpc.cache_client._SortedSetGetScoreRequest;
+import grpc.cache_client._SortedSetGetScoreResponse;
 import grpc.cache_client._SortedSetPutRequest;
 import grpc.cache_client._SortedSetPutResponse;
 import grpc.cache_client._Unbounded;
@@ -80,9 +82,11 @@ import io.grpc.stub.MetadataUtils;
 import java.io.Closeable;
 import java.nio.ByteBuffer;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -94,6 +98,7 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
+import momento.sdk.exceptions.UnknownException;
 import momento.sdk.messages.CacheDeleteResponse;
 import momento.sdk.messages.CacheDictionaryFetchResponse;
 import momento.sdk.messages.CacheDictionaryGetFieldResponse;
@@ -124,6 +129,8 @@ import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CacheSortedSetFetchResponse;
 import momento.sdk.messages.CacheSortedSetGetRankResponse;
+import momento.sdk.messages.CacheSortedSetGetScoreResponse;
+import momento.sdk.messages.CacheSortedSetGetScoresResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
 import momento.sdk.messages.SortOrder;
@@ -595,6 +602,63 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
+      String cacheName, String sortedSetName, String element) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(element));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
+      String cacheName, String sortedSetName, byte[] element) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(element);
+
+      return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(element));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
+      String cacheName, String sortedSetName, List<String> elements) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(elements);
+
+      return sendSortedSetGetScores(cacheName, convert(sortedSetName), convertStringList(elements));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
+      String cacheName, String sortedSetName, List<byte[]> elements) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSetNameValid(sortedSetName);
+      ensureValidValue(elements);
+
+      return sendSortedSetGetScores(
+          cacheName, convert(sortedSetName), convertByteArrayList(elements));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1933,7 +1997,7 @@ final class ScsDataClient implements Closeable {
       String cacheName, ByteString sortedSetName, ByteString element, @Nullable SortOrder order) {
     final Metadata metadata = metadataWithCache(cacheName);
 
-    final Supplier<ListenableFuture<_SortedSetGetRankResponse>> rspSupplier =
+    final Supplier<ListenableFuture<_SortedSetGetRankResponse>> stubSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
                 .sortedSetGetRank(buildSortedSetGetRank(sortedSetName, element, order));
@@ -1952,7 +2016,94 @@ final class ScsDataClient implements Closeable {
             new CacheSortedSetGetRankResponse.Error(
                 CacheServiceExceptionMapper.convert(e, metadata));
 
-    return executeGrpcFunction(rspSupplier, success, failure);
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
+  private CompletableFuture<CacheSortedSetGetScoreResponse> sendSortedSetGetScore(
+      String cacheName, ByteString sortedSetName, ByteString element) {
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_SortedSetGetScoreResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .sortedSetGetScore(
+                    buildSortedSetGetScores(sortedSetName, Collections.singletonList(element)));
+
+    final Function<_SortedSetGetScoreResponse, CacheSortedSetGetScoreResponse> success =
+        rsp -> {
+          if (rsp.hasFound()) {
+            final Optional<_SortedSetGetScoreResponse._SortedSetGetScoreResponsePart> partOpt =
+                rsp.getFound().getElementsList().stream().findFirst();
+            if (partOpt.isPresent()) {
+              final _SortedSetGetScoreResponse._SortedSetGetScoreResponsePart part = partOpt.get();
+
+              if (part.getResult().equals(ECacheResult.Hit)) {
+                return new CacheSortedSetGetScoreResponse.Hit(element, part.getScore());
+              } else if (part.getResult().equals(ECacheResult.Miss)) {
+                return new CacheSortedSetGetScoreResponse.Miss(element);
+              } else {
+                return new CacheSortedSetGetScoreResponse.Error(
+                    new UnknownException("Unrecognized result: " + part.getResult()));
+              }
+            } else {
+              return new CacheSortedSetGetScoreResponse.Error(
+                  new UnknownException("Response claimed results found but returned no results"));
+            }
+
+          } else {
+            return new CacheSortedSetGetScoreResponse.Miss(element);
+          }
+        };
+
+    final Function<Throwable, CacheSortedSetGetScoreResponse> failure =
+        e ->
+            new CacheSortedSetGetScoreResponse.Error(
+                CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
+  private CompletableFuture<CacheSortedSetGetScoresResponse> sendSortedSetGetScores(
+      String cacheName, ByteString sortedSetName, List<ByteString> elements) {
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_SortedSetGetScoreResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .sortedSetGetScore(buildSortedSetGetScores(sortedSetName, elements));
+
+    final Function<_SortedSetGetScoreResponse, CacheSortedSetGetScoresResponse> success =
+        rsp -> {
+          if (rsp.hasFound()) {
+            final List<_SortedSetGetScoreResponse._SortedSetGetScoreResponsePart> scores =
+                rsp.getFound().getElementsList();
+
+            final List<CacheSortedSetGetScoreResponse> scoreResponses = new ArrayList<>();
+            for (int i = 0; i < scores.size(); ++i) {
+              final _SortedSetGetScoreResponse._SortedSetGetScoreResponsePart part = scores.get(i);
+              if (part.getResult().equals(ECacheResult.Hit)) {
+                scoreResponses.add(
+                    new CacheSortedSetGetScoreResponse.Hit(elements.get(i), part.getScore()));
+              } else if (part.getResult().equals(ECacheResult.Miss)) {
+                scoreResponses.add(new CacheSortedSetGetScoreResponse.Miss(elements.get(i)));
+              } else {
+                scoreResponses.add(
+                    new CacheSortedSetGetScoreResponse.Error(
+                        new UnknownException("Unrecognized result: " + part.getResult())));
+              }
+            }
+            return new CacheSortedSetGetScoresResponse.Hit(scoreResponses);
+          } else {
+            return new CacheSortedSetGetScoresResponse.Miss();
+          }
+        };
+
+    final Function<Throwable, CacheSortedSetGetScoresResponse> failure =
+        e ->
+            new CacheSortedSetGetScoresResponse.Error(
+                CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
   private CompletableFuture<CacheListConcatenateBackResponse> sendListConcatenateBack(
@@ -2820,12 +2971,12 @@ final class ScsDataClient implements Closeable {
   }
 
   private <SdkResponse, GrpcResponse> CompletableFuture<SdkResponse> executeGrpcFunction(
-      Supplier<ListenableFuture<GrpcResponse>> rpcSupplier,
+      Supplier<ListenableFuture<GrpcResponse>> stubSupplier,
       Function<GrpcResponse, SdkResponse> successFunction,
       Function<Throwable, SdkResponse> errorFunction) {
 
     // Submit request to non-blocking stub
-    final ListenableFuture<GrpcResponse> rspFuture = rpcSupplier.get();
+    final ListenableFuture<GrpcResponse> rspFuture = stubSupplier.get();
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<SdkResponse> returnFuture =
@@ -3044,6 +3195,14 @@ final class ScsDataClient implements Closeable {
     }
 
     return requestBuilder.build();
+  }
+
+  private _SortedSetGetScoreRequest buildSortedSetGetScores(
+      ByteString sortedSetName, List<ByteString> elements) {
+    return _SortedSetGetScoreRequest.newBuilder()
+        .setSetName(sortedSetName)
+        .addAllValues(elements)
+        .build();
   }
 
   private _ListConcatenateBackRequest buildListConcatenateBackRequest(

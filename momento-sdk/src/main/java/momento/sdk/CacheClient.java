@@ -41,6 +41,8 @@ import momento.sdk.messages.CacheSetRemoveElementsResponse;
 import momento.sdk.messages.CacheSetResponse;
 import momento.sdk.messages.CacheSortedSetFetchResponse;
 import momento.sdk.messages.CacheSortedSetGetRankResponse;
+import momento.sdk.messages.CacheSortedSetGetScoreResponse;
+import momento.sdk.messages.CacheSortedSetGetScoresResponse;
 import momento.sdk.messages.CacheSortedSetPutElementResponse;
 import momento.sdk.messages.CacheSortedSetPutElementsResponse;
 import momento.sdk.messages.CreateCacheResponse;
@@ -927,6 +929,58 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
       String cacheName, String sortedSetName, byte[] element, @Nullable SortOrder order) {
     return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element, order);
+  }
+
+  /**
+   * Look up the score of an element in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose score we are retrieving.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
+      String cacheName, String sortedSetName, String element) {
+    return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, element);
+  }
+
+  /**
+   * Look up the score of an element in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param element - The element whose score we are retrieving.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
+      String cacheName, String sortedSetName, byte[] element) {
+    return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, element);
+  }
+
+  /**
+   * Look up the scores of elements in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param elements - The elements whose scores we are retrieving.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
+      String cacheName, String sortedSetName, List<String> elements) {
+    return scsDataClient.sortedSetGetScores(cacheName, sortedSetName, elements);
+  }
+
+  /**
+   * Look up the scores of elements in a sorted set.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param elements - The elements whose scores we are retrieving.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
+      String cacheName, String sortedSetName, List<byte[]> elements) {
+    return scsDataClient.sortedSetGetScoresByteArray(cacheName, sortedSetName, elements);
   }
 
   /**
