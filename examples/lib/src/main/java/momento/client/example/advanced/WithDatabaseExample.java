@@ -1,11 +1,11 @@
 package momento.client.example.advanced;
 
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import momento.client.example.AbstractExample;
 import momento.sdk.CacheClient;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.messages.CacheGetResponse;
@@ -19,23 +19,20 @@ import momento.sdk.messages.CacheSetResponse;
  * to read data from Database and then add the data to cache. Any future lookups within the bounds
  * set by TTL will result in a cache hit.
  */
-public class MomentoCacheWithDatabase {
+public class WithDatabaseExample extends AbstractExample {
 
-  private static final String MOMENTO_AUTH_TOKEN = System.getenv("MOMENTO_AUTH_TOKEN");
   private static final String CACHE_NAME = "cache";
   private static final String ITEM_NOT_FOUND_MESSAGE = "not found in Cache or Database";
   private static final List<String> itemIds = Arrays.asList("1", "20");
-  private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   public static void main(String[] args) {
-    printStartBanner();
+    printStartBanner("Database");
     final Database database = new DatabaseImpl();
-    try (final CacheClient cacheClient =
-        CacheClient.builder(MOMENTO_AUTH_TOKEN, DEFAULT_ITEM_TTL).build()) {
+    try (final CacheClient cacheClient = buildCacheClient()) {
       createCache(cacheClient, CACHE_NAME);
       runExample(cacheClient, database);
     }
-    printEndBanner();
+    printEndBanner("Database");
   }
 
   private static void runExample(CacheClient cache, Database database) {
@@ -99,18 +96,6 @@ public class MomentoCacheWithDatabase {
     } catch (AlreadyExistsException e) {
       System.out.printf("Cache with name '%s' already exists.%n", cacheName);
     }
-  }
-
-  private static void printStartBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("*                      Momento Example Start                     *");
-    System.out.println("******************************************************************");
-  }
-
-  private static void printEndBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("*                       Momento Example End                      *");
-    System.out.println("******************************************************************");
   }
 }
 

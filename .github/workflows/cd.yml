@@ -50,4 +50,4 @@ jobs:
         ORG_GRADLE_PROJECT_version: ${{ steps.semrel.outputs.version }}
       uses: gradle/gradle-build-action@v2
       with:
-        arguments: publishToSonatype closeSonatypeStagingRepository  #TODO: closeAndReleaseStagingRepository
+        arguments: publishToSonatype closeAndReleaseStagingRepository
