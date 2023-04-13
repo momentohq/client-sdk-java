@@ -4,7 +4,7 @@
 <img src="https://docs.momentohq.com/img/logo.svg" alt="logo" width="400"/>
 
 [![project status](https://momentohq.github.io/standards-and-practices/badges/project-status-official.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
-[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-experimental.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md) 
+[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-experimental.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
 
 # Momento Java Client Library
 
@@ -18,13 +18,12 @@ changes.  For more info, click on the experimental badge above.
 Java client SDK for Momento Serverless Cache: a fast, simple, pay-as-you-go caching solution without
 any of the operational overhead required by traditional caching solutions!
 
-
-
 ## Getting Started :running:
 
 ### Requirements
 
-- A Momento Auth Token is required, you can generate one using the [Momento CLI](https://github.com/momentohq/momento-cli)
+- A Momento Auth Token is required, you can generate one using
+  the [Momento CLI](https://github.com/momentohq/momento-cli)
 - At least the java 8 run time installed
 - mvn or gradle for downloading the sdk
 
@@ -35,45 +34,32 @@ how to use the SDK.
 
 ### Installation
 
-Gradle
+#### Gradle
 
-Add our mvn repository to your `gradle.build.kts` file and sdk as a dependency
+Add our dependency to your `gradle.build.kts`
 
 ```kotlin
 buildscript {
-    repositories {
-        mavenCentral()
-        
-        maven("https://momento.jfrog.io/artifactory/maven-public")
-    }
-
     dependencies {
-            implementation("momento.sandbox:momento-sdk:0.20.0")
+        implementation("software.momento.java:sdk:0.24.0")
     }
 }
 ```
 
-Maven
+#### Maven
 
-Add our mvn repository to your `pom.xml` file and sdk as a dependency
+Add our dependency your `pom.xml`
 
 ```xml
 
 <project>
     ...
-    <repositories>
-        <repository>
-            <id>momento-sdk</id>
-            <url>https://momento.jfrog.io/artifactory/maven-public</url>
-        </repository>
-    </repositories>
-
     <dependencyManagement>
         <dependencies>
             <dependency>
-                <groupId>momento.sandbox</groupId>
-                <artifactId>momento-sdk</artifactId>
-                <version>0.20.0</version>
+                <groupId>software.momento.java</groupId>
+                <artifactId>sdk</artifactId>
+                <version>0.24.0</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -87,28 +73,25 @@ Checkout our [examples](./examples/README.md) directory for complete examples of
 
 Here is a quickstart you can use in your own project:
 
-```kotlin
+```java
 package momento.client.example;
 
-import java.time.Duration;
 import momento.sdk.CacheClient;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.messages.CacheGetResponse;
 import momento.sdk.messages.CacheInfo;
+import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.ListCachesResponse;
 
-public class MomentoCacheApplication {
+public class BasicExample extends AbstractExample {
 
-  private static final String MOMENTO_AUTH_TOKEN = System.getenv("MOMENTO_AUTH_TOKEN");
   private static final String CACHE_NAME = "cache";
   private static final String KEY = "key";
   private static final String VALUE = "value";
-  private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   public static void main(String[] args) {
-    printStartBanner();
-    try (final CacheClient cacheClient =
-        CacheClient.builder(MOMENTO_AUTH_TOKEN, DEFAULT_ITEM_TTL).build()) {
+    printStartBanner("Basic");
+    try (final CacheClient cacheClient = buildCacheClient()) {
 
       createCache(cacheClient, CACHE_NAME);
 
@@ -129,14 +112,17 @@ public class MomentoCacheApplication {
         System.out.println(error.getMessage());
       }
     }
-    printEndBanner();
+    printEndBanner("Basic");
   }
 
   private static void createCache(CacheClient cacheClient, String cacheName) {
-    try {
-      cacheClient.createCache(cacheName);
-    } catch (AlreadyExistsException e) {
-      System.out.printf("Cache with name '%s' already exists.%n", cacheName);
+    final CreateCacheResponse createCacheResponse = cacheClient.createCache(cacheName);
+    if (createCacheResponse instanceof CreateCacheResponse.Error error) {
+      if (error.getCause() instanceof AlreadyExistsException) {
+        System.out.println("Cache with name '" + cacheName + "' already exists.");
+      } else {
+        System.out.println("Unable to create cache with error: " + error.getMessage());
+      }
     }
   }
 
@@ -152,29 +138,34 @@ public class MomentoCacheApplication {
       System.out.println(error.getMessage());
     }
   }
-
-  private static void printStartBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("*                      Momento Example Start                     *");
-    System.out.println("******************************************************************");
-  }
-
-  private static void printEndBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("*                       Momento Example End                      *");
-    System.out.println("******************************************************************");
-  }
 }
 
 ```
 
 ### Error Handling
 
-Coming soon
+The SDK will only throw exceptions from errors encountered when setting up a client. All errors that occur when calling
+the client methods will result in an error response. All methods have an `Error` response subclass alongside the other
+response types they can return.
+
+Here is an example of how the response can be matched to different outcomes:
+
+```java
+final CacheListFetchResponse fetchResponse=client.listFetch(...).join();
+if (fetchResponse instanceof CacheListFetchResponse.Hit hit) {
+  // A successful call that returned a result.
+} else if(fetchResponse instanceof CacheListFetchResponse.Miss miss) {
+  // A successful call that didn't find anything
+}else if(fetchResponse instanceof CacheListFetchResponse.Error error) {
+  // An error result. It is an exception and can be thrown if desired.
+}
+```
 
 ### Tuning
 
-Coming soon
+SDK tuning is done through the Configuration object passed into the client builder. Preset Configuration objects for
+different environments are defined
+in [Configurations](momento-sdk/src/main/java/momento/sdk/config/Configurations.java).
 
 ----------------------------------------------------------------------------------------
 For more info, visit our website at [https://gomomento.com](https://gomomento.com)!

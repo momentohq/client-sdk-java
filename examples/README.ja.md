@@ -26,6 +26,6 @@ SDK コード例: [MomentoApplication.java](lib/src/main/java/momento/client/exa
 
 ```kotlin
 dependencies {
-    implementation("softwaremomento.java:sdk:0.24.0")
+    implementation("software.momento.java:sdk:0.24.0")
 }
 ```
