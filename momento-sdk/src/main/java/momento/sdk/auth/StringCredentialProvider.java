@@ -9,6 +9,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.Base64;
 import java.util.Map;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
 import momento.sdk.exceptions.InvalidArgumentException;
 
 /** Parses connection and authentication information from a JWT provided as a string. */
@@ -34,11 +36,24 @@ public class StringCredentialProvider implements CredentialProvider {
   private final String cacheEndpoint;
 
   /**
-   * Parses connection and authentication information from the given JWT.
+   * Parses connection and authentication information from the given token.
    *
-   * @param authToken a Momento JWT.
+   * @param authToken a Momento authentication token.
    */
   public StringCredentialProvider(@Nonnull String authToken) {
+    this(authToken, null, null);
+  }
+
+  /**
+   * Parses connection and authentication information from the given token.
+   *
+   * @param authToken a Momento authentication token.
+   * @param controlHost URI to use for control plane operations.
+   * @param cacheHost URI to use for data plane operations.
+   */
+  public StringCredentialProvider(
+    @Nonnull String authToken, @Nullable String controlHost, @Nullable String cacheHost
+  ) {
     TokenAndEndpoints data;
     try {
       data = processV1Token(authToken);
@@ -53,8 +68,8 @@ public class StringCredentialProvider implements CredentialProvider {
       throw new InvalidArgumentException("Auth token must not be null");
     }
     this.authToken = data.authToken;
-    controlEndpoint = data.controlEndpoint;
-    cacheEndpoint = data.cacheEndpoint;
+    controlEndpoint = controlHost != null ? controlHost : data.controlEndpoint;
+    cacheEndpoint = cacheHost != null ? cacheHost : data.cacheEndpoint;
   }
 
   private TokenAndEndpoints processLegacyToken(String authToken) {
