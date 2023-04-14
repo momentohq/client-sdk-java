@@ -6,13 +6,23 @@ import momento.sdk.exceptions.SdkException;
 public interface CacheDictionaryIncrementResponse {
   /** A successful dictionary increment operation. */
   class Success implements CacheDictionaryIncrementResponse {
-    private int value;
+    private final int value;
 
+    /**
+     * Constructs a dictionary increment success with the incremented value.
+     *
+     * @param value the incremented value.
+     */
     public Success(int value) {
       super();
       this.value = value;
     }
 
+    /**
+     * Gets the newly incremented value.
+     *
+     * @return the value.
+     */
     public int valueNumber() {
       return this.value;
     }

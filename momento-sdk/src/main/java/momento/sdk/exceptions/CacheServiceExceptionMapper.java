@@ -6,6 +6,10 @@ import io.grpc.StatusRuntimeException;
 import momento.sdk.internal.MomentoGrpcErrorDetails;
 import momento.sdk.internal.MomentoTransportErrorDetails;
 
+/**
+ * Mapper from any exception that may occur during a cache client call to the appropriate {@link
+ * SdkException}.
+ */
 public final class CacheServiceExceptionMapper {
 
   private static final String SDK_FAILED_TO_PROCESS_THE_REQUEST =
@@ -14,23 +18,23 @@ public final class CacheServiceExceptionMapper {
   private CacheServiceExceptionMapper() {}
 
   /**
-   * Common Handler for converting exceptions encountered by the SDK.
+   * Common Handler for converting exceptions encountered by the SDK. Any specialized exception
+   * handling should be performed before calling this.
    *
-   * <p>Any specialized exception handling should be performed before calling this
-   *
-   * @param e to convert
+   * @param e The exception to convert.
+   * @return The converted exception.
    */
   public static SdkException convert(Throwable e) {
     return convert(e, null);
   }
 
   /**
-   * Common Handler for converting exceptions encountered by the SDK.
+   * Common Handler for converting exceptions encountered by the SDK. Any specialized exception
+   * handling should be performed before calling this.
    *
-   * <p>Any specialized exception handling should be performed before calling this
-   *
-   * @param e to convert
-   * @param metadata metadata from the grpc request that caused the error
+   * @param e The exception to convert.
+   * @param metadata Metadata from the grpc request that caused the error.
+   * @return The converted exception.
    */
   public static SdkException convert(Throwable e, Metadata metadata) {
     if (e instanceof SdkException) {

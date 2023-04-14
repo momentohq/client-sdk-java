@@ -11,7 +11,7 @@ public interface CacheListPopFrontResponse {
 
   /** A successful list pop front operation that found element. */
   class Hit implements CacheListPopFrontResponse {
-    private ByteString byteStringValue;
+    private final ByteString byteStringValue;
 
     /**
      * Constructs a list pop front hit with encoded value.

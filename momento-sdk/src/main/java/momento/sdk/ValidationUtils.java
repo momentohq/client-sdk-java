@@ -3,8 +3,11 @@ package momento.sdk;
 import java.time.Duration;
 import momento.sdk.exceptions.InvalidArgumentException;
 
-// Should rely on server for all validations. However, there are some that cannot be delegated and
-// instead fail in grpc client, like providing null inputs or a negative ttl.
+/**
+ * Client-side validation methods. While we should rely on server for all validations, there are
+ * some that cannot be delegated and instead fail in grpc client, like providing null inputs or a
+ * negative ttl.
+ */
 public final class ValidationUtils {
 
   static final String REQUEST_DEADLINE_MUST_BE_POSITIVE = "Request deadline must be positive";
@@ -23,6 +26,11 @@ public final class ValidationUtils {
 
   ValidationUtils() {}
 
+  /**
+   * Throws an {@link InvalidArgumentException} if the deadline is null or not positive.
+   *
+   * @param requestDeadline The deadline to validate.
+   */
   public static void ensureRequestDeadlineValid(Duration requestDeadline) {
     if (requestDeadline == null || requestDeadline.isNegative() || requestDeadline.isZero()) {
       throw new InvalidArgumentException(REQUEST_DEADLINE_MUST_BE_POSITIVE);

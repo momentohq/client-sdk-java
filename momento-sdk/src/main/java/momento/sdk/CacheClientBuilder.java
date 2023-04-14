@@ -14,6 +14,13 @@ public final class CacheClientBuilder {
   private Configuration configuration;
   private final Duration itemDefaultTtl;
 
+  /**
+   * Creates a CacheClient builder.
+   *
+   * @param credentialProvider Provider for the credentials required to connect to Momento.
+   * @param configuration Configuration object containing all tunable client settings.
+   * @param itemDefaultTtl The default ttl for values written to a cache.
+   */
   CacheClientBuilder(
       @Nonnull CredentialProvider credentialProvider,
       @Nonnull Configuration configuration,
@@ -24,6 +31,12 @@ public final class CacheClientBuilder {
     this.itemDefaultTtl = itemDefaultTtl;
   }
 
+  /**
+   * Sets the maximum duration of a client call.
+   *
+   * @param deadline The deadline duration.
+   * @return The updated builder.
+   */
   public CacheClientBuilder setDeadline(@Nonnull Duration deadline) {
     ValidationUtils.ensureRequestDeadlineValid(deadline);
 
@@ -36,6 +49,11 @@ public final class CacheClientBuilder {
     return this;
   }
 
+  /**
+   * Builds a CacheClient.
+   *
+   * @return the client.
+   */
   public CacheClient build() {
     return new CacheClient(credentialProvider, configuration, itemDefaultTtl);
   }

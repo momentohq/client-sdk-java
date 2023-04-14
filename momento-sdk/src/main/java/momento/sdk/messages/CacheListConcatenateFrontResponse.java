@@ -9,15 +9,26 @@ import momento.sdk.exceptions.SdkException;
  * <p>{Success}, {Error}
  */
 public interface CacheListConcatenateFrontResponse {
+
   /** A successful list concatenate front operation. */
   class Success implements CacheListConcatenateFrontResponse {
-    private int listLength;
+    private final int listLength;
 
+    /**
+     * Constructs a list concatenate front success with the new list length.
+     *
+     * @param listLength The new length of the list.
+     */
     public Success(int listLength) {
       super();
       this.listLength = listLength;
     }
 
+    /**
+     * Gets the new length of the list.
+     *
+     * @return The list length.
+     */
     public int getListLength() {
       return this.listLength;
     }

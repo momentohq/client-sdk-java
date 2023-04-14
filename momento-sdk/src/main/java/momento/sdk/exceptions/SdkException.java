@@ -6,7 +6,10 @@ import momento.sdk.internal.MomentoTransportErrorDetails;
 /** Base class for all exceptions thrown by the SDK */
 public class SdkException extends RuntimeException {
 
+  /** The error code. */
   private final MomentoErrorCode errorCode;
+
+  /** Transport layer details about the error. */
   private final MomentoTransportErrorDetails transportErrorDetails;
 
   /**

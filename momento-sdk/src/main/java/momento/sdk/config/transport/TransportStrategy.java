@@ -9,5 +9,11 @@ public interface TransportStrategy {
    */
   GrpcConfiguration getGrpcConfiguration();
 
+  /**
+   * Copy constructor that modifies the gRPC configuration.
+   *
+   * @param grpcConfiguration low-level gRPC settings.
+   * @return The modified TransportStrategy.
+   */
   TransportStrategy withGrpcConfiguration(GrpcConfiguration grpcConfiguration);
 }

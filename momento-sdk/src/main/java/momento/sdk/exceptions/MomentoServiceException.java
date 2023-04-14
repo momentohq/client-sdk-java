@@ -5,6 +5,12 @@ import momento.sdk.internal.MomentoTransportErrorDetails;
 /** Base type for all the exceptions resulting from invalid interactions with Momento Services. */
 public class MomentoServiceException extends SdkException {
 
+  /**
+   * Constructs a MomentoServiceException with an error code and a detail message.
+   *
+   * @param errorCode the error code, or {@link MomentoErrorCode#UNKNOWN} if none exists.
+   * @param message the detail message.
+   */
   public MomentoServiceException(MomentoErrorCode errorCode, String message) {
     super(errorCode, message);
   }

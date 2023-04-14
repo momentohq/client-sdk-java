@@ -20,6 +20,11 @@ public interface ListCachesResponse {
       this.caches = caches;
     }
 
+    /**
+     * Gets a list of metadata about the caches.
+     *
+     * @return The metadata list.
+     */
     public List<CacheInfo> getCaches() {
       return caches;
     }

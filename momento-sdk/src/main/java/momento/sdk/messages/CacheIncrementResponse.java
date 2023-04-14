@@ -2,17 +2,28 @@ package momento.sdk.messages;
 
 import momento.sdk.exceptions.SdkException;
 
+/** Response for a cache increment operation */
 public interface CacheIncrementResponse {
 
   /** A successful cache increment operation. */
   class Success implements CacheIncrementResponse {
-    private int value;
+    private final int value;
 
+    /**
+     * Constructs a cache increment success with the incremented value.
+     *
+     * @param value the incremented value.
+     */
     public Success(int value) {
       super();
       this.value = value;
     }
 
+    /**
+     * Gets the newly incremented value.
+     *
+     * @return the value.
+     */
     public int valueNumber() {
       return this.value;
     }
@@ -28,12 +39,15 @@ public interface CacheIncrementResponse {
    * thrown, or the cause of the error can be retrieved with {@link #getClass()} ()}. The message is
    * a copy of the message of the cause.
    */
-  class Error implements CacheIncrementResponse {
+  class Error extends SdkException implements CacheIncrementResponse {
 
-    private final SdkException _error;
-
-    public Error(SdkException _error) {
-      this._error = _error;
+    /**
+     * Constructs a cache increment error with a cause.
+     *
+     * @param cause The cause.
+     */
+    public Error(SdkException cause) {
+      super(cause);
     }
   }
 }

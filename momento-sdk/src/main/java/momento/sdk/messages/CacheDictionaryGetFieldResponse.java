@@ -106,6 +106,11 @@ public interface CacheDictionaryGetFieldResponse {
   class Miss implements CacheDictionaryGetFieldResponse {
     private final ByteString field;
 
+    /**
+     * Constructs a dictionary get field miss.
+     *
+     * @param field The field that no value could be found for.
+     */
     public Miss(ByteString field) {
       this.field = field;
     }
@@ -150,13 +155,15 @@ public interface CacheDictionaryGetFieldResponse {
    * message is a copy of the message of the cause.
    */
   class Error extends SdkException implements CacheDictionaryGetFieldResponse {
+
+    /** The field that failed to be retrieved. */
     private final ByteString field;
 
     /**
      * Constructs a cache dictionary get field error with a cause.
      *
      * @param cause the cause.
-     * @param field
+     * @param field the field that failed to be retrieved.
      */
     public Error(SdkException cause, ByteString field) {
       super(cause);

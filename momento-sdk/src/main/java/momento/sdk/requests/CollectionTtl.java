@@ -19,19 +19,40 @@ public class CollectionTtl {
   private final Duration ttl;
   private final boolean refreshTtl;
 
+  /**
+   * Constructs a CollectionTtl.
+   *
+   * @param ttl The TTL for the collection. If null, the client's default TTL will be used.
+   * @param refreshTtl Whether to refresh the ttl when the collection is modified.
+   */
   public CollectionTtl(@Nullable Duration ttl, boolean refreshTtl) {
     this.refreshTtl = refreshTtl;
     this.ttl = ttl;
   }
 
+  /**
+   * Converts the TTL to seconds if it is present.
+   *
+   * @return The TTL in seconds or {@link Optional#empty()} if the default TTL will be used.
+   */
   public Optional<Long> toSeconds() {
     return Optional.ofNullable(ttl).map(Duration::getSeconds);
   }
 
+  /**
+   * Converts the TTL to milliseconds if it is present.
+   *
+   * @return The TTL in milliseconds or {@link Optional#empty()} if the default TTL will be used.
+   */
   public Optional<Long> toMilliseconds() {
     return Optional.ofNullable(ttl).map(Duration::toMillis);
   }
 
+  /**
+   * Returns whether the collection TTL will be refreshed.
+   *
+   * @return Whether the collection TTL will be refreshed.
+   */
   public boolean refreshTtl() {
     return this.refreshTtl;
   }
@@ -50,7 +71,7 @@ public class CollectionTtl {
    * Constructs a CollectionTtl with the specified TTL. The TTL for the collection will be refreshed
    * any time the collection is modified.
    *
-   * @param ttl
+   * @param ttl The TTL for the collection. If null, the client's default TTL will be used.
    * @return CollectionTtl
    */
   public static CollectionTtl of(@Nullable Duration ttl) {
@@ -60,7 +81,7 @@ public class CollectionTtl {
   /**
    * Constructs a CollectionTtl with the specified TTL. Will only refresh if the TTL is provided.
    *
-   * @param ttl
+   * @param ttl The TTL for the collection. If null, the client's default TTL will be used.
    * @return CollectionTtl
    */
   public static CollectionTtl refreshTtlIfProvided(@Nullable Duration ttl) {

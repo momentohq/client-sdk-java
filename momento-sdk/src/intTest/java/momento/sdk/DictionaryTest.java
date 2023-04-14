@@ -974,7 +974,7 @@ public class DictionaryTest extends BaseTestClass {
     assertThat(response).isInstanceOf(CacheDictionaryGetFieldsResponse.Hit.class);
 
     List<CacheDictionaryGetFieldResponse> responseList =
-        ((CacheDictionaryGetFieldsResponse.Hit) response).responsesList;
+        ((CacheDictionaryGetFieldsResponse.Hit) response).perFieldResponses();
     assertThat(responseList).hasSize(3);
 
     assertThat(responseList.get(0)).isInstanceOf(CacheDictionaryGetFieldResponse.Hit.class);
@@ -987,7 +987,7 @@ public class DictionaryTest extends BaseTestClass {
     assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(0)).valueByteArray())
         .isEqualTo("b".getBytes());
 
-    assertThat(((CacheDictionaryGetFieldsResponse.Hit) response).responsesList.get(1))
+    assertThat(((CacheDictionaryGetFieldsResponse.Hit) response).perFieldResponses().get(1))
         .isInstanceOf(CacheDictionaryGetFieldResponse.Hit.class);
     assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(1)).fieldString())
         .isEqualTo("c");
@@ -998,7 +998,7 @@ public class DictionaryTest extends BaseTestClass {
     assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(1)).valueByteArray())
         .isEqualTo("d".getBytes());
 
-    assertThat(((CacheDictionaryGetFieldsResponse.Hit) response).responsesList.get(2))
+    assertThat(((CacheDictionaryGetFieldsResponse.Hit) response).perFieldResponses().get(2))
         .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
     assertThat(((CacheDictionaryGetFieldResponse.Miss) responseList.get(2)).fieldString())
         .isEqualTo("r");
