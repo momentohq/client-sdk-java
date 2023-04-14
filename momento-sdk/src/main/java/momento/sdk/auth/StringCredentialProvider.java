@@ -10,7 +10,6 @@ import java.util.Base64;
 import java.util.Map;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-
 import momento.sdk.exceptions.InvalidArgumentException;
 
 /** Parses connection and authentication information from a JWT provided as a string. */
@@ -52,8 +51,7 @@ public class StringCredentialProvider implements CredentialProvider {
    * @param cacheHost URI to use for data plane operations.
    */
   public StringCredentialProvider(
-    @Nonnull String authToken, @Nullable String controlHost, @Nullable String cacheHost
-  ) {
+      @Nonnull String authToken, @Nullable String controlHost, @Nullable String cacheHost) {
     TokenAndEndpoints data;
     try {
       data = processV1Token(authToken);

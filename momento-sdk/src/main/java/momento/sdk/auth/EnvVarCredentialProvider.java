@@ -9,8 +9,8 @@ import javax.annotation.Nullable;
 public class EnvVarCredentialProvider extends StringCredentialProvider {
 
   /**
-   * Parses connection and authentication information from an authentication token read from
-   * the given environment variable.
+   * Parses connection and authentication information from an authentication token read from the
+   * given environment variable.
    *
    * @param envVarName the environment variable containing the Momento authentication token.
    */
@@ -19,16 +19,15 @@ public class EnvVarCredentialProvider extends StringCredentialProvider {
   }
 
   /**
-   * Parses connection and authentication information from an authentication token read from
-   * the given environment variable.
+   * Parses connection and authentication information from an authentication token read from the
+   * given environment variable.
    *
    * @param envVarName the environment variable containing the Momento authentication token.
    * @param controlHost URI to use for control plane operations.
    * @param cacheHost URI to use for data plane operations.
    */
   public EnvVarCredentialProvider(
-          @Nonnull String envVarName, @Nullable String controlHost, @Nullable String cacheHost
-  ) {
+      @Nonnull String envVarName, @Nullable String controlHost, @Nullable String cacheHost) {
     super(System.getenv(envVarName), controlHost, cacheHost);
   }
 }
