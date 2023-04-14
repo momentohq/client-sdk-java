@@ -13,6 +13,7 @@ class StringCredentialProviderTest {
   private static final String CONTROL_ENDPOINT_V1 = "control.test.momentohq.com";
   private static final String CACHE_ENDPOINT_V1 = "cache.test.momentohq.com";
 
+  // Test tokens are all fake and nonfunctional.
   private static final String VALID_LEGACY_AUTH_TOKEN =
       "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiY29udHJvbC5leGFtcGxlL"
           + "mNvbSIsImMiOiJjYWNoZS5leGFtcGxlLmNvbSJ9.YY7RSMBCpMRs_qgbNkW0PYC2eX-M"

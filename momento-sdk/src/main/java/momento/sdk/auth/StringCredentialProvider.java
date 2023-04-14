@@ -47,7 +47,7 @@ public class StringCredentialProvider implements CredentialProvider {
       if (iae.getMessage().contains("base64")) {
         data = processLegacyToken(authToken);
       } else {
-        throw iae;
+        throw new InvalidArgumentException(iae.getMessage(), iae);
       }
     } catch (NullPointerException e) {
       throw new InvalidArgumentException("Auth token must not be null");
@@ -82,8 +82,8 @@ public class StringCredentialProvider implements CredentialProvider {
   private TokenAndEndpoints processV1Token(String authToken) {
     final byte[] decodedBase64Token = Base64.getDecoder().decode(authToken);
     final String decodedString = new String(decodedBase64Token, StandardCharsets.UTF_8);
-    Type type = new TypeToken<Map<String, String>>() {}.getType();
-    Map<String, String> tokenData = new Gson().fromJson(decodedString, type);
+    final Type type = new TypeToken<Map<String, String>>() {}.getType();
+    final Map<String, String> tokenData = new Gson().fromJson(decodedString, type);
     final String host = tokenData.get("endpoint");
     final String apiKey = tokenData.get("api_key");
     if (host == null || host.isEmpty() || apiKey == null || apiKey.isEmpty()) {
