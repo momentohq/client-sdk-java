@@ -27,7 +27,8 @@ class StringCredentialProviderTest {
       "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpc3MiOiJPbmxpbmUgSldUIEJ1aWxkZXIiLC"
           + "JpYXQiOjE2NzgzMDU4MTIsImV4cCI6NDg2NTUxNTQxMiwiYXVkIjoiIiwic3ViIjoianJvY"
           + "2tldEBleGFtcGxlLmNvbSJ9.8Iy8q84Lsr-D3YCo_HP4d-xjHdT8UCIuvAYcxhFMyz8";
-  private static final String TEST_V1_MISSING_ENDPOINT = "eyJhcGlfa2V5IjogImV5SmxibVJ3YjJsdWRDS"
+  private static final String TEST_V1_MISSING_ENDPOINT =
+      "eyJhcGlfa2V5IjogImV5SmxibVJ3YjJsdWRDS"
           + "TZJbU5sYkd3dE5DMTFjeTEzWlhOMExUSXRNUzV3Y205a0xtRXViVzl0Wlc1MGIyaHhMbU52Yl"
           + "NJc0ltRndhVjlyWlhraU9pSmxlVXBvWWtkamFVOXBTa2xWZWtreFRtbEtPUzVsZVVwNlpGZEp"
           + "hVTlwU25kYVdGSnNURzFrYUdSWVVuQmFXRXBCV2pJeGFHRlhkM1ZaTWpsMFNXbDNhV1J0Vm5s"
@@ -36,12 +37,12 @@ class StringCredentialProviderTest {
   private static final String TEST_V1_MISSING_API_KEY = "eyJlbmRwb2ludCI6ICJhLmIuY29tIn0=";
   public static final String MISSING_CONTROL_TOKEN =
       "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzcXVpcnJlbCIsImMiOiJjYWNoZS5leGFtcGxlLmNvb"
-            + "SJ9.RzLpBXut4s0fEXHtVIYVNb6Z8tiHSP9iu2j6OJpJHDksNXuOgTVFlMyG4V3gvMLM"
-            + "UwQmgtov-U9pMbaghQnr-Q";
+          + "SJ9.RzLpBXut4s0fEXHtVIYVNb6Z8tiHSP9iu2j6OJpJHDksNXuOgTVFlMyG4V3gvMLM"
+          + "UwQmgtov-U9pMbaghQnr-Q";
   public static final String MISSING_CACHE_TOKEN =
       "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiY29udHJvbC5leGFtcGxlL"
-            + "mNvbSJ9.obg5-runV-bdp0ZTV_2DGDFdRfc6aIRHaSBGbK3QaACPXwF6e8ghBYg2LDXX"
-            + "OWgbdpy6wEfDVIPgYZ0yXxVqvg";
+          + "mNvbSJ9.obg5-runV-bdp0ZTV_2DGDFdRfc6aIRHaSBGbK3QaACPXwF6e8ghBYg2LDXX"
+          + "OWgbdpy6wEfDVIPgYZ0yXxVqvg";
 
   @Test
   public void testCredentialProviderNullToken() {
@@ -87,24 +88,24 @@ class StringCredentialProviderTest {
   public void testCredentialProviderV1TokenHappyPath() {
     assertThat(new StringCredentialProvider(VALID_V1_AUTH_TOKEN))
         .satisfies(
-                provider -> {
-                  assertThat(provider.getAuthToken()).isEqualTo(VALID_V1_API_KEY);
-                  assertThat(provider.getControlEndpoint()).isEqualTo(CONTROL_ENDPOINT_V1);
-                  assertThat(provider.getCacheEndpoint()).isEqualTo(CACHE_ENDPOINT_V1);
-                });
+            provider -> {
+              assertThat(provider.getAuthToken()).isEqualTo(VALID_V1_API_KEY);
+              assertThat(provider.getControlEndpoint()).isEqualTo(CONTROL_ENDPOINT_V1);
+              assertThat(provider.getCacheEndpoint()).isEqualTo(CACHE_ENDPOINT_V1);
+            });
   }
 
   @Test
   public void testCredentialProviderV1MissingEndpoint() {
     assertThatExceptionOfType(InvalidArgumentException.class)
-            .isThrownBy(() -> new StringCredentialProvider(TEST_V1_MISSING_ENDPOINT))
-            .withMessageContaining("parse auth token");
+        .isThrownBy(() -> new StringCredentialProvider(TEST_V1_MISSING_ENDPOINT))
+        .withMessageContaining("parse auth token");
   }
 
   @Test
   public void testCredentialProviderV1MissingApiKey() {
     assertThatExceptionOfType(InvalidArgumentException.class)
-            .isThrownBy(() -> new StringCredentialProvider(TEST_V1_MISSING_API_KEY))
-            .withMessageContaining("parse auth token");
+        .isThrownBy(() -> new StringCredentialProvider(TEST_V1_MISSING_API_KEY))
+        .withMessageContaining("parse auth token");
   }
 }

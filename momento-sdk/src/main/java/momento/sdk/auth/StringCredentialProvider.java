@@ -4,7 +4,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-
 import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
@@ -19,12 +18,14 @@ public class StringCredentialProvider implements CredentialProvider {
     public final String controlEndpoint;
     public final String cacheEndpoint;
     public final String authToken;
+
     public TokenAndEndpoints(String controlEndpoint, String cacheEndpoint, String authToken) {
       this.controlEndpoint = controlEndpoint;
       this.cacheEndpoint = cacheEndpoint;
       this.authToken = authToken;
     }
   }
+
   private static final String CONTROL_ENDPOINT_CLAIM_NAME = "cp";
   private static final String CACHE_ENDPOINT_CLAIM_NAME = "c";
 
@@ -81,7 +82,7 @@ public class StringCredentialProvider implements CredentialProvider {
   private TokenAndEndpoints processV1Token(String authToken) {
     final byte[] decodedBase64Token = Base64.getDecoder().decode(authToken);
     final String decodedString = new String(decodedBase64Token, StandardCharsets.UTF_8);
-    Type type = new TypeToken<Map<String, String>>(){}.getType();
+    Type type = new TypeToken<Map<String, String>>() {}.getType();
     Map<String, String> tokenData = new Gson().fromJson(decodedString, type);
     final String host = tokenData.get("endpoint");
     final String apiKey = tokenData.get("api_key");
