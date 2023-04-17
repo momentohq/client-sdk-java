@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.nio.ByteBuffer;
 import java.time.Duration;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheDeleteResponse;
@@ -21,7 +20,7 @@ final class CacheDataPlaneClientSideTest extends BaseTestClass {
   private static final Duration DEFAULT_ITEM_TTL_SECONDS = Duration.ofSeconds(60);
 
   private final CredentialProvider credentialProvider =
-      new EnvVarCredentialProvider("TEST_AUTH_TOKEN");
+      CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
   private final String cacheName = System.getenv("TEST_CACHE_NAME");
   private CacheClient client;
 

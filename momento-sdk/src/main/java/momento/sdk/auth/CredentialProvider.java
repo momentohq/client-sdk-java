@@ -1,29 +1,51 @@
 package momento.sdk.auth;
 
+import javax.annotation.Nonnull;
+
 /**
  * Specifies the fields that are required for a Momento client to connect to and authenticate with
  * the Momento service.
  */
-public interface CredentialProvider {
+public abstract class CredentialProvider {
 
   /**
-   * The JWT used to authenticate to Momento.
+   * Creates a CredentialProvider using the provided auth token.
    *
-   * @return the JWT
+   * @param authToken A Momento auth token.
+   * @return The provider.
    */
-  String getAuthToken();
+  public static CredentialProvider fromString(@Nonnull String authToken) {
+    return new StringCredentialProvider(authToken);
+  }
 
   /**
-   * The endpoint with which the Momento client will connect to the Momento control plane.
+   * Creates a CredentialProvider by loading an auth token from the provided environment variable.
    *
-   * @return the endpoint
+   * @param envVar An environment variable containing a Momento auth token.
+   * @return The provider.
    */
-  String getControlEndpoint();
+  public static CredentialProvider fromEnvVar(@Nonnull String envVar) {
+    return new EnvVarCredentialProvider(envVar);
+  }
 
   /**
-   * The endpoint with which the Momento client will connect to the Momento data plane.
+   * Gets the token used to authenticate to Momento.
    *
-   * @return the endpoint
+   * @return The token.
    */
-  String getCacheEndpoint();
+  public abstract String getAuthToken();
+
+  /**
+   * Gets the endpoint with which the Momento client will connect to the Momento control plane.
+   *
+   * @return The endpoint.
+   */
+  public abstract String getControlEndpoint();
+
+  /**
+   * Gets the endpoint with which the Momento client will connect to the Momento data plane.
+   *
+   * @return The endpoint.
+   */
+  public abstract String getCacheEndpoint();
 }
