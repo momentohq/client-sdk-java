@@ -18,11 +18,12 @@ public interface CacheDictionaryGetFieldsResponse {
    * A successful dictionary get fields operation that found the keys with values in the dictionary.
    */
   class Hit implements CacheDictionaryGetFieldsResponse {
-    public final List<CacheDictionaryGetFieldResponse> responsesList = new ArrayList<>();
+    private final List<CacheDictionaryGetFieldResponse> responsesList = new ArrayList<>();
 
     /**
      * Constructs a dictionary get fields hit with a list of encoded keys and values.
      *
+     * @param fields The fields looked up by the call.
      * @param responses the retrieved dictionary.
      */
     public Hit(
@@ -45,6 +46,15 @@ public interface CacheDictionaryGetFieldsResponse {
         }
         counter++;
       }
+    }
+
+    /**
+     * Gets a {@link CacheDictionaryGetFieldResponse} for each looked up value.
+     *
+     * @return the responses.
+     */
+    public List<CacheDictionaryGetFieldResponse> perFieldResponses() {
+      return responsesList;
     }
 
     /**

@@ -14,6 +14,14 @@ public interface CreateSigningKeyResponse {
     private final String key;
     private final Date expiresAt;
 
+    /**
+     * Constructs a create signing key success.
+     *
+     * @param keyId The ID of the key.
+     * @param endpoint Which endpoint the key is authorized for.
+     * @param key The key.
+     * @param expiresAt The date the key will expire.
+     */
     public Success(String keyId, String endpoint, String key, Date expiresAt) {
       this.keyId = keyId;
       this.endpoint = endpoint;
@@ -21,18 +29,38 @@ public interface CreateSigningKeyResponse {
       this.expiresAt = expiresAt;
     }
 
+    /**
+     * Gets the signing key ID.
+     *
+     * @return the key ID.
+     */
     public String getKeyId() {
       return keyId;
     }
 
+    /**
+     * Gets the endpoint the key is authorized for.
+     *
+     * @return The endpoint.
+     */
     public String getEndpoint() {
       return endpoint;
     }
 
+    /**
+     * Gets the signing key.
+     *
+     * @return the key.
+     */
     public String getKey() {
       return key;
     }
 
+    /**
+     * Gets the expiration date of the signing key.
+     *
+     * @return the expiration date.
+     */
     public Date getExpiresAt() {
       return expiresAt;
     }

@@ -10,6 +10,11 @@ public class GrpcConfiguration {
 
   private final Duration deadline;
 
+  /**
+   * Constructs a GrpcConfiguration.
+   *
+   * @param deadline The maximum duration of a gRPC call.
+   */
   public GrpcConfiguration(@Nonnull Duration deadline) {
     ensureRequestDeadlineValid(deadline);
     this.deadline = deadline;
@@ -25,6 +30,12 @@ public class GrpcConfiguration {
     return deadline;
   }
 
+  /**
+   * Copy constructor that updates the deadline.
+   *
+   * @param deadline The new deadline.
+   * @return The updated GrpcConfiguration.
+   */
   public GrpcConfiguration withDeadline(Duration deadline) {
     return new GrpcConfiguration(deadline);
   }

@@ -12,7 +12,12 @@ public class ScoredElement implements Comparable<ScoredElement> {
   private final ByteString element;
   private final double score;
 
-  /** Constructs a ScoredElement with an element and a score. */
+  /**
+   * Constructs a ScoredElement with an element and a score.
+   *
+   * @param element The element.
+   * @param score The element's score.
+   */
   public ScoredElement(@Nonnull ByteString element, double score) {
     this.element = element;
     this.score = score;

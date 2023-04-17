@@ -2,25 +2,26 @@ package momento.sdk.messages;
 
 import momento.sdk.exceptions.SdkException;
 
-/** Response for a cache length operation */
+/** Response for a list length operation */
 public interface CacheListLengthResponse {
 
+  /** A successful list length operation. */
   class Hit implements CacheListLengthResponse {
     private final int listLength;
 
     /**
-     * Constructs a cache length hit with an encoded value.
+     * Constructs a list length hit with the length.
      *
-     * @param listLength of the list.
+     * @param listLength The length of the list.
      */
     public Hit(int listLength) {
       this.listLength = listLength;
     }
 
     /**
-     * Gets the length of the list
+     * Gets the length of the list.
      *
-     * @return the listLength.
+     * @return The list length.
      */
     public int getListLength() {
       return this.listLength;
@@ -32,7 +33,7 @@ public interface CacheListLengthResponse {
     }
   }
 
-  /** A successful cache length operation for a list that was not found. */
+  /** A successful list length operation for a list that was not found. */
   class Miss implements CacheListLengthResponse {}
 
   /**
@@ -43,7 +44,7 @@ public interface CacheListLengthResponse {
   class Error extends SdkException implements CacheListLengthResponse {
 
     /**
-     * Constructs a cache list length error with a cause.
+     * Constructs a list length error with a cause.
      *
      * @param cause the cause.
      */

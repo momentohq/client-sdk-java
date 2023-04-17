@@ -11,13 +11,23 @@ import momento.sdk.exceptions.SdkException;
 public interface CacheListPushBackResponse {
   /** A successful list push back operation. */
   class Success implements CacheListPushBackResponse {
-    private int listLength;
+    private final int listLength;
 
+    /**
+     * Constructs a list push back success with the new list length.
+     *
+     * @param listLength The new length of the list.
+     */
     public Success(int listLength) {
       super();
       this.listLength = listLength;
     }
 
+    /**
+     * Gets the new length of the list.
+     *
+     * @return The list length.
+     */
     public int getListLength() {
       return this.listLength;
     }

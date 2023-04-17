@@ -11,7 +11,7 @@ public interface CacheListPopBackResponse {
 
   /** A successful list pop back operation that found elements. */
   class Hit implements CacheListPopBackResponse {
-    private ByteString byteStringValue;
+    private final ByteString byteStringValue;
 
     /**
      * Constructs a list pop back hit with encoded value.

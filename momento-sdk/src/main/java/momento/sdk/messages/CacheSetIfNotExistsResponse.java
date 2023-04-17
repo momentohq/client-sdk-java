@@ -11,16 +11,16 @@ import momento.sdk.internal.StringHelpers;
  * type-safe object of one of the following subtypes: {Stored}, {NotStored}, {Error}
  */
 public interface CacheSetIfNotExistsResponse {
+  /** A successful setIfNotExists operation that set a value. */
   class Stored implements CacheSetIfNotExistsResponse {
-    private ByteString value;
-
-    private ByteString key;
+    private final ByteString value;
+    private final ByteString key;
 
     /**
-     * Indicates they key does not exist and the value was set for the desired key
+     * Indicates that the key did not exist and the value was set for it.
      *
-     * @param key The key to which the value is to be stored
-     * @param value The value of the key
+     * @param key The key to which the value is to be stored.
+     * @param value The value of the key.
      */
     public Stored(ByteString key, ByteString value) {
       super();
@@ -88,7 +88,10 @@ public interface CacheSetIfNotExistsResponse {
     }
   }
 
-  /** Indicates they key exist and the value was not set for the desired key */
+  /**
+   * A successful setIfNotExists operation that did not store a value because the key was already
+   * associated with one.
+   */
   class NotStored implements CacheSetIfNotExistsResponse {}
 
   /**

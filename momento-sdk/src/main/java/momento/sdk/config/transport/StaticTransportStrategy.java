@@ -8,6 +8,11 @@ public class StaticTransportStrategy implements TransportStrategy {
 
   private final GrpcConfiguration grpcConfiguration;
 
+  /**
+   * Constructs a StaticTransportStrategy.
+   *
+   * @param grpcConfiguration gRPC tunables.
+   */
   public StaticTransportStrategy(GrpcConfiguration grpcConfiguration) {
     this.grpcConfiguration = grpcConfiguration;
   }

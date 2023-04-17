@@ -64,7 +64,14 @@ public final class CacheClient implements Closeable {
   private final ScsControlClient scsControlClient;
   private final ScsDataClient scsDataClient;
 
-  CacheClient(
+  /**
+   * Constructs a CacheClient.
+   *
+   * @param credentialProvider Provider for the credentials required to connect to Momento.
+   * @param configuration Configuration object containing all tunable client settings.
+   * @param itemDefaultTtl The default ttl for values written to a cache.
+   */
+  public CacheClient(
       @Nonnull CredentialProvider credentialProvider,
       @Nonnull Configuration configuration,
       @Nonnull Duration itemDefaultTtl) {
@@ -72,6 +79,14 @@ public final class CacheClient implements Closeable {
     this.scsDataClient = new ScsDataClient(credentialProvider, configuration, itemDefaultTtl);
   }
 
+  /**
+   * Creates a CacheClient builder.
+   *
+   * @param credentialProvider Provider for the credentials required to connect to Momento.
+   * @param configuration Configuration object containing all tunable client settings.
+   * @param itemDefaultTtl The default ttl for values written to a cache.
+   * @return The builder.
+   */
   public static CacheClientBuilder builder(
       CredentialProvider credentialProvider, Configuration configuration, Duration itemDefaultTtl) {
     return new CacheClientBuilder(credentialProvider, configuration, itemDefaultTtl);
@@ -107,7 +122,12 @@ public final class CacheClient implements Closeable {
     return scsControlClient.flushCache(cacheName);
   }
 
-  /** Lists all caches. */
+  /**
+   * Lists all caches.
+   *
+   * @return The result of the cache list operation. A {@link ListCachesResponse.Success} will
+   *     contain a list of metadata for all caches.
+   */
   public ListCachesResponse listCaches() {
     return scsControlClient.listCaches();
   }
@@ -126,6 +146,7 @@ public final class CacheClient implements Closeable {
    * Revokes a Momento signing key, all tokens signed by which will be invalid
    *
    * @param keyId The id of the key to revoke
+   * @return The result of the signing key revoke operation.
    */
   public RevokeSigningKeyResponse revokeSigningKey(String keyId) {
     return scsControlClient.revokeSigningKey(keyId);
@@ -1816,9 +1837,12 @@ public final class CacheClient implements Closeable {
   /**
    * Increments the field's value in the given dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to increment the value in.
-   * @param field - The field for which the value is to be incremented.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to increment the value in.
+   * @param field The field for which the value is to be incremented.
+   * @param amount The amount to increment.
+   * @param ttl The time to live for the item in Cache. If null, the client's default TTL will be
+   *     used.
    * @return Future containing the result of the dictionary increment operation.
    */
   public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
@@ -1832,6 +1856,7 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to increment the value in.
    * @param field - The field for which the value is to be incremented.
+   * @param amount The amount to increment.
    * @return Future containing the result of the dictionary increment operation.
    */
   public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
@@ -1845,6 +1870,9 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to increment the value in.
    * @param field - The field for which the value is to be incremented.
+   * @param amount The amount to increment.
+   * @param ttl The time to live for the item in Cache. If null, the client's default TTL will be
+   *     used.
    * @return Future containing the result of the dictionary increment operation.
    */
   public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
@@ -1858,6 +1886,7 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to increment the value in.
    * @param field - The field for which the value is to be incremented.
+   * @param amount The amount to increment.
    * @return Future containing the result of the dictionary increment operation.
    */
   public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
