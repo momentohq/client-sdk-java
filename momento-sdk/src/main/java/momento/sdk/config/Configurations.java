@@ -26,7 +26,17 @@ public class Configurations {
      *
      * @return the latest Laptop configuration
      */
-    public static Configuration Latest() {
+    public static Configuration latest() {
+      return Laptop.v1();
+    }
+
+    /**
+     * Provides v1 configuration for a laptop environment. This configuration is guaranteed not to
+     * change in future releases of the Momento Java SDK.
+     *
+     * @return the v1 laptop configuration
+     */
+    public static Configuration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
       return new Laptop(transportStrategy);
@@ -52,7 +62,17 @@ public class Configurations {
      *
      * @return the latest in-region configuration
      */
-    public static Configuration Latest() {
+    public static Configuration latest() {
+      return InRegion.v1();
+    }
+
+    /**
+     * Provides v1 configuration for an in-region environment. This configuration is guaranteed not
+     * to change in future releases of the Momento Java SDK.
+     *
+     * @return the v1 in-region configuration
+     */
+    public static Configuration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(1100)));
       return new Laptop(transportStrategy);
@@ -78,7 +98,17 @@ public class Configurations {
      *
      * @return the latest low-latency configuration
      */
-    public static Configuration Latest() {
+    public static Configuration latest() {
+      return LowLatency.v1();
+    }
+
+    /**
+     * Provides v1 configuration for a low-latency environment. This configuration is guaranteed not
+     * to change in future releases of the Momento Java SDK.
+     *
+     * @return the v1 low-latency configuration
+     */
+    public static Configuration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(500)));
       return new Laptop(transportStrategy);

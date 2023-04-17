@@ -45,7 +45,7 @@ public class DictionaryTest extends BaseTestClass {
   @BeforeEach
   void setup() {
     target =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();
     target.createCache(cacheName);
   }

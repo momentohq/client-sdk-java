@@ -33,7 +33,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
   @BeforeEach
   void setup() {
     target =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();
   }
 
@@ -146,7 +146,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
 
     try (final CacheClient client =
         CacheClient.builder(
-                badTokenProvider, Configurations.Laptop.Latest(), Duration.ofSeconds(10))
+                badTokenProvider, Configurations.Laptop.latest(), Duration.ofSeconds(10))
             .build()) {
       final CreateCacheResponse createResponse = client.createCache(cacheName);
       assertThat(createResponse).isInstanceOf(CreateCacheResponse.Error.class);
@@ -172,7 +172,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
         .isThrownBy(
             () ->
                 CacheClient.builder(
-                        credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+                        credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
                     .setDeadline(Duration.ofMillis(0))
                     .build());
   }
@@ -184,7 +184,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
         .isThrownBy(
             () ->
                 CacheClient.builder(
-                        credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+                        credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
                     .setDeadline(Duration.ofMillis(-1))
                     .build());
   }
@@ -196,7 +196,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
         .isThrownBy(
             () ->
                 CacheClient.builder(
-                        credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+                        credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
                     .setDeadline(null)
                     .build());
   }

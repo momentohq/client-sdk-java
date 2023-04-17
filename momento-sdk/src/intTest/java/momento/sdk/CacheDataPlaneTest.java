@@ -32,7 +32,7 @@ final class CacheDataPlaneTest extends BaseTestClass {
   void setup() {
     client =
         CacheClient.builder(
-                credentialProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+                credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL_SECONDS)
             .build();
   }
 
@@ -89,7 +89,7 @@ final class CacheDataPlaneTest extends BaseTestClass {
     final CredentialProvider badTokenProvider = new StringCredentialProvider(badToken);
     try (final CacheClient client =
         CacheClient.builder(
-                badTokenProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+                badTokenProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL_SECONDS)
             .build()) {
 
       final CacheGetResponse response = client.get(cacheName, "").join();
@@ -117,7 +117,7 @@ final class CacheDataPlaneTest extends BaseTestClass {
   public void getWithShortTimeoutReturnsError() {
     try (final CacheClient client =
         CacheClient.builder(
-                credentialProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+                credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL_SECONDS)
             .setDeadline(Duration.ofMillis(1))
             .build()) {
 
@@ -158,7 +158,7 @@ final class CacheDataPlaneTest extends BaseTestClass {
   public void setWithShortTimeoutReturnsError() {
     try (CacheClient client =
         CacheClient.builder(
-                credentialProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+                credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL_SECONDS)
             .setDeadline(Duration.ofMillis(1))
             .build()) {
 
