@@ -24,11 +24,12 @@ final class ScsControlGrpcStubsManager implements Closeable {
   private static final Duration DEADLINE = Duration.ofMinutes(1);
 
   private final ManagedChannel channel;
-  private final ScsControlGrpc.ScsControlBlockingStub controlBlockingStub;
+
+  private final ScsControlGrpc.ScsControlFutureStub futureStub;
 
   ScsControlGrpcStubsManager(@Nonnull CredentialProvider credentialProvider) {
     this.channel = setupConnection(credentialProvider);
-    this.controlBlockingStub = ScsControlGrpc.newBlockingStub(channel);
+    this.futureStub = ScsControlGrpc.newFutureStub(channel);
   }
 
   private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
@@ -52,8 +53,8 @@ final class ScsControlGrpcStubsManager implements Closeable {
    *
    * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
    */
-  ScsControlGrpc.ScsControlBlockingStub getBlockingStub() {
-    return controlBlockingStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);
+  ScsControlGrpc.ScsControlFutureStub getStub() {
+    return futureStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);
   }
 
   @Override

@@ -6,7 +6,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
@@ -28,11 +27,8 @@ import org.junit.jupiter.api.Test;
 public class ListTest extends BaseTestClass {
   private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
-  private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
   private CacheClient target;
 
-  private final CredentialProvider credentialProvider =
-      CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
   private final String cacheName = System.getenv("TEST_CACHE_NAME");
 
   private final List<String> values = Arrays.asList("val1", "val2", "val3", "val4");
@@ -44,12 +40,12 @@ public class ListTest extends BaseTestClass {
     target =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();
-    target.createCache(cacheName);
+    target.createCache(cacheName).join();
   }
 
   @AfterEach
   void teardown() {
-    target.deleteCache(cacheName);
+    target.deleteCache(cacheName).join();
     target.close();
   }
 

@@ -22,8 +22,6 @@ final class CacheDataPlaneTest extends BaseTestClass {
 
   private static final Duration DEFAULT_ITEM_TTL_SECONDS = Duration.ofSeconds(60);
 
-  private final CredentialProvider credentialProvider =
-      CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
   private final String cacheName = System.getenv("TEST_CACHE_NAME");
 
   private CacheClient client;
