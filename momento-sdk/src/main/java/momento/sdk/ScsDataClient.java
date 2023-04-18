@@ -84,7 +84,6 @@ import grpc.cache_client._Unbounded;
 import io.grpc.Metadata;
 import io.grpc.stub.MetadataUtils;
 import java.io.Closeable;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -197,20 +196,6 @@ final class ScsDataClient implements Closeable {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, ByteBuffer value, @Nullable Duration ttl) {
-    try {
-      if (ttl == null) {
-        ttl = itemDefaultTtl;
-      }
-      ensureValidCacheSet(key, value, ttl);
-      return sendSet(cacheName, convert(key), convert(value), ttl);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1397,10 +1382,6 @@ final class ScsDataClient implements Closeable {
     return ByteString.copyFrom(bytes);
   }
 
-  private ByteString convert(ByteBuffer byteBuffer) {
-    return ByteString.copyFrom(byteBuffer);
-  }
-
   private Set<ByteString> convertStringSet(Set<String> strings) {
     return strings.stream().map(this::convert).collect(Collectors.toSet());
   }
@@ -1633,49 +1614,31 @@ final class ScsDataClient implements Closeable {
   private CompletableFuture<CacheSetIfNotExistsResponse> sendSetIfNotExists(
       String cacheName, ByteString key, ByteString value, Duration ttl) {
 
-    // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
-    final ListenableFuture<_SetIfNotExistsResponse> rspFuture =
-        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-            .setIfNotExists(buildSetIfNotExistsRequest(key, value, ttl));
 
-    // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSetIfNotExistsResponse> returnFuture =
-        new CompletableFuture<CacheSetIfNotExistsResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
+    final Supplier<ListenableFuture<_SetIfNotExistsResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .setIfNotExists(buildSetIfNotExistsRequest(key, value, ttl));
+
+    final Function<_SetIfNotExistsResponse, CacheSetIfNotExistsResponse> success =
+        rsp -> {
+          if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.STORED)) {
+            return new CacheSetIfNotExistsResponse.Stored(key, value);
+          } else if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.NOT_STORED)) {
+            return new CacheSetIfNotExistsResponse.NotStored();
+          } else {
+            return new CacheSetIfNotExistsResponse.Error(
+                new UnknownException(
+                    "Unrecognized set-if-not-exists result: " + rsp.getResultCase()));
           }
         };
 
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<_SetIfNotExistsResponse>() {
-          @Override
-          public void onSuccess(_SetIfNotExistsResponse rsp) {
-            if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.STORED)) {
-              returnFuture.complete(new CacheSetIfNotExistsResponse.Stored(key, value));
-            } else if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.NOT_STORED)) {
-              returnFuture.complete(new CacheSetIfNotExistsResponse.NotStored());
-            }
-          }
+    final Function<Throwable, CacheSetIfNotExistsResponse> failure =
+        e ->
+            new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
 
-          @Override
-          public void onFailure(Throwable e) {
-            returnFuture.complete(
-                new CacheSetIfNotExistsResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
-          }
-        },
-        MoreExecutors
-            .directExecutor()); // Execute on same thread that called execute on CompletionStage
-    // returned
-
-    return returnFuture;
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
   private CompletableFuture<CacheSetAddElementResponse> sendSetAddElement(

@@ -1,7 +1,6 @@
 package momento.sdk;
 
 import java.io.Closeable;
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
@@ -205,40 +204,6 @@ public final class CacheClient implements Closeable {
    */
   public CompletableFuture<CacheDeleteResponse> delete(String cacheName, byte[] key) {
     return scsDataClient.delete(cacheName, key);
-  }
-
-  /**
-   * Sets the value in cache with a given Time To Live (TTL) seconds.
-   *
-   * <p>If a value for this key is already present it will be replaced by the new value.
-   *
-   * @param cacheName Name of the cache to store the item in
-   * @param key The key under which the value is to be added.
-   * @param value The value to be stored.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
-   *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
-   * @return Future containing the result of the set operation.
-   */
-  public CompletableFuture<CacheSetResponse> set(
-      String cacheName, String key, ByteBuffer value, @Nullable Duration ttl) {
-    return scsDataClient.set(cacheName, key, value, ttl);
-  }
-
-  /**
-   * Sets the value in the cache. If a value for this key is already present it will be replaced by
-   * the new value.
-   *
-   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
-   *
-   * @param cacheName Name of the cache to store the item in
-   * @param key The key under which the value is to be added.
-   * @param value The value to be stored.
-   * @return Future containing the result of the set operation.
-   */
-  public CompletableFuture<CacheSetResponse> set(String cacheName, String key, ByteBuffer value) {
-    return scsDataClient.set(cacheName, key, value, null);
   }
 
   /**
