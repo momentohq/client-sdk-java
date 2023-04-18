@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
@@ -39,7 +38,7 @@ public class SortedSetTest {
   private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
 
   private final CredentialProvider credentialProvider =
-      new EnvVarCredentialProvider("TEST_AUTH_TOKEN");
+      CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
   private final String cacheName = System.getenv("TEST_CACHE_NAME");
   private CacheClient client;
 

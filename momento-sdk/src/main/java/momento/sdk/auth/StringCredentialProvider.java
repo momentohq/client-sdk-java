@@ -13,7 +13,7 @@ import javax.annotation.Nullable;
 import momento.sdk.exceptions.InvalidArgumentException;
 
 /** Parses connection and authentication information from a JWT provided as a string. */
-public class StringCredentialProvider implements CredentialProvider {
+public class StringCredentialProvider extends CredentialProvider {
 
   private static class TokenAndEndpoints {
     public final String controlEndpoint;

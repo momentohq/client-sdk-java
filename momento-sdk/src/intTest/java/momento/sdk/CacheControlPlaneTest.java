@@ -6,8 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
-import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.AuthenticationException;
@@ -29,7 +27,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
   private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
   private final CredentialProvider credentialProvider =
-      new EnvVarCredentialProvider("TEST_AUTH_TOKEN");
+      CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
   private CacheClient target;
 
   @BeforeEach
@@ -144,7 +142,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
         "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJpbnRlZ3JhdGlvbiIsImNwIjoiY29udHJvbC5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b"
             + "2hxLmNvbSIsImMiOiJjYWNoZS5jZWxsLWFscGhhLWRldi5wcmVwcm9kLmEubW9tZW50b2hxLmNvbSJ9.gdghdjjfjyehhdkkkskskmml"
             + "s76573jnajhjjjhjdhnndy";
-    final CredentialProvider badTokenProvider = new StringCredentialProvider(badToken);
+    final CredentialProvider badTokenProvider = CredentialProvider.fromString(badToken);
 
     try (final CacheClient client =
         CacheClient.builder(

@@ -7,7 +7,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheListConcatenateBackResponse;
@@ -33,7 +32,7 @@ public class ListTest extends BaseTestClass {
   private CacheClient target;
 
   private final CredentialProvider credentialProvider =
-      new EnvVarCredentialProvider("TEST_AUTH_TOKEN");
+      CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
   private final String cacheName = System.getenv("TEST_CACHE_NAME");
 
   private final List<String> values = Arrays.asList("val1", "val2", "val3", "val4");

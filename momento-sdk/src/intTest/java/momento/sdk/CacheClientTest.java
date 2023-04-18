@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AuthenticationException;
@@ -30,7 +29,7 @@ final class CacheClientTest extends BaseTestClass {
   private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
   private final CredentialProvider credentialProvider =
-      new EnvVarCredentialProvider("TEST_AUTH_TOKEN");
+      CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
 
   private CacheClient target;
 
