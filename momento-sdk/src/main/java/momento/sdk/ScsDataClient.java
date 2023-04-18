@@ -2210,8 +2210,7 @@ final class ScsDataClient extends ScsClient {
     final Supplier<ListenableFuture<_SortedSetRemoveResponse>> stubSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-                .sortedSetRemove(
-                    buildSortedSetRemove(sortedSetName, Collections.singleton(value)));
+                .sortedSetRemove(buildSortedSetRemove(sortedSetName, Collections.singleton(value)));
 
     final Function<_SortedSetRemoveResponse, CacheSortedSetRemoveElementResponse> success =
         rsp -> new CacheSortedSetRemoveElementResponse.Success();

@@ -934,7 +934,7 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param value - The value  whose score we are retrieving.
+   * @param value - The value whose score we are retrieving.
    * @return Future containing the result of the get score operation.
    */
   public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
