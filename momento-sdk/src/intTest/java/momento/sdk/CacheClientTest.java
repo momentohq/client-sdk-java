@@ -71,7 +71,7 @@ final class CacheClientTest extends BaseTestClass {
   @BeforeEach
   void setup() {
     target =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();
     cacheName = System.getenv("TEST_CACHE_NAME");
     target.createCache(cacheName);
@@ -155,7 +155,7 @@ final class CacheClientTest extends BaseTestClass {
         .isThrownBy(
             () ->
                 CacheClient.builder(
-                        credentialProvider, Configurations.Laptop.Latest(), Duration.ofDays(-1))
+                        credentialProvider, Configurations.Laptop.latest(), Duration.ofDays(-1))
                     .build());
   }
 
@@ -163,7 +163,7 @@ final class CacheClientTest extends BaseTestClass {
   public void initializesSdkAndCanHitDataPlaneForUnreachableControlPlane() {
     try (final CacheClient client =
         CacheClient.builder(
-                BAD_CONTROL_PLANE_PROVIDER, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+                BAD_CONTROL_PLANE_PROVIDER, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build()) {
       // Unable to hit control plane
       final CreateCacheResponse createResponse = client.createCache(randomString("cacheName"));
@@ -191,7 +191,7 @@ final class CacheClientTest extends BaseTestClass {
   public void initializesSdkAndCanHitControlPlaneForUnreachableDataPlane() {
     try (final CacheClient client =
         CacheClient.builder(
-                BAD_DATA_PLANE_PROVIDER, Configurations.Laptop.Latest(), DEFAULT_TTL_SECONDS)
+                BAD_DATA_PLANE_PROVIDER, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build()) {
 
       // Can reach control plane.

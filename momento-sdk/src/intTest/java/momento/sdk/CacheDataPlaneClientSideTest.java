@@ -27,7 +27,7 @@ final class CacheDataPlaneClientSideTest extends BaseTestClass {
   void setup() {
     client =
         CacheClient.builder(
-                credentialProvider, Configurations.Laptop.Latest(), DEFAULT_ITEM_TTL_SECONDS)
+                credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL_SECONDS)
             .build();
   }
 

@@ -47,7 +47,7 @@ public class SortedSetTest {
   @BeforeEach
   void setup() {
     client =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.Latest(), DEFAULT_TTL)
+        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL)
             .build();
     client.createCache(cacheName);
     sortedSetName = randomString("sortedSet");

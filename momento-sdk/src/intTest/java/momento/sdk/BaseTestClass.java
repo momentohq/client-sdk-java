@@ -25,7 +25,7 @@ class BaseTestClass {
     final CredentialProvider credentialProvider = CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
     try (CacheClient client =
         CacheClient.builder(
-                credentialProvider, Configurations.Laptop.Latest(), Duration.ofSeconds(10))
+                credentialProvider, Configurations.Laptop.latest(), Duration.ofSeconds(10))
             .build()) {
       client.createCache(System.getenv("TEST_CACHE_NAME"));
     } catch (AlreadyExistsException e) {
