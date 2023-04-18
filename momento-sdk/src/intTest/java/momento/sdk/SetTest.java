@@ -7,7 +7,6 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Collections;
 import java.util.Set;
-import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.messages.CacheSetAddElementResponse;
@@ -21,12 +20,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-public class SetTest {
+public class SetTest extends BaseTestClass {
   private static final Duration DEFAULT_TTL = Duration.ofSeconds(60);
-  private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
 
-  private final CredentialProvider credentialProvider =
-      CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
   private final String cacheName = System.getenv("TEST_CACHE_NAME");
   private CacheClient client;
 
@@ -37,12 +33,12 @@ public class SetTest {
     client =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL)
             .build();
-    client.createCache(cacheName);
+    client.createCache(cacheName).join();
   }
 
   @AfterEach
   void teardown() {
-    client.deleteCache(cacheName);
+    client.deleteCache(cacheName).join();
     client.close();
   }
 

@@ -1,30 +1,37 @@
 package momento.sdk;
 
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
+import static momento.sdk.ValidationUtils.ensureValidKey;
 import static momento.sdk.ValidationUtils.ensureValidTtlMinutes;
 
+import com.google.common.util.concurrent.ListenableFuture;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import grpc.control_client._Cache;
 import grpc.control_client._CreateCacheRequest;
+import grpc.control_client._CreateCacheResponse;
 import grpc.control_client._CreateSigningKeyRequest;
 import grpc.control_client._CreateSigningKeyResponse;
 import grpc.control_client._DeleteCacheRequest;
+import grpc.control_client._DeleteCacheResponse;
 import grpc.control_client._FlushCacheRequest;
+import grpc.control_client._FlushCacheResponse;
 import grpc.control_client._ListCachesRequest;
 import grpc.control_client._ListCachesResponse;
 import grpc.control_client._ListSigningKeysRequest;
 import grpc.control_client._ListSigningKeysResponse;
 import grpc.control_client._RevokeSigningKeyRequest;
-import grpc.control_client._SigningKey;
-import java.io.Closeable;
+import grpc.control_client._RevokeSigningKeyResponse;
+import io.grpc.Metadata;
 import java.time.Duration;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.messages.CacheInfo;
 import momento.sdk.messages.CreateCacheResponse;
 import momento.sdk.messages.CreateSigningKeyResponse;
@@ -36,7 +43,7 @@ import momento.sdk.messages.RevokeSigningKeyResponse;
 import momento.sdk.messages.SigningKey;
 
 /** Client for interacting with Scs Control Plane. */
-final class ScsControlClient implements Closeable {
+final class ScsControlClient extends ScsClient {
 
   private final CredentialProvider credentialProvider;
   private final ScsControlGrpcStubsManager controlGrpcStubsManager;
@@ -46,139 +53,226 @@ final class ScsControlClient implements Closeable {
     this.controlGrpcStubsManager = new ScsControlGrpcStubsManager(credentialProvider);
   }
 
-  CreateCacheResponse createCache(String cacheName) {
+  CompletableFuture<CreateCacheResponse> createCache(String cacheName) {
     try {
       checkCacheNameValid(cacheName);
-      //noinspection ResultOfMethodCallIgnored
 
-      controlGrpcStubsManager.getBlockingStub().createCache(buildCreateCacheRequest(cacheName));
-      return new CreateCacheResponse.Success();
+      return sendCreateCache(cacheName);
     } catch (Exception e) {
-      return new CreateCacheResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return CompletableFuture.completedFuture(
+          new CreateCacheResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  DeleteCacheResponse deleteCache(String cacheName) {
+  CompletableFuture<DeleteCacheResponse> deleteCache(String cacheName) {
     try {
       checkCacheNameValid(cacheName);
-      //noinspection ResultOfMethodCallIgnored
-      controlGrpcStubsManager.getBlockingStub().deleteCache(buildDeleteCacheRequest(cacheName));
-      return new DeleteCacheResponse.Success();
+
+      return sendDeleteCache(cacheName);
     } catch (Exception e) {
-      return new DeleteCacheResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return CompletableFuture.completedFuture(
+          new DeleteCacheResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  FlushCacheResponse flushCache(String cacheName) {
+  CompletableFuture<FlushCacheResponse> flushCache(String cacheName) {
     try {
       checkCacheNameValid(cacheName);
-      //noinspection ResultOfMethodCallIgnored
-      controlGrpcStubsManager.getBlockingStub().flushCache(buildFlushCacheRequest(cacheName));
-      return new FlushCacheResponse.Success();
+
+      return sendFlushCache(cacheName);
     } catch (Exception e) {
-      return new FlushCacheResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return CompletableFuture.completedFuture(
+          new FlushCacheResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  ListCachesResponse listCaches() {
+  CompletableFuture<ListCachesResponse> listCaches() {
     try {
-      final _ListCachesRequest request = _ListCachesRequest.newBuilder().setNextToken("").build();
-      return convert(controlGrpcStubsManager.getBlockingStub().listCaches(request));
+      return sendListCaches();
     } catch (Exception e) {
-      return new ListCachesResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return CompletableFuture.completedFuture(
+          new ListCachesResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CreateSigningKeyResponse createSigningKey(Duration ttl) {
+  CompletableFuture<CreateSigningKeyResponse> createSigningKey(Duration ttl) {
     try {
       ensureValidTtlMinutes(ttl);
-      return convert(
-          controlGrpcStubsManager
-              .getBlockingStub()
-              .createSigningKey(buildCreateSigningKeyRequest(ttl)),
-          credentialProvider.getCacheEndpoint());
+
+      return sendCreateSigningKey(ttl);
     } catch (Exception e) {
-      return new CreateSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return CompletableFuture.completedFuture(
+          new CreateSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  RevokeSigningKeyResponse revokeSigningKey(String keyId) {
+  CompletableFuture<RevokeSigningKeyResponse> revokeSigningKey(String keyId) {
     try {
-      //noinspection ResultOfMethodCallIgnored
-      controlGrpcStubsManager
-          .getBlockingStub()
-          .revokeSigningKey(buildRevokeSigningKeyRequest(keyId));
-      return new RevokeSigningKeyResponse.Success();
+      ensureValidKey(keyId);
+
+      return sendRevokeSigningKey(keyId);
     } catch (Exception e) {
-      return new RevokeSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return CompletableFuture.completedFuture(
+          new RevokeSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  ListSigningKeysResponse listSigningKeys() {
+  CompletableFuture<ListSigningKeysResponse> listSigningKeys() {
     try {
-      final _ListSigningKeysRequest request =
-          _ListSigningKeysRequest.newBuilder().setNextToken("").build();
-      return convert(
-          controlGrpcStubsManager.getBlockingStub().listSigningKeys(request),
-          credentialProvider.getCacheEndpoint());
+      return sendListSigningKeys();
     } catch (Exception e) {
-      return new ListSigningKeysResponse.Error(CacheServiceExceptionMapper.convert(e));
+      return CompletableFuture.completedFuture(
+          new ListSigningKeysResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  private static _CreateCacheRequest buildCreateCacheRequest(String cacheName) {
-    return _CreateCacheRequest.newBuilder().setCacheName(cacheName).build();
+  private CompletableFuture<CreateCacheResponse> sendCreateCache(String cacheName) {
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_CreateCacheResponse>> stubSupplier =
+        () ->
+            attachMetadata(controlGrpcStubsManager.getStub(), metadata)
+                .createCache(_CreateCacheRequest.newBuilder().setCacheName(cacheName).build());
+
+    final Function<_CreateCacheResponse, CreateCacheResponse> success =
+        rsp -> new CreateCacheResponse.Success();
+
+    final Function<Throwable, CreateCacheResponse> failure =
+        e -> new CreateCacheResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private static _DeleteCacheRequest buildDeleteCacheRequest(String cacheName) {
-    return _DeleteCacheRequest.newBuilder().setCacheName(cacheName).build();
+  private CompletableFuture<DeleteCacheResponse> sendDeleteCache(String cacheName) {
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_DeleteCacheResponse>> stubSupplier =
+        () ->
+            attachMetadata(controlGrpcStubsManager.getStub(), metadata)
+                .deleteCache(_DeleteCacheRequest.newBuilder().setCacheName(cacheName).build());
+
+    final Function<_DeleteCacheResponse, DeleteCacheResponse> success =
+        rsp -> new DeleteCacheResponse.Success();
+
+    final Function<Throwable, DeleteCacheResponse> failure =
+        e -> new DeleteCacheResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private static _FlushCacheRequest buildFlushCacheRequest(String cacheName) {
-    return _FlushCacheRequest.newBuilder().setCacheName(cacheName).build();
+  private CompletableFuture<FlushCacheResponse> sendFlushCache(String cacheName) {
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_FlushCacheResponse>> stubSupplier =
+        () ->
+            attachMetadata(controlGrpcStubsManager.getStub(), metadata)
+                .flushCache(_FlushCacheRequest.newBuilder().setCacheName(cacheName).build());
+
+    final Function<_FlushCacheResponse, FlushCacheResponse> success =
+        rsp -> new FlushCacheResponse.Success();
+
+    final Function<Throwable, FlushCacheResponse> failure =
+        e -> new FlushCacheResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private static _CreateSigningKeyRequest buildCreateSigningKeyRequest(Duration ttl) {
-    return _CreateSigningKeyRequest.newBuilder().setTtlMinutes((int) ttl.toMinutes()).build();
+  private CompletableFuture<ListCachesResponse> sendListCaches() {
+
+    final Supplier<ListenableFuture<_ListCachesResponse>> stubSupplier =
+        () ->
+            controlGrpcStubsManager
+                .getStub()
+                .listCaches(_ListCachesRequest.newBuilder().setNextToken("").build());
+
+    final Function<_ListCachesResponse, ListCachesResponse> success =
+        rsp ->
+            new ListCachesResponse.Success(
+                rsp.getCacheList().stream()
+                    .map(c -> new CacheInfo(c.getCacheName()))
+                    .collect(Collectors.toList()));
+
+    final Function<Throwable, ListCachesResponse> failure =
+        e -> new ListCachesResponse.Error(CacheServiceExceptionMapper.convert(e));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private static _RevokeSigningKeyRequest buildRevokeSigningKeyRequest(String keyId) {
-    return _RevokeSigningKeyRequest.newBuilder().setKeyId(keyId).build();
+  private CompletableFuture<CreateSigningKeyResponse> sendCreateSigningKey(Duration ttl) {
+
+    final Supplier<ListenableFuture<_CreateSigningKeyResponse>> stubSupplier =
+        () ->
+            controlGrpcStubsManager
+                .getStub()
+                .createSigningKey(
+                    _CreateSigningKeyRequest.newBuilder()
+                        .setTtlMinutes((int) ttl.toMinutes())
+                        .build());
+
+    final Function<_CreateSigningKeyResponse, CreateSigningKeyResponse> success =
+        rsp -> {
+          try {
+            final JsonObject jsonObject = JsonParser.parseString(rsp.getKey()).getAsJsonObject();
+            final String keyId = jsonObject.get("kid").getAsString();
+            return new CreateSigningKeyResponse.Success(
+                keyId,
+                credentialProvider.getCacheEndpoint(),
+                rsp.getKey(),
+                new Date(rsp.getExpiresAt() * 1000));
+          } catch (Exception e) {
+            return new CreateSigningKeyResponse.Error(
+                new InternalServerException(
+                    "Unable to parse key ID from server response. Please contact Momento."));
+          }
+        };
+
+    final Function<Throwable, CreateSigningKeyResponse> failure =
+        e -> new CreateSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private static ListCachesResponse convert(_ListCachesResponse response) {
-    final List<CacheInfo> caches = new ArrayList<>();
-    for (final _Cache cache : response.getCacheList()) {
-      caches.add(convert(cache));
-    }
-    return new ListCachesResponse.Success(caches);
+  private CompletableFuture<RevokeSigningKeyResponse> sendRevokeSigningKey(String keyId) {
+
+    final Supplier<ListenableFuture<_RevokeSigningKeyResponse>> stubSupplier =
+        () ->
+            controlGrpcStubsManager
+                .getStub()
+                .revokeSigningKey(_RevokeSigningKeyRequest.newBuilder().setKeyId(keyId).build());
+
+    final Function<_RevokeSigningKeyResponse, RevokeSigningKeyResponse> success =
+        rsp -> new RevokeSigningKeyResponse.Success();
+
+    final Function<Throwable, RevokeSigningKeyResponse> failure =
+        e -> new RevokeSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private static CacheInfo convert(_Cache cache) {
-    return new CacheInfo(cache.getCacheName());
-  }
+  private CompletableFuture<ListSigningKeysResponse> sendListSigningKeys() {
 
-  private static ListSigningKeysResponse convert(
-      _ListSigningKeysResponse response, String endpoint) {
-    final List<SigningKey> signingKeys = new ArrayList<>();
-    for (final _SigningKey signingKey : response.getSigningKeyList()) {
-      signingKeys.add(convert(signingKey, endpoint));
-    }
+    final Supplier<ListenableFuture<_ListSigningKeysResponse>> stubSupplier =
+        () ->
+            controlGrpcStubsManager
+                .getStub()
+                .listSigningKeys(_ListSigningKeysRequest.newBuilder().setNextToken("").build());
 
-    return new ListSigningKeysResponse.Success(signingKeys);
-  }
+    final Function<_ListSigningKeysResponse, ListSigningKeysResponse> success =
+        rsp ->
+            new ListSigningKeysResponse.Success(
+                rsp.getSigningKeyList().stream()
+                    .map(
+                        sk ->
+                            new SigningKey(
+                                sk.getKeyId(),
+                                new Date(sk.getExpiresAt() * 1000),
+                                credentialProvider.getCacheEndpoint()))
+                    .collect(Collectors.toList()));
 
-  private static SigningKey convert(_SigningKey signingKey, String endpoint) {
-    return new SigningKey(
-        signingKey.getKeyId(), new Date(signingKey.getExpiresAt() * 1000), endpoint);
-  }
+    final Function<Throwable, ListSigningKeysResponse> failure =
+        e -> new ListSigningKeysResponse.Error(CacheServiceExceptionMapper.convert(e));
 
-  private static CreateSigningKeyResponse convert(
-      _CreateSigningKeyResponse response, String endpoint) {
-    final JsonObject jsonObject = JsonParser.parseString(response.getKey()).getAsJsonObject();
-    final String keyId = jsonObject.get("kid").getAsString();
-    return new CreateSigningKeyResponse.Success(
-        keyId, endpoint, response.getKey(), new Date(response.getExpiresAt() * 1000));
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
   @Override

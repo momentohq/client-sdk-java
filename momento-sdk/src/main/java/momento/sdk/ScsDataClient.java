@@ -1,6 +1,5 @@
 package momento.sdk;
 
-import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static momento.sdk.ValidationUtils.checkCacheNameValid;
 import static momento.sdk.ValidationUtils.checkDictionaryNameValid;
 import static momento.sdk.ValidationUtils.checkIndexRangeValid;
@@ -19,7 +18,6 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import grpc.cache_client.ECacheResult;
-import grpc.cache_client.ScsGrpc;
 import grpc.cache_client._DeleteRequest;
 import grpc.cache_client._DeleteResponse;
 import grpc.cache_client._DictionaryDeleteRequest;
@@ -82,8 +80,6 @@ import grpc.cache_client._SortedSetRemoveRequest;
 import grpc.cache_client._SortedSetRemoveResponse;
 import grpc.cache_client._Unbounded;
 import io.grpc.Metadata;
-import io.grpc.stub.MetadataUtils;
-import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -143,10 +139,7 @@ import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
 
 /** Client for interacting with Scs Data plane. */
-final class ScsDataClient implements Closeable {
-
-  private static final Metadata.Key<String> CACHE_NAME_KEY =
-      Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
+final class ScsDataClient extends ScsClient {
 
   private final Duration itemDefaultTtl;
   private final ScsDataGrpcStubsManager scsDataGrpcStubsManager;
@@ -3113,58 +3106,6 @@ final class ScsDataClient implements Closeable {
     // returned
 
     return returnFuture;
-  }
-
-  private <SdkResponse, GrpcResponse> CompletableFuture<SdkResponse> executeGrpcFunction(
-      Supplier<ListenableFuture<GrpcResponse>> stubSupplier,
-      Function<GrpcResponse, SdkResponse> successFunction,
-      Function<Throwable, SdkResponse> errorFunction) {
-
-    // Submit request to non-blocking stub
-    final ListenableFuture<GrpcResponse> rspFuture = stubSupplier.get();
-
-    // Build a CompletableFuture to return to caller
-    final CompletableFuture<SdkResponse> returnFuture =
-        new CompletableFuture<SdkResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
-
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<GrpcResponse>() {
-          @Override
-          public void onSuccess(GrpcResponse rsp) {
-            returnFuture.complete(successFunction.apply(rsp));
-          }
-
-          @Override
-          public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(errorFunction.apply(e));
-          }
-        },
-        // Execute on same thread that called execute on CompletionStage
-        MoreExecutors.directExecutor());
-
-    return returnFuture;
-  }
-
-  private static Metadata metadataWithCache(String cacheName) {
-    final Metadata metadata = new Metadata();
-    metadata.put(CACHE_NAME_KEY, cacheName);
-
-    return metadata;
-  }
-
-  private static ScsGrpc.ScsFutureStub attachMetadata(
-      ScsGrpc.ScsFutureStub stub, Metadata metadata) {
-    return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
 
   private _GetRequest buildGetRequest(ByteString key) {

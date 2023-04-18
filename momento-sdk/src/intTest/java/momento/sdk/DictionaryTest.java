@@ -8,7 +8,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.InvalidArgumentException;
@@ -29,11 +28,8 @@ import org.junit.jupiter.api.Test;
 
 public class DictionaryTest extends BaseTestClass {
   private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
-  private static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
   private CacheClient target;
 
-  private final CredentialProvider credentialProvider =
-      CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
   private final String cacheName = System.getenv("TEST_CACHE_NAME");
   private final String dictionaryName = "test-dictionary";
 
@@ -47,12 +43,12 @@ public class DictionaryTest extends BaseTestClass {
     target =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();
-    target.createCache(cacheName);
+    target.createCache(cacheName).join();
   }
 
   @AfterEach
   void teardown() {
-    target.deleteCache(cacheName);
+    target.deleteCache(cacheName).join();
     target.close();
   }
 

@@ -92,71 +92,80 @@ public final class CacheClient implements Closeable {
   }
 
   /**
-   * Creates a cache with provided name
+   * Creates a cache with provided name.
    *
-   * @param cacheName Name of the cache to be created.
-   * @return The result of the create cache operation
+   * @param cacheName The name of the cache to be created.
+   * @return A future containing the result of the cache creation: {@link
+   *     CreateCacheResponse.Success} or {@link CreateCacheResponse.Error}.
    */
-  public CreateCacheResponse createCache(String cacheName) {
+  public CompletableFuture<CreateCacheResponse> createCache(String cacheName) {
     return scsControlClient.createCache(cacheName);
   }
 
   /**
-   * Deletes a cache
+   * Deletes a cache.
    *
-   * @param cacheName The name of the cache to be deleted.
-   * @return The result of the cache deletion operation.
+   * @param cacheName The cache to be deleted.
+   * @return A future containing the result of the cache deletion: {@link
+   *     CacheDeleteResponse.Success} or {@link CacheDeleteResponse.Error}.
    */
-  public DeleteCacheResponse deleteCache(String cacheName) {
+  public CompletableFuture<DeleteCacheResponse> deleteCache(String cacheName) {
     return scsControlClient.deleteCache(cacheName);
   }
 
   /**
-   * Flushes the contents of the cache.
+   * Flushes the contents of a cache.
    *
-   * @param cacheName The name of the cache to be flushed.
-   * @return The result of the cache flush operation.
+   * @param cacheName The cache to be flushed.
+   * @return A future containing the result of the cache flush: {@link FlushCacheResponse.Success}
+   *     or {@link FlushCacheResponse.Error}.
    */
-  public FlushCacheResponse flushCache(String cacheName) {
+  public CompletableFuture<FlushCacheResponse> flushCache(String cacheName) {
     return scsControlClient.flushCache(cacheName);
   }
 
   /**
    * Lists all caches.
    *
-   * @return The result of the cache list operation. A {@link ListCachesResponse.Success} will
-   *     contain a list of metadata for all caches.
+   * @return A future containing the result of the list caches operation: {@link
+   *     ListCachesResponse.Success} containing the list of caches, or {@link
+   *     FlushCacheResponse.Error}.
    */
-  public ListCachesResponse listCaches() {
+  public CompletableFuture<ListCachesResponse> listCaches() {
     return scsControlClient.listCaches();
   }
 
   /**
-   * Creates a new Momento signing key
+   * Creates a new Momento signing key.
    *
-   * @param ttl The key's time-to-live duration
-   * @return The created key and its metadata
+   * @param ttl The key's time-to-live duration.
+   * @return A future containing the result of the signing key creation: {@link
+   *     CreateSigningKeyResponse.Success} containing the key and its metadata, or {@link
+   *     CreateSigningKeyResponse.Error}.
    */
-  public CreateSigningKeyResponse createSigningKey(Duration ttl) {
+  public CompletableFuture<CreateSigningKeyResponse> createSigningKey(Duration ttl) {
     return scsControlClient.createSigningKey(ttl);
   }
 
   /**
-   * Revokes a Momento signing key, all tokens signed by which will be invalid
+   * Revokes a Momento signing key and invalidates all tokens signed by it.
    *
-   * @param keyId The id of the key to revoke
-   * @return The result of the signing key revoke operation.
+   * @param keyId The ID of the key to revoke.
+   * @return A future containing the result of the signing key revocation: {@link
+   *     RevokeSigningKeyResponse.Success} or {@link RevokeSigningKeyResponse.Error}.
    */
-  public RevokeSigningKeyResponse revokeSigningKey(String keyId) {
+  public CompletableFuture<RevokeSigningKeyResponse> revokeSigningKey(String keyId) {
     return scsControlClient.revokeSigningKey(keyId);
   }
 
   /**
    * Lists all Momento signing keys.
    *
-   * @return A list of Momento signing keys along with a pagination token (if present)
+   * @return A future containing the result of the signing key revocation: {@link
+   *     ListSigningKeysResponse.Success} containing the list of signing keys, or {@link
+   *     ListSigningKeysResponse.Error}.
    */
-  public ListSigningKeysResponse listSigningKeys() {
+  public CompletableFuture<ListSigningKeysResponse> listSigningKeys() {
     return scsControlClient.listSigningKeys();
   }
 
