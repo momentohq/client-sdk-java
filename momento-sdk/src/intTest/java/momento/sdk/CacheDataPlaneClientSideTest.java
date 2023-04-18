@@ -2,7 +2,6 @@ package momento.sdk;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import java.nio.ByteBuffer;
 import java.time.Duration;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configurations;
@@ -71,12 +70,6 @@ final class CacheDataPlaneClientSideTest extends BaseTestClass {
     assertThat((CacheSetResponse.Error) stringSetResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
-    final CacheSetResponse byteBufferSetResponse =
-        client.set(cacheName, null, ByteBuffer.allocate(1), Duration.ofSeconds(10)).join();
-    assertThat(byteBufferSetResponse).isInstanceOf(CacheSetResponse.Error.class);
-    assertThat((CacheSetResponse.Error) byteBufferSetResponse)
-        .hasCauseInstanceOf(InvalidArgumentException.class);
-
     final CacheSetResponse byteKeySetResponse =
         client.set(cacheName, null, new byte[] {0x00}, Duration.ofSeconds(10)).join();
     assertThat(byteKeySetResponse).isInstanceOf(CacheSetResponse.Error.class);
@@ -87,15 +80,9 @@ final class CacheDataPlaneClientSideTest extends BaseTestClass {
   @Test
   public void nullValueSetReturnsError() {
     final CacheSetResponse stringResponse =
-        client.set(cacheName, "hello", (String) null, Duration.ofSeconds(10)).join();
+        client.set(cacheName, "hello", null, Duration.ofSeconds(10)).join();
     assertThat(stringResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) stringResponse)
-        .hasCauseInstanceOf(InvalidArgumentException.class);
-
-    final CacheSetResponse byteBufferResponse =
-        client.set(cacheName, "hello", (ByteBuffer) null, Duration.ofSeconds(10)).join();
-    assertThat(byteBufferResponse).isInstanceOf(CacheSetResponse.Error.class);
-    assertThat((CacheSetResponse.Error) byteBufferResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
     final CacheSetResponse byteArrayResponse =
@@ -111,12 +98,6 @@ final class CacheDataPlaneClientSideTest extends BaseTestClass {
         client.set(cacheName, "hello", "", Duration.ofSeconds(-1)).join();
     assertThat(stringSetResponse).isInstanceOf(CacheSetResponse.Error.class);
     assertThat((CacheSetResponse.Error) stringSetResponse)
-        .hasCauseInstanceOf(InvalidArgumentException.class);
-
-    final CacheSetResponse byteBufferSetResponse =
-        client.set(cacheName, "hello", ByteBuffer.allocate(1), Duration.ofSeconds(-1)).join();
-    assertThat(byteBufferSetResponse).isInstanceOf(CacheSetResponse.Error.class);
-    assertThat((CacheSetResponse.Error) byteBufferSetResponse)
         .hasCauseInstanceOf(InvalidArgumentException.class);
 
     final CacheSetResponse byteArraySetResponse =

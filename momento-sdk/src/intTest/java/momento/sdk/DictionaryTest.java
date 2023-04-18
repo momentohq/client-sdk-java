@@ -1024,9 +1024,7 @@ public class DictionaryTest extends BaseTestClass {
   @Test
   public void dictionaryIncrementStringFieldHappyPath() {
     // Increment with ttl
-    assertThat(
-            target.dictionaryIncrement(
-                cacheName, dictionaryName, "a", 1, CollectionTtl.fromCacheTtl()))
+    assertThat(target.dictionaryIncrement(cacheName, dictionaryName, "a", 1))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(
             InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
@@ -1062,9 +1060,7 @@ public class DictionaryTest extends BaseTestClass {
   @Test
   public void dictionaryIncrementByteArrayFieldHappyPath() {
     // Increment with ttl
-    assertThat(
-            target.dictionaryIncrement(
-                cacheName, dictionaryName, "a".getBytes(), 1, CollectionTtl.fromCacheTtl()))
+    assertThat(target.dictionaryIncrement(cacheName, dictionaryName, "a".getBytes(), 1))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(
             InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
