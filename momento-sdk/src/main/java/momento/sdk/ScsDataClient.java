@@ -101,44 +101,7 @@ import momento.sdk.config.Configuration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.UnknownException;
-import momento.sdk.messages.CacheDeleteResponse;
-import momento.sdk.messages.CacheDictionaryFetchResponse;
-import momento.sdk.messages.CacheDictionaryGetFieldResponse;
-import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
-import momento.sdk.messages.CacheDictionaryIncrementResponse;
-import momento.sdk.messages.CacheDictionaryRemoveFieldResponse;
-import momento.sdk.messages.CacheDictionaryRemoveFieldsResponse;
-import momento.sdk.messages.CacheDictionarySetFieldResponse;
-import momento.sdk.messages.CacheDictionarySetFieldsResponse;
-import momento.sdk.messages.CacheGetResponse;
-import momento.sdk.messages.CacheIncrementResponse;
-import momento.sdk.messages.CacheListConcatenateBackResponse;
-import momento.sdk.messages.CacheListConcatenateFrontResponse;
-import momento.sdk.messages.CacheListFetchResponse;
-import momento.sdk.messages.CacheListLengthResponse;
-import momento.sdk.messages.CacheListPopBackResponse;
-import momento.sdk.messages.CacheListPopFrontResponse;
-import momento.sdk.messages.CacheListPushBackResponse;
-import momento.sdk.messages.CacheListPushFrontResponse;
-import momento.sdk.messages.CacheListRemoveValueResponse;
-import momento.sdk.messages.CacheListRetainResponse;
-import momento.sdk.messages.CacheSetAddElementResponse;
-import momento.sdk.messages.CacheSetAddElementsResponse;
-import momento.sdk.messages.CacheSetFetchResponse;
-import momento.sdk.messages.CacheSetIfNotExistsResponse;
-import momento.sdk.messages.CacheSetRemoveElementResponse;
-import momento.sdk.messages.CacheSetRemoveElementsResponse;
-import momento.sdk.messages.CacheSetResponse;
-import momento.sdk.messages.CacheSortedSetFetchResponse;
-import momento.sdk.messages.CacheSortedSetGetRankResponse;
-import momento.sdk.messages.CacheSortedSetGetScoreResponse;
-import momento.sdk.messages.CacheSortedSetGetScoresResponse;
-import momento.sdk.messages.CacheSortedSetIncrementScoreResponse;
-import momento.sdk.messages.CacheSortedSetPutElementResponse;
-import momento.sdk.messages.CacheSortedSetPutElementsResponse;
-import momento.sdk.messages.CacheSortedSetRemoveElementResponse;
-import momento.sdk.messages.CacheSortedSetRemoveElementsResponse;
-import momento.sdk.messages.SortOrder;
+import momento.sdk.messages.*;
 import momento.sdk.requests.CollectionTtl;
 
 /** Client for interacting with Scs Data plane. */
@@ -518,6 +481,27 @@ final class ScsDataClient extends ScsClient {
 
       return sendSortedSetPutElements(
           cacheName, convert(sortedSetName), convertBytesScoreMap(elements), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new CacheSortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+      String cacheName,
+      String sortedSetName,
+      Iterable<ScoredElement> elements,
+      @Nullable CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkSortedSetNameValid(sortedSetName);
+      ensureValidValue(elements);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendSortedSetPutElements(cacheName, convert(sortedSetName), elements, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1447,14 +1431,16 @@ final class ScsDataClient extends ScsClient {
             Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
   }
 
-  private Map<ByteString, Double> convertStringScoreMap(Map<String, Double> elements) {
+  private List<ScoredElement> convertStringScoreMap(Map<String, Double> elements) {
     return elements.entrySet().stream()
-        .collect(Collectors.toMap(entry -> convert(entry.getKey()), Map.Entry::getValue));
+        .map(entry -> new ScoredElement(entry.getKey(), entry.getValue()))
+        .collect(Collectors.toList());
   }
 
-  private Map<ByteString, Double> convertBytesScoreMap(Map<byte[], Double> elements) {
+  private List<ScoredElement> convertBytesScoreMap(Map<byte[], Double> elements) {
     return elements.entrySet().stream()
-        .collect(Collectors.toMap(entry -> convert(entry.getKey()), Map.Entry::getValue));
+        .map(entry -> new ScoredElement(entry.getKey(), entry.getValue()))
+        .collect(Collectors.toList());
   }
 
   private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
@@ -1899,7 +1885,9 @@ final class ScsDataClient extends ScsClient {
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
             .sortedSetPut(
                 buildSortedSetPutRequest(
-                    sortedSetName, Collections.singletonMap(value, score), collectionTtl));
+                    sortedSetName,
+                    Collections.singletonList(new ScoredElement(value, score)),
+                    collectionTtl));
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<CacheSortedSetPutElementResponse> returnFuture =
@@ -1938,7 +1926,7 @@ final class ScsDataClient extends ScsClient {
   private CompletableFuture<CacheSortedSetPutElementsResponse> sendSortedSetPutElements(
       String cacheName,
       ByteString sortedSetName,
-      Map<ByteString, Double> elements,
+      Iterable<ScoredElement> elements,
       CollectionTtl collectionTtl) {
 
     // Submit request to non-blocking stub
@@ -3202,20 +3190,20 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _SortedSetPutRequest buildSortedSetPutRequest(
-      ByteString sortedSetName, Map<ByteString, Double> elements, CollectionTtl ttl) {
+      ByteString sortedSetName, Iterable<ScoredElement> elements, CollectionTtl ttl) {
     return _SortedSetPutRequest.newBuilder()
         .setSetName(sortedSetName)
         .setTtlMilliseconds(ttl.toMilliseconds().orElse(itemDefaultTtl.toMillis()))
         .setRefreshTtl(ttl.refreshTtl())
         .addAllElements(
-            elements.entrySet().stream()
+            StreamSupport.stream(elements.spliterator(), false)
                 .map(
                     e ->
                         _SortedSetElement.newBuilder()
-                            .setValue(e.getKey())
-                            .setScore(e.getValue())
+                            .setValue(e.getValueByteString())
+                            .setScore(e.getScore())
                             .build())
-                .collect(Collectors.toSet()))
+                .collect(Collectors.toList()))
         .build();
   }
 

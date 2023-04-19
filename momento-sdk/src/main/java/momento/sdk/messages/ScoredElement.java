@@ -9,7 +9,7 @@ import javax.annotation.Nonnull;
  * element and ordering based on their score.
  */
 public class ScoredElement implements Comparable<ScoredElement> {
-  private final ByteString value;
+  private final ByteString valueByteString;
   private final double score;
 
   /**
@@ -19,7 +19,7 @@ public class ScoredElement implements Comparable<ScoredElement> {
    * @param score The element's score.
    */
   public ScoredElement(@Nonnull ByteString value, double score) {
-    this.value = value;
+    this.valueByteString = value;
     this.score = score;
   }
 
@@ -30,7 +30,7 @@ public class ScoredElement implements Comparable<ScoredElement> {
    * @param score The element's score.
    */
   public ScoredElement(@Nonnull String value, double score) {
-    this.value = ByteString.copyFromUtf8(value);
+    this.valueByteString = ByteString.copyFromUtf8(value);
     this.score = score;
   }
 
@@ -41,8 +41,17 @@ public class ScoredElement implements Comparable<ScoredElement> {
    * @param score The element's score.
    */
   public ScoredElement(@Nonnull byte[] value, double score) {
-    this.value = ByteString.copyFrom(value);
+    this.valueByteString = ByteString.copyFrom(value);
     this.score = score;
+  }
+
+  /**
+   * Gets the value.
+   *
+   * @return the value
+   */
+  public ByteString getValueByteString() {
+    return valueByteString;
   }
 
   /**
@@ -51,7 +60,7 @@ public class ScoredElement implements Comparable<ScoredElement> {
    * @return the String element
    */
   public String getValue() {
-    return value.toStringUtf8();
+    return valueByteString.toStringUtf8();
   }
 
   /**
@@ -60,7 +69,7 @@ public class ScoredElement implements Comparable<ScoredElement> {
    * @return the byte[] element
    */
   public byte[] getElementByteArray() {
-    return value.toByteArray();
+    return valueByteString.toByteArray();
   }
 
   /**
@@ -89,11 +98,11 @@ public class ScoredElement implements Comparable<ScoredElement> {
       return false;
     }
     final ScoredElement that = (ScoredElement) o;
-    return this.value.equals(that.value);
+    return this.valueByteString.equals(that.valueByteString);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(value);
+    return Objects.hash(valueByteString);
   }
 }
