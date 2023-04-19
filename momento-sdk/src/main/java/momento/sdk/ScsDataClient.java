@@ -626,7 +626,8 @@ final class ScsDataClient extends ScsClient {
       checkSetNameValid(sortedSetName);
       ensureValidValue(values);
 
-      return sendSortedSetGetScores(cacheName, convert(sortedSetName), convertStringIterable(values));
+      return sendSortedSetGetScores(
+          cacheName, convert(sortedSetName), convertStringIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1385,11 +1386,15 @@ final class ScsDataClient extends ScsClient {
   }
 
   private List<ByteString> convertStringIterable(Iterable<String> strings) {
-    return StreamSupport.stream(strings.spliterator(), false).map(this::convert).collect(Collectors.toList());
+    return StreamSupport.stream(strings.spliterator(), false)
+        .map(this::convert)
+        .collect(Collectors.toList());
   }
 
   private List<ByteString> convertByteArrayIterable(Iterable<byte[]> byteArrays) {
-      return StreamSupport.stream(byteArrays.spliterator(), false).map(this::convert).collect(Collectors.toList());
+    return StreamSupport.stream(byteArrays.spliterator(), false)
+        .map(this::convert)
+        .collect(Collectors.toList());
   }
 
   private List<ByteString> convertStringList(List<String> strings) {
@@ -2160,8 +2165,7 @@ final class ScsDataClient extends ScsClient {
               final _SortedSetGetScoreResponse._SortedSetGetScoreResponsePart part = scores.get(i);
               if (part.getResult().equals(ECacheResult.Hit)) {
                 scoreResponses.add(
-                    new CacheSortedSetGetScoreResponse.Hit(
-                        values.get(i), part.getScore()));
+                    new CacheSortedSetGetScoreResponse.Hit(values.get(i), part.getScore()));
               } else if (part.getResult().equals(ECacheResult.Miss)) {
                 scoreResponses.add(new CacheSortedSetGetScoreResponse.Miss(values.get(i)));
               } else {
