@@ -6,12 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
@@ -108,6 +103,40 @@ public class SortedSetTest extends BaseTestClass {
                   .map(ScoredElement::getElementByteArray)
                   .containsOnly(value);
               assertThat(scoredElements).map(ScoredElement::getScore).containsOnly(score);
+            });
+  }
+
+  @Test
+  public void sortedSetPutElementsWithScoredElementsHappyPath() {
+    final String one = "1";
+    final String two = "2";
+    final String three = "3";
+    final String four = "4";
+    final String five = "5";
+
+    final List<ScoredElement> elements = new ArrayList<>();
+    elements.add(new ScoredElement(one, 0.0));
+    elements.add(new ScoredElement(two, 1.0));
+    elements.add(new ScoredElement(three, 0.5));
+    elements.add(new ScoredElement(four, 2.0));
+    elements.add(new ScoredElement(five, 1.5));
+
+    assertThat(client.sortedSetPutElements(cacheName, sortedSetName, elements))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+
+    // Full set ascending
+    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final List<ScoredElement> scoredElements = hit.elementsList();
+              assertThat(scoredElements).hasSize(5);
+              // check ordering
+              assertThat(scoredElements)
+                  .map(ScoredElement::getValue)
+                  .containsSequence(one, three, two, five, four);
             });
   }
 
