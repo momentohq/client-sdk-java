@@ -121,7 +121,9 @@ public class SortedSetTest extends BaseTestClass {
     elements.add(new ScoredElement(four, 2.0));
     elements.add(new ScoredElement(five, 1.5));
 
-    assertThat(client.sortedSetPutElements(cacheName, sortedSetName, elements))
+    assertThat(
+            client.sortedSetPutElements(
+                cacheName, sortedSetName, elements, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
 
