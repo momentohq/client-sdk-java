@@ -425,7 +425,7 @@ public class SortedSetTest extends BaseTestClass {
     elements.put(four, 2.0);
     elements.put(five, 1.5);
 
-    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName, null, null))
+    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSortedSetFetchResponse.Miss.class);
 
@@ -447,6 +447,9 @@ public class SortedSetTest extends BaseTestClass {
               assertThat(scoredElements)
                   .map(ScoredElement::getElement)
                   .containsSequence(one, three, two, five, four);
+              assertThat(scoredElements)
+                  .map(ScoredElement::getScore)
+                  .containsSequence(0.0, 0.5, 1.0, 1.5, 2.0);
             });
 
     // Partial set descending
@@ -477,6 +480,20 @@ public class SortedSetTest extends BaseTestClass {
               assertThat(scoredElements)
                   .map(ScoredElement::getElement)
                   .containsSequence(three, two, five);
+            });
+
+    // Full set ascending
+    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final List<ScoredElement> scoredElements = hit.elementsList();
+              assertThat(scoredElements).hasSize(5);
+              // check ordering
+              assertThat(scoredElements)
+                  .map(ScoredElement::getElement)
+                  .containsSequence(one, three, two, five, four);
             });
   }
 
