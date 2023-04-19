@@ -7,6 +7,7 @@ import static momento.sdk.ValidationUtils.checkListNameValid;
 import static momento.sdk.ValidationUtils.checkScoreRangeValid;
 import static momento.sdk.ValidationUtils.checkSetNameValid;
 import static momento.sdk.ValidationUtils.checkSortedSetCountValid;
+import static momento.sdk.ValidationUtils.checkSortedSetNameValid;
 import static momento.sdk.ValidationUtils.checkSortedSetOffsetValid;
 import static momento.sdk.ValidationUtils.ensureValidCacheSet;
 import static momento.sdk.ValidationUtils.ensureValidKey;
@@ -440,7 +441,7 @@ final class ScsDataClient extends ScsClient {
       @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(element);
 
       if (ttl == null) {
@@ -463,7 +464,7 @@ final class ScsDataClient extends ScsClient {
       @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(element);
 
       if (ttl == null) {
@@ -485,7 +486,7 @@ final class ScsDataClient extends ScsClient {
       @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(elements);
 
       if (ttl == null) {
@@ -507,7 +508,7 @@ final class ScsDataClient extends ScsClient {
       @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(elements);
 
       if (ttl == null) {
@@ -530,7 +531,7 @@ final class ScsDataClient extends ScsClient {
       @Nullable SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       checkIndexRangeValid(startRank, endRank);
 
       return sendSortedSetFetchByRank(cacheName, convert(sortedSetName), startRank, endRank, order);
@@ -550,7 +551,7 @@ final class ScsDataClient extends ScsClient {
       @Nullable Integer count) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       checkScoreRangeValid(minScore, maxScore);
       checkSortedSetOffsetValid(offset);
       checkSortedSetCountValid(count);
@@ -567,7 +568,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, String value, @Nullable SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(value);
 
       return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(value), order);
@@ -581,7 +582,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, byte[] value, @Nullable SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(value);
 
       return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(value), order);
@@ -595,7 +596,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, String value) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(value);
 
       return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(value));
@@ -609,7 +610,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, byte[] value) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(value);
 
       return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(value));
@@ -623,7 +624,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, Iterable<String> values) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(values);
 
       return sendSortedSetGetScores(
@@ -638,7 +639,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, Iterable<byte[]> values) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(values);
 
       return sendSortedSetGetScores(
@@ -657,7 +658,7 @@ final class ScsDataClient extends ScsClient {
       @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(value);
 
       if (ttl == null) {
@@ -680,7 +681,7 @@ final class ScsDataClient extends ScsClient {
       @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(value);
 
       if (ttl == null) {
@@ -699,7 +700,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, String value) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(value);
 
       return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(value));
@@ -713,7 +714,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, byte[] value) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(value);
 
       return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(value));
@@ -727,7 +728,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, Iterable<String> values) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(values);
 
       return sendSortedSetRemoveElements(
@@ -742,7 +743,7 @@ final class ScsDataClient extends ScsClient {
       String cacheName, String sortedSetName, Iterable<byte[]> values) {
     try {
       checkCacheNameValid(cacheName);
-      checkSetNameValid(sortedSetName);
+      checkSortedSetNameValid(sortedSetName);
       ensureValidValue(values);
 
       return sendSortedSetRemoveElements(
