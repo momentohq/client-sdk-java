@@ -17,6 +17,7 @@ public final class ValidationUtils {
   static final String CACHE_NAME_IS_REQUIRED = "Cache name is required.";
   static final String DICTIONARY_NAME_IS_REQUIRED = "Dictionary name is required.";
   static final String SET_NAME_CANNOT_BE_NULL = "Set name cannot be null.";
+  static final String SORTED_SET_NAME_CANNOT_BE_NULL = "Sorted set name cannot be null.";
   static final String LIST_NAME_CANNOT_BE_NULL = "List name cannot be null.";
   static final String INDEX_RANGE_INVALID =
       "endIndex (exclusive) must be larger than startIndex (inclusive).";
@@ -58,6 +59,12 @@ public final class ValidationUtils {
   static void checkSetNameValid(String setName) {
     if (setName == null) {
       throw new InvalidArgumentException(SET_NAME_CANNOT_BE_NULL);
+    }
+  }
+
+  static void checkSortedSetNameValid(String sortedSetName) {
+    if (sortedSetName == null) {
+      throw new InvalidArgumentException(SORTED_SET_NAME_CANNOT_BE_NULL);
     }
   }
 
