@@ -24,6 +24,7 @@ public final class ValidationUtils {
   static final String SCORE_RANGE_INVALID =
       "maxScore (inclusive) must be greater than or equal to minScore (inclusive).";
   static final String SIGNING_KEY_TTL_CANNOT_BE_NEGATIVE = "Signing key TTL cannot be negative.";
+  static final String TRUNCATE_TO_SIZE_MUST_BE_POSITIVE = "Truncate-to-size must be positive";
 
   ValidationUtils() {}
 
@@ -123,6 +124,12 @@ public final class ValidationUtils {
   static void ensureValidTtlMinutes(Duration ttlMinutes) {
     if (ttlMinutes.toMinutes() < 0) {
       throw new InvalidArgumentException(SIGNING_KEY_TTL_CANNOT_BE_NEGATIVE);
+    }
+  }
+
+  static void ensureValidTruncateToSize(Integer truncateToSize) {
+    if (truncateToSize != null && truncateToSize <= 0) {
+      throw new InvalidArgumentException(TRUNCATE_TO_SIZE_MUST_BE_POSITIVE);
     }
   }
 }
