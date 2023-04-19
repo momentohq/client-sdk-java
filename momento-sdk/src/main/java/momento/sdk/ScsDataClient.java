@@ -91,6 +91,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import java.util.stream.StreamSupport;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import momento.sdk.auth.CredentialProvider;
@@ -619,13 +620,14 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
-      String cacheName, String sortedSetName, Set<String> elements) {
+      String cacheName, String sortedSetName, Iterable<String> values) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(elements);
+      ensureValidValue(values);
 
-      return sendSortedSetGetScores(cacheName, convert(sortedSetName), convertStringSet(elements));
+      return sendSortedSetGetScores(
+          cacheName, convert(sortedSetName), convertStringIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -633,14 +635,14 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
-      String cacheName, String sortedSetName, Set<byte[]> elements) {
+      String cacheName, String sortedSetName, Iterable<byte[]> values) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(elements);
+      ensureValidValue(values);
 
       return sendSortedSetGetScores(
-          cacheName, convert(sortedSetName), convertByteArraySet(elements));
+          cacheName, convert(sortedSetName), convertByteArrayIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -722,14 +724,14 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElements(
-      String cacheName, String sortedSetName, Set<String> elements) {
+      String cacheName, String sortedSetName, Iterable<String> values) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(elements);
+      ensureValidValue(values);
 
       return sendSortedSetRemoveElements(
-          cacheName, convert(sortedSetName), convertStringSet(elements));
+          cacheName, convert(sortedSetName), convertStringIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -737,14 +739,14 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
-      String cacheName, String sortedSetName, Set<byte[]> elements) {
+      String cacheName, String sortedSetName, Iterable<byte[]> values) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(elements);
+      ensureValidValue(values);
 
       return sendSortedSetRemoveElements(
-          cacheName, convert(sortedSetName), convertByteArraySet(elements));
+          cacheName, convert(sortedSetName), convertByteArrayIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1381,6 +1383,18 @@ final class ScsDataClient extends ScsClient {
 
   private Set<ByteString> convertByteArraySet(Set<byte[]> strings) {
     return strings.stream().map(this::convert).collect(Collectors.toSet());
+  }
+
+  private List<ByteString> convertStringIterable(Iterable<String> strings) {
+    return StreamSupport.stream(strings.spliterator(), false)
+        .map(this::convert)
+        .collect(Collectors.toList());
+  }
+
+  private List<ByteString> convertByteArrayIterable(Iterable<byte[]> byteArrays) {
+    return StreamSupport.stream(byteArrays.spliterator(), false)
+        .map(this::convert)
+        .collect(Collectors.toList());
   }
 
   private List<ByteString> convertStringList(List<String> strings) {
@@ -2131,18 +2145,14 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSortedSetGetScoresResponse> sendSortedSetGetScores(
-      String cacheName, ByteString sortedSetName, Set<ByteString> values) {
-
-    // We need to know the order of the elements so that we can
-    // match them up with the values returned from the server.
-    final List<ByteString> orderedElements = new ArrayList<>(values);
+      String cacheName, ByteString sortedSetName, List<ByteString> values) {
 
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_SortedSetGetScoreResponse>> stubSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-                .sortedSetGetScore(buildSortedSetGetScores(sortedSetName, orderedElements));
+                .sortedSetGetScore(buildSortedSetGetScores(sortedSetName, values));
 
     final Function<_SortedSetGetScoreResponse, CacheSortedSetGetScoresResponse> success =
         rsp -> {
@@ -2155,10 +2165,9 @@ final class ScsDataClient extends ScsClient {
               final _SortedSetGetScoreResponse._SortedSetGetScoreResponsePart part = scores.get(i);
               if (part.getResult().equals(ECacheResult.Hit)) {
                 scoreResponses.add(
-                    new CacheSortedSetGetScoreResponse.Hit(
-                        orderedElements.get(i), part.getScore()));
+                    new CacheSortedSetGetScoreResponse.Hit(values.get(i), part.getScore()));
               } else if (part.getResult().equals(ECacheResult.Miss)) {
-                scoreResponses.add(new CacheSortedSetGetScoreResponse.Miss(orderedElements.get(i)));
+                scoreResponses.add(new CacheSortedSetGetScoreResponse.Miss(values.get(i)));
               } else {
                 scoreResponses.add(
                     new CacheSortedSetGetScoreResponse.Error(
@@ -2224,7 +2233,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSortedSetRemoveElementsResponse> sendSortedSetRemoveElements(
-      String cacheName, ByteString sortedSetName, Set<ByteString> values) {
+      String cacheName, ByteString sortedSetName, Iterable<ByteString> values) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_SortedSetRemoveResponse>> stubSupplier =
@@ -3283,10 +3292,10 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _SortedSetGetScoreRequest buildSortedSetGetScores(
-      ByteString sortedSetName, List<ByteString> elements) {
+      ByteString sortedSetName, Iterable<ByteString> values) {
     return _SortedSetGetScoreRequest.newBuilder()
         .setSetName(sortedSetName)
-        .addAllValues(elements)
+        .addAllValues(values)
         .build();
   }
 
@@ -3302,10 +3311,10 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _SortedSetRemoveRequest buildSortedSetRemove(
-      ByteString sortedSetName, Set<ByteString> elements) {
+      ByteString sortedSetName, Iterable<ByteString> values) {
     return _SortedSetRemoveRequest.newBuilder()
         .setSetName(sortedSetName)
-        .setSome(_SortedSetRemoveRequest._Some.newBuilder().addAllValues(elements).build())
+        .setSome(_SortedSetRemoveRequest._Some.newBuilder().addAllValues(values).build())
         .build();
   }
 
