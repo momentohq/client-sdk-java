@@ -3292,10 +3292,10 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _SortedSetGetScoreRequest buildSortedSetGetScores(
-      ByteString sortedSetName, Iterable<ByteString> elements) {
+      ByteString sortedSetName, Iterable<ByteString> values) {
     return _SortedSetGetScoreRequest.newBuilder()
         .setSetName(sortedSetName)
-        .addAllValues(elements)
+        .addAllValues(values)
         .build();
   }
 
@@ -3311,10 +3311,10 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _SortedSetRemoveRequest buildSortedSetRemove(
-      ByteString sortedSetName, Iterable<ByteString> elements) {
+      ByteString sortedSetName, Iterable<ByteString> values) {
     return _SortedSetRemoveRequest.newBuilder()
         .setSetName(sortedSetName)
-        .setSome(_SortedSetRemoveRequest._Some.newBuilder().addAllValues(elements).build())
+        .setSome(_SortedSetRemoveRequest._Some.newBuilder().addAllValues(values).build())
         .build();
   }
 
