@@ -1084,7 +1084,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElements(
-      String cacheName, String sortedSetName, Set<String> values) {
+      String cacheName, String sortedSetName, Iterable<String> values) {
     return scsDataClient.sortedSetRemoveElements(cacheName, sortedSetName, values);
   }
 
@@ -1097,7 +1097,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
-      String cacheName, String sortedSetName, Set<byte[]> values) {
+      String cacheName, String sortedSetName, Iterable<byte[]> values) {
     return scsDataClient.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, values);
   }
 

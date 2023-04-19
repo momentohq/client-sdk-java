@@ -723,14 +723,14 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElements(
-      String cacheName, String sortedSetName, Set<String> elements) {
+      String cacheName, String sortedSetName, Iterable<String> values) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(elements);
+      ensureValidValue(values);
 
       return sendSortedSetRemoveElements(
-          cacheName, convert(sortedSetName), convertStringSet(elements));
+          cacheName, convert(sortedSetName), convertStringIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -738,14 +738,14 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
-      String cacheName, String sortedSetName, Set<byte[]> elements) {
+      String cacheName, String sortedSetName, Iterable<byte[]> values) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(elements);
+      ensureValidValue(values);
 
       return sendSortedSetRemoveElements(
-          cacheName, convert(sortedSetName), convertByteArraySet(elements));
+          cacheName, convert(sortedSetName), convertByteArrayIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -2229,7 +2229,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSortedSetRemoveElementsResponse> sendSortedSetRemoveElements(
-      String cacheName, ByteString sortedSetName, Set<ByteString> values) {
+      String cacheName, ByteString sortedSetName, Iterable<ByteString> values) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_SortedSetRemoveResponse>> stubSupplier =
@@ -3307,7 +3307,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _SortedSetRemoveRequest buildSortedSetRemove(
-      ByteString sortedSetName, Set<ByteString> elements) {
+      ByteString sortedSetName, Iterable<ByteString> elements) {
     return _SortedSetRemoveRequest.newBuilder()
         .setSetName(sortedSetName)
         .setSome(_SortedSetRemoveRequest._Some.newBuilder().addAllValues(elements).build())
