@@ -900,6 +900,19 @@ public final class CacheClient implements Closeable {
   }
 
   /**
+   * Fetch all elements in the given sorted set by score in ascending order.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
+      String cacheName, String sortedSetName) {
+    return scsDataClient.sortedSetFetchByScore(
+        cacheName, sortedSetName, null, null, null, null, null);
+  }
+
+  /**
    * Look up the rank of an element in a sorted set.
    *
    * @param cacheName - The cache containing the sorted set.
