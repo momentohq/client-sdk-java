@@ -564,13 +564,13 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, String element, @Nullable SortOrder order) {
+      String cacheName, String sortedSetName, String value, @Nullable SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(element);
+      ensureValidValue(value);
 
-      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(element), order);
+      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(value), order);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -578,13 +578,13 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, byte[] element, @Nullable SortOrder order) {
+      String cacheName, String sortedSetName, byte[] value, @Nullable SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(element);
+      ensureValidValue(value);
 
-      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(element), order);
+      return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(value), order);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -592,13 +592,13 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
-      String cacheName, String sortedSetName, String element) {
+      String cacheName, String sortedSetName, String value) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(element);
+      ensureValidValue(value);
 
-      return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(element));
+      return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -606,13 +606,13 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
-      String cacheName, String sortedSetName, byte[] element) {
+      String cacheName, String sortedSetName, byte[] value) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(element);
+      ensureValidValue(value);
 
-      return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(element));
+      return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -652,20 +652,20 @@ final class ScsDataClient extends ScsClient {
   CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
       String cacheName,
       String sortedSetName,
-      String element,
+      String value,
       double amount,
       @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(element);
+      ensureValidValue(value);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
 
       return sendSortedSetIncrementScore(
-          cacheName, convert(sortedSetName), convert(element), amount, ttl);
+          cacheName, convert(sortedSetName), convert(value), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -675,20 +675,20 @@ final class ScsDataClient extends ScsClient {
   CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
       String cacheName,
       String sortedSetName,
-      byte[] element,
+      byte[] value,
       double amount,
       @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(element);
+      ensureValidValue(value);
 
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
 
       return sendSortedSetIncrementScore(
-          cacheName, convert(sortedSetName), convert(element), amount, ttl);
+          cacheName, convert(sortedSetName), convert(value), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -696,13 +696,13 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
-      String cacheName, String sortedSetName, String element) {
+      String cacheName, String sortedSetName, String value) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(element);
+      ensureValidValue(value);
 
-      return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(element));
+      return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -710,13 +710,13 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
-      String cacheName, String sortedSetName, byte[] element) {
+      String cacheName, String sortedSetName, byte[] value) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(sortedSetName);
-      ensureValidValue(element);
+      ensureValidValue(value);
 
-      return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(element));
+      return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSortedSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1363,11 +1363,11 @@ final class ScsDataClient extends ScsClient {
     }
   }
 
-  private ByteString convert(String stringToEncode) {
-    if (stringToEncode == null) {
+  private ByteString convert(String string) {
+    if (string == null) {
       return ByteString.EMPTY;
     }
-    return ByteString.copyFromUtf8(stringToEncode);
+    return ByteString.copyFromUtf8(string);
   }
 
   private ByteString convert(byte[] bytes) {
@@ -1381,8 +1381,8 @@ final class ScsDataClient extends ScsClient {
     return strings.stream().map(this::convert).collect(Collectors.toSet());
   }
 
-  private Set<ByteString> convertByteArraySet(Set<byte[]> strings) {
-    return strings.stream().map(this::convert).collect(Collectors.toSet());
+  private Set<ByteString> convertByteArraySet(Set<byte[]> byteArrays) {
+    return byteArrays.stream().map(this::convert).collect(Collectors.toSet());
   }
 
   private List<ByteString> convertStringIterable(Iterable<String> strings) {
