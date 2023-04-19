@@ -448,8 +448,8 @@ public class SortedSetTest extends BaseTestClass {
                   .map(ScoredElement::getElement)
                   .containsSequence(one, three, two, five, four);
               assertThat(scoredElements)
-                    .map(ScoredElement::getScore)
-                    .containsSequence(0.0, 0.5, 1.0, 1.5, 2.0);
+                  .map(ScoredElement::getScore)
+                  .containsSequence(0.0, 0.5, 1.0, 1.5, 2.0);
             });
 
     // Partial set descending
