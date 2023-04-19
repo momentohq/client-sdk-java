@@ -59,7 +59,7 @@ public class SortedSetTest extends BaseTestClass {
 
   @Test
   public void sortedSetPutElementStringHappyPath() {
-    final String element = "1";
+    final String value = "1";
     final double score = 1.0;
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
@@ -68,7 +68,7 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(
             client.sortedSetPutElement(
-                cacheName, sortedSetName, element, score, CollectionTtl.fromCacheTtl()))
+                cacheName, sortedSetName, value, score, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
 
@@ -78,14 +78,14 @@ public class SortedSetTest extends BaseTestClass {
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
-              assertThat(scoredElements).map(ScoredElement::getElement).containsOnly(element);
+              assertThat(scoredElements).map(ScoredElement::getElement).containsOnly(value);
               assertThat(scoredElements).map(ScoredElement::getScore).containsOnly(score);
             });
   }
 
   @Test
   public void sortedSetPutElementBytesHappyPath() {
-    final byte[] element = "1".getBytes();
+    final byte[] value = "1".getBytes();
     final double score = 1.0;
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
@@ -94,7 +94,7 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(
             client.sortedSetPutElement(
-                cacheName, sortedSetName, element, score, CollectionTtl.fromCacheTtl()))
+                cacheName, sortedSetName, value, score, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
 
@@ -106,7 +106,7 @@ public class SortedSetTest extends BaseTestClass {
               final List<ScoredElement> scoredElements = hit.elementsList();
               assertThat(scoredElements)
                   .map(ScoredElement::getElementByteArray)
-                  .containsOnly(element);
+                  .containsOnly(value);
               assertThat(scoredElements).map(ScoredElement::getScore).containsOnly(score);
             });
   }

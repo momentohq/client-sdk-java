@@ -688,7 +688,7 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to add to.
-   * @param element - The element to add.
+   * @param value - The value of the element to add.
    * @param score - The score to assign to the element.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
@@ -697,10 +697,10 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
       String cacheName,
       String sortedSetName,
-      String element,
+      String value,
       double score,
       @Nullable CollectionTtl ttl) {
-    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, element, score, ttl);
+    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, value, score, ttl);
   }
 
   /**
@@ -709,13 +709,13 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to add to.
-   * @param element - The element to add.
+   * @param value - The value of the element to add.
    * @param score - The score to assign to the element.
    * @return Future containing the result of the put element operation.
    */
   public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
-      String cacheName, String sortedSetName, String element, double score) {
-    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, element, score, null);
+      String cacheName, String sortedSetName, String value, double score) {
+    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, value, score, null);
   }
 
   /**
@@ -724,7 +724,7 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to add to.
-   * @param element - The element to add.
+   * @param value - The value of the element to add.
    * @param score - The score to assign to the element.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
@@ -733,10 +733,10 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
       String cacheName,
       String sortedSetName,
-      byte[] element,
+      byte[] value,
       double score,
       @Nullable CollectionTtl ttl) {
-    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, element, score, ttl);
+    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, value, score, ttl);
   }
 
   /**
@@ -745,13 +745,13 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to add to.
-   * @param element - The element to add.
+   * @param value - The value of the element to add.
    * @param score - The score to assign to the element.
    * @return Future containing the result of the put element operation.
    */
   public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
-      String cacheName, String sortedSetName, byte[] element, double score) {
-    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, element, score, null);
+      String cacheName, String sortedSetName, byte[] value, double score) {
+    return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, value, score, null);
   }
 
   /**
@@ -904,14 +904,14 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param element - The element whose rank we are retrieving.
+   * @param value - The value of element whose rank we are retrieving.
    * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
    *     ascending, i.e. the rank of the element with the lowest score will be 0.
    * @return Future containing the result of the get rank operation.
    */
   public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, String element, @Nullable SortOrder order) {
-    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element, order);
+      String cacheName, String sortedSetName, String value, @Nullable SortOrder order) {
+    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, value, order);
   }
 
   /**
@@ -919,14 +919,14 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param element - The element whose rank we are retrieving.
+   * @param value - The value of element whose rank we are retrieving.
    * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
    *     ascending, i.e. the rank of the element with the lowest score will be 0.
    * @return Future containing the result of the get rank operation.
    */
   public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, byte[] element, @Nullable SortOrder order) {
-    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, element, order);
+      String cacheName, String sortedSetName, byte[] value, @Nullable SortOrder order) {
+    return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, value, order);
   }
 
   /**
@@ -934,12 +934,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param element - The element whose score we are retrieving.
+   * @param value - The value whose score we are retrieving.
    * @return Future containing the result of the get score operation.
    */
   public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
-      String cacheName, String sortedSetName, String element) {
-    return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, element);
+      String cacheName, String sortedSetName, String value) {
+    return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, value);
   }
 
   /**
@@ -947,12 +947,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param element - The element whose score we are retrieving.
+   * @param value - The value whose score we are retrieving.
    * @return Future containing the result of the get score operation.
    */
   public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
-      String cacheName, String sortedSetName, byte[] element) {
-    return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, element);
+      String cacheName, String sortedSetName, byte[] value) {
+    return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, value);
   }
 
   /**
@@ -960,12 +960,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param elements - The elements whose scores we are retrieving.
+   * @param values - The values whose scores we are retrieving.
    * @return Future containing the result of the get scores operation.
    */
   public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
-      String cacheName, String sortedSetName, Set<String> elements) {
-    return scsDataClient.sortedSetGetScores(cacheName, sortedSetName, elements);
+      String cacheName, String sortedSetName, Set<String> values) {
+    return scsDataClient.sortedSetGetScores(cacheName, sortedSetName, values);
   }
 
   /**
@@ -973,12 +973,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param elements - The elements whose scores we are retrieving.
+   * @param values - The values whose scores we are retrieving.
    * @return Future containing the result of the get scores operation.
    */
   public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
-      String cacheName, String sortedSetName, Set<byte[]> elements) {
-    return scsDataClient.sortedSetGetScoresByteArray(cacheName, sortedSetName, elements);
+      String cacheName, String sortedSetName, Set<byte[]> values) {
+    return scsDataClient.sortedSetGetScoresByteArray(cacheName, sortedSetName, values);
   }
 
   /**
@@ -986,7 +986,7 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param element - The element whose score we are incrementing.
+   * @param value - The value whose score we are incrementing.
    * @param amount - The quantity to add to the score. May be positive, negative, or zero.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
@@ -995,10 +995,10 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
       String cacheName,
       String sortedSetName,
-      String element,
+      String value,
       double amount,
       @Nullable CollectionTtl ttl) {
-    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, element, amount, ttl);
+    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, value, amount, ttl);
   }
 
   /**
@@ -1006,13 +1006,13 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param element - The element whose score we are incrementing.
+   * @param value - The value whose score we are incrementing.
    * @param amount - The quantity to add to the score. May be positive, negative, or zero.
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
-      String cacheName, String sortedSetName, String element, double amount) {
-    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, element, amount, null);
+      String cacheName, String sortedSetName, String value, double amount) {
+    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, value, amount, null);
   }
 
   /**
@@ -1020,7 +1020,7 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param element - The element whose score we are incrementing.
+   * @param value - The value whose score we are incrementing.
    * @param amount - The quantity to add to the score. May be positive, negative, or zero.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
@@ -1029,10 +1029,10 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
       String cacheName,
       String sortedSetName,
-      byte[] element,
+      byte[] value,
       double amount,
       @Nullable CollectionTtl ttl) {
-    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, element, amount, ttl);
+    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, value, amount, ttl);
   }
 
   /**
@@ -1040,13 +1040,13 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param element - The element whose score we are incrementing.
+   * @param value - The value whose score we are incrementing.
    * @param amount - The quantity to add to the score. May be positive, negative, or zero.
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
-      String cacheName, String sortedSetName, byte[] element, double amount) {
-    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, element, amount, null);
+      String cacheName, String sortedSetName, byte[] value, double amount) {
+    return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, value, amount, null);
   }
 
   /**
@@ -1054,12 +1054,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to remove from.
-   * @param element - The element to remove from the set.
+   * @param value - The value of the element to remove from the set.
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
-      String cacheName, String sortedSetName, String element) {
-    return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, element);
+      String cacheName, String sortedSetName, String value) {
+    return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, value);
   }
 
   /**
@@ -1067,12 +1067,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to remove from.
-   * @param element - The element to remove from the set.
+   * @param value - The value of the element to remove from the set.
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
-      String cacheName, String sortedSetName, byte[] element) {
-    return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, element);
+      String cacheName, String sortedSetName, byte[] value) {
+    return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, value);
   }
 
   /**
@@ -1080,12 +1080,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to remove from.
-   * @param elements - The elements to remove from the set.
+   * @param values - The values of elements to remove from the set.
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElements(
-      String cacheName, String sortedSetName, Set<String> elements) {
-    return scsDataClient.sortedSetRemoveElements(cacheName, sortedSetName, elements);
+      String cacheName, String sortedSetName, Set<String> values) {
+    return scsDataClient.sortedSetRemoveElements(cacheName, sortedSetName, values);
   }
 
   /**
@@ -1093,12 +1093,12 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to remove from.
-   * @param elements - The elements to remove from the set.
+   * @param values - The values of the elements to remove from the set.
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
-      String cacheName, String sortedSetName, Set<byte[]> elements) {
-    return scsDataClient.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, elements);
+      String cacheName, String sortedSetName, Set<byte[]> values) {
+    return scsDataClient.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, values);
   }
 
   /**

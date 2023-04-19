@@ -1857,7 +1857,7 @@ final class ScsDataClient extends ScsClient {
   private CompletableFuture<CacheSortedSetPutElementResponse> sendSortedSetPutElement(
       String cacheName,
       ByteString sortedSetName,
-      ByteString element,
+      ByteString value,
       double score,
       CollectionTtl collectionTtl) {
 
@@ -1867,7 +1867,7 @@ final class ScsDataClient extends ScsClient {
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
             .sortedSetPut(
                 buildSortedSetPutRequest(
-                    sortedSetName, Collections.singletonMap(element, score), collectionTtl));
+                    sortedSetName, Collections.singletonMap(value, score), collectionTtl));
 
     // Build a CompletableFuture to return to caller
     final CompletableFuture<CacheSortedSetPutElementResponse> returnFuture =
@@ -2061,13 +2061,13 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSortedSetGetRankResponse> sendSortedSetGetRank(
-      String cacheName, ByteString sortedSetName, ByteString element, @Nullable SortOrder order) {
+      String cacheName, ByteString sortedSetName, ByteString value, @Nullable SortOrder order) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_SortedSetGetRankResponse>> stubSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-                .sortedSetGetRank(buildSortedSetGetRank(sortedSetName, element, order));
+                .sortedSetGetRank(buildSortedSetGetRank(sortedSetName, value, order));
 
     final Function<_SortedSetGetRankResponse, CacheSortedSetGetRankResponse> success =
         rsp -> {
@@ -2087,14 +2087,14 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSortedSetGetScoreResponse> sendSortedSetGetScore(
-      String cacheName, ByteString sortedSetName, ByteString element) {
+      String cacheName, ByteString sortedSetName, ByteString value) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_SortedSetGetScoreResponse>> stubSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
                 .sortedSetGetScore(
-                    buildSortedSetGetScores(sortedSetName, Collections.singletonList(element)));
+                    buildSortedSetGetScores(sortedSetName, Collections.singletonList(value)));
 
     final Function<_SortedSetGetScoreResponse, CacheSortedSetGetScoreResponse> success =
         rsp -> {
@@ -2105,9 +2105,9 @@ final class ScsDataClient extends ScsClient {
               final _SortedSetGetScoreResponse._SortedSetGetScoreResponsePart part = partOpt.get();
 
               if (part.getResult().equals(ECacheResult.Hit)) {
-                return new CacheSortedSetGetScoreResponse.Hit(element, part.getScore());
+                return new CacheSortedSetGetScoreResponse.Hit(value, part.getScore());
               } else if (part.getResult().equals(ECacheResult.Miss)) {
-                return new CacheSortedSetGetScoreResponse.Miss(element);
+                return new CacheSortedSetGetScoreResponse.Miss(value);
               } else {
                 return new CacheSortedSetGetScoreResponse.Error(
                     new UnknownException("Unrecognized result: " + part.getResult()));
@@ -2118,7 +2118,7 @@ final class ScsDataClient extends ScsClient {
             }
 
           } else {
-            return new CacheSortedSetGetScoreResponse.Miss(element);
+            return new CacheSortedSetGetScoreResponse.Miss(value);
           }
         };
 
@@ -2131,11 +2131,11 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSortedSetGetScoresResponse> sendSortedSetGetScores(
-      String cacheName, ByteString sortedSetName, Set<ByteString> elements) {
+      String cacheName, ByteString sortedSetName, Set<ByteString> values) {
 
     // We need to know the order of the elements so that we can
     // match them up with the values returned from the server.
-    final List<ByteString> orderedElements = new ArrayList<>(elements);
+    final List<ByteString> orderedElements = new ArrayList<>(values);
 
     final Metadata metadata = metadataWithCache(cacheName);
 
@@ -2182,7 +2182,7 @@ final class ScsDataClient extends ScsClient {
   private CompletableFuture<CacheSortedSetIncrementScoreResponse> sendSortedSetIncrementScore(
       String cacheName,
       ByteString sortedSetName,
-      ByteString element,
+      ByteString value,
       double amount,
       CollectionTtl ttl) {
     final Metadata metadata = metadataWithCache(cacheName);
@@ -2190,7 +2190,7 @@ final class ScsDataClient extends ScsClient {
     final Supplier<ListenableFuture<_SortedSetIncrementResponse>> stubSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-                .sortedSetIncrement(buildSortedSetIncrement(sortedSetName, element, amount, ttl));
+                .sortedSetIncrement(buildSortedSetIncrement(sortedSetName, value, amount, ttl));
 
     final Function<_SortedSetIncrementResponse, CacheSortedSetIncrementScoreResponse> success =
         rsp -> new CacheSortedSetIncrementScoreResponse.Success(rsp.getScore());
@@ -2204,14 +2204,13 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSortedSetRemoveElementResponse> sendSortedSetRemoveElement(
-      String cacheName, ByteString sortedSetName, ByteString element) {
+      String cacheName, ByteString sortedSetName, ByteString value) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_SortedSetRemoveResponse>> stubSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-                .sortedSetRemove(
-                    buildSortedSetRemove(sortedSetName, Collections.singleton(element)));
+                .sortedSetRemove(buildSortedSetRemove(sortedSetName, Collections.singleton(value)));
 
     final Function<_SortedSetRemoveResponse, CacheSortedSetRemoveElementResponse> success =
         rsp -> new CacheSortedSetRemoveElementResponse.Success();
@@ -2225,13 +2224,13 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSortedSetRemoveElementsResponse> sendSortedSetRemoveElements(
-      String cacheName, ByteString sortedSetName, Set<ByteString> elements) {
+      String cacheName, ByteString sortedSetName, Set<ByteString> values) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_SortedSetRemoveResponse>> stubSupplier =
         () ->
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-                .sortedSetRemove(buildSortedSetRemove(sortedSetName, elements));
+                .sortedSetRemove(buildSortedSetRemove(sortedSetName, values));
 
     final Function<_SortedSetRemoveResponse, CacheSortedSetRemoveElementsResponse> success =
         rsp -> new CacheSortedSetRemoveElementsResponse.Success();
