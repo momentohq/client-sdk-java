@@ -1,9 +1,7 @@
 package momento.sdk.messages;
 
 import com.google.protobuf.ByteString;
-import grpc.cache_client._DictionaryFieldValuePair;
 import java.util.Base64;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import momento.sdk.exceptions.SdkException;
@@ -14,31 +12,15 @@ public interface CacheDictionaryFetchResponse {
 
   /** A successful dictionary fetch operation that found elements. */
   class Hit implements CacheDictionaryFetchResponse {
-    private final Map<ByteString, ByteString> byteStringKeysValues;
+    private final Map<ByteString, ByteString> fieldsToValues;
 
     /**
      * Constructs a dictionary fetch hit with a list of encoded keys and values.
      *
-     * @param byteStringKeysValues the retrieved dictionary.
+     * @param fieldsToValues the retrieved dictionary.
      */
-    public Hit(List<_DictionaryFieldValuePair> byteStringKeysValues) {
-      this.byteStringKeysValues =
-          byteStringKeysValues.stream()
-              .collect(
-                  Collectors.toMap(
-                      _DictionaryFieldValuePair::getField, _DictionaryFieldValuePair::getValue));
-    }
-
-    /**
-     * Gets the retrieved values as a dictionary of byte array keys and values.
-     *
-     * @return the dictionary.
-     */
-    public Map<byte[], byte[]> valueDictionaryBytesBytes() {
-      return byteStringKeysValues.entrySet().stream()
-          .collect(
-              Collectors.toMap(
-                  entry -> entry.getKey().toByteArray(), entry -> entry.getValue().toByteArray()));
+    public Hit(Map<ByteString, ByteString> fieldsToValues) {
+      this.fieldsToValues = fieldsToValues;
     }
 
     /**
@@ -47,7 +29,7 @@ public interface CacheDictionaryFetchResponse {
      * @return the dictionary.
      */
     public Map<String, String> valueDictionaryStringString() {
-      return byteStringKeysValues.entrySet().stream()
+      return fieldsToValues.entrySet().stream()
           .collect(
               Collectors.toMap(
                   entry -> entry.getKey().toStringUtf8(),
@@ -69,22 +51,10 @@ public interface CacheDictionaryFetchResponse {
      * @return the dictionary.
      */
     public Map<String, byte[]> valueDictionaryStringBytes() {
-      return byteStringKeysValues.entrySet().stream()
+      return fieldsToValues.entrySet().stream()
           .collect(
               Collectors.toMap(
                   entry -> entry.getKey().toStringUtf8(), entry -> entry.getValue().toByteArray()));
-    }
-
-    /**
-     * Gets the retrieved value as a dictionary of byte array keys and UTF-8 String values
-     *
-     * @return the dictionary.
-     */
-    public Map<byte[], String> valueDictionaryBytesString() {
-      return byteStringKeysValues.entrySet().stream()
-          .collect(
-              Collectors.toMap(
-                  entry -> entry.getKey().toByteArray(), entry -> entry.getValue().toStringUtf8()));
     }
 
     /**
@@ -101,17 +71,6 @@ public interface CacheDictionaryFetchResponse {
               .map(StringHelpers::truncate)
               .collect(Collectors.joining(", ", "\"", "\"..."));
 
-      final String bytesBytesRepresentation =
-          valueDictionaryBytesBytes().entrySet().stream()
-              .map(
-                  e ->
-                      Base64.getEncoder().encodeToString(e.getKey())
-                          + ":"
-                          + Base64.getEncoder().encodeToString(e.getValue()))
-              .limit(5)
-              .map(StringHelpers::truncate)
-              .collect(Collectors.joining(", ", "\"", "\"..."));
-
       final String stringBytesRepresentation =
           valueDictionaryStringBytes().entrySet().stream()
               .map(e -> e.getKey() + ":" + Base64.getEncoder().encodeToString(e.getValue()))
@@ -119,22 +78,11 @@ public interface CacheDictionaryFetchResponse {
               .map(StringHelpers::truncate)
               .collect(Collectors.joining(", ", "\"", "\"..."));
 
-      final String bytesStringRepresentation =
-          valueDictionaryBytesString().entrySet().stream()
-              .map(e -> Base64.getEncoder().encodeToString(e.getKey()) + ":" + e.getValue())
-              .limit(5)
-              .map(StringHelpers::truncate)
-              .collect(Collectors.joining(", ", "\"", "\"..."));
-
       return super.toString()
           + ": valueStringString: "
           + stringStringRepresentation
-          + " valueByteBytes: "
-          + bytesBytesRepresentation
           + " valueStringBytes: "
-          + stringBytesRepresentation
-          + " valueBytesString: "
-          + bytesStringRepresentation;
+          + stringBytesRepresentation;
     }
   }
 

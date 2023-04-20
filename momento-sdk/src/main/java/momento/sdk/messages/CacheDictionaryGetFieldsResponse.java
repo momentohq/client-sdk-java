@@ -1,14 +1,9 @@
 package momento.sdk.messages;
 
-import com.google.protobuf.ByteString;
-import grpc.cache_client.ECacheResult;
-import grpc.cache_client._DictionaryGetResponse;
-import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.internal.StringHelpers;
 
@@ -18,34 +13,15 @@ public interface CacheDictionaryGetFieldsResponse {
    * A successful dictionary get fields operation that found the keys with values in the dictionary.
    */
   class Hit implements CacheDictionaryGetFieldsResponse {
-    private final List<CacheDictionaryGetFieldResponse> responsesList = new ArrayList<>();
+    private final List<CacheDictionaryGetFieldResponse> responses;
 
     /**
      * Constructs a dictionary get fields hit with a list of encoded keys and values.
      *
-     * @param fields The fields looked up by the call.
      * @param responses the retrieved dictionary.
      */
-    public Hit(
-        List<ByteString> fields,
-        List<_DictionaryGetResponse._DictionaryGetResponsePart> responses) {
-
-      int counter = 0;
-      for (_DictionaryGetResponse._DictionaryGetResponsePart element : responses) {
-        if (element.getResult() == ECacheResult.Hit) {
-          responsesList.add(
-              new CacheDictionaryGetFieldResponse.Hit(fields.get(counter), element.getCacheBody()));
-        } else if (element.getResult() == ECacheResult.Miss) {
-          responsesList.add(new CacheDictionaryGetFieldResponse.Miss(fields.get(counter)));
-        } else {
-          responsesList.add(
-              new CacheDictionaryGetFieldResponse.Error(
-                  CacheServiceExceptionMapper.convert(
-                      new Exception(element.getResult().toString())),
-                  fields.get(counter)));
-        }
-        counter++;
-      }
+    public Hit(List<CacheDictionaryGetFieldResponse> responses) {
+      this.responses = responses;
     }
 
     /**
@@ -54,7 +30,7 @@ public interface CacheDictionaryGetFieldsResponse {
      * @return the responses.
      */
     public List<CacheDictionaryGetFieldResponse> perFieldResponses() {
-      return responsesList;
+      return responses;
     }
 
     /**
@@ -63,7 +39,7 @@ public interface CacheDictionaryGetFieldsResponse {
      * @return the dictionary.
      */
     public Map<String, String> valueDictionaryStringString() {
-      return responsesList.stream()
+      return responses.stream()
           .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
           .collect(
               Collectors.toMap(
@@ -86,39 +62,11 @@ public interface CacheDictionaryGetFieldsResponse {
      * @return the dictionary.
      */
     public Map<String, byte[]> valueDictionaryStringBytes() {
-      return responsesList.stream()
+      return responses.stream()
           .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
           .collect(
               Collectors.toMap(
                   r -> ((CacheDictionaryGetFieldResponse.Hit) r).fieldString(),
-                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).valueByteArray()));
-    }
-
-    /**
-     * Gets the retrieved dictionary of byte array keys and string values.
-     *
-     * @return the dictionary.
-     */
-    public Map<byte[], String> valueDictionaryBytesString() {
-      return responsesList.stream()
-          .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
-          .collect(
-              Collectors.toMap(
-                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).fieldByteArray(),
-                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).valueString()));
-    }
-
-    /**
-     * Gets the retrieved dictionary of byte array keys and byte array values.
-     *
-     * @return the dictionary.
-     */
-    public Map<byte[], byte[]> valueDictionaryBytesBytes() {
-      return responsesList.stream()
-          .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
-          .collect(
-              Collectors.toMap(
-                  r -> ((CacheDictionaryGetFieldResponse.Hit) r).fieldByteArray(),
                   r -> ((CacheDictionaryGetFieldResponse.Hit) r).valueByteArray()));
     }
 
@@ -131,17 +79,6 @@ public interface CacheDictionaryGetFieldsResponse {
               .map(StringHelpers::truncate)
               .collect(Collectors.joining(", ", "\"", "\"..."));
 
-      final String bytesBytesRepresentation =
-          valueDictionaryBytesBytes().entrySet().stream()
-              .map(
-                  e ->
-                      Base64.getEncoder().encodeToString(e.getKey())
-                          + ":"
-                          + Base64.getEncoder().encodeToString(e.getValue()))
-              .limit(5)
-              .map(StringHelpers::truncate)
-              .collect(Collectors.joining(", ", "\"", "\"..."));
-
       final String stringBytesRepresentation =
           valueDictionaryStringBytes().entrySet().stream()
               .map(e -> e.getKey() + ":" + Base64.getEncoder().encodeToString(e.getValue()))
@@ -149,22 +86,11 @@ public interface CacheDictionaryGetFieldsResponse {
               .map(StringHelpers::truncate)
               .collect(Collectors.joining(", ", "\"", "\"..."));
 
-      final String bytesStringRepresentation =
-          valueDictionaryBytesString().entrySet().stream()
-              .map(e -> Base64.getEncoder().encodeToString(e.getKey()) + ":" + e.getValue())
-              .limit(5)
-              .map(StringHelpers::truncate)
-              .collect(Collectors.joining(", ", "\"", "\"..."));
-
       return super.toString()
           + ": valueStringString: "
           + stringStringRepresentation
-          + " valueByteBytes: "
-          + bytesBytesRepresentation
           + " valueStringBytes: "
-          + stringBytesRepresentation
-          + " valueBytesString: "
-          + bytesStringRepresentation;
+          + stringBytesRepresentation;
     }
   }
 
