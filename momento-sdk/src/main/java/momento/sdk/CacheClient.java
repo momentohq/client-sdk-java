@@ -887,16 +887,21 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
-   * @param offset - The number of elements to skip before returning the first element. Defaults to
-   *     0. Note: this is not the rank of the first element to return, but the number of elements of
-   *     the result set to skip before returning the first element.
-   * @param count - The maximum number of elements to return. Defaults to all elements.
+   * @param minScore - The minimum score (inclusive) of the elements to fetch. Defaults to negative
+   *     infinity.
+   * @param maxScore - The maximum score (inclusive) of the elements to fetch. Defaults to positive
+   *     infinity.
+   * @param order - The order to fetch the elements in. Defaults to ascending.
    * @return Future containing the result of the fetch operation.
    */
   public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
-      String cacheName, String sortedSetName, @Nullable Integer offset, @Nullable Integer count) {
+      String cacheName,
+      String sortedSetName,
+      @Nullable Double minScore,
+      @Nullable Double maxScore,
+      @Nullable SortOrder order) {
     return scsDataClient.sortedSetFetchByScore(
-        cacheName, sortedSetName, null, null, null, offset, count);
+        cacheName, sortedSetName, minScore, maxScore, order, null, null);
   }
 
   /**
