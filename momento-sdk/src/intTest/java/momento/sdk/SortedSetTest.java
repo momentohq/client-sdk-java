@@ -435,8 +435,7 @@ public class SortedSetTest extends BaseTestClass {
 
     // Full set ascending, end index larger than set
     assertThat(
-            client.sortedSetFetchByScore(
-                cacheName, sortedSetName, 0.0, 9.9, SortOrder.ASCENDING))
+            client.sortedSetFetchByScore(cacheName, sortedSetName, 0.0, 9.9, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -517,7 +516,9 @@ public class SortedSetTest extends BaseTestClass {
 
   @Test
   public void sortedSetFetchByScoreReturnsErrorWithNonexistentCacheName() {
-    assertThat(client.sortedSetFetchByScore(randomString("cache"), sortedSetName, null, null, null, 0, 100))
+    assertThat(
+            client.sortedSetFetchByScore(
+                randomString("cache"), sortedSetName, null, null, null, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
