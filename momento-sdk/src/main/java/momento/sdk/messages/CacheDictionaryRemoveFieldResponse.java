@@ -17,7 +17,7 @@ public interface CacheDictionaryRemoveFieldResponse {
     /**
      * Constructs a dictionary remove field error with a cause.
      *
-     * @param cause the cause.
+     * @param cause The cause.
      */
     public Error(SdkException cause) {
       super(cause);

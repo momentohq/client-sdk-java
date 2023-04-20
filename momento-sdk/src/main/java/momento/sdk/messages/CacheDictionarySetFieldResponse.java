@@ -17,7 +17,7 @@ public interface CacheDictionarySetFieldResponse {
     /**
      * Constructs a dictionary set field error with a cause.
      *
-     * @param cause the cause.
+     * @param cause The cause.
      */
     public Error(SdkException cause) {
       super(cause);

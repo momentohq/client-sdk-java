@@ -15,20 +15,20 @@ public interface CacheDictionaryFetchResponse {
     private final Map<ByteString, ByteString> fieldsToValues;
 
     /**
-     * Constructs a dictionary fetch hit with a list of encoded keys and values.
+     * Constructs a dictionary fetch hit with a map of encoded fields to values.
      *
-     * @param fieldsToValues the retrieved dictionary.
+     * @param fieldsToValues The retrieved map.
      */
     public Hit(Map<ByteString, ByteString> fieldsToValues) {
       this.fieldsToValues = fieldsToValues;
     }
 
     /**
-     * Gets the retrieved values as a dictionary of UTF-8 string keys and values.
+     * Gets the retrieved elements as a map of UTF-8 string fields to UTF-8 string values.
      *
-     * @return the dictionary.
+     * @return The map.
      */
-    public Map<String, String> valueDictionaryStringString() {
+    public Map<String, String> valueMapStringString() {
       return fieldsToValues.entrySet().stream()
           .collect(
               Collectors.toMap(
@@ -37,20 +37,20 @@ public interface CacheDictionaryFetchResponse {
     }
 
     /**
-     * Gets the retrieved values as a dictionary of UTF-8 string keys and values.
+     * Gets the retrieved elements as a map of UTF-8 string fields to UTF-8 string values.
      *
-     * @return the dictionary.
+     * @return The map.
      */
-    public Map<String, String> valueDictionary() {
-      return valueDictionaryStringString();
+    public Map<String, String> valueMap() {
+      return valueMapStringString();
     }
 
     /**
-     * Gets the retrieved value as a dictionary of UTF-8 String keys and byte array values
+     * Gets the retrieved elements as a map of UTF-8 string fields to byte array values.
      *
-     * @return the dictionary.
+     * @return The map.
      */
-    public Map<String, byte[]> valueDictionaryStringBytes() {
+    public Map<String, byte[]> valueMapStringByteArray() {
       return fieldsToValues.entrySet().stream()
           .collect(
               Collectors.toMap(
@@ -65,23 +65,23 @@ public interface CacheDictionaryFetchResponse {
     @Override
     public String toString() {
       final String stringStringRepresentation =
-          valueDictionaryStringString().entrySet().stream()
+          valueMapStringString().entrySet().stream()
               .map(e -> e.getKey() + ":" + e.getValue())
               .limit(5)
               .map(StringHelpers::truncate)
               .collect(Collectors.joining(", ", "\"", "\"..."));
 
       final String stringBytesRepresentation =
-          valueDictionaryStringBytes().entrySet().stream()
+          valueMapStringByteArray().entrySet().stream()
               .map(e -> e.getKey() + ":" + Base64.getEncoder().encodeToString(e.getValue()))
               .limit(5)
               .map(StringHelpers::truncate)
               .collect(Collectors.joining(", ", "\"", "\"..."));
 
       return super.toString()
-          + ": valueStringString: "
+          + ": valueMapStringString: "
           + stringStringRepresentation
-          + " valueStringBytes: "
+          + " valueMapStringByteArray: "
           + stringBytesRepresentation;
     }
   }
@@ -99,7 +99,7 @@ public interface CacheDictionaryFetchResponse {
     /**
      * Constructs a dictionary fetch error with a cause.
      *
-     * @param cause the cause.
+     * @param cause The cause.
      */
     public Error(SdkException cause) {
       super(cause);

@@ -65,8 +65,7 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
         .satisfies(
-            hit ->
-                assertThat(hit.valueDictionaryStringString()).hasSize(1).containsEntry("a", "b"));
+            hit -> assertThat(hit.valueMapStringString()).hasSize(1).containsEntry("a", "b"));
 
     // Set String key, ByteArray Value
     assertThat(
@@ -80,7 +79,7 @@ public class DictionaryTest extends BaseTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
         .satisfies(
             hit ->
-                assertThat(hit.valueDictionaryStringBytes())
+                assertThat(hit.valueMapStringByteArray())
                     .hasSize(2)
                     .containsEntry("c", "d".getBytes()));
   }
@@ -96,8 +95,7 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
         .satisfies(
-            hit ->
-                assertThat(hit.valueDictionaryStringString()).hasSize(1).containsEntry("a", "b"));
+            hit -> assertThat(hit.valueMapStringString()).hasSize(1).containsEntry("a", "b"));
 
     // Set String key, ByteArray Value
     assertThat(target.dictionarySetField(cacheName, dictionaryName, "c", "d".getBytes()))
@@ -109,11 +107,12 @@ public class DictionaryTest extends BaseTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
         .satisfies(
             hit ->
-                assertThat(hit.valueDictionaryStringBytes())
+                assertThat(hit.valueMapStringByteArray())
                     .hasSize(2)
                     .containsEntry("c", "d".getBytes()));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionarySetFieldReturnsErrorWithNullCacheName() {
     // String Key and String value
@@ -132,6 +131,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionarySetFieldReturnsErrorWithNullDictionaryName() {
     // String Key and String value
@@ -149,6 +149,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionarySetFieldReturnsErrorWithNullField() {
     // String Key and String value
@@ -168,6 +169,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionarySetFieldReturnsErrorWithNullValue() {
     // String Key and String value
@@ -187,6 +189,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryFetchReturnsErrorWithNullCacheName() {
     assertThat(target.dictionaryFetch(null, dictionaryName))
@@ -195,6 +198,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryFetchReturnsErrorWithNullDictionaryName() {
     assertThat(target.dictionaryFetch(cacheName, null))
@@ -226,7 +230,7 @@ public class DictionaryTest extends BaseTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, String> stringStringMap = hit.valueDictionaryStringString();
+              final Map<String, String> stringStringMap = hit.valueMapStringString();
               assertThat(stringStringMap.keySet()).hasSize(2).contains("a", "aa");
               assertThat(stringStringMap.values()).contains("bb", "bb");
             });
@@ -243,7 +247,7 @@ public class DictionaryTest extends BaseTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, byte[]> stringBytesMap = hit.valueDictionaryStringBytes();
+              final Map<String, byte[]> stringBytesMap = hit.valueMapStringByteArray();
               assertThat(stringBytesMap.keySet()).hasSize(4).contains("c", "cc");
               assertThat(stringBytesMap.values()).contains("d".getBytes(), "dd".getBytes());
             });
@@ -263,7 +267,7 @@ public class DictionaryTest extends BaseTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, String> stringStringMap = hit.valueDictionaryStringString();
+              final Map<String, String> stringStringMap = hit.valueMapStringString();
               assertThat(stringStringMap.keySet()).hasSize(2).contains("a", "aa");
               assertThat(stringStringMap.values()).contains("b", "bb");
             });
@@ -278,12 +282,13 @@ public class DictionaryTest extends BaseTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, byte[]> stringBytesMap = hit.valueDictionaryStringBytes();
+              final Map<String, byte[]> stringBytesMap = hit.valueMapStringByteArray();
               assertThat(stringBytesMap.keySet()).hasSize(4).contains("c", "cc");
               assertThat(stringBytesMap.values()).contains("d".getBytes(), "dd".getBytes());
             });
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionarySetFieldsReturnsErrorWithNullCacheName() {
     populateTestMaps();
@@ -305,6 +310,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionarySetFieldsReturnsErrorWithNullDictionaryName() {
     populateTestMaps();
@@ -326,6 +332,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionarySetFieldsReturnsErrorWithNullItem() {
     // String Key and String value
@@ -380,6 +387,7 @@ public class DictionaryTest extends BaseTestClass {
             });
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryGetFieldReturnsErrorWithNullCacheName() {
     // String field
@@ -389,6 +397,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryGetFieldReturnsErrorWithNullDictionaryName() {
     // String field
@@ -398,6 +407,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryGetFieldReturnsErrorWithNullField() {
     // String field
@@ -455,7 +465,7 @@ public class DictionaryTest extends BaseTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, String> stringStringMap = hit.valueDictionaryStringString();
+              final Map<String, String> stringStringMap = hit.valueMapStringString();
               assertThat(stringStringMap.keySet()).hasSize(3).contains("a", "c", "e");
               assertThat(stringStringMap.values()).contains("b", "d", "f");
             });
@@ -466,13 +476,14 @@ public class DictionaryTest extends BaseTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, byte[]> stringStringMap = hit.valueDictionaryStringBytes();
+              final Map<String, byte[]> stringStringMap = hit.valueMapStringByteArray();
               assertThat(stringStringMap.keySet()).hasSize(3).contains("a", "c", "e");
               assertThat(stringStringMap.values())
                   .contains("b".getBytes(), "d".getBytes(), "f".getBytes());
             });
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryGetFieldsReturnsErrorWithNullCacheName() {
     // String fields
@@ -482,6 +493,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryGetFieldsReturnsErrorWithNullDictionaryName() {
     // String fields
@@ -491,6 +503,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryGetFieldsReturnsErrorWithNullFields() {
     // String fields
@@ -574,7 +587,7 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(
             InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
-        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(1));
+        .satisfies(success -> assertThat(success.value()).isEqualTo(1));
 
     assertThat(
             target.dictionaryIncrement(
@@ -582,7 +595,7 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(
             InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
-        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(42));
+        .satisfies(success -> assertThat(success.value()).isEqualTo(42));
 
     // Increment without ttl
     assertThat(
@@ -591,7 +604,7 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(
             InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
-        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(-1000));
+        .satisfies(success -> assertThat(success.value()).isEqualTo(-1000));
 
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
@@ -616,7 +629,7 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(
             InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
-        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(10));
+        .satisfies(success -> assertThat(success.value()).isEqualTo(10));
 
     assertThat(
             target.dictionaryIncrement(
@@ -624,7 +637,7 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(
             InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
-        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(100));
+        .satisfies(success -> assertThat(success.value()).isEqualTo(100));
 
     // Reset field
     assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "0"))
@@ -637,9 +650,10 @@ public class DictionaryTest extends BaseTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(
             InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
-        .satisfies(success -> assertThat(success.valueNumber()).isEqualTo(0));
+        .satisfies(success -> assertThat(success.value()).isEqualTo(0));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryIncrementReturnsErrorWithNullCacheName() {
     // String field
@@ -650,6 +664,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryIncrementReturnsErrorWithNullDictionaryName() {
     // String field
@@ -659,6 +674,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryIncrementReturnsErrorWithNullField() {
     // String field
@@ -718,6 +734,7 @@ public class DictionaryTest extends BaseTestClass {
         .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryRemoveFieldReturnsErrorWithNullCacheName() {
     // String field
@@ -728,6 +745,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryRemoveFieldReturnsErrorWithNullDictionaryName() {
     // String field
@@ -738,6 +756,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryRemoveFieldReturnsErrorWithNullField() {
     // String field
@@ -766,7 +785,7 @@ public class DictionaryTest extends BaseTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
         .satisfies(
             hit -> {
-              final Map<String, String> stringStringMap = hit.valueDictionaryStringString();
+              final Map<String, String> stringStringMap = hit.valueMapStringString();
               assertThat(stringStringMap.keySet()).hasSize(2).contains("a", "aa");
               assertThat(stringStringMap.values()).contains("b", "bb");
             });
@@ -780,6 +799,7 @@ public class DictionaryTest extends BaseTestClass {
         .isInstanceOf(CacheDictionaryGetFieldsResponse.Miss.class);
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryRemoveFieldsReturnsErrorWithNullCacheName() {
     // String field
@@ -790,6 +810,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryRemoveFieldsReturnsErrorWithNullDictionaryName() {
     // String field
@@ -800,6 +821,7 @@ public class DictionaryTest extends BaseTestClass {
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
+  @SuppressWarnings("DataFlowIssue")
   @Test
   public void dictionaryRemoveFieldsReturnsErrorWithNullField() {
     // String field

@@ -15,9 +15,9 @@ public interface CacheDictionaryGetFieldResponse {
     private final ByteString value;
 
     /**
-     * Constructs a cache dictionary get field hit with an encoded value.
+     * Constructs a cache dictionary get field hit with an encoded field and value.
      *
-     * @param field the retrieved key.
+     * @param field the retrieved field.
      * @param value the retrieved value.
      */
     public Hit(ByteString field, ByteString value) {
@@ -26,45 +26,45 @@ public interface CacheDictionaryGetFieldResponse {
     }
 
     /**
-     * Gets the retrieved field as a UTF-8 {@link String}.
+     * Gets the retrieved field as a UTF-8 string.
      *
-     * @return the field.
+     * @return The field.
      */
     public String fieldString() {
       return field.toStringUtf8();
     }
 
     /**
-     * Gets the retrieved field as a UTF-8 {@link String}.
+     * Gets the retrieved field as a UTF-8 string.
      *
-     * @return the field.
+     * @return The field.
      */
     public String field() {
       return field.toStringUtf8();
     }
 
     /**
-     * Gets the retrieved value as a byte array
+     * Gets the retrieved value as a byte array.
      *
-     * @return the value.
+     * @return The value.
      */
     public byte[] valueByteArray() {
       return value.toByteArray();
     }
 
     /**
-     * Gets the retrieved value as a UTF-8 {@link String}
+     * Gets the retrieved value as a UTF-8 string.
      *
-     * @return the value.
+     * @return The value.
      */
     public String valueString() {
       return value.toStringUtf8();
     }
 
     /**
-     * Gets the retrieved value as a UTF-8 {@link String}
+     * Gets the retrieved value as a UTF-8 string.
      *
-     * @return the value.
+     * @return The value.
      */
     public String value() {
       return valueString();
@@ -107,16 +107,16 @@ public interface CacheDictionaryGetFieldResponse {
     /**
      * Gets the field as a byte array.
      *
-     * @return the field.
+     * @return the Tield.
      */
     public byte[] fieldByteArray() {
       return field.toByteArray();
     }
 
     /**
-     * Gets the field as a UTF-8 {@link String}.
+     * Gets the field as a UTF-8 string.
      *
-     * @return the field.
+     * @return the Field.
      */
     public String fieldString() {
       return field.toStringUtf8();
@@ -162,18 +162,27 @@ public interface CacheDictionaryGetFieldResponse {
     /**
      * Gets the field as a byte array.
      *
-     * @return the field.
+     * @return the Field.
      */
     public byte[] fieldByteArray() {
       return field.toByteArray();
     }
 
     /**
-     * Gets the field as a UTF-8 {@link String}.
+     * Gets the field as a UTF-8 string.
      *
-     * @return the field.
+     * @return the Field.
      */
     public String fieldString() {
+      return field.toStringUtf8();
+    }
+
+    /**
+     * Gets the field as a UTF-8 string.
+     *
+     * @return The field.
+     */
+    public String field() {
       return field.toStringUtf8();
     }
 

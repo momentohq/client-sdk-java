@@ -10,35 +10,36 @@ import momento.sdk.internal.StringHelpers;
 /** Response for a dictionary get fields operation */
 public interface CacheDictionaryGetFieldsResponse {
   /**
-   * A successful dictionary get fields operation that found the keys with values in the dictionary.
+   * A successful dictionary get fields operation that found the fields with values in the
+   * dictionary.
    */
   class Hit implements CacheDictionaryGetFieldsResponse {
     private final List<CacheDictionaryGetFieldResponse> responses;
 
     /**
-     * Constructs a dictionary get fields hit with a list of encoded keys and values.
+     * Constructs a dictionary get fields hit with a list of encoded getField responses.
      *
-     * @param responses the retrieved dictionary.
+     * @param responses The retrieved responses.
      */
     public Hit(List<CacheDictionaryGetFieldResponse> responses) {
       this.responses = responses;
     }
 
     /**
-     * Gets a {@link CacheDictionaryGetFieldResponse} for each looked up value.
+     * Gets a {@link CacheDictionaryGetFieldResponse} for each looked up field.
      *
-     * @return the responses.
+     * @return The responses.
      */
     public List<CacheDictionaryGetFieldResponse> perFieldResponses() {
       return responses;
     }
 
     /**
-     * Gets the retrieved dictionary of string keys and string values.
+     * Gets the retrieved map of UTF-8 string fields to UTF-8 string values.
      *
-     * @return the dictionary.
+     * @return The map.
      */
-    public Map<String, String> valueDictionaryStringString() {
+    public Map<String, String> valueMapStringString() {
       return responses.stream()
           .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
           .collect(
@@ -48,20 +49,20 @@ public interface CacheDictionaryGetFieldsResponse {
     }
 
     /**
-     * Gets the retrieved dictionary of string keys and string values.
+     * Gets the retrieved map of UTF-8 string fields to UTF-8 string values.
      *
-     * @return the dictionary.
+     * @return The map.
      */
-    public Map<String, String> valueDictionary() {
-      return valueDictionaryStringString();
+    public Map<String, String> valueMap() {
+      return valueMapStringString();
     }
 
     /**
-     * Gets the retrieved dictionary of string keys and byte array values.
+     * Gets the retrieved map of UTF-8 string fields to byte array values.
      *
-     * @return the dictionary.
+     * @return The map.
      */
-    public Map<String, byte[]> valueDictionaryStringBytes() {
+    public Map<String, byte[]> valueMapStringByteArray() {
       return responses.stream()
           .filter(r -> r instanceof CacheDictionaryGetFieldResponse.Hit)
           .collect(
@@ -73,23 +74,23 @@ public interface CacheDictionaryGetFieldsResponse {
     @Override
     public String toString() {
       final String stringStringRepresentation =
-          valueDictionaryStringString().entrySet().stream()
+          valueMapStringString().entrySet().stream()
               .map(e -> e.getKey() + ":" + e.getValue())
               .limit(5)
               .map(StringHelpers::truncate)
               .collect(Collectors.joining(", ", "\"", "\"..."));
 
       final String stringBytesRepresentation =
-          valueDictionaryStringBytes().entrySet().stream()
+          valueMapStringByteArray().entrySet().stream()
               .map(e -> e.getKey() + ":" + Base64.getEncoder().encodeToString(e.getValue()))
               .limit(5)
               .map(StringHelpers::truncate)
               .collect(Collectors.joining(", ", "\"", "\"..."));
 
       return super.toString()
-          + ": valueStringString: "
+          + ": valueMapStringString: "
           + stringStringRepresentation
-          + " valueStringBytes: "
+          + " valueMapStringByteArray: "
           + stringBytesRepresentation;
     }
   }
@@ -110,7 +111,7 @@ public interface CacheDictionaryGetFieldsResponse {
     /**
      * Constructs a cache dictionary get fields error with a cause.
      *
-     * @param cause the cause.
+     * @param cause The cause.
      */
     public Error(SdkException cause) {
       super(cause);
