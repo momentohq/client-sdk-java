@@ -1080,46 +1080,6 @@ final class ScsDataClient extends ScsClient {
     }
   }
 
-  CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
-      String cacheName, String dictionaryName, byte[] field, String value, CollectionTtl ttl) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkDictionaryNameValid(dictionaryName);
-      ensureValidKey(field);
-      ensureValidValue(value);
-
-      if (ttl == null) {
-        ttl = CollectionTtl.of(itemDefaultTtl);
-      }
-
-      return sendDictionarySetField(
-          cacheName, convert(dictionaryName), convert(field), convert(value), ttl);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheDictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
-      String cacheName, String dictionaryName, byte[] field, byte[] value, CollectionTtl ttl) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkDictionaryNameValid(dictionaryName);
-      ensureValidKey(field);
-      ensureValidValue(value);
-
-      if (ttl == null) {
-        ttl = CollectionTtl.of(itemDefaultTtl);
-      }
-
-      return sendDictionarySetField(
-          cacheName, convert(dictionaryName), convert(field), convert(value), ttl);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheDictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
       String cacheName, String dictionaryName, Map<String, String> elements, CollectionTtl ttl) {
     try {
@@ -1158,61 +1118,8 @@ final class ScsDataClient extends ScsClient {
     }
   }
 
-  CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesString(
-      String cacheName, String dictionaryName, Map<byte[], String> elements, CollectionTtl ttl) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkDictionaryNameValid(dictionaryName);
-      ensureValidValue(elements);
-
-      if (ttl == null) {
-        ttl = CollectionTtl.of(itemDefaultTtl);
-      }
-
-      return sendDictionarySetFields(
-          cacheName, convert(dictionaryName), convertBytesStringEntryList(elements), ttl);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheDictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsBytesBytes(
-      String cacheName, String dictionaryName, Map<byte[], byte[]> elements, CollectionTtl ttl) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkDictionaryNameValid(dictionaryName);
-      ensureValidValue(elements);
-
-      if (ttl == null) {
-        ttl = CollectionTtl.of(itemDefaultTtl);
-      }
-
-      return sendDictionarySetFields(
-          cacheName, convert(dictionaryName), convertBytesBytesEntryList(elements), ttl);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheDictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
   CompletableFuture<CacheDictionaryGetFieldResponse> dictionaryGetField(
       String cacheName, String dictionaryName, String field) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkDictionaryNameValid(dictionaryName);
-      ensureValidKey(field);
-
-      return sendDictionaryGetField(cacheName, convert(dictionaryName), convert(field));
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheDictionaryGetFieldResponse.Error(
-              CacheServiceExceptionMapper.convert(e), convert(field)));
-    }
-  }
-
-  CompletableFuture<CacheDictionaryGetFieldResponse> dictionaryGetField(
-      String cacheName, String dictionaryName, byte[] field) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1243,46 +1150,8 @@ final class ScsDataClient extends ScsClient {
     }
   }
 
-  CompletableFuture<CacheDictionaryGetFieldsResponse> dictionaryGetFieldsByteArray(
-      String cacheName, String dictionaryName, List<byte[]> fields) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkDictionaryNameValid(dictionaryName);
-      ensureValidKey(fields);
-      for (byte[] field : fields) {
-        ensureValidKey(field);
-      }
-
-      return sendDictionaryGetFields(
-          cacheName, convert(dictionaryName), convertByteArrayList(fields));
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheDictionaryGetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
   CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
       String cacheName, String dictionaryName, String field, long amount, CollectionTtl ttl) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkDictionaryNameValid(dictionaryName);
-      ensureValidKey(field);
-      ensureValidValue(amount);
-
-      if (ttl == null) {
-        ttl = CollectionTtl.of(itemDefaultTtl);
-      }
-
-      return sendDictionaryIncrement(
-          cacheName, convert(dictionaryName), convert(field), amount, ttl);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheDictionaryIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
-      String cacheName, String dictionaryName, byte[] field, long amount, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1315,20 +1184,6 @@ final class ScsDataClient extends ScsClient {
     }
   }
 
-  CompletableFuture<CacheDictionaryRemoveFieldResponse> dictionaryRemoveField(
-      String cacheName, String dictionaryName, byte[] field) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkDictionaryNameValid(dictionaryName);
-      ensureValidKey(field);
-
-      return sendDictionaryRemoveField(cacheName, convert(dictionaryName), convert(field));
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheDictionaryRemoveFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
   CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFields(
       String cacheName, String dictionaryName, List<String> fields) {
     try {
@@ -1341,24 +1196,6 @@ final class ScsDataClient extends ScsClient {
 
       return sendDictionaryRemoveFields(
           cacheName, convert(dictionaryName), convertStringList(fields));
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new CacheDictionaryRemoveFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-  }
-
-  CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFieldsByteArray(
-      String cacheName, String dictionaryName, List<byte[]> fields) {
-    try {
-      checkCacheNameValid(cacheName);
-      checkDictionaryNameValid(dictionaryName);
-      ensureValidKey(fields);
-      for (byte[] field : fields) {
-        ensureValidKey(field);
-      }
-
-      return sendDictionaryRemoveFields(
-          cacheName, convert(dictionaryName), convertByteArrayList(fields));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDictionaryRemoveFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1403,10 +1240,6 @@ final class ScsDataClient extends ScsClient {
     return strings.stream().map(this::convert).collect(Collectors.toList());
   }
 
-  private List<ByteString> convertByteArrayList(List<byte[]> byteArrays) {
-    return byteArrays.stream().map(this::convert).collect(Collectors.toList());
-  }
-
   private Map<ByteString, ByteString> convertStringStringEntryList(Map<String, String> elements) {
     return elements.entrySet().stream()
         .collect(
@@ -1414,18 +1247,6 @@ final class ScsDataClient extends ScsClient {
   }
 
   private Map<ByteString, ByteString> convertStringBytesEntryList(Map<String, byte[]> elements) {
-    return elements.entrySet().stream()
-        .collect(
-            Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
-  }
-
-  private Map<ByteString, ByteString> convertBytesStringEntryList(Map<byte[], String> elements) {
-    return elements.entrySet().stream()
-        .collect(
-            Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
-  }
-
-  private Map<ByteString, ByteString> convertBytesBytesEntryList(Map<byte[], byte[]> elements) {
     return elements.entrySet().stream()
         .collect(
             Collectors.toMap(entry -> convert(entry.getKey()), entry -> convert(entry.getValue())));
@@ -2763,8 +2584,13 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onSuccess(_DictionaryFetchResponse rsp) {
             if (rsp.hasFound()) {
-              returnFuture.complete(
-                  new CacheDictionaryFetchResponse.Hit(rsp.getFound().getItemsList()));
+              final Map<ByteString, ByteString> fieldsToValues =
+                  rsp.getFound().getItemsList().stream()
+                      .collect(
+                          Collectors.toMap(
+                              _DictionaryFieldValuePair::getField,
+                              _DictionaryFieldValuePair::getValue));
+              returnFuture.complete(new CacheDictionaryFetchResponse.Hit(fieldsToValues));
             } else if (rsp.hasMissing()) {
               returnFuture.complete(new CacheDictionaryFetchResponse.Miss());
             }
@@ -2944,7 +2770,6 @@ final class ScsDataClient extends ScsClient {
   private CompletableFuture<CacheDictionaryGetFieldsResponse> sendDictionaryGetFields(
       String cacheName, ByteString dictionaryName, List<ByteString> fields) {
 
-    // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
     final ListenableFuture<_DictionaryGetResponse> rspFuture =
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
@@ -2969,9 +2794,26 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onSuccess(_DictionaryGetResponse rsp) {
             if (rsp.hasFound()) {
-              returnFuture.complete(
-                  new CacheDictionaryGetFieldsResponse.Hit(fields, rsp.getFound().getItemsList()));
-            } else if (rsp.hasMissing()) {
+              final List<_DictionaryGetResponse._DictionaryGetResponsePart> elements =
+                  rsp.getFound().getItemsList();
+
+              final List<CacheDictionaryGetFieldResponse> responses = new ArrayList<>();
+              for (int i = 0; i < elements.size(); ++i) {
+                final _DictionaryGetResponse._DictionaryGetResponsePart part = elements.get(i);
+                if (part.getResult().equals(ECacheResult.Hit)) {
+                  responses.add(
+                      new CacheDictionaryGetFieldResponse.Hit(fields.get(i), part.getCacheBody()));
+                } else if (part.getResult().equals(ECacheResult.Miss)) {
+                  responses.add(new CacheDictionaryGetFieldResponse.Miss(fields.get(i)));
+                } else {
+                  responses.add(
+                      new CacheDictionaryGetFieldResponse.Error(
+                          new UnknownException("Unrecognized result: " + part.getResult()),
+                          fields.get(i)));
+                }
+              }
+              returnFuture.complete(new CacheDictionaryGetFieldsResponse.Hit(responses));
+            } else {
               returnFuture.complete(new CacheDictionaryGetFieldsResponse.Miss());
             }
           }
@@ -3494,8 +3336,8 @@ final class ScsDataClient extends ScsClient {
   }
 
   private List<_DictionaryFieldValuePair> toDictionaryFieldValuePairs(
-      Map<ByteString, ByteString> fieldValuepairs) {
-    return fieldValuepairs.entrySet().stream()
+      Map<ByteString, ByteString> fieldValuePairs) {
+    return fieldValuePairs.entrySet().stream()
         .map(
             fieldValuePair ->
                 _DictionaryFieldValuePair.newBuilder()

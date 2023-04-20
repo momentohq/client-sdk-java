@@ -26,15 +26,6 @@ public interface CacheDictionaryGetFieldResponse {
     }
 
     /**
-     * Gets the retrieved field as a byte array.
-     *
-     * @return the field.
-     */
-    public byte[] fieldByteArray() {
-      return field.toByteArray();
-    }
-
-    /**
      * Gets the retrieved field as a UTF-8 {@link String}.
      *
      * @return the field.
@@ -89,8 +80,6 @@ public interface CacheDictionaryGetFieldResponse {
       return super.toString()
           + ": fieldString: \""
           + StringHelpers.truncate(fieldString())
-          + "\" fieldByteArray: \""
-          + StringHelpers.truncate(Base64.getEncoder().encodeToString(fieldByteArray()))
           + ": valueString: \""
           + StringHelpers.truncate(valueString())
           + "\" valueByteArray: \""
