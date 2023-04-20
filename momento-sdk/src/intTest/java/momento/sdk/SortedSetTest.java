@@ -436,7 +436,7 @@ public class SortedSetTest extends BaseTestClass {
     // Full set ascending, end index larger than set
     assertThat(
             client.sortedSetFetchByScore(
-                cacheName, sortedSetName, 0.0, 9.9, SortOrder.ASCENDING, null, null))
+                cacheName, sortedSetName, 0.0, 9.9, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -469,7 +469,7 @@ public class SortedSetTest extends BaseTestClass {
             });
 
     // Partial set limited by offset and count
-    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName, 1, 3))
+    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName, null, null, null, 1, 3))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -509,7 +509,7 @@ public class SortedSetTest extends BaseTestClass {
 
   @Test
   public void sortedSetFetchByScoreReturnsErrorWithNullCacheName() {
-    assertThat(client.sortedSetFetchByScore(null, sortedSetName, 0, 100))
+    assertThat(client.sortedSetFetchByScore(null, sortedSetName, null, null, null, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
@@ -517,7 +517,7 @@ public class SortedSetTest extends BaseTestClass {
 
   @Test
   public void sortedSetFetchByScoreReturnsErrorWithNonexistentCacheName() {
-    assertThat(client.sortedSetFetchByScore(randomString("cache"), sortedSetName, 0, 100))
+    assertThat(client.sortedSetFetchByScore(randomString("cache"), sortedSetName, null, null, null, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
@@ -525,7 +525,7 @@ public class SortedSetTest extends BaseTestClass {
 
   @Test
   public void sortedSetFetchByScoreReturnsErrorWithNullSetName() {
-    assertThat(client.sortedSetFetchByScore(cacheName, null, 0, 100))
+    assertThat(client.sortedSetFetchByScore(cacheName, null, null, null, null, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
