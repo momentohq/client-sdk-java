@@ -1159,6 +1159,21 @@ public final class CacheClient implements Closeable {
   }
 
   /**
+   * Adds the given values to the back of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the values.
+   * @param values The values to add to the list.
+   * @return Future containing the result of the list concatenate back operation: {@link
+   *     CacheListConcatenateBackResponse.Success} or {@link
+   *     CacheListConcatenateBackResponse.Error}.
+   */
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+      @Nonnull String cacheName, @Nonnull String listName, @Nonnull Iterable<String> values) {
+    return scsDataClient.listConcatenateBack(cacheName, listName, values, null, null);
+  }
+
+  /**
    * Adds the given values to the back of a list.
    *
    * @param cacheName The cache containing the list.
@@ -1204,6 +1219,21 @@ public final class CacheClient implements Closeable {
   }
 
   /**
+   * Adds the given values to the back of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the values.
+   * @param values The values to add to the list.
+   * @return Future containing the result of the list concatenate back operation: {@link
+   *     CacheListConcatenateBackResponse.Success} or {@link
+   *     CacheListConcatenateBackResponse.Error}.
+   */
+  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
+      @Nonnull String cacheName, @Nonnull String listName, @Nonnull Iterable<byte[]> values) {
+    return scsDataClient.listConcatenateBackByteArray(cacheName, listName, values, null, null);
+  }
+
+  /**
    * Adds the given values to the front of a list.
    *
    * @param cacheName The cache containing the list.
@@ -1245,6 +1275,21 @@ public final class CacheClient implements Closeable {
       @Nullable Integer truncateBackToSize) {
     return scsDataClient.listConcatenateFront(
         cacheName, listName, values, truncateBackToSize, null);
+  }
+
+  /**
+   * Adds the given values to the front of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the values.
+   * @param values The values to add to the list.
+   * @return Future containing the result of the list concatenate front operation: {@link
+   *     CacheListConcatenateFrontResponse.Success} or {@link
+   *     CacheListConcatenateFrontResponse.Error}.
+   */
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+      @Nonnull String cacheName, @Nonnull String listName, @Nonnull Iterable<String> values) {
+    return scsDataClient.listConcatenateFront(cacheName, listName, values, null, null);
   }
 
   /**
@@ -1293,6 +1338,21 @@ public final class CacheClient implements Closeable {
   }
 
   /**
+   * Adds the given values to the front of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the values.
+   * @param values The values to add to the list.
+   * @return Future containing the result of the list concatenate front operation: {@link
+   *     CacheListConcatenateFrontResponse.Success} or {@link
+   *     CacheListConcatenateFrontResponse.Error}.
+   */
+  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
+      @Nonnull String cacheName, @Nonnull String listName, @Nonnull Iterable<byte[]> values) {
+    return scsDataClient.listConcatenateFrontByteArray(cacheName, listName, values, null, null);
+  }
+
+  /**
    * Fetches all elements of a list between the given indices.
    *
    * @param cacheName The cache containing the list.
@@ -1310,6 +1370,20 @@ public final class CacheClient implements Closeable {
       @Nullable Integer startIndex,
       @Nullable Integer endIndex) {
     return scsDataClient.listFetch(cacheName, listName, startIndex, endIndex);
+  }
+
+  /**
+   * Fetches all elements of a list between the given indices.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list to fetch.
+   * @return Future containing the result of the list fetch back operation: {@link
+   *     CacheListFetchResponse.Hit} containing the fetched data, {@link
+   *     CacheListFetchResponse.Miss} if no data was found, or {@link CacheListFetchResponse.Error}.
+   */
+  public CompletableFuture<CacheListFetchResponse> listFetch(
+      @Nonnull String cacheName, @Nonnull String listName) {
+    return scsDataClient.listFetch(cacheName, listName, null, null);
   }
 
   /**
@@ -1397,6 +1471,20 @@ public final class CacheClient implements Closeable {
   }
 
   /**
+   * Pushes a value to the back of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the value.
+   * @param value The value to add to the list.
+   * @return Future containing the result of the list push back operation: {@link
+   *     CacheListPushBackResponse.Success} or {@link CacheListPushBackResponse.Error}.
+   */
+  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+      @Nonnull String cacheName, @Nonnull String listName, @Nonnull String value) {
+    return scsDataClient.listPushBack(cacheName, listName, value, null, null);
+  }
+
+  /**
    * Pushes a value to the back of a list.
    *
    * @param cacheName The cache containing the list.
@@ -1438,6 +1526,20 @@ public final class CacheClient implements Closeable {
   }
 
   /**
+   * Pushes a value to the back of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the value.
+   * @param value The value to add to the list.
+   * @return Future containing the result of the list push back operation: {@link
+   *     CacheListPushBackResponse.Success} or {@link CacheListPushBackResponse.Error}.
+   */
+  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+      @Nonnull String cacheName, @Nonnull String listName, @Nonnull byte[] value) {
+    return scsDataClient.listPushBack(cacheName, listName, value, null, null);
+  }
+
+  /**
    * Pushes a value to the front of a list.
    *
    * @param cacheName The cache containing the list.
@@ -1479,6 +1581,20 @@ public final class CacheClient implements Closeable {
   }
 
   /**
+   * Pushes a value to the front of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the value.
+   * @param value The value to add to the list.
+   * @return Future containing the result of the list push front operation: {@link
+   *     CacheListPushFrontResponse.Success} or {@link CacheListPushFrontResponse.Error}.
+   */
+  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+      @Nonnull String cacheName, @Nonnull String listName, @Nonnull String value) {
+    return scsDataClient.listPushFront(cacheName, listName, value, null, null);
+  }
+
+  /**
    * Pushes a value to the front of a list.
    *
    * @param cacheName The cache containing the list.
@@ -1517,6 +1633,20 @@ public final class CacheClient implements Closeable {
       @Nonnull byte[] value,
       @Nullable Integer truncateBackToSize) {
     return scsDataClient.listPushFront(cacheName, listName, value, truncateBackToSize, null);
+  }
+
+  /**
+   * Pushes a value to the front of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the value.
+   * @param value The value to add to the list.
+   * @return Future containing the result of the list push front operation: {@link
+   *     CacheListPushFrontResponse.Success} or {@link CacheListPushFrontResponse.Error}.
+   */
+  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+      @Nonnull String cacheName, @Nonnull String listName, @Nonnull byte[] value) {
+    return scsDataClient.listPushFront(cacheName, listName, value, null, null);
   }
 
   /**
