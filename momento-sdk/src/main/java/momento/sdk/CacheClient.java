@@ -56,6 +56,7 @@ import momento.sdk.messages.ListSigningKeysResponse;
 import momento.sdk.messages.RevokeSigningKeyResponse;
 import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
+import momento.sdk.requests.sortedset.FetchByScoreOptions;
 
 /** Client to perform operations against the Momento Cache Service */
 public final class CacheClient implements Closeable {
@@ -911,6 +912,19 @@ public final class CacheClient implements Closeable {
     return scsDataClient.sortedSetFetchByScore(
         cacheName, sortedSetName, null, null, null, null, null);
   }
+
+  /**
+   * Fetch the elements in the given sorted set by score.
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to fetch from.
+   * @param options - The options to use for the fetch operation.
+   * @return Future containing the result of the fetch operation.
+   */
+  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(@Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull FetchByScoreOptions options) {
+    return scsDataClient.sortedSetFetchByScore(
+            cacheName, sortedSetName, options.getMinScore(), options.getMaxScore(), options.getSortOrder(),
+            options.getOffset(), options.getCount());
+    }
 
   /**
    * Look up the rank of an element in a sorted set.
