@@ -10,7 +10,52 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
-import momento.sdk.messages.*;
+import momento.sdk.messages.CacheDeleteResponse;
+import momento.sdk.messages.CacheDictionaryFetchResponse;
+import momento.sdk.messages.CacheDictionaryGetFieldResponse;
+import momento.sdk.messages.CacheDictionaryGetFieldsResponse;
+import momento.sdk.messages.CacheDictionaryIncrementResponse;
+import momento.sdk.messages.CacheDictionaryRemoveFieldResponse;
+import momento.sdk.messages.CacheDictionaryRemoveFieldsResponse;
+import momento.sdk.messages.CacheDictionarySetFieldResponse;
+import momento.sdk.messages.CacheDictionarySetFieldsResponse;
+import momento.sdk.messages.CacheGetResponse;
+import momento.sdk.messages.CacheIncrementResponse;
+import momento.sdk.messages.CacheListConcatenateBackResponse;
+import momento.sdk.messages.CacheListConcatenateFrontResponse;
+import momento.sdk.messages.CacheListFetchResponse;
+import momento.sdk.messages.CacheListLengthResponse;
+import momento.sdk.messages.CacheListPopBackResponse;
+import momento.sdk.messages.CacheListPopFrontResponse;
+import momento.sdk.messages.CacheListPushBackResponse;
+import momento.sdk.messages.CacheListPushFrontResponse;
+import momento.sdk.messages.CacheListRemoveValueResponse;
+import momento.sdk.messages.CacheListRetainResponse;
+import momento.sdk.messages.CacheSetAddElementResponse;
+import momento.sdk.messages.CacheSetAddElementsResponse;
+import momento.sdk.messages.CacheSetFetchResponse;
+import momento.sdk.messages.CacheSetIfNotExistsResponse;
+import momento.sdk.messages.CacheSetRemoveElementResponse;
+import momento.sdk.messages.CacheSetRemoveElementsResponse;
+import momento.sdk.messages.CacheSetResponse;
+import momento.sdk.messages.CacheSortedSetFetchResponse;
+import momento.sdk.messages.CacheSortedSetGetRankResponse;
+import momento.sdk.messages.CacheSortedSetGetScoreResponse;
+import momento.sdk.messages.CacheSortedSetGetScoresResponse;
+import momento.sdk.messages.CacheSortedSetIncrementScoreResponse;
+import momento.sdk.messages.CacheSortedSetPutElementResponse;
+import momento.sdk.messages.CacheSortedSetPutElementsResponse;
+import momento.sdk.messages.CacheSortedSetRemoveElementResponse;
+import momento.sdk.messages.CacheSortedSetRemoveElementsResponse;
+import momento.sdk.messages.CreateCacheResponse;
+import momento.sdk.messages.CreateSigningKeyResponse;
+import momento.sdk.messages.DeleteCacheResponse;
+import momento.sdk.messages.FlushCacheResponse;
+import momento.sdk.messages.ListCachesResponse;
+import momento.sdk.messages.ListSigningKeysResponse;
+import momento.sdk.messages.RevokeSigningKeyResponse;
+import momento.sdk.messages.ScoredElement;
+import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
 
 /** Client to perform operations against the Momento Cache Service */
@@ -731,7 +776,7 @@ public final class CacheClient implements Closeable {
 
   /**
    * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
-   * * Creates the sorted set if it does not exist.
+   * Creates the sorted set if it does not exist.
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to add to.
@@ -764,7 +809,7 @@ public final class CacheClient implements Closeable {
 
   /**
    * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
-   * * Creates the sorted set if it does not exist.
+   * Creates the sorted set if it does not exist.
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to add to.
@@ -778,7 +823,7 @@ public final class CacheClient implements Closeable {
 
   /**
    * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
-   * * Creates the sorted set if it does not exist.
+   * Creates the sorted set if it does not exist.
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to add to.
