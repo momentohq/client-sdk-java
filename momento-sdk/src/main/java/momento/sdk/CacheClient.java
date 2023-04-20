@@ -54,6 +54,7 @@ import momento.sdk.messages.FlushCacheResponse;
 import momento.sdk.messages.ListCachesResponse;
 import momento.sdk.messages.ListSigningKeysResponse;
 import momento.sdk.messages.RevokeSigningKeyResponse;
+import momento.sdk.messages.ScoredElement;
 import momento.sdk.messages.SortOrder;
 import momento.sdk.requests.CollectionTtl;
 
@@ -775,7 +776,7 @@ public final class CacheClient implements Closeable {
 
   /**
    * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
-   * * Creates the sorted set if it does not exist.
+   * Creates the sorted set if it does not exist.
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to add to.
@@ -808,7 +809,7 @@ public final class CacheClient implements Closeable {
 
   /**
    * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
-   * * Creates the sorted set if it does not exist.
+   * Creates the sorted set if it does not exist.
    *
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to add to.
@@ -818,6 +819,39 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElementsByteArray(
       String cacheName, String sortedSetName, Map<byte[], Double> elements) {
     return scsDataClient.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements, null);
+  }
+
+  /**
+   * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
+   * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param elements - The value-score pairs to add to the sorted set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to client TTL.
+   * @return Future containing the result of the put elements operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+      String cacheName,
+      String sortedSetName,
+      Iterable<ScoredElement> elements,
+      @Nullable CollectionTtl ttl) {
+    return scsDataClient.sortedSetPutElements(cacheName, sortedSetName, elements, ttl);
+  }
+
+  /**
+   * Adds elements to the given sorted set. If the elements already exist, their scores are updated.
+   * * Creates the sorted set if it does not exist.
+   *
+   * @param cacheName - The cache containing the sorted set.
+   * @param sortedSetName - The sorted set to add to.
+   * @param elements - The value-score pairs to add to the sorted set.
+   * @return Future containing the result of the put elements operation.
+   */
+  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+      String cacheName, String sortedSetName, Iterable<ScoredElement> elements) {
+    return scsDataClient.sortedSetPutElements(cacheName, sortedSetName, elements, null);
   }
 
   /**

@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Sets;
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -78,7 +79,7 @@ public class SortedSetTest extends BaseTestClass {
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
-              assertThat(scoredElements).map(ScoredElement::getElement).containsOnly(value);
+              assertThat(scoredElements).map(ScoredElement::getValue).containsOnly(value);
               assertThat(scoredElements).map(ScoredElement::getScore).containsOnly(score);
             });
   }
@@ -108,6 +109,42 @@ public class SortedSetTest extends BaseTestClass {
                   .map(ScoredElement::getElementByteArray)
                   .containsOnly(value);
               assertThat(scoredElements).map(ScoredElement::getScore).containsOnly(score);
+            });
+  }
+
+  @Test
+  public void sortedSetPutElementsWithScoredElementsHappyPath() {
+    final String one = "1";
+    final String two = "2";
+    final String three = "3";
+    final String four = "4";
+    final String five = "5";
+
+    final List<ScoredElement> elements = new ArrayList<>();
+    elements.add(new ScoredElement(one, 0.0));
+    elements.add(new ScoredElement(two, 1.0));
+    elements.add(new ScoredElement(three, 0.5));
+    elements.add(new ScoredElement(four, 2.0));
+    elements.add(new ScoredElement(five, 1.5));
+
+    assertThat(
+            client.sortedSetPutElements(
+                cacheName, sortedSetName, elements, CollectionTtl.fromCacheTtl()))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+
+    // Full set ascending
+    assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .satisfies(
+            hit -> {
+              final List<ScoredElement> scoredElements = hit.elementsList();
+              assertThat(scoredElements).hasSize(5);
+              // check ordering
+              assertThat(scoredElements)
+                  .map(ScoredElement::getValue)
+                  .containsSequence(one, three, two, five, four);
             });
   }
 
@@ -178,7 +215,7 @@ public class SortedSetTest extends BaseTestClass {
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
               assertThat(scoredElements)
-                  .map(ScoredElement::getElement)
+                  .map(ScoredElement::getValue)
                   .containsAll(elements.keySet());
               assertThat(scoredElements)
                   .map(ScoredElement::getScore)
@@ -305,7 +342,7 @@ public class SortedSetTest extends BaseTestClass {
               assertThat(scoredElements).hasSize(5);
               // check ordering
               assertThat(scoredElements)
-                  .map(ScoredElement::getElement)
+                  .map(ScoredElement::getValue)
                   .containsSequence(one, three, two, five, four);
             });
 
@@ -319,7 +356,7 @@ public class SortedSetTest extends BaseTestClass {
               assertThat(scoredElements).hasSize(3);
               // check ordering
               assertThat(scoredElements)
-                  .map(ScoredElement::getElement)
+                  .map(ScoredElement::getValue)
                   .containsSequence(five, two, three);
             });
   }
@@ -444,7 +481,7 @@ public class SortedSetTest extends BaseTestClass {
               assertThat(scoredElements).hasSize(5);
               // check ordering
               assertThat(scoredElements)
-                  .map(ScoredElement::getElement)
+                  .map(ScoredElement::getValue)
                   .containsSequence(one, three, two, five, four);
               assertThat(scoredElements)
                   .map(ScoredElement::getScore)
@@ -463,7 +500,7 @@ public class SortedSetTest extends BaseTestClass {
               assertThat(scoredElements).hasSize(3);
               // check ordering
               assertThat(scoredElements)
-                  .map(ScoredElement::getElement)
+                  .map(ScoredElement::getValue)
                   .containsSequence(five, two, three);
             });
 
@@ -477,7 +514,7 @@ public class SortedSetTest extends BaseTestClass {
               assertThat(scoredElements).hasSize(3);
               // check ordering
               assertThat(scoredElements)
-                  .map(ScoredElement::getElement)
+                  .map(ScoredElement::getValue)
                   .containsSequence(three, two, five);
             });
 
@@ -491,7 +528,7 @@ public class SortedSetTest extends BaseTestClass {
               assertThat(scoredElements).hasSize(5);
               // check ordering
               assertThat(scoredElements)
-                  .map(ScoredElement::getElement)
+                  .map(ScoredElement::getValue)
                   .containsSequence(one, three, two, five, four);
             });
   }
@@ -765,7 +802,7 @@ public class SortedSetTest extends BaseTestClass {
         .satisfies(
             hit -> {
               assertThat(hit.scoredElements())
-                  .filteredOn(se -> elements.contains(se.getElement()))
+                  .filteredOn(se -> elements.contains(se.getValue()))
                   .hasSize(1)
                   .map(ScoredElement::getScore)
                   .containsOnly(1.0);
@@ -782,7 +819,7 @@ public class SortedSetTest extends BaseTestClass {
         .satisfies(
             hit -> {
               assertThat(hit.scoredElements())
-                  .filteredOn(se -> elements.contains(se.getElement()))
+                  .filteredOn(se -> elements.contains(se.getValue()))
                   .hasSize(2)
                   .map(ScoredElement::getScore)
                   .containsOnly(1.0, 0.5);
@@ -1031,7 +1068,7 @@ public class SortedSetTest extends BaseTestClass {
             hit ->
                 assertThat(hit.elementsList())
                     .hasSize(2)
-                    .map(ScoredElement::getElement)
+                    .map(ScoredElement::getValue)
                     .containsOnly(two, three));
   }
 
@@ -1155,7 +1192,7 @@ public class SortedSetTest extends BaseTestClass {
             hit ->
                 assertThat(hit.elementsList())
                     .hasSize(1)
-                    .map(ScoredElement::getElement)
+                    .map(ScoredElement::getValue)
                     .containsOnly(three));
   }
 

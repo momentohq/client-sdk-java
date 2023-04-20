@@ -9,36 +9,67 @@ import javax.annotation.Nonnull;
  * element and ordering based on their score.
  */
 public class ScoredElement implements Comparable<ScoredElement> {
-  private final ByteString element;
+  private final ByteString valueByteString;
   private final double score;
 
   /**
    * Constructs a ScoredElement with an element and a score.
    *
-   * @param element The element.
+   * @param value The element's value.
    * @param score The element's score.
    */
-  public ScoredElement(@Nonnull ByteString element, double score) {
-    this.element = element;
+  public ScoredElement(@Nonnull ByteString value, double score) {
+    this.valueByteString = value;
     this.score = score;
   }
 
   /**
-   * Gets the element as a String.
+   * Constructs a ScoredElement with an element and a score.
    *
-   * @return the String element
+   * @param value The element's value.
+   * @param score The element's score.
    */
-  public String getElement() {
-    return element.toStringUtf8();
+  public ScoredElement(@Nonnull String value, double score) {
+    this.valueByteString = ByteString.copyFromUtf8(value);
+    this.score = score;
   }
 
   /**
-   * Gets the element as a byte array.
+   * Constructs a ScoredElement with an element and a score.
+   *
+   * @param value The element's value.
+   * @param score The element's score.
+   */
+  public ScoredElement(@Nonnull byte[] value, double score) {
+    this.valueByteString = ByteString.copyFrom(value);
+    this.score = score;
+  }
+
+  /**
+   * Gets the value.
+   *
+   * @return the value
+   */
+  public ByteString getValueByteString() {
+    return valueByteString;
+  }
+
+  /**
+   * Gets the value as a String.
+   *
+   * @return the String element
+   */
+  public String getValue() {
+    return valueByteString.toStringUtf8();
+  }
+
+  /**
+   * Gets the value as a byte array.
    *
    * @return the byte[] element
    */
   public byte[] getElementByteArray() {
-    return element.toByteArray();
+    return valueByteString.toByteArray();
   }
 
   /**
@@ -67,11 +98,11 @@ public class ScoredElement implements Comparable<ScoredElement> {
       return false;
     }
     final ScoredElement that = (ScoredElement) o;
-    return this.element.equals(that.element);
+    return this.valueByteString.equals(that.valueByteString);
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(element);
+    return Objects.hash(valueByteString);
   }
 }
