@@ -498,7 +498,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add element operation.
    */
   public CompletableFuture<CacheSetAddElementResponse> setAddElement(
-      String cacheName, String setName, String element, @Nullable CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String setName,
+      @Nonnull String element,
+      @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElement(cacheName, setName, element, ttl);
   }
 
@@ -514,7 +517,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add element operation.
    */
   public CompletableFuture<CacheSetAddElementResponse> setAddElement(
-      String cacheName, String setName, String element) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull String element) {
     return scsDataClient.setAddElement(cacheName, setName, element, null);
   }
 
@@ -532,7 +535,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add element operation.
    */
   public CompletableFuture<CacheSetAddElementResponse> setAddElement(
-      String cacheName, String setName, byte[] element, @Nullable CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String setName,
+      @Nonnull byte[] element,
+      @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElement(cacheName, setName, element, ttl);
   }
 
@@ -548,7 +554,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add element operation.
    */
   public CompletableFuture<CacheSetAddElementResponse> setAddElement(
-      String cacheName, String setName, byte[] element) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull byte[] element) {
     return scsDataClient.setAddElement(cacheName, setName, element, null);
   }
 
@@ -566,7 +572,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
-      String cacheName, String setName, Set<String> elements, @Nullable CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String setName,
+      @Nonnull Set<String> elements,
+      @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElements(cacheName, setName, elements, ttl);
   }
 
@@ -582,7 +591,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
-      String cacheName, String setName, Set<String> elements) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Set<String> elements) {
     return scsDataClient.setAddElements(cacheName, setName, elements, null);
   }
 
@@ -600,7 +609,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
-      String cacheName, String setName, Set<byte[]> elements, @Nullable CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String setName,
+      @Nonnull Set<byte[]> elements,
+      @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElementsByteArray(cacheName, setName, elements, ttl);
   }
 
@@ -616,7 +628,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
-      String cacheName, String setName, Set<byte[]> elements) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Set<byte[]> elements) {
     return scsDataClient.setAddElementsByteArray(cacheName, setName, elements, null);
   }
 
@@ -629,7 +641,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove element operation.
    */
   public CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
-      String cacheName, String setName, String element) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull String element) {
     return scsDataClient.setRemoveElement(cacheName, setName, element);
   }
 
@@ -642,7 +654,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove element operation.
    */
   public CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
-      String cacheName, String setName, byte[] element) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull byte[] element) {
     return scsDataClient.setRemoveElement(cacheName, setName, element);
   }
 
@@ -655,7 +667,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove elements operation.
    */
   public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElements(
-      String cacheName, String setName, Set<String> elements) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Set<String> elements) {
     return scsDataClient.setRemoveElements(cacheName, setName, elements);
   }
 
@@ -668,18 +680,19 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove elements operation.
    */
   public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsByteArray(
-      String cacheName, String setName, Set<byte[]> elements) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Set<byte[]> elements) {
     return scsDataClient.setRemoveElementsByteArray(cacheName, setName, elements);
   }
 
   /**
    * Fetch an entire set from the cache.
    *
-   * @param cacheName Name of the cache to perform the lookup in
+   * @param cacheName Name of the cache to perform the lookup in.
    * @param setName The set to fetch.
    * @return Future containing the result of the fetch operation.
    */
-  public CompletableFuture<CacheSetFetchResponse> setFetch(String cacheName, String setName) {
+  public CompletableFuture<CacheSetFetchResponse> setFetch(
+      @Nonnull String cacheName, @Nonnull String setName) {
     return scsDataClient.setFetch(cacheName, setName);
   }
 
