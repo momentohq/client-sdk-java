@@ -696,9 +696,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put element operation.
    */
   public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
-      String cacheName,
-      String sortedSetName,
-      String value,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull String value,
       double score,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, value, score, ttl);
@@ -715,7 +715,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put element operation.
    */
   public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
-      String cacheName, String sortedSetName, String value, double score) {
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull String value,
+      double score) {
     return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, value, score, null);
   }
 
@@ -732,9 +735,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put element operation.
    */
   public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
-      String cacheName,
-      String sortedSetName,
-      byte[] value,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull byte[] value,
       double score,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, value, score, ttl);
@@ -751,7 +754,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put element operation.
    */
   public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
-      String cacheName, String sortedSetName, byte[] value, double score) {
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull byte[] value,
+      double score) {
     return scsDataClient.sortedSetPutElement(cacheName, sortedSetName, value, score, null);
   }
 
@@ -767,9 +773,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put elements operation.
    */
   public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
-      String cacheName,
-      String sortedSetName,
-      Map<String, Double> elements,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull Map<String, Double> elements,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.sortedSetPutElements(cacheName, sortedSetName, elements, ttl);
   }
@@ -784,7 +790,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put elements operation.
    */
   public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
-      String cacheName, String sortedSetName, Map<String, Double> elements) {
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull Map<String, Double> elements) {
     return scsDataClient.sortedSetPutElements(cacheName, sortedSetName, elements, null);
   }
 
@@ -800,9 +808,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put elements operation.
    */
   public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElementsByteArray(
-      String cacheName,
-      String sortedSetName,
-      Map<byte[], Double> elements,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull Map<byte[], Double> elements,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements, ttl);
   }
@@ -817,7 +825,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put elements operation.
    */
   public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElementsByteArray(
-      String cacheName, String sortedSetName, Map<byte[], Double> elements) {
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull Map<byte[], Double> elements) {
     return scsDataClient.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements, null);
   }
 
@@ -833,9 +843,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put elements operation.
    */
   public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
-      String cacheName,
-      String sortedSetName,
-      Iterable<ScoredElement> elements,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull Iterable<ScoredElement> elements,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.sortedSetPutElements(cacheName, sortedSetName, elements, ttl);
   }
@@ -850,7 +860,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the put elements operation.
    */
   public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
-      String cacheName, String sortedSetName, Iterable<ScoredElement> elements) {
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull Iterable<ScoredElement> elements) {
     return scsDataClient.sortedSetPutElements(cacheName, sortedSetName, elements, null);
   }
 
@@ -868,8 +880,8 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the fetch operation.
    */
   public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
-      String cacheName,
-      String sortedSetName,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
       @Nullable Integer startRank,
       @Nullable Integer endRank,
       @Nullable SortOrder order) {
@@ -884,7 +896,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the fetch operation.
    */
   public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
-      String cacheName, String sortedSetName) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName) {
     return scsDataClient.sortedSetFetchByRank(cacheName, sortedSetName, null, null, null);
   }
 
@@ -905,8 +917,8 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the fetch operation.
    */
   public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
-      String cacheName,
-      String sortedSetName,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
       @Nullable Double minScore,
       @Nullable Double maxScore,
       @Nullable SortOrder order,
@@ -929,8 +941,8 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the fetch operation.
    */
   public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
-      String cacheName,
-      String sortedSetName,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
       @Nullable Double minScore,
       @Nullable Double maxScore,
       @Nullable SortOrder order) {
@@ -946,7 +958,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the fetch operation.
    */
   public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
-      String cacheName, String sortedSetName) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName) {
     return scsDataClient.sortedSetFetchByScore(
         cacheName, sortedSetName, null, null, null, null, null);
   }
@@ -962,7 +974,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the get rank operation.
    */
   public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, String value, @Nullable SortOrder order) {
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull String value,
+      @Nullable SortOrder order) {
     return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, value, order);
   }
 
@@ -977,7 +992,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the get rank operation.
    */
   public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
-      String cacheName, String sortedSetName, byte[] value, @Nullable SortOrder order) {
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull byte[] value,
+      @Nullable SortOrder order) {
     return scsDataClient.sortedSetGetRank(cacheName, sortedSetName, value, order);
   }
 
@@ -990,7 +1008,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the get score operation.
    */
   public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
-      String cacheName, String sortedSetName, String value) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull String value) {
     return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, value);
   }
 
@@ -1003,7 +1021,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the get score operation.
    */
   public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
-      String cacheName, String sortedSetName, byte[] value) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull byte[] value) {
     return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, value);
   }
 
@@ -1016,7 +1034,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the get scores operation.
    */
   public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
-      String cacheName, String sortedSetName, Iterable<String> values) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull Iterable<String> values) {
     return scsDataClient.sortedSetGetScores(cacheName, sortedSetName, values);
   }
 
@@ -1029,7 +1047,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the get scores operation.
    */
   public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
-      String cacheName, String sortedSetName, Iterable<byte[]> values) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull Iterable<byte[]> values) {
     return scsDataClient.sortedSetGetScoresByteArray(cacheName, sortedSetName, values);
   }
 
@@ -1045,9 +1063,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
-      String cacheName,
-      String sortedSetName,
-      String value,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull String value,
       double amount,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, value, amount, ttl);
@@ -1063,7 +1081,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
-      String cacheName, String sortedSetName, String value, double amount) {
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull String value,
+      double amount) {
     return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, value, amount, null);
   }
 
@@ -1079,9 +1100,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
-      String cacheName,
-      String sortedSetName,
-      byte[] value,
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull byte[] value,
       double amount,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, value, amount, ttl);
@@ -1097,7 +1118,10 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
-      String cacheName, String sortedSetName, byte[] value, double amount) {
+      @Nonnull String cacheName,
+      @Nonnull String sortedSetName,
+      @Nonnull byte[] value,
+      double amount) {
     return scsDataClient.sortedSetIncrementScore(cacheName, sortedSetName, value, amount, null);
   }
 
@@ -1110,7 +1134,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
-      String cacheName, String sortedSetName, String value) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull String value) {
     return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, value);
   }
 
@@ -1123,7 +1147,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
-      String cacheName, String sortedSetName, byte[] value) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull byte[] value) {
     return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, value);
   }
 
@@ -1136,7 +1160,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElements(
-      String cacheName, String sortedSetName, Iterable<String> values) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull Iterable<String> values) {
     return scsDataClient.sortedSetRemoveElements(cacheName, sortedSetName, values);
   }
 
@@ -1149,7 +1173,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove operation.
    */
   public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
-      String cacheName, String sortedSetName, Iterable<byte[]> values) {
+      @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull Iterable<byte[]> values) {
     return scsDataClient.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, values);
   }
 
