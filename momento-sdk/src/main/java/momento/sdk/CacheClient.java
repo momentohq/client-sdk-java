@@ -4,7 +4,6 @@ import java.io.Closeable;
 import java.time.Duration;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -574,7 +573,7 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
       @Nonnull String cacheName,
       @Nonnull String setName,
-      @Nonnull Set<String> elements,
+      @Nonnull Iterable<String> elements,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElements(cacheName, setName, elements, ttl);
   }
@@ -591,7 +590,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
-      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Set<String> elements) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Iterable<String> elements) {
     return scsDataClient.setAddElements(cacheName, setName, elements, null);
   }
 
@@ -611,7 +610,7 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
       @Nonnull String cacheName,
       @Nonnull String setName,
-      @Nonnull Set<byte[]> elements,
+      @Nonnull Iterable<byte[]> elements,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.setAddElementsByteArray(cacheName, setName, elements, ttl);
   }
@@ -628,7 +627,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the add elements operation.
    */
   public CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
-      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Set<byte[]> elements) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Iterable<byte[]> elements) {
     return scsDataClient.setAddElementsByteArray(cacheName, setName, elements, null);
   }
 
@@ -667,7 +666,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove elements operation.
    */
   public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElements(
-      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Set<String> elements) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Iterable<String> elements) {
     return scsDataClient.setRemoveElements(cacheName, setName, elements);
   }
 
@@ -680,7 +679,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the remove elements operation.
    */
   public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsByteArray(
-      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Set<byte[]> elements) {
+      @Nonnull String cacheName, @Nonnull String setName, @Nonnull Iterable<byte[]> elements) {
     return scsDataClient.setRemoveElementsByteArray(cacheName, setName, elements);
   }
 

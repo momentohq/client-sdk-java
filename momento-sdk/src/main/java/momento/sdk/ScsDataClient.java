@@ -88,7 +88,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -303,7 +302,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSetAddElementsResponse> setAddElements(
-      String cacheName, String setName, Set<String> elements, CollectionTtl ttl) {
+      String cacheName, String setName, Iterable<String> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(setName);
@@ -311,7 +310,7 @@ final class ScsDataClient extends ScsClient {
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
-      return sendSetAddElements(cacheName, convert(setName), convertStringSet(elements), ttl);
+      return sendSetAddElements(cacheName, convert(setName), convertStringIterable(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -319,7 +318,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
-      String cacheName, String setName, Set<byte[]> elements, CollectionTtl ttl) {
+      String cacheName, String setName, Iterable<byte[]> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(setName);
@@ -327,7 +326,8 @@ final class ScsDataClient extends ScsClient {
       if (ttl == null) {
         ttl = CollectionTtl.of(itemDefaultTtl);
       }
-      return sendSetAddElements(cacheName, convert(setName), convertByteArraySet(elements), ttl);
+      return sendSetAddElements(
+          cacheName, convert(setName), convertByteArrayIterable(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -361,12 +361,12 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElements(
-      String cacheName, String setName, Set<String> elements) {
+      String cacheName, String setName, Iterable<String> elements) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(setName);
       ensureValidValue(elements);
-      return sendSetRemoveElements(cacheName, convert(setName), convertStringSet(elements));
+      return sendSetRemoveElements(cacheName, convert(setName), convertStringIterable(elements));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -374,12 +374,12 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsByteArray(
-      String cacheName, String setName, Set<byte[]> elements) {
+      String cacheName, String setName, Iterable<byte[]> elements) {
     try {
       checkCacheNameValid(cacheName);
       checkSetNameValid(setName);
       ensureValidValue(elements);
-      return sendSetRemoveElements(cacheName, convert(setName), convertByteArraySet(elements));
+      return sendSetRemoveElements(cacheName, convert(setName), convertByteArrayIterable(elements));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1216,14 +1216,6 @@ final class ScsDataClient extends ScsClient {
     return ByteString.copyFrom(bytes);
   }
 
-  private Set<ByteString> convertStringSet(Set<String> strings) {
-    return strings.stream().map(this::convert).collect(Collectors.toSet());
-  }
-
-  private Set<ByteString> convertByteArraySet(Set<byte[]> byteArrays) {
-    return byteArrays.stream().map(this::convert).collect(Collectors.toSet());
-  }
-
   private List<ByteString> convertStringIterable(Iterable<String> strings) {
     return StreamSupport.stream(strings.spliterator(), false)
         .map(this::convert)
@@ -1517,7 +1509,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSetAddElementsResponse> sendSetAddElements(
-      String cacheName, ByteString setName, Set<ByteString> elements, CollectionTtl ttl) {
+      String cacheName, ByteString setName, Iterable<ByteString> elements, CollectionTtl ttl) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -1603,7 +1595,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheSetRemoveElementsResponse> sendSetRemoveElements(
-      String cacheName, ByteString setName, Set<ByteString> elements) {
+      String cacheName, ByteString setName, Iterable<ByteString> elements) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -3004,7 +2996,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _SetUnionRequest buildSetUnionRequest(
-      ByteString setName, Set<ByteString> elements, CollectionTtl ttl) {
+      ByteString setName, Iterable<ByteString> elements, CollectionTtl ttl) {
     return _SetUnionRequest.newBuilder()
         .setSetName(setName)
         .addAllElements(elements)
@@ -3014,7 +3006,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _SetDifferenceRequest buildSetDifferenceRequest(
-      ByteString setName, Set<ByteString> elements) {
+      ByteString setName, Iterable<ByteString> elements) {
     return _SetDifferenceRequest.newBuilder()
         .setSetName(setName)
         .setSubtrahend(
