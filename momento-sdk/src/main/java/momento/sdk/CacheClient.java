@@ -69,7 +69,7 @@ public final class CacheClient implements Closeable {
    *
    * @param credentialProvider Provider for the credentials required to connect to Momento.
    * @param configuration Configuration object containing all tunable client settings.
-   * @param itemDefaultTtl The default ttl for values written to a cache.
+   * @param itemDefaultTtl The default TTL for values written to a cache.
    */
   public CacheClient(
       @Nonnull CredentialProvider credentialProvider,
@@ -84,7 +84,7 @@ public final class CacheClient implements Closeable {
    *
    * @param credentialProvider Provider for the credentials required to connect to Momento.
    * @param configuration Configuration object containing all tunable client settings.
-   * @param itemDefaultTtl The default ttl for values written to a cache.
+   * @param itemDefaultTtl The default TTL for values written to a cache.
    * @return The builder.
    */
   public static CacheClientBuilder builder(
@@ -173,8 +173,8 @@ public final class CacheClient implements Closeable {
   /**
    * Get the cache value stored for the given key.
    *
-   * @param cacheName Name of the cache to get the item from
-   * @param key The key to get
+   * @param cacheName Name of the cache to get the item from.
+   * @param key The key to get.
    * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
    *     associated value data.
    */
@@ -185,8 +185,8 @@ public final class CacheClient implements Closeable {
   /**
    * Get the cache value stored for the given key.
    *
-   * @param cacheName Name of the cache to get the item from
-   * @param key The key to get
+   * @param cacheName Name of the cache to get the item from.
+   * @param key The key to get.
    * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
    *     associated value data.
    */
@@ -197,9 +197,9 @@ public final class CacheClient implements Closeable {
   /**
    * Delete the value stored in Momento cache.
    *
-   * @param cacheName Name of the cache to delete the item from
+   * @param cacheName Name of the cache to delete the item from.
    * @param key The key to delete
-   * @return Future with {@link CacheDeleteResponse}
+   * @return Future with {@link CacheDeleteResponse}.
    */
   public CompletableFuture<CacheDeleteResponse> delete(String cacheName, String key) {
     return scsDataClient.delete(cacheName, key);
@@ -208,9 +208,9 @@ public final class CacheClient implements Closeable {
   /**
    * Delete the value stored in Momento cache.
    *
-   * @param cacheName Name of the cache to delete the item from
-   * @param key The key to delete
-   * @return Future with {@link CacheDeleteResponse}
+   * @param cacheName Name of the cache to delete the item from.
+   * @param key The key to delete.
+   * @return Future with {@link CacheDeleteResponse}.
    */
   public CompletableFuture<CacheDeleteResponse> delete(String cacheName, byte[] key) {
     return scsDataClient.delete(cacheName, key);
@@ -221,12 +221,12 @@ public final class CacheClient implements Closeable {
    *
    * <p>If a value for this key is already present it will be replaced by the new value.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
+   *     Duration)}.
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(
@@ -241,7 +241,7 @@ public final class CacheClient implements Closeable {
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
    * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
    * @return Future containing the result of the set operation.
@@ -255,12 +255,12 @@ public final class CacheClient implements Closeable {
    *
    * <p>If a value for this key is already present it will be replaced by the new value.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
+   *     Duration)}.
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetResponse> set(
@@ -275,7 +275,7 @@ public final class CacheClient implements Closeable {
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
    * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key The key under which the value is to be added.
    * @param value The value to be stored.
    * @return Future containing the result of the set operation.
@@ -288,12 +288,12 @@ public final class CacheClient implements Closeable {
    * Associates a key with a value. If a value for this key is already present it is not replaced by
    * the new value.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key {String} The key under which the value is to be added.
    * @param value {String} The value to be stored.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
+   *     Duration)}.
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
@@ -308,7 +308,7 @@ public final class CacheClient implements Closeable {
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
    * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key {String} The key under which the value is to be added.
    * @param value {String} The value to be stored.
    * @return Future containing the result of the set operation.
@@ -322,12 +322,12 @@ public final class CacheClient implements Closeable {
    * Associates a key with a value. If a value for this key is already present it is not replaced by
    * the new value.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key {String} The key under which the value is to be added.
    * @param value {Byte Array} The value to be stored.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
+   *     Duration)}.
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
@@ -342,7 +342,7 @@ public final class CacheClient implements Closeable {
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
    * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key {String} The key under which the value is to be added.
    * @param value {Byte Array} The value to be stored.
    * @return Future containing the result of the set operation.
@@ -356,12 +356,12 @@ public final class CacheClient implements Closeable {
    * Associates a key with a value. If a value for this key is already present it is not replaced by
    * the new value.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key {Byte Array} The key under which the value is to be added.
    * @param value {String} The value to be stored.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
+   *     Duration)}.
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
@@ -376,7 +376,7 @@ public final class CacheClient implements Closeable {
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
    * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key {Byte Array} The key under which the value is to be added.
    * @param value {String} The value to be stored.
    * @return Future containing the result of the set operation.
@@ -390,12 +390,12 @@ public final class CacheClient implements Closeable {
    * Associates a key with a value. If a value for this key is already present it is not replaced by
    * the new value.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key {Byte Array} The key under which the value is to be added.
    * @param value {Byte Array} The value to be stored.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
+   *     Duration)}.
    * @return Future containing the result of the set operation.
    */
   public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
@@ -410,7 +410,7 @@ public final class CacheClient implements Closeable {
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
    * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param key {Byte Array} The key under which the value is to be added.
    * @param value {Byte Array} The value to be stored.
    * @return Future containing the result of the set operation.
@@ -423,12 +423,12 @@ public final class CacheClient implements Closeable {
   /**
    * Increments the value in the cache by an amount.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param field The field under which the value is to be added.
    * @param amount The amount by which the cache value is to be incremented.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
+   *     Duration)}.
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheIncrementResponse> increment(
@@ -442,7 +442,7 @@ public final class CacheClient implements Closeable {
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
    * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param field The field under which the value is to be added.
    * @param amount The amount by which the cache value is to be incremented.
    * @return Future containing the result of the increment operation.
@@ -455,12 +455,12 @@ public final class CacheClient implements Closeable {
   /**
    * Increments the value in the cache by an amount.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param field The field under which the value is to be added.
    * @param amount The amount by which the cache value is to be incremented.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
+   *     Duration)}.
    * @return Future containing the result of the increment operation.
    */
   public CompletableFuture<CacheIncrementResponse> increment(
@@ -474,7 +474,7 @@ public final class CacheClient implements Closeable {
    * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
    * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param field The field under which the value is to be added.
    * @param amount The amount by which the cache value is to be incremented.
    * @return Future containing the result of the increment operation.
@@ -490,7 +490,7 @@ public final class CacheClient implements Closeable {
    * <p>After this operation the set will contain the union of the element passed in and the
    * original elements of the set.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param setName The set to add the element to.
    * @param element The data to add to the set.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
@@ -511,7 +511,7 @@ public final class CacheClient implements Closeable {
    * <p>After this operation the set will contain the union of the element passed in and the
    * original elements of the set.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param setName The set to add the element to.
    * @param element The data to add to the set.
    * @return Future containing the result of the add element operation.
@@ -527,7 +527,7 @@ public final class CacheClient implements Closeable {
    * <p>After this operation the set will contain the union of the element passed in and the
    * original elements of the set.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param setName The set to add the element to.
    * @param element The data to add to the set.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
@@ -548,7 +548,7 @@ public final class CacheClient implements Closeable {
    * <p>After this operation the set will contain the union of the element passed in and the
    * original elements of the set.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param setName The set to add the element to.
    * @param element The data to add to the set.
    * @return Future containing the result of the add element operation.
@@ -564,7 +564,7 @@ public final class CacheClient implements Closeable {
    * <p>After this operation the set will contain the union of the elements passed in and the
    * original elements of the set.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param setName The set to add the elements to.
    * @param elements The data to add to the set.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
@@ -585,7 +585,7 @@ public final class CacheClient implements Closeable {
    * <p>After this operation the set will contain the union of the elements passed in and the
    * original elements of the set.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param setName The set to add the elements to.
    * @param elements The data to add to the set.
    * @return Future containing the result of the add elements operation.
@@ -601,7 +601,7 @@ public final class CacheClient implements Closeable {
    * <p>After this operation the set will contain the union of the elements passed in and the
    * original elements of the set.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param setName The set to add the elements to.
    * @param elements The data to add to the set.
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
@@ -622,7 +622,7 @@ public final class CacheClient implements Closeable {
    * <p>After this operation the set will contain the union of the elements passed in and the
    * original elements of the set.
    *
-   * @param cacheName Name of the cache to store the item in
+   * @param cacheName Name of the cache to store the item in.
    * @param setName The set to add the elements to.
    * @param elements The data to add to the set.
    * @return Future containing the result of the add elements operation.
@@ -1790,7 +1790,7 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
    * @return Future containing the result of the dictionary set field operation.
@@ -1821,7 +1821,7 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName - The dictionary to set the field in.
    * @param field - The field to set.
    * @param value - The value to set.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
    * @return Future containing the result of the dictionary set field operation.
@@ -1851,7 +1851,7 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the list.
    * @param dictionaryName - The dictionary to set the field in.
    * @param elements - The fields to set.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
    * @return Future containing the result of the dictionary set fields operation.
@@ -1883,7 +1883,7 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the dictionary.
    * @param dictionaryName - The dictionary to set the field in.
    * @param elements - The fields to set.
-   * @param ttl Time to Live for the item in Cache. This ttl takes precedence over the TTL used when
+   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
    *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
    *     Duration)}
    * @return Future containing the result of the dictionary set fields operation.
