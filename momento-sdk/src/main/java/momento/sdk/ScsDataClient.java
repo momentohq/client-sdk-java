@@ -1028,7 +1028,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionaryFetchResponse> dictionaryFetch(
-      String cacheName, String dictionaryName) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1041,7 +1041,11 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
-      String cacheName, String dictionaryName, String field, String value, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull String field,
+      @Nonnull String value,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1061,7 +1065,11 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
-      String cacheName, String dictionaryName, String field, byte[] value, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull String field,
+      @Nonnull byte[] value,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1081,7 +1089,10 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
-      String cacheName, String dictionaryName, Map<String, String> elements, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull Map<String, String> elements,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1100,7 +1111,10 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
-      String cacheName, String dictionaryName, Map<String, byte[]> elements, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull Map<String, byte[]> elements,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1119,7 +1133,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionaryGetFieldResponse> dictionaryGetField(
-      String cacheName, String dictionaryName, String field) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull String field) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1134,7 +1148,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionaryGetFieldsResponse> dictionaryGetFields(
-      String cacheName, String dictionaryName, List<String> fields) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull Iterable<String> fields) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1143,7 +1157,8 @@ final class ScsDataClient extends ScsClient {
         ensureValidKey(field);
       }
 
-      return sendDictionaryGetFields(cacheName, convert(dictionaryName), convertStringList(fields));
+      return sendDictionaryGetFields(
+          cacheName, convert(dictionaryName), convertStringIterable(fields));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDictionaryGetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1151,7 +1166,11 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
-      String cacheName, String dictionaryName, String field, long amount, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull String field,
+      long amount,
+      @Nullable CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1171,7 +1190,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionaryRemoveFieldResponse> dictionaryRemoveField(
-      String cacheName, String dictionaryName, String field) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull String field) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1185,7 +1204,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFields(
-      String cacheName, String dictionaryName, List<String> fields) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull Iterable<String> fields) {
     try {
       checkCacheNameValid(cacheName);
       checkDictionaryNameValid(dictionaryName);
@@ -1195,7 +1214,7 @@ final class ScsDataClient extends ScsClient {
       }
 
       return sendDictionaryRemoveFields(
-          cacheName, convert(dictionaryName), convertStringList(fields));
+          cacheName, convert(dictionaryName), convertStringIterable(fields));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new CacheDictionaryRemoveFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -1226,10 +1245,6 @@ final class ScsDataClient extends ScsClient {
     return StreamSupport.stream(byteArrays.spliterator(), false)
         .map(this::convert)
         .collect(Collectors.toList());
-  }
-
-  private List<ByteString> convertStringList(List<String> strings) {
-    return strings.stream().map(this::convert).collect(Collectors.toList());
   }
 
   private Map<ByteString, ByteString> convertStringStringEntryList(Map<String, String> elements) {
@@ -2549,7 +2564,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheDictionaryFetchResponse> sendDictionaryFetch(
-      String cacheName, ByteString dictionaryName) {
+      @Nonnull String cacheName, @Nonnull ByteString dictionaryName) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -2603,11 +2618,11 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheDictionarySetFieldResponse> sendDictionarySetField(
-      String cacheName,
-      ByteString dictionaryName,
-      ByteString field,
-      ByteString value,
-      CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull ByteString dictionaryName,
+      @Nonnull ByteString field,
+      @Nonnull ByteString value,
+      @Nonnull CollectionTtl ttl) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -2651,10 +2666,10 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheDictionarySetFieldsResponse> sendDictionarySetFields(
-      String cacheName,
-      ByteString dictionaryName,
-      Map<ByteString, ByteString> elements,
-      CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull ByteString dictionaryName,
+      @Nonnull Map<ByteString, ByteString> elements,
+      @Nonnull CollectionTtl ttl) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -2698,7 +2713,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheDictionaryGetFieldResponse> sendDictionaryGetField(
-      String cacheName, ByteString dictionaryName, ByteString field) {
+      @Nonnull String cacheName, @Nonnull ByteString dictionaryName, @Nonnull ByteString field) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -2760,7 +2775,9 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheDictionaryGetFieldsResponse> sendDictionaryGetFields(
-      String cacheName, ByteString dictionaryName, List<ByteString> fields) {
+      @Nonnull String cacheName,
+      @Nonnull ByteString dictionaryName,
+      @Nonnull List<ByteString> fields) {
 
     final Metadata metadata = metadataWithCache(cacheName);
     final ListenableFuture<_DictionaryGetResponse> rspFuture =
@@ -2825,11 +2842,11 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheDictionaryIncrementResponse> sendDictionaryIncrement(
-      String cacheName,
-      ByteString dictionaryName,
-      ByteString field,
+      @Nonnull String cacheName,
+      @Nonnull ByteString dictionaryName,
+      @Nonnull ByteString field,
       long amount,
-      CollectionTtl ttl) {
+      @Nonnull CollectionTtl ttl) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -2875,7 +2892,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheDictionaryRemoveFieldResponse> sendDictionaryRemoveField(
-      String cacheName, ByteString dictionaryName, ByteString field) {
+      @Nonnull String cacheName, @Nonnull ByteString dictionaryName, @Nonnull ByteString field) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -2919,7 +2936,9 @@ final class ScsDataClient extends ScsClient {
   }
 
   private CompletableFuture<CacheDictionaryRemoveFieldsResponse> sendDictionaryRemoveFields(
-      String cacheName, ByteString dictionaryName, List<ByteString> fields) {
+      @Nonnull String cacheName,
+      @Nonnull ByteString dictionaryName,
+      @Nonnull List<ByteString> fields) {
 
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -3299,12 +3318,15 @@ final class ScsDataClient extends ScsClient {
     return builder.build();
   }
 
-  private _DictionaryFetchRequest buildDictionaryFetchRequest(ByteString dictionaryName) {
+  private _DictionaryFetchRequest buildDictionaryFetchRequest(@Nonnull ByteString dictionaryName) {
     return _DictionaryFetchRequest.newBuilder().setDictionaryName(dictionaryName).build();
   }
 
   private _DictionarySetRequest buildDictionarySetFieldRequest(
-      ByteString dictionaryName, ByteString field, ByteString value, CollectionTtl ttl) {
+      @Nonnull ByteString dictionaryName,
+      @Nonnull ByteString field,
+      @Nonnull ByteString value,
+      @Nonnull CollectionTtl ttl) {
     return _DictionarySetRequest.newBuilder()
         .setDictionaryName(dictionaryName)
         .addItems(toSingletonFieldValuePair(field, value))
@@ -3313,12 +3335,15 @@ final class ScsDataClient extends ScsClient {
         .build();
   }
 
-  private _DictionaryFieldValuePair toSingletonFieldValuePair(ByteString field, ByteString value) {
+  private _DictionaryFieldValuePair toSingletonFieldValuePair(
+      @Nonnull ByteString field, @Nonnull ByteString value) {
     return _DictionaryFieldValuePair.newBuilder().setField(field).setValue(value).build();
   }
 
   private _DictionarySetRequest buildDictionarySetFieldsRequest(
-      ByteString dictionaryName, Map<ByteString, ByteString> elements, CollectionTtl ttl) {
+      @Nonnull ByteString dictionaryName,
+      @Nonnull Map<ByteString, ByteString> elements,
+      @Nonnull CollectionTtl ttl) {
     return _DictionarySetRequest.newBuilder()
         .setDictionaryName(dictionaryName)
         .addAllItems(toDictionaryFieldValuePairs(elements))
@@ -3328,7 +3353,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private List<_DictionaryFieldValuePair> toDictionaryFieldValuePairs(
-      Map<ByteString, ByteString> fieldValuePairs) {
+      @Nonnull Map<ByteString, ByteString> fieldValuePairs) {
     return fieldValuePairs.entrySet().stream()
         .map(
             fieldValuePair ->
@@ -3340,7 +3365,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _DictionaryGetRequest buildDictionaryGetFieldRequest(
-      ByteString dictionaryName, ByteString field) {
+      @Nonnull ByteString dictionaryName, @Nonnull ByteString field) {
     return _DictionaryGetRequest.newBuilder()
         .setDictionaryName(dictionaryName)
         .addFields(field)
@@ -3348,7 +3373,7 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _DictionaryGetRequest buildDictionaryGetFieldsRequest(
-      ByteString dictionaryName, List<ByteString> fields) {
+      @Nonnull ByteString dictionaryName, @Nonnull List<ByteString> fields) {
     return _DictionaryGetRequest.newBuilder()
         .setDictionaryName(dictionaryName)
         .addAllFields(fields)
@@ -3356,7 +3381,10 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _DictionaryIncrementRequest buildDictionaryIncrementRequest(
-      ByteString dictionaryName, ByteString field, long amount, CollectionTtl ttl) {
+      @Nonnull ByteString dictionaryName,
+      @Nonnull ByteString field,
+      long amount,
+      @Nonnull CollectionTtl ttl) {
     return _DictionaryIncrementRequest.newBuilder()
         .setDictionaryName(dictionaryName)
         .setField(field)
@@ -3367,26 +3395,26 @@ final class ScsDataClient extends ScsClient {
   }
 
   private _DictionaryDeleteRequest buildDictionaryRemoveFieldRequest(
-      ByteString dictionaryName, ByteString field) {
+      @Nonnull ByteString dictionaryName, @Nonnull ByteString field) {
     return _DictionaryDeleteRequest.newBuilder()
         .setDictionaryName(dictionaryName)
         .setSome(addSomeFieldsToRemove(field))
         .build();
   }
 
-  private _DictionaryDeleteRequest.Some addSomeFieldsToRemove(ByteString field) {
+  private _DictionaryDeleteRequest.Some addSomeFieldsToRemove(@Nonnull ByteString field) {
     return _DictionaryDeleteRequest.Some.newBuilder().addFields(field).build();
   }
 
   private _DictionaryDeleteRequest buildDictionaryRemoveFieldsRequest(
-      ByteString dictionaryName, List<ByteString> fields) {
+      @Nonnull ByteString dictionaryName, @Nonnull List<ByteString> fields) {
     return _DictionaryDeleteRequest.newBuilder()
         .setDictionaryName(dictionaryName)
         .setSome(addSomeFieldsToRemove(fields))
         .build();
   }
 
-  private _DictionaryDeleteRequest.Some addSomeFieldsToRemove(List<ByteString> fields) {
+  private _DictionaryDeleteRequest.Some addSomeFieldsToRemove(@Nonnull List<ByteString> fields) {
     return _DictionaryDeleteRequest.Some.newBuilder().addAllFields(fields).build();
   }
 

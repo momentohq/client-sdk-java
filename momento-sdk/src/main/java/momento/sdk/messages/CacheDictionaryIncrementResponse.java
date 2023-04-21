@@ -11,25 +11,24 @@ public interface CacheDictionaryIncrementResponse {
     /**
      * Constructs a dictionary increment success with the incremented value.
      *
-     * @param value the incremented value.
+     * @param value The incremented value.
      */
     public Success(int value) {
-      super();
       this.value = value;
     }
 
     /**
      * Gets the newly incremented value.
      *
-     * @return the value.
+     * @return The value.
      */
-    public int valueNumber() {
+    public int value() {
       return this.value;
     }
 
     @Override
     public String toString() {
-      return String.format("%s: value %d", super.toString(), this.valueNumber());
+      return String.format("%s: value %d", super.toString(), this.value());
     }
   }
 
@@ -43,7 +42,7 @@ public interface CacheDictionaryIncrementResponse {
     /**
      * Constructs a dictionary increment error with a cause.
      *
-     * @param cause the cause.
+     * @param cause The cause.
      */
     public Error(SdkException cause) {
       super(cause);

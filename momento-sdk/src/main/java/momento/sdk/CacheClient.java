@@ -2,7 +2,6 @@ package momento.sdk;
 
 import java.io.Closeable;
 import java.time.Duration;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
@@ -1771,222 +1770,275 @@ public final class CacheClient implements Closeable {
   }
 
   /**
-   * Fetches all elements of the given dictionary.
+   * Fetches all elements of a dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to fetch.
-   * @return Future containing the result of the dictionary fetch operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to fetch.
+   * @return Future containing the result of the dictionary fetch operation: {@link
+   *     CacheDictionaryFetchResponse.Hit} containing the dictionary, {@link
+   *     CacheDictionaryFetchResponse.Miss} if no dictionary was found, or {@link
+   *     CacheDictionaryFetchResponse.Error}.
    */
   public CompletableFuture<CacheDictionaryFetchResponse> dictionaryFetch(
-      String cacheName, String dictionaryName) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName) {
     return scsDataClient.dictionaryFetch(cacheName, dictionaryName);
   }
 
   /**
-   * Sets a field in the given dictionary.
+   * Sets a field to the given value in a dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to set the field in.
-   * @param field - The field to set.
-   * @param value - The value to set.
-   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
-   *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
-   * @return Future containing the result of the dictionary set field operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to set the field in.
+   * @param field The field to set.
+   * @param value The value to set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to the client's TTL if not provided.
+   * @return Future containing the result of the dictionary set field operation: {@link
+   *     CacheDictionarySetFieldResponse.Success} or {@link CacheDictionarySetFieldResponse.Error}.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
-      String cacheName, String dictionaryName, String field, String value, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull String field,
+      @Nonnull String value,
+      @Nullable CollectionTtl ttl) {
     return scsDataClient.dictionarySetField(cacheName, dictionaryName, field, value, ttl);
   }
 
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to set the field in.
-   * @param field - The field to set.
-   * @param value - The value to set.
-   * @return Future containing the result of the dictionary set field operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to set the field in.
+   * @param field The field to set.
+   * @param value The value to set.
+   * @return Future containing the result of the dictionary set field operation: {@link
+   *     CacheDictionarySetFieldResponse.Success} or {@link CacheDictionarySetFieldResponse.Error}.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
-      String cacheName, String dictionaryName, String field, String value) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull String field,
+      @Nonnull String value) {
     return scsDataClient.dictionarySetField(cacheName, dictionaryName, field, value, null);
   }
 
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to set the field in.
-   * @param field - The field to set.
-   * @param value - The value to set.
-   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
-   *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
-   * @return Future containing the result of the dictionary set field operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to set the field in.
+   * @param field The field to set.
+   * @param value The value to set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to the client's TTL if not provided.
+   * @return Future containing the result of the dictionary set field operation: {@link
+   *     CacheDictionarySetFieldResponse.Success} or {@link CacheDictionarySetFieldResponse.Error}.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
-      String cacheName, String dictionaryName, String field, byte[] value, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull String field,
+      @Nonnull byte[] value,
+      @Nullable CollectionTtl ttl) {
     return scsDataClient.dictionarySetField(cacheName, dictionaryName, field, value, ttl);
   }
 
   /**
    * Sets a field in the given dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to set the field in.
-   * @param field - The field to set.
-   * @param value - The value to set.
-   * @return Future containing the result of the dictionary set field operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to set the field in.
+   * @param field The field to set.
+   * @param value The value to set.
+   * @return Future containing the result of the dictionary set field operation: {@link
+   *     CacheDictionarySetFieldResponse.Success} or {@link CacheDictionarySetFieldResponse.Error}.
    */
   public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
-      String cacheName, String dictionaryName, String field, byte[] value) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull String field,
+      @Nonnull byte[] value) {
     return scsDataClient.dictionarySetField(cacheName, dictionaryName, field, value, null);
   }
 
   /**
-   * Sets all the fields in the given dictionary.
+   * Sets all the given fields in a dictionary.
    *
-   * @param cacheName - The cache containing the list.
-   * @param dictionaryName - The dictionary to set the field in.
-   * @param elements - The fields to set.
-   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
-   *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
-   * @return Future containing the result of the dictionary set fields operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to set the field in.
+   * @param elements The fields to set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to the client's TTL if not provided.
+   * @return Future containing the result of the dictionary set field operation: {@link
+   *     CacheDictionarySetFieldsResponse.Success} or {@link
+   *     CacheDictionarySetFieldsResponse.Error}.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
-      String cacheName, String dictionaryName, Map<String, String> elements, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull Map<String, String> elements,
+      @Nullable CollectionTtl ttl) {
     return scsDataClient.dictionarySetFields(cacheName, dictionaryName, elements, ttl);
   }
 
   /**
-   * Sets all the fields in the given dictionary.
+   * Sets all the given fields in a dictionary. Refreshes the dictionary with the client's default
+   * TTL.
    *
-   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
-   *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to set the field in.
-   * @param elements - The fields to set.
-   * @return Future containing the result of the dictionary set fields operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to set the fields in.
+   * @param elements The fields to set.
+   * @return Future containing the result of the dictionary set field operation: {@link
+   *     CacheDictionarySetFieldsResponse.Success} or {@link
+   *     CacheDictionarySetFieldsResponse.Error}.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
-      String cacheName, String dictionaryName, Map<String, String> elements) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull Map<String, String> elements) {
     return scsDataClient.dictionarySetFields(cacheName, dictionaryName, elements, null);
   }
 
   /**
-   * Sets all the fields in the given dictionary.
+   * Sets all the given fields in a dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to set the field in.
-   * @param elements - The fields to set.
-   * @param ttl Time to Live for the item in Cache. This TTL takes precedence over the TTL used when
-   *     building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
-   *     Duration)}
-   * @return Future containing the result of the dictionary set fields operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to set the fields in.
+   * @param elements The fields to set.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to the client's TTL if not provided.
+   * @return Future containing the result of the dictionary set field operation: {@link
+   *     CacheDictionarySetFieldsResponse.Success} or {@link
+   *     CacheDictionarySetFieldsResponse.Error}.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
-      String cacheName, String dictionaryName, Map<String, byte[]> elements, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull Map<String, byte[]> elements,
+      @Nullable CollectionTtl ttl) {
     return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, elements, ttl);
   }
 
   /**
-   * Sets all the fields in the given dictionary.
+   * Sets all the given fields in a dictionary. Refreshes the dictionary with the client's default
+   * TTL.
    *
-   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
-   * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
-   *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to set the field in.
-   * @param elements - The fields to set.
-   * @return Future containing the result of the dictionary set fields operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to set the fields in.
+   * @param elements The fields to set.
+   * @return Future containing the result of the dictionary set field operation: {@link
+   *     CacheDictionarySetFieldsResponse.Success} or {@link
+   *     CacheDictionarySetFieldsResponse.Error}.
    */
   public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
-      String cacheName, String dictionaryName, Map<String, byte[]> elements) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull Map<String, byte[]> elements) {
     return scsDataClient.dictionarySetFieldsStringBytes(cacheName, dictionaryName, elements, null);
   }
 
   /**
-   * Gets the field and value from the given dictionary.
+   * Gets the value for the given field from a dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to get the field from.
-   * @param field - The field to get.
-   * @return Future containing the result of the dictionary get field operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to get the value from.
+   * @param field The field to look up.
+   * @return Future containing the result of the dictionary get field operation: {@link
+   *     CacheDictionaryGetFieldResponse.Hit} containing the field and value, {@link
+   *     CacheDictionaryGetFieldResponse.Miss} if the field was not found in the dictionary, or
+   *     {@link CacheDictionaryGetFieldResponse.Error}.
    */
   public CompletableFuture<CacheDictionaryGetFieldResponse> dictionaryGetField(
-      String cacheName, String dictionaryName, String field) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull String field) {
     return scsDataClient.dictionaryGetField(cacheName, dictionaryName, field);
   }
 
   /**
-   * Gets the fields and values from the given dictionary.
+   * Gets the values for the given fields from a dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to get the fields and values from.
-   * @param fields - The fields to get.
-   * @return Future containing the result of the dictionary get fields operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to get the values from.
+   * @param fields The fields to look up.
+   * @return Future containing the result of the dictionary get fields operation: {@link
+   *     CacheDictionaryGetFieldsResponse.Hit} containing the fields, values, and a per-field {@link
+   *     CacheDictionaryGetFieldResponse}, {@link CacheDictionaryGetFieldsResponse.Miss} if none of
+   *     the fields were found in the dictionary, or {@link CacheDictionaryGetFieldsResponse.Error}.
    */
   public CompletableFuture<CacheDictionaryGetFieldsResponse> dictionaryGetFields(
-      String cacheName, String dictionaryName, List<String> fields) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull Iterable<String> fields) {
     return scsDataClient.dictionaryGetFields(cacheName, dictionaryName, fields);
   }
 
   /**
-   * Increments the field's value in the given dictionary.
+   * Increments the given field's value in a dictionary.
    *
    * @param cacheName The cache containing the dictionary.
    * @param dictionaryName The dictionary to increment the value in.
    * @param field The field for which the value is to be incremented.
    * @param amount The amount to increment.
-   * @param ttl The time to live for the item in Cache. If null, the client's default TTL will be
-   *     used.
-   * @return Future containing the result of the dictionary increment operation.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to the client's TTL if not provided.
+   * @return Future containing the result of the dictionary increment operation: {@link
+   *     CacheDictionaryIncrementResponse.Success} or {@link
+   *     CacheDictionaryIncrementResponse.Error}.
    */
   public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
-      String cacheName, String dictionaryName, String field, long amount, CollectionTtl ttl) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull String field,
+      long amount,
+      @Nullable CollectionTtl ttl) {
     return scsDataClient.dictionaryIncrement(cacheName, dictionaryName, field, amount, ttl);
   }
 
   /**
-   * Increments the field's value in the given dictionary.
+   * Increments the given field's value in a dictionary. Refreshes the dictionary with the client's
+   * default TTL.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to increment the value in.
-   * @param field - The field for which the value is to be incremented.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to increment the value in.
+   * @param field The field for which the value is to be incremented.
    * @param amount The amount to increment.
-   * @return Future containing the result of the dictionary increment operation.
+   * @return Future containing the result of the dictionary increment operation: {@link
+   *     CacheDictionaryIncrementResponse.Success} or {@link
+   *     CacheDictionaryIncrementResponse.Error}.
    */
   public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
-      String cacheName, String dictionaryName, String field, long amount) {
+      @Nonnull String cacheName,
+      @Nonnull String dictionaryName,
+      @Nonnull String field,
+      long amount) {
     return scsDataClient.dictionaryIncrement(cacheName, dictionaryName, field, amount, null);
   }
 
   /**
-   * Remove the field from the given dictionary.
+   * Removes the given field from a dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to remove the field from.
-   * @param field - The field to remove.
-   * @return Future containing the result of the dictionary remove field operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to remove the field from.
+   * @param field The field to remove.
+   * @return Future containing the result of the dictionary remove field operation: {@link
+   *     CacheDictionaryRemoveFieldResponse.Success} or {@link
+   *     CacheDictionaryRemoveFieldResponse.Error}.
    */
   public CompletableFuture<CacheDictionaryRemoveFieldResponse> dictionaryRemoveField(
-      String cacheName, String dictionaryName, String field) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull String field) {
     return scsDataClient.dictionaryRemoveField(cacheName, dictionaryName, field);
   }
 
   /**
-   * Removes the fields from the given dictionary.
+   * Removes the given fields from a dictionary.
    *
-   * @param cacheName - The cache containing the dictionary.
-   * @param dictionaryName - The dictionary to remove the fields from.
-   * @param fields - The fields to remove.
-   * @return Future containing the result of the dictionary remove fields operation.
+   * @param cacheName The cache containing the dictionary.
+   * @param dictionaryName The dictionary to remove the fields from.
+   * @param fields The fields to remove.
+   * @return Future containing the result of the dictionary remove field operation: {@link
+   *     CacheDictionaryRemoveFieldsResponse.Success} or {@link
+   *     CacheDictionaryRemoveFieldsResponse.Error}.
    */
   public CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFields(
-      String cacheName, String dictionaryName, List<String> fields) {
+      @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull Iterable<String> fields) {
     return scsDataClient.dictionaryRemoveFields(cacheName, dictionaryName, fields);
   }
 
