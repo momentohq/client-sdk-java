@@ -32,15 +32,15 @@ import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
-import momento.sdk.messages.CacheInfo;
-import momento.sdk.messages.CreateCacheResponse;
-import momento.sdk.messages.CreateSigningKeyResponse;
-import momento.sdk.messages.DeleteCacheResponse;
-import momento.sdk.messages.FlushCacheResponse;
-import momento.sdk.messages.ListCachesResponse;
-import momento.sdk.messages.ListSigningKeysResponse;
-import momento.sdk.messages.RevokeSigningKeyResponse;
-import momento.sdk.messages.SigningKey;
+import momento.sdk.responses.CacheInfo;
+import momento.sdk.responses.CreateCacheResponse;
+import momento.sdk.responses.CreateSigningKeyResponse;
+import momento.sdk.responses.DeleteCacheResponse;
+import momento.sdk.responses.FlushCacheResponse;
+import momento.sdk.responses.ListCachesResponse;
+import momento.sdk.responses.ListSigningKeysResponse;
+import momento.sdk.responses.RevokeSigningKeyResponse;
+import momento.sdk.responses.SigningKey;
 
 /** Client for interacting with Scs Control Plane. */
 final class ScsControlClient extends ScsClient {

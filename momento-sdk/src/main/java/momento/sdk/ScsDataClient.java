@@ -100,8 +100,8 @@ import momento.sdk.config.Configuration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.UnknownException;
-import momento.sdk.messages.*;
 import momento.sdk.requests.CollectionTtl;
+import momento.sdk.responses.*;
 
 /** Client for interacting with Scs Data plane. */
 final class ScsDataClient extends ScsClient {
