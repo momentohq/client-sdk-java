@@ -12,12 +12,12 @@ import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.responses.CreateCacheResponse;
-import momento.sdk.responses.CreateSigningKeyResponse;
-import momento.sdk.responses.DeleteCacheResponse;
-import momento.sdk.responses.ListCachesResponse;
-import momento.sdk.responses.ListSigningKeysResponse;
-import momento.sdk.responses.RevokeSigningKeyResponse;
+import momento.sdk.responses.cache.control.CacheCreateResponse;
+import momento.sdk.responses.cache.control.CacheDeleteResponse;
+import momento.sdk.responses.cache.control.CacheListResponse;
+import momento.sdk.responses.cache.signing.SigningKeyCreateResponse;
+import momento.sdk.responses.cache.signing.SigningKeyListResponse;
+import momento.sdk.responses.cache.signing.SigningKeyRevokeResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,25 +43,25 @@ final class CacheControlPlaneTest extends BaseTestClass {
 
   @Test
   public void createListRevokeSigningKeyWorks() {
-    final CreateSigningKeyResponse createSigningKeyResponse =
+    final SigningKeyCreateResponse signingKeyCreateResponse =
         target.createSigningKey(Duration.ofMinutes(30)).join();
-    assertThat(createSigningKeyResponse).isInstanceOf(CreateSigningKeyResponse.Success.class);
-    final String keyId = ((CreateSigningKeyResponse.Success) createSigningKeyResponse).getKeyId();
+    assertThat(signingKeyCreateResponse).isInstanceOf(SigningKeyCreateResponse.Success.class);
+    final String keyId = ((SigningKeyCreateResponse.Success) signingKeyCreateResponse).getKeyId();
 
     assertThat(target.listSigningKeys())
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(ListSigningKeysResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SigningKeyListResponse.Success.class))
         .satisfies(
             success ->
                 assertThat(success.signingKeys()).anyMatch(sk -> sk.getKeyId().equals(keyId)));
 
     assertThat(target.revokeSigningKey(keyId))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(RevokeSigningKeyResponse.Success.class);
+        .isInstanceOf(SigningKeyRevokeResponse.Success.class);
 
     assertThat(target.listSigningKeys())
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(ListSigningKeysResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SigningKeyListResponse.Success.class))
         .satisfies(
             success ->
                 assertThat(success.signingKeys()).noneMatch(sk -> sk.getKeyId().equals(keyId)));
@@ -73,7 +73,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
 
     assertThat(target.createCache(existingCache))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CreateCacheResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(AlreadyExistsException.class));
   }
 
@@ -81,7 +81,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
   public void returnsNotFoundWhenDeletingUnknownCache() {
     assertThat(target.deleteCache(randomString("name")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(DeleteCacheResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDeleteResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -91,12 +91,12 @@ final class CacheControlPlaneTest extends BaseTestClass {
 
     assertThat(target.createCache(cacheName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CreateCacheResponse.Success.class);
+        .isInstanceOf(CacheCreateResponse.Success.class);
 
     try {
       assertThat(target.listCaches())
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(ListCachesResponse.Success.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(CacheListResponse.Success.class))
           .satisfies(
               success ->
                   assertThat(success.getCaches()).anyMatch(ci -> ci.name().equals(cacheName)));
@@ -104,7 +104,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
       // cleanup
       assertThat(target.deleteCache(cacheName))
           .succeedsWithin(FIVE_SECONDS)
-          .isInstanceOf(DeleteCacheResponse.Success.class);
+          .isInstanceOf(CacheDeleteResponse.Success.class);
     }
   }
 
@@ -112,7 +112,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
   public void returnsBadRequestForEmptyCacheName() {
     assertThat(target.createCache("      "))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CreateCacheResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(BadRequestException.class));
   }
 
@@ -120,12 +120,12 @@ final class CacheControlPlaneTest extends BaseTestClass {
   public void throwsValidationExceptionForNullCacheName() {
     assertThat(target.createCache(null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CreateCacheResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(target.deleteCache(null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(DeleteCacheResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDeleteResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -135,20 +135,20 @@ final class CacheControlPlaneTest extends BaseTestClass {
 
     assertThat(target.createCache(cacheName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CreateCacheResponse.Success.class);
+        .isInstanceOf(CacheCreateResponse.Success.class);
 
     assertThat(target.createCache(cacheName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CreateCacheResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(AlreadyExistsException.class));
 
     assertThat(target.deleteCache(cacheName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(DeleteCacheResponse.Success.class);
+        .isInstanceOf(CacheDeleteResponse.Success.class);
 
     assertThat(target.deleteCache(cacheName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(DeleteCacheResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheDeleteResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -167,17 +167,17 @@ final class CacheControlPlaneTest extends BaseTestClass {
             .build()) {
       assertThat(client.createCache(cacheName))
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(CreateCacheResponse.Error.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
           .satisfies(error -> assertThat(error).hasCauseInstanceOf(AuthenticationException.class));
 
       assertThat(client.deleteCache(cacheName))
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(DeleteCacheResponse.Error.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(CacheDeleteResponse.Error.class))
           .satisfies(error -> assertThat(error).hasCauseInstanceOf(AuthenticationException.class));
 
       assertThat(client.listCaches())
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(ListCachesResponse.Error.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(CacheListResponse.Error.class))
           .satisfies(error -> assertThat(error).hasCauseInstanceOf(AuthenticationException.class));
     }
   }

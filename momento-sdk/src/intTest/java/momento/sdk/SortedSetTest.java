@@ -17,17 +17,17 @@ import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.requests.CollectionTtl;
-import momento.sdk.responses.CacheSortedSetFetchResponse;
-import momento.sdk.responses.CacheSortedSetGetRankResponse;
-import momento.sdk.responses.CacheSortedSetGetScoreResponse;
-import momento.sdk.responses.CacheSortedSetGetScoresResponse;
-import momento.sdk.responses.CacheSortedSetIncrementScoreResponse;
-import momento.sdk.responses.CacheSortedSetPutElementResponse;
-import momento.sdk.responses.CacheSortedSetPutElementsResponse;
-import momento.sdk.responses.CacheSortedSetRemoveElementResponse;
-import momento.sdk.responses.CacheSortedSetRemoveElementsResponse;
-import momento.sdk.responses.ScoredElement;
 import momento.sdk.responses.SortOrder;
+import momento.sdk.responses.cache.sortedset.ScoredElement;
+import momento.sdk.responses.cache.sortedset.SortedSetFetchResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetGetRankResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetGetScoreResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetGetScoresResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetIncrementScoreResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetPutElementResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetPutElementsResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -65,17 +65,17 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetFetchResponse.Miss.class);
+        .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
     assertThat(
             client.sortedSetPutElement(
                 cacheName, sortedSetName, value, score, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -91,17 +91,17 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetFetchResponse.Miss.class);
+        .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
     assertThat(
             client.sortedSetPutElement(
                 cacheName, sortedSetName, value, score, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -131,12 +131,12 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetPutElements(
                 cacheName, sortedSetName, elements, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     // Full set ascending
     assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -152,12 +152,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetPutElementReturnsErrorWithNullCacheName() {
     assertThat(client.sortedSetPutElement(null, sortedSetName, "element", 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetPutElement(null, sortedSetName, "element".getBytes(), 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -165,14 +165,14 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetPutElementReturnsErrorWithNonexistentCacheName() {
     assertThat(client.sortedSetPutElement(randomString("cache"), sortedSetName, "element", 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
 
     assertThat(
             client.sortedSetPutElement(
                 randomString("cache"), sortedSetName, "element".getBytes(), 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -180,12 +180,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetPutElementReturnsErrorWithNullSetName() {
     assertThat(client.sortedSetPutElement(cacheName, null, "element", 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetPutElement(cacheName, null, "element".getBytes(), 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -200,17 +200,17 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetFetchResponse.Miss.class);
+        .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
     assertThat(
             client.sortedSetPutElements(
                 cacheName, sortedSetName, elements, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -232,17 +232,17 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetFetchResponse.Miss.class);
+        .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
     assertThat(
             client.sortedSetPutElementsByteArray(
                 cacheName, sortedSetName, elements, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -261,14 +261,14 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetPutElements(
                 null, sortedSetName, Collections.singletonMap("element", 1.0)))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
             client.sortedSetPutElementsByteArray(
                 null, sortedSetName, Collections.singletonMap("element".getBytes(), 1.0)))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -278,7 +278,7 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetPutElements(
                 randomString("cache"), sortedSetName, Collections.singletonMap("element", 1.0)))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
 
     assertThat(
@@ -287,7 +287,7 @@ public class SortedSetTest extends BaseTestClass {
                 sortedSetName,
                 Collections.singletonMap("element".getBytes(), 1.0)))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -296,14 +296,14 @@ public class SortedSetTest extends BaseTestClass {
     assertThat(
             client.sortedSetPutElements(cacheName, null, Collections.singletonMap("element", 1.0)))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
             client.sortedSetPutElementsByteArray(
                 cacheName, null, Collections.singletonMap("element".getBytes(), 1.0)))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetPutElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -326,16 +326,16 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetFetchResponse.Miss.class);
+        .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
     assertThat(client.sortedSetPutElements(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     // Full set ascending, end index larger than set
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 0, 6, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -349,7 +349,7 @@ public class SortedSetTest extends BaseTestClass {
     // Partial set descending
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 1, 4, SortOrder.DESCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -378,16 +378,16 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetFetchResponse.Miss.class);
+        .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
     assertThat(client.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     // Full set ascending, end index larger than set
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 0, 6, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -401,7 +401,7 @@ public class SortedSetTest extends BaseTestClass {
     // Partial set descending
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 1, 4, SortOrder.DESCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -417,7 +417,7 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetFetchByRankReturnsErrorWithInvalidIndexRange() {
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName, 1000, -5, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -425,7 +425,7 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetFetchByRankReturnsErrorWithNullCacheName() {
     assertThat(client.sortedSetFetchByRank(null, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -433,7 +433,7 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetFetchByRankReturnsErrorWithNonexistentCacheName() {
     assertThat(client.sortedSetFetchByRank(randomString("cache"), sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -441,7 +441,7 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetFetchByRankReturnsErrorWithNullSetName() {
     assertThat(client.sortedSetFetchByRank(cacheName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -464,17 +464,17 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetFetchResponse.Miss.class);
+        .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
     assertThat(client.sortedSetPutElements(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     // Full set ascending, end index larger than set
     assertThat(
             client.sortedSetFetchByScore(cacheName, sortedSetName, 0.0, 9.9, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -493,7 +493,7 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetFetchByScore(
                 cacheName, sortedSetName, 0.2, 1.9, SortOrder.DESCENDING, 0, 99))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -507,7 +507,7 @@ public class SortedSetTest extends BaseTestClass {
     // Partial set limited by offset and count
     assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName, null, null, null, 1, 3))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -521,7 +521,7 @@ public class SortedSetTest extends BaseTestClass {
     // Full set ascending
     assertThat(client.sortedSetFetchByScore(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final List<ScoredElement> scoredElements = hit.elementsList();
@@ -539,7 +539,7 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetFetchByScore(
                 null, sortedSetName, 10.0, 0.5, SortOrder.ASCENDING, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -547,7 +547,7 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetFetchByScoreReturnsErrorWithNullCacheName() {
     assertThat(client.sortedSetFetchByScore(null, sortedSetName, null, null, null, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -557,7 +557,7 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetFetchByScore(
                 randomString("cache"), sortedSetName, null, null, null, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -565,7 +565,7 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetFetchByScoreReturnsErrorWithNullSetName() {
     assertThat(client.sortedSetFetchByScore(cacheName, null, null, null, null, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -578,31 +578,31 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetGetRank(cacheName, sortedSetName, one, null))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetGetRankResponse.Miss.class);
+        .isInstanceOf(SortedSetGetRankResponse.Miss.class);
 
     assertThat(client.sortedSetPutElement(cacheName, sortedSetName, one, 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     assertThat(client.sortedSetGetRank(cacheName, sortedSetName, one, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.rank()).isEqualTo(0));
 
     // Add another element that changes the rank of the first one
     assertThat(client.sortedSetPutElement(cacheName, sortedSetName, two, 0.5))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     assertThat(client.sortedSetGetRank(cacheName, sortedSetName, one, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.rank()).isEqualTo(1));
 
     // Check the descending rank
     assertThat(client.sortedSetGetRank(cacheName, sortedSetName, one, SortOrder.DESCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.rank()).isEqualTo(0));
   }
 
@@ -610,13 +610,13 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetGetRankReturnsErrorWithNullCacheName() {
     assertThat(client.sortedSetGetRank(null, sortedSetName, "element", SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
             client.sortedSetGetRank(null, sortedSetName, "element".getBytes(), SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -626,14 +626,14 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetGetRank(
                 randomString("cache"), sortedSetName, "element", SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
 
     assertThat(
             client.sortedSetGetRank(
                 randomString("cache"), sortedSetName, "element".getBytes(), SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -641,12 +641,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetGetRankReturnsErrorWithNullSetName() {
     assertThat(client.sortedSetGetRank(cacheName, null, "element", SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetGetRank(cacheName, null, "element".getBytes(), SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -655,13 +655,13 @@ public class SortedSetTest extends BaseTestClass {
     assertThat(
             client.sortedSetGetRank(cacheName, sortedSetName, (String) null, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
             client.sortedSetGetRank(cacheName, sortedSetName, (byte[]) null, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetRankResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -674,25 +674,25 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetGetScore(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetGetScoreResponse.Miss.class);
+        .isInstanceOf(SortedSetGetScoreResponse.Miss.class);
 
     assertThat(client.sortedSetPutElement(cacheName, sortedSetName, one, 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     assertThat(client.sortedSetGetScore(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.score()).isEqualTo(1.0));
 
     // Add another element that changes the rank of the first one
     assertThat(client.sortedSetPutElement(cacheName, sortedSetName, two, 0.5))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     assertThat(client.sortedSetGetScore(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.score()).isEqualTo(1.0));
   }
 
@@ -703,25 +703,25 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetGetScore(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetGetScoreResponse.Miss.class);
+        .isInstanceOf(SortedSetGetScoreResponse.Miss.class);
 
     assertThat(client.sortedSetPutElement(cacheName, sortedSetName, one, 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     assertThat(client.sortedSetGetScore(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.score()).isEqualTo(1.0));
 
     // Add another element that changes the rank of the first one
     assertThat(client.sortedSetPutElement(cacheName, sortedSetName, two, 0.5))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     assertThat(client.sortedSetGetScore(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.score()).isEqualTo(1.0));
   }
 
@@ -729,12 +729,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetGetScoreReturnsErrorWithNullCacheName() {
     assertThat(client.sortedSetGetScore(null, sortedSetName, "element"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetGetScore(null, sortedSetName, "element".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -742,12 +742,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetGetScoreReturnsErrorWithNonexistentCacheName() {
     assertThat(client.sortedSetGetScore(randomString("cache"), sortedSetName, "element"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
 
     assertThat(client.sortedSetGetScore(randomString("cache"), sortedSetName, "element".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -755,12 +755,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetGetScoreReturnsErrorWithNullSetName() {
     assertThat(client.sortedSetGetScore(cacheName, null, "element"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetGetScore(cacheName, null, "element".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -768,12 +768,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetGetScoreReturnsErrorWithNullElement() {
     assertThat(client.sortedSetGetScore(cacheName, sortedSetName, (String) null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetGetScore(cacheName, sortedSetName, (byte[]) null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -789,16 +789,16 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetGetScores(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetGetScoresResponse.Miss.class);
+        .isInstanceOf(SortedSetGetScoresResponse.Miss.class);
 
     assertThat(client.sortedSetPutElement(cacheName, sortedSetName, one, 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     // One element in the set, one not in the set
     assertThat(client.sortedSetGetScores(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Hit.class))
         .satisfies(
             hit -> {
               assertThat(hit.scoredElements())
@@ -811,11 +811,11 @@ public class SortedSetTest extends BaseTestClass {
     // Add the other element
     assertThat(client.sortedSetPutElement(cacheName, sortedSetName, two, 0.5))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
     assertThat(client.sortedSetGetScores(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Hit.class))
         .satisfies(
             hit -> {
               assertThat(hit.scoredElements())
@@ -830,14 +830,14 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetGetScoresReturnsErrorWithNullCacheName() {
     assertThat(client.sortedSetGetScores(null, sortedSetName, Collections.singleton("element")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
             client.sortedSetGetScoresByteArray(
                 null, sortedSetName, Collections.singleton("element".getBytes())))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -847,14 +847,14 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetGetScores(
                 randomString("cache"), sortedSetName, Collections.singleton("element")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
 
     assertThat(
             client.sortedSetGetScoresByteArray(
                 randomString("cache"), sortedSetName, Collections.singleton("element".getBytes())))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -862,14 +862,14 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetGetScoresReturnsErrorWithNullSetName() {
     assertThat(client.sortedSetGetScores(cacheName, null, Collections.singleton("element")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
             client.sortedSetGetScoresByteArray(
                 cacheName, null, Collections.singleton("element".getBytes())))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -877,12 +877,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetGetScoresReturnsErrorWithNullElements() {
     assertThat(client.sortedSetGetScores(cacheName, sortedSetName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetGetScoresByteArray(cacheName, sortedSetName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetGetScoresResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -894,13 +894,12 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Success.class))
         .satisfies(success -> assertThat(success.score()).isEqualTo(1.0));
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.elementsList())
@@ -910,13 +909,12 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, 14.5))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Success.class))
         .satisfies(success -> assertThat(success.score()).isEqualTo(15.5));
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.elementsList())
@@ -926,8 +924,7 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, -115.5))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Success.class))
         .satisfies(success -> assertThat(success.score()).isEqualTo(-100));
   }
 
@@ -937,13 +934,12 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Success.class))
         .satisfies(success -> assertThat(success.score()).isEqualTo(1.0));
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.elementsList())
@@ -953,13 +949,12 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, 14.5))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Success.class))
         .satisfies(success -> assertThat(success.score()).isEqualTo(15.5));
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.elementsList())
@@ -969,8 +964,7 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetIncrementScore(cacheName, sortedSetName, one, -115.5))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Success.class))
         .satisfies(success -> assertThat(success.score()).isEqualTo(-100));
   }
 
@@ -978,14 +972,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetIncrementScoreReturnsErrorWithNullCacheName() {
     assertThat(client.sortedSetIncrementScore(null, sortedSetName, "element", 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetIncrementScore(null, sortedSetName, "element".getBytes(), 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -993,16 +985,14 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetIncrementScoreReturnsErrorWithNonexistentCacheName() {
     assertThat(client.sortedSetIncrementScore(randomString("cache"), sortedSetName, "element", 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
 
     assertThat(
             client.sortedSetIncrementScore(
                 randomString("cache"), sortedSetName, "element".getBytes(), 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -1010,14 +1000,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetIncrementScoreReturnsErrorWithNullSetName() {
     assertThat(client.sortedSetIncrementScore(cacheName, null, "element", 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetIncrementScore(cacheName, null, "element".getBytes(), 1.0))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -1027,16 +1015,14 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetIncrementScore(
                 cacheName, sortedSetName, (String) null, 1.0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(
             client.sortedSetIncrementScore(
                 cacheName, sortedSetName, (byte[]) null, 1.0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetIncrementScoreResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -1051,19 +1037,19 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetRemoveElementResponse.Success.class);
+        .isInstanceOf(SortedSetRemoveElementResponse.Success.class);
 
     assertThat(client.sortedSetPutElements(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetRemoveElementResponse.Success.class);
+        .isInstanceOf(SortedSetRemoveElementResponse.Success.class);
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.elementsList())
@@ -1081,19 +1067,19 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetRemoveElementResponse.Success.class);
+        .isInstanceOf(SortedSetRemoveElementResponse.Success.class);
 
     assertThat(client.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetRemoveElementResponse.Success.class);
+        .isInstanceOf(SortedSetRemoveElementResponse.Success.class);
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.elementsList())
@@ -1106,14 +1092,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetRemoveElementReturnsErrorWithNullCacheName() {
     assertThat(client.sortedSetRemoveElement(null, sortedSetName, "element"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetRemoveElement(null, sortedSetName, "element".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -1121,16 +1105,14 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetRemoveElementReturnsErrorWithNonexistentCacheName() {
     assertThat(client.sortedSetRemoveElement(randomString("cache"), sortedSetName, "element"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
 
     assertThat(
             client.sortedSetRemoveElement(
                 randomString("cache"), sortedSetName, "element".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -1138,14 +1120,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetRemoveElementReturnsErrorWithNullSetName() {
     assertThat(client.sortedSetRemoveElement(cacheName, null, "element"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetRemoveElement(cacheName, null, "element".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -1153,14 +1133,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetRemoveElementReturnsErrorWithNullElement() {
     assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, (String) null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetRemoveElement(cacheName, sortedSetName, (byte[]) null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -1175,19 +1153,19 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetRemoveElements(cacheName, sortedSetName, elements.keySet()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetRemoveElementsResponse.Success.class);
+        .isInstanceOf(SortedSetRemoveElementsResponse.Success.class);
 
     assertThat(client.sortedSetPutElements(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     assertThat(client.sortedSetRemoveElements(cacheName, sortedSetName, Sets.newHashSet(one, two)))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetRemoveElementsResponse.Success.class);
+        .isInstanceOf(SortedSetRemoveElementsResponse.Success.class);
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.elementsList())
@@ -1205,21 +1183,21 @@ public class SortedSetTest extends BaseTestClass {
 
     assertThat(client.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, elements.keySet()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetRemoveElementsResponse.Success.class);
+        .isInstanceOf(SortedSetRemoveElementsResponse.Success.class);
 
     assertThat(client.sortedSetPutElementsByteArray(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetPutElementsResponse.Success.class);
+        .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     assertThat(
             client.sortedSetRemoveElementsByteArray(
                 cacheName, sortedSetName, Sets.newHashSet(one, two)))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheSortedSetRemoveElementsResponse.Success.class);
+        .isInstanceOf(SortedSetRemoveElementsResponse.Success.class);
 
     assertThat(client.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheSortedSetFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.elementsList())
@@ -1232,14 +1210,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetRemoveElementsReturnsErrorWithNullCacheName() {
     assertThat(client.sortedSetRemoveElements(null, sortedSetName, Collections.emptySet()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetRemoveElementsByteArray(null, sortedSetName, Collections.emptySet()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -1249,16 +1225,14 @@ public class SortedSetTest extends BaseTestClass {
             client.sortedSetRemoveElements(
                 randomString("cache"), sortedSetName, Collections.emptySet()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
 
     assertThat(
             client.sortedSetRemoveElementsByteArray(
                 randomString("cache"), sortedSetName, Collections.emptySet()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -1266,14 +1240,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetRemoveElementsReturnsErrorWithNullSetName() {
     assertThat(client.sortedSetRemoveElements(cacheName, null, Collections.emptySet()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetRemoveElementsByteArray(cacheName, null, Collections.emptySet()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -1281,14 +1253,12 @@ public class SortedSetTest extends BaseTestClass {
   public void sortedSetRemoveElementsReturnsErrorWithNullElements() {
     assertThat(client.sortedSetRemoveElements(cacheName, sortedSetName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheSortedSetRemoveElementsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 }

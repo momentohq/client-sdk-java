@@ -102,6 +102,44 @@ import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.UnknownException;
 import momento.sdk.requests.CollectionTtl;
 import momento.sdk.responses.*;
+import momento.sdk.responses.cache.DeleteResponse;
+import momento.sdk.responses.cache.GetResponse;
+import momento.sdk.responses.cache.IncrementResponse;
+import momento.sdk.responses.cache.SetIfNotExistsResponse;
+import momento.sdk.responses.cache.SetResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryFetchResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryGetFieldResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryGetFieldsResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryIncrementResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryRemoveFieldResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryRemoveFieldsResponse;
+import momento.sdk.responses.cache.dictionary.DictionarySetFieldResponse;
+import momento.sdk.responses.cache.dictionary.DictionarySetFieldsResponse;
+import momento.sdk.responses.cache.list.ListConcatenateBackResponse;
+import momento.sdk.responses.cache.list.ListConcatenateFrontResponse;
+import momento.sdk.responses.cache.list.ListFetchResponse;
+import momento.sdk.responses.cache.list.ListLengthResponse;
+import momento.sdk.responses.cache.list.ListPopBackResponse;
+import momento.sdk.responses.cache.list.ListPopFrontResponse;
+import momento.sdk.responses.cache.list.ListPushBackResponse;
+import momento.sdk.responses.cache.list.ListPushFrontResponse;
+import momento.sdk.responses.cache.list.ListRemoveValueResponse;
+import momento.sdk.responses.cache.list.ListRetainResponse;
+import momento.sdk.responses.cache.set.SetAddElementResponse;
+import momento.sdk.responses.cache.set.SetAddElementsResponse;
+import momento.sdk.responses.cache.set.SetFetchResponse;
+import momento.sdk.responses.cache.set.SetRemoveElementResponse;
+import momento.sdk.responses.cache.set.SetRemoveElementsResponse;
+import momento.sdk.responses.cache.sortedset.ScoredElement;
+import momento.sdk.responses.cache.sortedset.SortedSetFetchResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetGetRankResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetGetScoreResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetGetScoresResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetIncrementScoreResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetPutElementResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetPutElementsResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
 
 /** Client for interacting with Scs Data plane. */
 final class ScsDataClient extends ScsClient {
@@ -117,47 +155,47 @@ final class ScsDataClient extends ScsClient {
     this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(credentialProvider, configuration);
   }
 
-  CompletableFuture<CacheGetResponse> get(String cacheName, byte[] key) {
+  CompletableFuture<GetResponse> get(String cacheName, byte[] key) {
     try {
       ensureValidKey(key);
       return sendGet(cacheName, convert(key));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new GetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheGetResponse> get(String cacheName, String key) {
+  CompletableFuture<GetResponse> get(String cacheName, String key) {
     try {
       ensureValidKey(key);
       return sendGet(cacheName, convert(key));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new GetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDeleteResponse> delete(String cacheName, byte[] key) {
+  CompletableFuture<DeleteResponse> delete(String cacheName, byte[] key) {
     try {
       ensureValidKey(key);
       return sendDelete(cacheName, convert(key));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDeleteResponse> delete(String cacheName, String key) {
+  CompletableFuture<DeleteResponse> delete(String cacheName, String key) {
     try {
       ensureValidKey(key);
       return sendDelete(cacheName, convert(key));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetResponse> set(
+  CompletableFuture<SetResponse> set(
       String cacheName, byte[] key, byte[] value, @Nullable Duration ttl) {
     try {
       if (ttl == null) {
@@ -167,11 +205,11 @@ final class ScsDataClient extends ScsClient {
       return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetResponse> set(
+  CompletableFuture<SetResponse> set(
       String cacheName, String key, String value, @Nullable Duration ttl) {
     try {
       if (ttl == null) {
@@ -181,11 +219,11 @@ final class ScsDataClient extends ScsClient {
       return sendSet(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheIncrementResponse> increment(
+  CompletableFuture<IncrementResponse> increment(
       String cacheName, String field, long amount, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -195,11 +233,11 @@ final class ScsDataClient extends ScsClient {
       return sendIncrement(cacheName, convert(field), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new IncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheIncrementResponse> increment(
+  CompletableFuture<IncrementResponse> increment(
       String cacheName, byte[] field, long amount, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -209,11 +247,11 @@ final class ScsDataClient extends ScsClient {
       return sendIncrement(cacheName, convert(field), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new IncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, String key, String value, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -223,11 +261,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, String key, byte[] value, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -237,11 +275,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, byte[] key, String value, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -251,11 +289,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, byte[] key, byte[] value, @Nullable Duration ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -265,11 +303,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetIfNotExists(cacheName, convert(key), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetAddElementResponse> setAddElement(
+  CompletableFuture<SetAddElementResponse> setAddElement(
       String cacheName, String setName, String element, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -281,11 +319,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetAddElement(cacheName, convert(setName), convert(element), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetAddElementResponse> setAddElement(
+  CompletableFuture<SetAddElementResponse> setAddElement(
       String cacheName, String setName, byte[] element, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -297,11 +335,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetAddElement(cacheName, convert(setName), convert(element), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetAddElementsResponse> setAddElements(
+  CompletableFuture<SetAddElementsResponse> setAddElements(
       String cacheName, String setName, Iterable<String> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -313,11 +351,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetAddElements(cacheName, convert(setName), convertStringIterable(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
+  CompletableFuture<SetAddElementsResponse> setAddElementsByteArray(
       String cacheName, String setName, Iterable<byte[]> elements, CollectionTtl ttl) {
     try {
       checkCacheNameValid(cacheName);
@@ -330,11 +368,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(setName), convertByteArrayIterable(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
+  CompletableFuture<SetRemoveElementResponse> setRemoveElement(
       String cacheName, String setName, String element) {
     try {
       checkCacheNameValid(cacheName);
@@ -343,11 +381,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetRemoveElement(cacheName, convert(setName), convert(element));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
+  CompletableFuture<SetRemoveElementResponse> setRemoveElement(
       String cacheName, String setName, byte[] element) {
     try {
       checkCacheNameValid(cacheName);
@@ -356,11 +394,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetRemoveElement(cacheName, convert(setName), convert(element));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElements(
+  CompletableFuture<SetRemoveElementsResponse> setRemoveElements(
       String cacheName, String setName, Iterable<String> elements) {
     try {
       checkCacheNameValid(cacheName);
@@ -369,11 +407,11 @@ final class ScsDataClient extends ScsClient {
       return sendSetRemoveElements(cacheName, convert(setName), convertStringIterable(elements));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsByteArray(
+  CompletableFuture<SetRemoveElementsResponse> setRemoveElementsByteArray(
       String cacheName, String setName, Iterable<byte[]> elements) {
     try {
       checkCacheNameValid(cacheName);
@@ -382,22 +420,22 @@ final class ScsDataClient extends ScsClient {
       return sendSetRemoveElements(cacheName, convert(setName), convertByteArrayIterable(elements));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSetFetchResponse> setFetch(String cacheName, String setName) {
+  CompletableFuture<SetFetchResponse> setFetch(String cacheName, String setName) {
     try {
       checkCacheNameValid(cacheName);
       checkListNameValid(setName);
       return sendSetFetch(cacheName, convert(setName));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+  CompletableFuture<SortedSetPutElementResponse> sortedSetPutElement(
       String cacheName,
       String sortedSetName,
       String element,
@@ -416,11 +454,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convert(element), score, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetPutElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetPutElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+  CompletableFuture<SortedSetPutElementResponse> sortedSetPutElement(
       String cacheName,
       String sortedSetName,
       byte[] element,
@@ -439,11 +477,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convert(element), score, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetPutElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetPutElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+  CompletableFuture<SortedSetPutElementsResponse> sortedSetPutElements(
       String cacheName,
       String sortedSetName,
       Map<String, Double> elements,
@@ -461,11 +499,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convertStringScoreMap(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElementsByteArray(
+  CompletableFuture<SortedSetPutElementsResponse> sortedSetPutElementsByteArray(
       String cacheName,
       String sortedSetName,
       Map<byte[], Double> elements,
@@ -483,11 +521,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convertBytesScoreMap(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+  CompletableFuture<SortedSetPutElementsResponse> sortedSetPutElements(
       String cacheName,
       String sortedSetName,
       Iterable<ScoredElement> elements,
@@ -504,11 +542,11 @@ final class ScsDataClient extends ScsClient {
       return sendSortedSetPutElements(cacheName, convert(sortedSetName), elements, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
+  CompletableFuture<SortedSetFetchResponse> sortedSetFetchByRank(
       String cacheName,
       String sortedSetName,
       @Nullable Integer startRank,
@@ -522,11 +560,11 @@ final class ScsDataClient extends ScsClient {
       return sendSortedSetFetchByRank(cacheName, convert(sortedSetName), startRank, endRank, order);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
+  CompletableFuture<SortedSetFetchResponse> sortedSetFetchByScore(
       String cacheName,
       String sortedSetName,
       @Nullable Double minScore,
@@ -545,11 +583,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), minScore, maxScore, order, offset, count);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+  CompletableFuture<SortedSetGetRankResponse> sortedSetGetRank(
       String cacheName, String sortedSetName, String value, @Nullable SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
@@ -559,11 +597,11 @@ final class ScsDataClient extends ScsClient {
       return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(value), order);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+  CompletableFuture<SortedSetGetRankResponse> sortedSetGetRank(
       String cacheName, String sortedSetName, byte[] value, @Nullable SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
@@ -573,11 +611,11 @@ final class ScsDataClient extends ScsClient {
       return sendSortedSetGetRank(cacheName, convert(sortedSetName), convert(value), order);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
+  CompletableFuture<SortedSetGetScoreResponse> sortedSetGetScore(
       String cacheName, String sortedSetName, String value) {
     try {
       checkCacheNameValid(cacheName);
@@ -587,11 +625,11 @@ final class ScsDataClient extends ScsClient {
       return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
+  CompletableFuture<SortedSetGetScoreResponse> sortedSetGetScore(
       String cacheName, String sortedSetName, byte[] value) {
     try {
       checkCacheNameValid(cacheName);
@@ -601,11 +639,11 @@ final class ScsDataClient extends ScsClient {
       return sendSortedSetGetScore(cacheName, convert(sortedSetName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
+  CompletableFuture<SortedSetGetScoresResponse> sortedSetGetScores(
       String cacheName, String sortedSetName, Iterable<String> values) {
     try {
       checkCacheNameValid(cacheName);
@@ -616,11 +654,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convertStringIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
+  CompletableFuture<SortedSetGetScoresResponse> sortedSetGetScoresByteArray(
       String cacheName, String sortedSetName, Iterable<byte[]> values) {
     try {
       checkCacheNameValid(cacheName);
@@ -631,11 +669,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convertByteArrayIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+  CompletableFuture<SortedSetIncrementScoreResponse> sortedSetIncrementScore(
       String cacheName,
       String sortedSetName,
       String value,
@@ -654,11 +692,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convert(value), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+  CompletableFuture<SortedSetIncrementScoreResponse> sortedSetIncrementScore(
       String cacheName,
       String sortedSetName,
       byte[] value,
@@ -677,11 +715,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convert(value), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
+  CompletableFuture<SortedSetRemoveElementResponse> sortedSetRemoveElement(
       String cacheName, String sortedSetName, String value) {
     try {
       checkCacheNameValid(cacheName);
@@ -691,11 +729,11 @@ final class ScsDataClient extends ScsClient {
       return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
+  CompletableFuture<SortedSetRemoveElementResponse> sortedSetRemoveElement(
       String cacheName, String sortedSetName, byte[] value) {
     try {
       checkCacheNameValid(cacheName);
@@ -705,11 +743,11 @@ final class ScsDataClient extends ScsClient {
       return sendSortedSetRemoveElement(cacheName, convert(sortedSetName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElements(
+  CompletableFuture<SortedSetRemoveElementsResponse> sortedSetRemoveElements(
       String cacheName, String sortedSetName, Iterable<String> values) {
     try {
       checkCacheNameValid(cacheName);
@@ -720,11 +758,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convertStringIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
+  CompletableFuture<SortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
       String cacheName, String sortedSetName, Iterable<byte[]> values) {
     try {
       checkCacheNameValid(cacheName);
@@ -735,11 +773,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(sortedSetName), convertByteArrayIterable(values));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheSortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  CompletableFuture<ListConcatenateBackResponse> listConcatenateBack(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<String> values,
@@ -759,11 +797,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(listName), convertStringIterable(values), truncateFrontToSize, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
+  CompletableFuture<ListConcatenateBackResponse> listConcatenateBackByteArray(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<byte[]> values,
@@ -783,11 +821,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(listName), convertByteArrayIterable(values), truncateFrontToSize, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+  CompletableFuture<ListConcatenateFrontResponse> listConcatenateFront(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<String> values,
@@ -807,11 +845,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(listName), convertStringIterable(values), truncateBackToSize, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
+  CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<byte[]> values,
@@ -830,11 +868,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(listName), convertByteArrayIterable(values), truncateBackToSize, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListFetchResponse> listFetch(
+  CompletableFuture<ListFetchResponse> listFetch(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nullable Integer startIndex,
@@ -846,11 +884,11 @@ final class ScsDataClient extends ScsClient {
       return sendListFetch(cacheName, convert(listName), startIndex, endIndex);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListLengthResponse> listLength(
+  CompletableFuture<ListLengthResponse> listLength(
       @Nonnull String cacheName, @Nonnull String listName) {
     try {
       checkCacheNameValid(cacheName);
@@ -858,11 +896,11 @@ final class ScsDataClient extends ScsClient {
       return sendListLength(cacheName, convert(listName));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListLengthResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListLengthResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListPopBackResponse> listPopBack(
+  CompletableFuture<ListPopBackResponse> listPopBack(
       @Nonnull String cacheName, @Nonnull String listName) {
     try {
       checkCacheNameValid(cacheName);
@@ -870,11 +908,11 @@ final class ScsDataClient extends ScsClient {
       return sendListPopBack(cacheName, convert(listName));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListPopBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListPopBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListPopFrontResponse> listPopFront(
+  CompletableFuture<ListPopFrontResponse> listPopFront(
       @Nonnull String cacheName, @Nonnull String listName) {
     try {
       checkCacheNameValid(cacheName);
@@ -882,11 +920,11 @@ final class ScsDataClient extends ScsClient {
       return sendListPopFront(cacheName, convert(listName));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListPopFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListPopFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListPushBackResponse> listPushBack(
+  CompletableFuture<ListPushBackResponse> listPushBack(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull String value,
@@ -906,11 +944,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(listName), convert(value), truncateFrontToSize, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListPushBackResponse> listPushBack(
+  CompletableFuture<ListPushBackResponse> listPushBack(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull byte[] value,
@@ -930,11 +968,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(listName), convert(value), truncateFrontToSize, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListPushFrontResponse> listPushFront(
+  CompletableFuture<ListPushFrontResponse> listPushFront(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull String value,
@@ -954,11 +992,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(listName), convert(value), truncateBackToSize, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListPushFrontResponse> listPushFront(
+  CompletableFuture<ListPushFrontResponse> listPushFront(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull byte[] value,
@@ -978,11 +1016,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(listName), convert(value), truncateBackToSize, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListRemoveValueResponse> listRemoveValue(
+  CompletableFuture<ListRemoveValueResponse> listRemoveValue(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull String value) {
     try {
       checkCacheNameValid(cacheName);
@@ -992,11 +1030,11 @@ final class ScsDataClient extends ScsClient {
       return sendListRemoveValue(cacheName, convert(listName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListRemoveValueResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListRemoveValueResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListRemoveValueResponse> listRemoveValue(
+  CompletableFuture<ListRemoveValueResponse> listRemoveValue(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull byte[] value) {
     try {
       checkCacheNameValid(cacheName);
@@ -1006,11 +1044,11 @@ final class ScsDataClient extends ScsClient {
       return sendListRemoveValue(cacheName, convert(listName), convert(value));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListRemoveValueResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListRemoveValueResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheListRetainResponse> listRetain(
+  CompletableFuture<ListRetainResponse> listRetain(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nullable Integer startIndex,
@@ -1023,11 +1061,11 @@ final class ScsDataClient extends ScsClient {
       return sendListRetain(cacheName, convert(listName), startIndex, endIndex);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheListRetainResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new ListRetainResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDictionaryFetchResponse> dictionaryFetch(
+  CompletableFuture<DictionaryFetchResponse> dictionaryFetch(
       @Nonnull String cacheName, @Nonnull String dictionaryName) {
     try {
       checkCacheNameValid(cacheName);
@@ -1036,11 +1074,11 @@ final class ScsDataClient extends ScsClient {
       return sendDictionaryFetch(cacheName, convert(dictionaryName));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionaryFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DictionaryFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+  CompletableFuture<DictionarySetFieldResponse> dictionarySetField(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull String field,
@@ -1060,11 +1098,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(dictionaryName), convert(field), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+  CompletableFuture<DictionarySetFieldResponse> dictionarySetField(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull String field,
@@ -1084,11 +1122,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(dictionaryName), convert(field), convert(value), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
+  CompletableFuture<DictionarySetFieldsResponse> dictionarySetFields(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull Map<String, String> elements,
@@ -1106,11 +1144,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(dictionaryName), convertStringStringEntryList(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
+  CompletableFuture<DictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull Map<String, byte[]> elements,
@@ -1128,11 +1166,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(dictionaryName), convertStringBytesEntryList(elements), ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDictionaryGetFieldResponse> dictionaryGetField(
+  CompletableFuture<DictionaryGetFieldResponse> dictionaryGetField(
       @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull String field) {
     try {
       checkCacheNameValid(cacheName);
@@ -1142,12 +1180,12 @@ final class ScsDataClient extends ScsClient {
       return sendDictionaryGetField(cacheName, convert(dictionaryName), convert(field));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionaryGetFieldResponse.Error(
+          new DictionaryGetFieldResponse.Error(
               CacheServiceExceptionMapper.convert(e), convert(field)));
     }
   }
 
-  CompletableFuture<CacheDictionaryGetFieldsResponse> dictionaryGetFields(
+  CompletableFuture<DictionaryGetFieldsResponse> dictionaryGetFields(
       @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull Iterable<String> fields) {
     try {
       checkCacheNameValid(cacheName);
@@ -1161,11 +1199,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(dictionaryName), convertStringIterable(fields));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionaryGetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DictionaryGetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
+  CompletableFuture<DictionaryIncrementResponse> dictionaryIncrement(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull String field,
@@ -1185,11 +1223,11 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(dictionaryName), convert(field), amount, ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionaryIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DictionaryIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDictionaryRemoveFieldResponse> dictionaryRemoveField(
+  CompletableFuture<DictionaryRemoveFieldResponse> dictionaryRemoveField(
       @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull String field) {
     try {
       checkCacheNameValid(cacheName);
@@ -1199,11 +1237,11 @@ final class ScsDataClient extends ScsClient {
       return sendDictionaryRemoveField(cacheName, convert(dictionaryName), convert(field));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionaryRemoveFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DictionaryRemoveFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFields(
+  CompletableFuture<DictionaryRemoveFieldsResponse> dictionaryRemoveFields(
       @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull Iterable<String> fields) {
     try {
       checkCacheNameValid(cacheName);
@@ -1217,7 +1255,7 @@ final class ScsDataClient extends ScsClient {
           cacheName, convert(dictionaryName), convertStringIterable(fields));
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CacheDictionaryRemoveFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new DictionaryRemoveFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1271,7 +1309,7 @@ final class ScsDataClient extends ScsClient {
         .collect(Collectors.toList());
   }
 
-  private CompletableFuture<CacheGetResponse> sendGet(String cacheName, ByteString key) {
+  private CompletableFuture<GetResponse> sendGet(String cacheName, ByteString key) {
     checkCacheNameValid(cacheName);
 
     // Submit request to non-blocking stub
@@ -1280,8 +1318,8 @@ final class ScsDataClient extends ScsClient {
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata).get(buildGetRequest(key));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheGetResponse> returnFuture =
-        new CompletableFuture<CacheGetResponse>() {
+    final CompletableFuture<GetResponse> returnFuture =
+        new CompletableFuture<GetResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1299,14 +1337,14 @@ final class ScsDataClient extends ScsClient {
           public void onSuccess(_GetResponse rsp) {
             final ECacheResult result = rsp.getResult();
 
-            final CacheGetResponse response;
+            final GetResponse response;
             if (result == ECacheResult.Hit) {
-              response = new CacheGetResponse.Hit(rsp.getCacheBody());
+              response = new GetResponse.Hit(rsp.getCacheBody());
             } else if (result == ECacheResult.Miss) {
-              response = new CacheGetResponse.Miss();
+              response = new GetResponse.Miss();
             } else {
               response =
-                  new CacheGetResponse.Error(
+                  new GetResponse.Error(
                       new InternalServerException("Unsupported cache Get result: " + result));
             }
             returnFuture.complete(response);
@@ -1315,7 +1353,7 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheGetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new GetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1324,7 +1362,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheDeleteResponse> sendDelete(String cacheName, ByteString key) {
+  private CompletableFuture<DeleteResponse> sendDelete(String cacheName, ByteString key) {
     checkCacheNameValid(cacheName);
     // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
@@ -1332,8 +1370,8 @@ final class ScsDataClient extends ScsClient {
         attachMetadata(scsDataGrpcStubsManager.getStub(), metadata).delete(buildDeleteRequest(key));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheDeleteResponse> returnFuture =
-        new CompletableFuture<CacheDeleteResponse>() {
+    final CompletableFuture<DeleteResponse> returnFuture =
+        new CompletableFuture<DeleteResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1349,13 +1387,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_DeleteResponse>() {
           @Override
           public void onSuccess(_DeleteResponse rsp) {
-            returnFuture.complete(new CacheDeleteResponse.Success());
+            returnFuture.complete(new DeleteResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new DeleteResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1364,7 +1402,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSetResponse> sendSet(
+  private CompletableFuture<SetResponse> sendSet(
       String cacheName, ByteString key, ByteString value, Duration ttl) {
     checkCacheNameValid(cacheName);
 
@@ -1375,8 +1413,8 @@ final class ScsDataClient extends ScsClient {
             .set(buildSetRequest(key, value, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSetResponse> returnFuture =
-        new CompletableFuture<CacheSetResponse>() {
+    final CompletableFuture<SetResponse> returnFuture =
+        new CompletableFuture<SetResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1392,13 +1430,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_SetResponse>() {
           @Override
           public void onSuccess(_SetResponse rsp) {
-            returnFuture.complete(new CacheSetResponse.Success(value));
+            returnFuture.complete(new SetResponse.Success(value));
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new SetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1407,7 +1445,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheIncrementResponse> sendIncrement(
+  private CompletableFuture<IncrementResponse> sendIncrement(
       String cacheName, ByteString field, long amount, Duration ttl) {
 
     // Submit request to non-blocking stub
@@ -1417,8 +1455,8 @@ final class ScsDataClient extends ScsClient {
             .increment(buildIncrementRequest(field, amount, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheIncrementResponse> returnFuture =
-        new CompletableFuture<CacheIncrementResponse>() {
+    final CompletableFuture<IncrementResponse> returnFuture =
+        new CompletableFuture<IncrementResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1434,13 +1472,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_IncrementResponse>() {
           @Override
           public void onSuccess(_IncrementResponse rsp) {
-            returnFuture.complete(new CacheIncrementResponse.Success((int) rsp.getValue()));
+            returnFuture.complete(new IncrementResponse.Success((int) rsp.getValue()));
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheIncrementResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new IncrementResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         MoreExecutors
@@ -1450,7 +1488,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSetIfNotExistsResponse> sendSetIfNotExists(
+  private CompletableFuture<SetIfNotExistsResponse> sendSetIfNotExists(
       String cacheName, ByteString key, ByteString value, Duration ttl) {
 
     final Metadata metadata = metadataWithCache(cacheName);
@@ -1460,27 +1498,26 @@ final class ScsDataClient extends ScsClient {
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
                 .setIfNotExists(buildSetIfNotExistsRequest(key, value, ttl));
 
-    final Function<_SetIfNotExistsResponse, CacheSetIfNotExistsResponse> success =
+    final Function<_SetIfNotExistsResponse, SetIfNotExistsResponse> success =
         rsp -> {
           if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.STORED)) {
-            return new CacheSetIfNotExistsResponse.Stored(key, value);
+            return new SetIfNotExistsResponse.Stored(key, value);
           } else if (rsp.getResultCase().equals(_SetIfNotExistsResponse.ResultCase.NOT_STORED)) {
-            return new CacheSetIfNotExistsResponse.NotStored();
+            return new SetIfNotExistsResponse.NotStored();
           } else {
-            return new CacheSetIfNotExistsResponse.Error(
+            return new SetIfNotExistsResponse.Error(
                 new UnknownException(
                     "Unrecognized set-if-not-exists result: " + rsp.getResultCase()));
           }
         };
 
-    final Function<Throwable, CacheSetIfNotExistsResponse> failure =
-        e ->
-            new CacheSetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+    final Function<Throwable, SetIfNotExistsResponse> failure =
+        e -> new SetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<CacheSetAddElementResponse> sendSetAddElement(
+  private CompletableFuture<SetAddElementResponse> sendSetAddElement(
       String cacheName, ByteString setName, ByteString element, CollectionTtl ttl) {
 
     // Submit request to non-blocking stub
@@ -1490,8 +1527,8 @@ final class ScsDataClient extends ScsClient {
             .setUnion(buildSetUnionRequest(setName, Collections.singleton(element), ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSetAddElementResponse> returnFuture =
-        new CompletableFuture<CacheSetAddElementResponse>() {
+    final CompletableFuture<SetAddElementResponse> returnFuture =
+        new CompletableFuture<SetAddElementResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1507,14 +1544,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_SetUnionResponse>() {
           @Override
           public void onSuccess(_SetUnionResponse rsp) {
-            returnFuture.complete(new CacheSetAddElementResponse.Success());
+            returnFuture.complete(new SetAddElementResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSetAddElementResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new SetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1523,7 +1559,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSetAddElementsResponse> sendSetAddElements(
+  private CompletableFuture<SetAddElementsResponse> sendSetAddElements(
       String cacheName, ByteString setName, Iterable<ByteString> elements, CollectionTtl ttl) {
 
     // Submit request to non-blocking stub
@@ -1533,8 +1569,8 @@ final class ScsDataClient extends ScsClient {
             .setUnion(buildSetUnionRequest(setName, elements, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSetAddElementsResponse> returnFuture =
-        new CompletableFuture<CacheSetAddElementsResponse>() {
+    final CompletableFuture<SetAddElementsResponse> returnFuture =
+        new CompletableFuture<SetAddElementsResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1550,14 +1586,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_SetUnionResponse>() {
           @Override
           public void onSuccess(_SetUnionResponse rsp) {
-            returnFuture.complete(new CacheSetAddElementsResponse.Success());
+            returnFuture.complete(new SetAddElementsResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSetAddElementsResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new SetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1566,7 +1601,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSetRemoveElementResponse> sendSetRemoveElement(
+  private CompletableFuture<SetRemoveElementResponse> sendSetRemoveElement(
       String cacheName, ByteString setName, ByteString element) {
 
     // Submit request to non-blocking stub
@@ -1576,8 +1611,8 @@ final class ScsDataClient extends ScsClient {
             .setDifference(buildSetDifferenceRequest(setName, Collections.singleton(element)));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSetRemoveElementResponse> returnFuture =
-        new CompletableFuture<CacheSetRemoveElementResponse>() {
+    final CompletableFuture<SetRemoveElementResponse> returnFuture =
+        new CompletableFuture<SetRemoveElementResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1593,13 +1628,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_SetDifferenceResponse>() {
           @Override
           public void onSuccess(_SetDifferenceResponse rsp) {
-            returnFuture.complete(new CacheSetRemoveElementResponse.Success());
+            returnFuture.complete(new SetRemoveElementResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSetRemoveElementResponse.Error(
+                new SetRemoveElementResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -1609,7 +1644,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSetRemoveElementsResponse> sendSetRemoveElements(
+  private CompletableFuture<SetRemoveElementsResponse> sendSetRemoveElements(
       String cacheName, ByteString setName, Iterable<ByteString> elements) {
 
     // Submit request to non-blocking stub
@@ -1619,8 +1654,8 @@ final class ScsDataClient extends ScsClient {
             .setDifference(buildSetDifferenceRequest(setName, elements));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSetRemoveElementsResponse> returnFuture =
-        new CompletableFuture<CacheSetRemoveElementsResponse>() {
+    final CompletableFuture<SetRemoveElementsResponse> returnFuture =
+        new CompletableFuture<SetRemoveElementsResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1636,13 +1671,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_SetDifferenceResponse>() {
           @Override
           public void onSuccess(_SetDifferenceResponse rsp) {
-            returnFuture.complete(new CacheSetRemoveElementsResponse.Success());
+            returnFuture.complete(new SetRemoveElementsResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSetRemoveElementsResponse.Error(
+                new SetRemoveElementsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -1652,8 +1687,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSetFetchResponse> sendSetFetch(
-      String cacheName, ByteString setName) {
+  private CompletableFuture<SetFetchResponse> sendSetFetch(String cacheName, ByteString setName) {
     checkCacheNameValid(cacheName);
 
     // Submit request to non-blocking stub
@@ -1663,8 +1697,8 @@ final class ScsDataClient extends ScsClient {
             .setFetch(buildSetFetchRequest(setName));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSetFetchResponse> returnFuture =
-        new CompletableFuture<CacheSetFetchResponse>() {
+    final CompletableFuture<SetFetchResponse> returnFuture =
+        new CompletableFuture<SetFetchResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1681,17 +1715,16 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onSuccess(_SetFetchResponse rsp) {
             if (rsp.hasFound()) {
-              returnFuture.complete(
-                  new CacheSetFetchResponse.Hit(rsp.getFound().getElementsList()));
+              returnFuture.complete(new SetFetchResponse.Hit(rsp.getFound().getElementsList()));
             } else {
-              returnFuture.complete(new CacheSetFetchResponse.Miss());
+              returnFuture.complete(new SetFetchResponse.Miss());
             }
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new SetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1700,7 +1733,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSortedSetPutElementResponse> sendSortedSetPutElement(
+  private CompletableFuture<SortedSetPutElementResponse> sendSortedSetPutElement(
       String cacheName,
       ByteString sortedSetName,
       ByteString value,
@@ -1718,8 +1751,8 @@ final class ScsDataClient extends ScsClient {
                     collectionTtl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSortedSetPutElementResponse> returnFuture =
-        new CompletableFuture<CacheSortedSetPutElementResponse>() {
+    final CompletableFuture<SortedSetPutElementResponse> returnFuture =
+        new CompletableFuture<SortedSetPutElementResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1735,13 +1768,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_SortedSetPutResponse>() {
           @Override
           public void onSuccess(_SortedSetPutResponse rsp) {
-            returnFuture.complete(new CacheSortedSetPutElementResponse.Success());
+            returnFuture.complete(new SortedSetPutElementResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSortedSetPutElementResponse.Error(
+                new SortedSetPutElementResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -1751,7 +1784,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSortedSetPutElementsResponse> sendSortedSetPutElements(
+  private CompletableFuture<SortedSetPutElementsResponse> sendSortedSetPutElements(
       String cacheName,
       ByteString sortedSetName,
       Iterable<ScoredElement> elements,
@@ -1764,8 +1797,8 @@ final class ScsDataClient extends ScsClient {
             .sortedSetPut(buildSortedSetPutRequest(sortedSetName, elements, collectionTtl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSortedSetPutElementsResponse> returnFuture =
-        new CompletableFuture<CacheSortedSetPutElementsResponse>() {
+    final CompletableFuture<SortedSetPutElementsResponse> returnFuture =
+        new CompletableFuture<SortedSetPutElementsResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1781,13 +1814,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_SortedSetPutResponse>() {
           @Override
           public void onSuccess(_SortedSetPutResponse rsp) {
-            returnFuture.complete(new CacheSortedSetPutElementsResponse.Success());
+            returnFuture.complete(new SortedSetPutElementsResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSortedSetPutElementsResponse.Error(
+                new SortedSetPutElementsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -1797,7 +1830,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSortedSetFetchResponse> sendSortedSetFetchByRank(
+  private CompletableFuture<SortedSetFetchResponse> sendSortedSetFetchByRank(
       String cacheName,
       ByteString sortedSetName,
       @Nullable Integer startRank,
@@ -1812,8 +1845,8 @@ final class ScsDataClient extends ScsClient {
                 buildSortedSetFetchRequestByRank(sortedSetName, startRank, endRank, order));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSortedSetFetchResponse> returnFuture =
-        new CompletableFuture<CacheSortedSetFetchResponse>() {
+    final CompletableFuture<SortedSetFetchResponse> returnFuture =
+        new CompletableFuture<SortedSetFetchResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1831,18 +1864,17 @@ final class ScsDataClient extends ScsClient {
           public void onSuccess(_SortedSetFetchResponse rsp) {
             if (rsp.hasFound()) {
               returnFuture.complete(
-                  new CacheSortedSetFetchResponse.Hit(
+                  new SortedSetFetchResponse.Hit(
                       rsp.getFound().getValuesWithScores().getElementsList()));
             } else {
-              returnFuture.complete(new CacheSortedSetFetchResponse.Miss());
+              returnFuture.complete(new SortedSetFetchResponse.Miss());
             }
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSortedSetFetchResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new SortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1851,7 +1883,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSortedSetFetchResponse> sendSortedSetFetchByScore(
+  private CompletableFuture<SortedSetFetchResponse> sendSortedSetFetchByScore(
       String cacheName,
       ByteString sortedSetName,
       @Nullable Double minScore,
@@ -1869,8 +1901,8 @@ final class ScsDataClient extends ScsClient {
                     sortedSetName, minScore, maxScore, order, offset, count));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheSortedSetFetchResponse> returnFuture =
-        new CompletableFuture<CacheSortedSetFetchResponse>() {
+    final CompletableFuture<SortedSetFetchResponse> returnFuture =
+        new CompletableFuture<SortedSetFetchResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -1888,18 +1920,17 @@ final class ScsDataClient extends ScsClient {
           public void onSuccess(_SortedSetFetchResponse rsp) {
             if (rsp.hasFound()) {
               returnFuture.complete(
-                  new CacheSortedSetFetchResponse.Hit(
+                  new SortedSetFetchResponse.Hit(
                       rsp.getFound().getValuesWithScores().getElementsList()));
             } else {
-              returnFuture.complete(new CacheSortedSetFetchResponse.Miss());
+              returnFuture.complete(new SortedSetFetchResponse.Miss());
             }
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheSortedSetFetchResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new SortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1908,7 +1939,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheSortedSetGetRankResponse> sendSortedSetGetRank(
+  private CompletableFuture<SortedSetGetRankResponse> sendSortedSetGetRank(
       String cacheName, ByteString sortedSetName, ByteString value, @Nullable SortOrder order) {
     final Metadata metadata = metadataWithCache(cacheName);
 
@@ -1917,24 +1948,22 @@ final class ScsDataClient extends ScsClient {
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
                 .sortedSetGetRank(buildSortedSetGetRank(sortedSetName, value, order));
 
-    final Function<_SortedSetGetRankResponse, CacheSortedSetGetRankResponse> success =
+    final Function<_SortedSetGetRankResponse, SortedSetGetRankResponse> success =
         rsp -> {
           if (rsp.hasElementRank()) {
-            return new CacheSortedSetGetRankResponse.Hit(rsp.getElementRank().getRank());
+            return new SortedSetGetRankResponse.Hit(rsp.getElementRank().getRank());
           } else {
-            return new CacheSortedSetGetRankResponse.Miss();
+            return new SortedSetGetRankResponse.Miss();
           }
         };
 
-    final Function<Throwable, CacheSortedSetGetRankResponse> failure =
-        e ->
-            new CacheSortedSetGetRankResponse.Error(
-                CacheServiceExceptionMapper.convert(e, metadata));
+    final Function<Throwable, SortedSetGetRankResponse> failure =
+        e -> new SortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<CacheSortedSetGetScoreResponse> sendSortedSetGetScore(
+  private CompletableFuture<SortedSetGetScoreResponse> sendSortedSetGetScore(
       String cacheName, ByteString sortedSetName, ByteString value) {
     final Metadata metadata = metadataWithCache(cacheName);
 
@@ -1944,7 +1973,7 @@ final class ScsDataClient extends ScsClient {
                 .sortedSetGetScore(
                     buildSortedSetGetScores(sortedSetName, Collections.singletonList(value)));
 
-    final Function<_SortedSetGetScoreResponse, CacheSortedSetGetScoreResponse> success =
+    final Function<_SortedSetGetScoreResponse, SortedSetGetScoreResponse> success =
         rsp -> {
           if (rsp.hasFound()) {
             final Optional<_SortedSetGetScoreResponse._SortedSetGetScoreResponsePart> partOpt =
@@ -1953,32 +1982,30 @@ final class ScsDataClient extends ScsClient {
               final _SortedSetGetScoreResponse._SortedSetGetScoreResponsePart part = partOpt.get();
 
               if (part.getResult().equals(ECacheResult.Hit)) {
-                return new CacheSortedSetGetScoreResponse.Hit(value, part.getScore());
+                return new SortedSetGetScoreResponse.Hit(value, part.getScore());
               } else if (part.getResult().equals(ECacheResult.Miss)) {
-                return new CacheSortedSetGetScoreResponse.Miss(value);
+                return new SortedSetGetScoreResponse.Miss(value);
               } else {
-                return new CacheSortedSetGetScoreResponse.Error(
+                return new SortedSetGetScoreResponse.Error(
                     new UnknownException("Unrecognized result: " + part.getResult()));
               }
             } else {
-              return new CacheSortedSetGetScoreResponse.Error(
+              return new SortedSetGetScoreResponse.Error(
                   new UnknownException("Response claimed results found but returned no results"));
             }
 
           } else {
-            return new CacheSortedSetGetScoreResponse.Miss(value);
+            return new SortedSetGetScoreResponse.Miss(value);
           }
         };
 
-    final Function<Throwable, CacheSortedSetGetScoreResponse> failure =
-        e ->
-            new CacheSortedSetGetScoreResponse.Error(
-                CacheServiceExceptionMapper.convert(e, metadata));
+    final Function<Throwable, SortedSetGetScoreResponse> failure =
+        e -> new SortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<CacheSortedSetGetScoresResponse> sendSortedSetGetScores(
+  private CompletableFuture<SortedSetGetScoresResponse> sendSortedSetGetScores(
       String cacheName, ByteString sortedSetName, List<ByteString> values) {
 
     final Metadata metadata = metadataWithCache(cacheName);
@@ -1988,41 +2015,39 @@ final class ScsDataClient extends ScsClient {
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
                 .sortedSetGetScore(buildSortedSetGetScores(sortedSetName, values));
 
-    final Function<_SortedSetGetScoreResponse, CacheSortedSetGetScoresResponse> success =
+    final Function<_SortedSetGetScoreResponse, SortedSetGetScoresResponse> success =
         rsp -> {
           if (rsp.hasFound()) {
             final List<_SortedSetGetScoreResponse._SortedSetGetScoreResponsePart> scores =
                 rsp.getFound().getElementsList();
 
-            final List<CacheSortedSetGetScoreResponse> scoreResponses = new ArrayList<>();
+            final List<SortedSetGetScoreResponse> scoreResponses = new ArrayList<>();
             for (int i = 0; i < scores.size(); ++i) {
               final _SortedSetGetScoreResponse._SortedSetGetScoreResponsePart part = scores.get(i);
               if (part.getResult().equals(ECacheResult.Hit)) {
                 scoreResponses.add(
-                    new CacheSortedSetGetScoreResponse.Hit(values.get(i), part.getScore()));
+                    new SortedSetGetScoreResponse.Hit(values.get(i), part.getScore()));
               } else if (part.getResult().equals(ECacheResult.Miss)) {
-                scoreResponses.add(new CacheSortedSetGetScoreResponse.Miss(values.get(i)));
+                scoreResponses.add(new SortedSetGetScoreResponse.Miss(values.get(i)));
               } else {
                 scoreResponses.add(
-                    new CacheSortedSetGetScoreResponse.Error(
+                    new SortedSetGetScoreResponse.Error(
                         new UnknownException("Unrecognized result: " + part.getResult())));
               }
             }
-            return new CacheSortedSetGetScoresResponse.Hit(scoreResponses);
+            return new SortedSetGetScoresResponse.Hit(scoreResponses);
           } else {
-            return new CacheSortedSetGetScoresResponse.Miss();
+            return new SortedSetGetScoresResponse.Miss();
           }
         };
 
-    final Function<Throwable, CacheSortedSetGetScoresResponse> failure =
-        e ->
-            new CacheSortedSetGetScoresResponse.Error(
-                CacheServiceExceptionMapper.convert(e, metadata));
+    final Function<Throwable, SortedSetGetScoresResponse> failure =
+        e -> new SortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<CacheSortedSetIncrementScoreResponse> sendSortedSetIncrementScore(
+  private CompletableFuture<SortedSetIncrementScoreResponse> sendSortedSetIncrementScore(
       String cacheName,
       ByteString sortedSetName,
       ByteString value,
@@ -2035,18 +2060,18 @@ final class ScsDataClient extends ScsClient {
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
                 .sortedSetIncrement(buildSortedSetIncrement(sortedSetName, value, amount, ttl));
 
-    final Function<_SortedSetIncrementResponse, CacheSortedSetIncrementScoreResponse> success =
-        rsp -> new CacheSortedSetIncrementScoreResponse.Success(rsp.getScore());
+    final Function<_SortedSetIncrementResponse, SortedSetIncrementScoreResponse> success =
+        rsp -> new SortedSetIncrementScoreResponse.Success(rsp.getScore());
 
-    final Function<Throwable, CacheSortedSetIncrementScoreResponse> failure =
+    final Function<Throwable, SortedSetIncrementScoreResponse> failure =
         e ->
-            new CacheSortedSetIncrementScoreResponse.Error(
+            new SortedSetIncrementScoreResponse.Error(
                 CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<CacheSortedSetRemoveElementResponse> sendSortedSetRemoveElement(
+  private CompletableFuture<SortedSetRemoveElementResponse> sendSortedSetRemoveElement(
       String cacheName, ByteString sortedSetName, ByteString value) {
     final Metadata metadata = metadataWithCache(cacheName);
 
@@ -2055,18 +2080,18 @@ final class ScsDataClient extends ScsClient {
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
                 .sortedSetRemove(buildSortedSetRemove(sortedSetName, Collections.singleton(value)));
 
-    final Function<_SortedSetRemoveResponse, CacheSortedSetRemoveElementResponse> success =
-        rsp -> new CacheSortedSetRemoveElementResponse.Success();
+    final Function<_SortedSetRemoveResponse, SortedSetRemoveElementResponse> success =
+        rsp -> new SortedSetRemoveElementResponse.Success();
 
-    final Function<Throwable, CacheSortedSetRemoveElementResponse> failure =
+    final Function<Throwable, SortedSetRemoveElementResponse> failure =
         e ->
-            new CacheSortedSetRemoveElementResponse.Error(
+            new SortedSetRemoveElementResponse.Error(
                 CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<CacheSortedSetRemoveElementsResponse> sendSortedSetRemoveElements(
+  private CompletableFuture<SortedSetRemoveElementsResponse> sendSortedSetRemoveElements(
       String cacheName, ByteString sortedSetName, Iterable<ByteString> values) {
     final Metadata metadata = metadataWithCache(cacheName);
 
@@ -2075,18 +2100,18 @@ final class ScsDataClient extends ScsClient {
             attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
                 .sortedSetRemove(buildSortedSetRemove(sortedSetName, values));
 
-    final Function<_SortedSetRemoveResponse, CacheSortedSetRemoveElementsResponse> success =
-        rsp -> new CacheSortedSetRemoveElementsResponse.Success();
+    final Function<_SortedSetRemoveResponse, SortedSetRemoveElementsResponse> success =
+        rsp -> new SortedSetRemoveElementsResponse.Success();
 
-    final Function<Throwable, CacheSortedSetRemoveElementsResponse> failure =
+    final Function<Throwable, SortedSetRemoveElementsResponse> failure =
         e ->
-            new CacheSortedSetRemoveElementsResponse.Error(
+            new SortedSetRemoveElementsResponse.Error(
                 CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<CacheListConcatenateBackResponse> sendListConcatenateBack(
+  private CompletableFuture<ListConcatenateBackResponse> sendListConcatenateBack(
       @Nonnull String cacheName,
       @Nonnull ByteString listName,
       @Nonnull List<ByteString> values,
@@ -2101,8 +2126,8 @@ final class ScsDataClient extends ScsClient {
                 buildListConcatenateBackRequest(listName, values, truncateFrontToSize, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListConcatenateBackResponse> returnFuture =
-        new CompletableFuture<CacheListConcatenateBackResponse>() {
+    final CompletableFuture<ListConcatenateBackResponse> returnFuture =
+        new CompletableFuture<ListConcatenateBackResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2118,14 +2143,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_ListConcatenateBackResponse>() {
           @Override
           public void onSuccess(_ListConcatenateBackResponse rsp) {
-            returnFuture.complete(
-                new CacheListConcatenateBackResponse.Success(rsp.getListLength()));
+            returnFuture.complete(new ListConcatenateBackResponse.Success(rsp.getListLength()));
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListConcatenateBackResponse.Error(
+                new ListConcatenateBackResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -2136,7 +2160,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheListConcatenateFrontResponse> sendListConcatenateFront(
+  private CompletableFuture<ListConcatenateFrontResponse> sendListConcatenateFront(
       @Nonnull String cacheName,
       @Nonnull ByteString listName,
       @Nonnull List<ByteString> values,
@@ -2151,8 +2175,8 @@ final class ScsDataClient extends ScsClient {
                 buildListConcatenateFrontRequest(listName, values, truncateBackToSize, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListConcatenateFrontResponse> returnFuture =
-        new CompletableFuture<CacheListConcatenateFrontResponse>() {
+    final CompletableFuture<ListConcatenateFrontResponse> returnFuture =
+        new CompletableFuture<ListConcatenateFrontResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2168,14 +2192,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_ListConcatenateFrontResponse>() {
           @Override
           public void onSuccess(_ListConcatenateFrontResponse rsp) {
-            returnFuture.complete(
-                new CacheListConcatenateFrontResponse.Success(rsp.getListLength()));
+            returnFuture.complete(new ListConcatenateFrontResponse.Success(rsp.getListLength()));
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListConcatenateFrontResponse.Error(
+                new ListConcatenateFrontResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -2186,7 +2209,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheListFetchResponse> sendListFetch(
+  private CompletableFuture<ListFetchResponse> sendListFetch(
       @Nonnull String cacheName,
       @Nonnull ByteString listName,
       @Nullable Integer startIndex,
@@ -2199,8 +2222,8 @@ final class ScsDataClient extends ScsClient {
             .listFetch(buildListFetchRequest(listName, startIndex, endIndex));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListFetchResponse> returnFuture =
-        new CompletableFuture<CacheListFetchResponse>() {
+    final CompletableFuture<ListFetchResponse> returnFuture =
+        new CompletableFuture<ListFetchResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2217,16 +2240,16 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onSuccess(_ListFetchResponse rsp) {
             if (rsp.hasFound()) {
-              returnFuture.complete(new CacheListFetchResponse.Hit(rsp.getFound().getValuesList()));
+              returnFuture.complete(new ListFetchResponse.Hit(rsp.getFound().getValuesList()));
             } else if (rsp.hasMissing()) {
-              returnFuture.complete(new CacheListFetchResponse.Miss());
+              returnFuture.complete(new ListFetchResponse.Miss());
             }
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2235,7 +2258,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheListLengthResponse> sendListLength(
+  private CompletableFuture<ListLengthResponse> sendListLength(
       @Nonnull String cacheName, @Nonnull ByteString listName) {
 
     // Submit request to non-blocking stub
@@ -2245,8 +2268,8 @@ final class ScsDataClient extends ScsClient {
             .listLength(buildListLengthRequest(listName));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListLengthResponse> returnFuture =
-        new CompletableFuture<CacheListLengthResponse>() {
+    final CompletableFuture<ListLengthResponse> returnFuture =
+        new CompletableFuture<ListLengthResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2263,17 +2286,16 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onSuccess(_ListLengthResponse rsp) {
             if (rsp.hasFound()) {
-              returnFuture.complete(new CacheListLengthResponse.Hit(rsp.getFound().getLength()));
+              returnFuture.complete(new ListLengthResponse.Hit(rsp.getFound().getLength()));
             } else if (rsp.hasMissing()) {
-              returnFuture.complete(new CacheListLengthResponse.Miss());
+              returnFuture.complete(new ListLengthResponse.Miss());
             }
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListLengthResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListLengthResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2282,7 +2304,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheListPopBackResponse> sendListPopBack(
+  private CompletableFuture<ListPopBackResponse> sendListPopBack(
       @Nonnull String cacheName, @Nonnull ByteString listName) {
 
     // Submit request to non-blocking stub
@@ -2292,8 +2314,8 @@ final class ScsDataClient extends ScsClient {
             .listPopBack(buildListPopBackRequest(listName));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListPopBackResponse> returnFuture =
-        new CompletableFuture<CacheListPopBackResponse>() {
+    final CompletableFuture<ListPopBackResponse> returnFuture =
+        new CompletableFuture<ListPopBackResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2310,17 +2332,16 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onSuccess(_ListPopBackResponse rsp) {
             if (rsp.hasFound()) {
-              returnFuture.complete(new CacheListPopBackResponse.Hit(rsp.getFound().getBack()));
+              returnFuture.complete(new ListPopBackResponse.Hit(rsp.getFound().getBack()));
             } else if (rsp.hasMissing()) {
-              returnFuture.complete(new CacheListPopBackResponse.Miss());
+              returnFuture.complete(new ListPopBackResponse.Miss());
             }
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListPopBackResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListPopBackResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2329,7 +2350,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheListPushBackResponse> sendListPushBack(
+  private CompletableFuture<ListPushBackResponse> sendListPushBack(
       @Nonnull String cacheName,
       @Nonnull ByteString listName,
       @Nonnull ByteString value,
@@ -2343,8 +2364,8 @@ final class ScsDataClient extends ScsClient {
             .listPushBack(buildListPushBackRequest(listName, value, truncateFrontToSize, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListPushBackResponse> returnFuture =
-        new CompletableFuture<CacheListPushBackResponse>() {
+    final CompletableFuture<ListPushBackResponse> returnFuture =
+        new CompletableFuture<ListPushBackResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2360,14 +2381,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_ListPushBackResponse>() {
           @Override
           public void onSuccess(_ListPushBackResponse rsp) {
-            returnFuture.complete(new CacheListPushBackResponse.Success(rsp.getListLength()));
+            returnFuture.complete(new ListPushBackResponse.Success(rsp.getListLength()));
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListPushBackResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         MoreExecutors
@@ -2377,7 +2397,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheListPopFrontResponse> sendListPopFront(
+  private CompletableFuture<ListPopFrontResponse> sendListPopFront(
       @Nonnull String cacheName, @Nonnull ByteString listName) {
 
     // Submit request to non-blocking stub
@@ -2387,8 +2407,8 @@ final class ScsDataClient extends ScsClient {
             .listPopFront(buildListPopFrontRequest(listName));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListPopFrontResponse> returnFuture =
-        new CompletableFuture<CacheListPopFrontResponse>() {
+    final CompletableFuture<ListPopFrontResponse> returnFuture =
+        new CompletableFuture<ListPopFrontResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2405,17 +2425,16 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onSuccess(_ListPopFrontResponse rsp) {
             if (rsp.hasFound()) {
-              returnFuture.complete(new CacheListPopFrontResponse.Hit(rsp.getFound().getFront()));
+              returnFuture.complete(new ListPopFrontResponse.Hit(rsp.getFound().getFront()));
             } else if (rsp.hasMissing()) {
-              returnFuture.complete(new CacheListPopFrontResponse.Miss());
+              returnFuture.complete(new ListPopFrontResponse.Miss());
             }
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListPopFrontResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListPopFrontResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2424,7 +2443,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheListPushFrontResponse> sendListPushFront(
+  private CompletableFuture<ListPushFrontResponse> sendListPushFront(
       @Nonnull String cacheName,
       @Nonnull ByteString listName,
       @Nonnull ByteString value,
@@ -2438,8 +2457,8 @@ final class ScsDataClient extends ScsClient {
             .listPushFront(buildListPushFrontRequest(listName, value, truncateBackToSize, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListPushFrontResponse> returnFuture =
-        new CompletableFuture<CacheListPushFrontResponse>() {
+    final CompletableFuture<ListPushFrontResponse> returnFuture =
+        new CompletableFuture<ListPushFrontResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2455,14 +2474,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_ListPushFrontResponse>() {
           @Override
           public void onSuccess(_ListPushFrontResponse rsp) {
-            returnFuture.complete(new CacheListPushFrontResponse.Success(rsp.getListLength()));
+            returnFuture.complete(new ListPushFrontResponse.Success(rsp.getListLength()));
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListPushFrontResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         MoreExecutors
@@ -2472,7 +2490,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheListRemoveValueResponse> sendListRemoveValue(
+  private CompletableFuture<ListRemoveValueResponse> sendListRemoveValue(
       @Nonnull String cacheName, @Nonnull ByteString listName, @Nonnull ByteString value) {
 
     // Submit request to non-blocking stub
@@ -2482,8 +2500,8 @@ final class ScsDataClient extends ScsClient {
             .listRemove(buildListRemoveValueRequest(listName, value));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListRemoveValueResponse> returnFuture =
-        new CompletableFuture<CacheListRemoveValueResponse>() {
+    final CompletableFuture<ListRemoveValueResponse> returnFuture =
+        new CompletableFuture<ListRemoveValueResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2499,13 +2517,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_ListRemoveResponse>() {
           @Override
           public void onSuccess(_ListRemoveResponse rsp) {
-            returnFuture.complete(new CacheListRemoveValueResponse.Success());
+            returnFuture.complete(new ListRemoveValueResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListRemoveValueResponse.Error(
+                new ListRemoveValueResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -2516,7 +2534,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheListRetainResponse> sendListRetain(
+  private CompletableFuture<ListRetainResponse> sendListRetain(
       @Nonnull String cacheName,
       @Nonnull ByteString listName,
       @Nullable Integer startIndex,
@@ -2529,8 +2547,8 @@ final class ScsDataClient extends ScsClient {
             .listRetain(buildListRetainRequest(listName, startIndex, endIndex));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheListRetainResponse> returnFuture =
-        new CompletableFuture<CacheListRetainResponse>() {
+    final CompletableFuture<ListRetainResponse> returnFuture =
+        new CompletableFuture<ListRetainResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2546,14 +2564,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_ListRetainResponse>() {
           @Override
           public void onSuccess(_ListRetainResponse rsp) {
-            returnFuture.complete(new CacheListRetainResponse.Success());
+            returnFuture.complete(new ListRetainResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheListRetainResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListRetainResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         MoreExecutors
@@ -2563,7 +2580,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheDictionaryFetchResponse> sendDictionaryFetch(
+  private CompletableFuture<DictionaryFetchResponse> sendDictionaryFetch(
       @Nonnull String cacheName, @Nonnull ByteString dictionaryName) {
 
     // Submit request to non-blocking stub
@@ -2573,8 +2590,8 @@ final class ScsDataClient extends ScsClient {
             .dictionaryFetch(buildDictionaryFetchRequest(dictionaryName));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheDictionaryFetchResponse> returnFuture =
-        new CompletableFuture<CacheDictionaryFetchResponse>() {
+    final CompletableFuture<DictionaryFetchResponse> returnFuture =
+        new CompletableFuture<DictionaryFetchResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2597,16 +2614,16 @@ final class ScsDataClient extends ScsClient {
                           Collectors.toMap(
                               _DictionaryFieldValuePair::getField,
                               _DictionaryFieldValuePair::getValue));
-              returnFuture.complete(new CacheDictionaryFetchResponse.Hit(fieldsToValues));
+              returnFuture.complete(new DictionaryFetchResponse.Hit(fieldsToValues));
             } else if (rsp.hasMissing()) {
-              returnFuture.complete(new CacheDictionaryFetchResponse.Miss());
+              returnFuture.complete(new DictionaryFetchResponse.Miss());
             }
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheDictionaryFetchResponse.Error(
+                new DictionaryFetchResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -2617,7 +2634,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheDictionarySetFieldResponse> sendDictionarySetField(
+  private CompletableFuture<DictionarySetFieldResponse> sendDictionarySetField(
       @Nonnull String cacheName,
       @Nonnull ByteString dictionaryName,
       @Nonnull ByteString field,
@@ -2631,8 +2648,8 @@ final class ScsDataClient extends ScsClient {
             .dictionarySet(buildDictionarySetFieldRequest(dictionaryName, field, value, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheDictionarySetFieldResponse> returnFuture =
-        new CompletableFuture<CacheDictionarySetFieldResponse>() {
+    final CompletableFuture<DictionarySetFieldResponse> returnFuture =
+        new CompletableFuture<DictionarySetFieldResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2648,13 +2665,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_DictionarySetResponse>() {
           @Override
           public void onSuccess(_DictionarySetResponse rsp) {
-            returnFuture.complete(new CacheDictionarySetFieldResponse.Success());
+            returnFuture.complete(new DictionarySetFieldResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheDictionarySetFieldResponse.Error(
+                new DictionarySetFieldResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -2665,7 +2682,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheDictionarySetFieldsResponse> sendDictionarySetFields(
+  private CompletableFuture<DictionarySetFieldsResponse> sendDictionarySetFields(
       @Nonnull String cacheName,
       @Nonnull ByteString dictionaryName,
       @Nonnull Map<ByteString, ByteString> elements,
@@ -2678,8 +2695,8 @@ final class ScsDataClient extends ScsClient {
             .dictionarySet(buildDictionarySetFieldsRequest(dictionaryName, elements, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheDictionarySetFieldsResponse> returnFuture =
-        new CompletableFuture<CacheDictionarySetFieldsResponse>() {
+    final CompletableFuture<DictionarySetFieldsResponse> returnFuture =
+        new CompletableFuture<DictionarySetFieldsResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2695,13 +2712,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_DictionarySetResponse>() {
           @Override
           public void onSuccess(_DictionarySetResponse rsp) {
-            returnFuture.complete(new CacheDictionarySetFieldsResponse.Success());
+            returnFuture.complete(new DictionarySetFieldsResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheDictionarySetFieldsResponse.Error(
+                new DictionarySetFieldsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -2712,7 +2729,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheDictionaryGetFieldResponse> sendDictionaryGetField(
+  private CompletableFuture<DictionaryGetFieldResponse> sendDictionaryGetField(
       @Nonnull String cacheName, @Nonnull ByteString dictionaryName, @Nonnull ByteString field) {
 
     // Submit request to non-blocking stub
@@ -2722,8 +2739,8 @@ final class ScsDataClient extends ScsClient {
             .dictionaryGet(buildDictionaryGetFieldRequest(dictionaryName, field));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheDictionaryGetFieldResponse> returnFuture =
-        new CompletableFuture<CacheDictionaryGetFieldResponse>() {
+    final CompletableFuture<DictionaryGetFieldResponse> returnFuture =
+        new CompletableFuture<DictionaryGetFieldResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2740,21 +2757,21 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onSuccess(_DictionaryGetResponse rsp) {
             if (rsp.hasMissing()) {
-              returnFuture.complete(new CacheDictionaryGetFieldResponse.Miss(field));
+              returnFuture.complete(new DictionaryGetFieldResponse.Miss(field));
             } else if (rsp.hasFound()) {
               if (rsp.getFound().getItemsList().size() == 0) {
                 returnFuture.complete(
-                    new CacheDictionaryGetFieldResponse.Error(
+                    new DictionaryGetFieldResponse.Error(
                         CacheServiceExceptionMapper.convert(
                             new Exception(
                                 "_DictionaryGetResponseResponse contained no data but was found"),
                             metadata),
                         field));
               } else if (rsp.getFound().getItemsList().get(0).getResult() == ECacheResult.Miss) {
-                returnFuture.complete(new CacheDictionaryGetFieldResponse.Miss(field));
+                returnFuture.complete(new DictionaryGetFieldResponse.Miss(field));
               } else {
                 returnFuture.complete(
-                    new CacheDictionaryGetFieldResponse.Hit(
+                    new DictionaryGetFieldResponse.Hit(
                         field, rsp.getFound().getItemsList().get(0).getCacheBody()));
               }
             }
@@ -2763,7 +2780,7 @@ final class ScsDataClient extends ScsClient {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheDictionaryGetFieldResponse.Error(
+                new DictionaryGetFieldResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata), field));
           }
         },
@@ -2774,7 +2791,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheDictionaryGetFieldsResponse> sendDictionaryGetFields(
+  private CompletableFuture<DictionaryGetFieldsResponse> sendDictionaryGetFields(
       @Nonnull String cacheName,
       @Nonnull ByteString dictionaryName,
       @Nonnull List<ByteString> fields) {
@@ -2785,8 +2802,8 @@ final class ScsDataClient extends ScsClient {
             .dictionaryGet(buildDictionaryGetFieldsRequest(dictionaryName, fields));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheDictionaryGetFieldsResponse> returnFuture =
-        new CompletableFuture<CacheDictionaryGetFieldsResponse>() {
+    final CompletableFuture<DictionaryGetFieldsResponse> returnFuture =
+        new CompletableFuture<DictionaryGetFieldsResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2806,31 +2823,31 @@ final class ScsDataClient extends ScsClient {
               final List<_DictionaryGetResponse._DictionaryGetResponsePart> elements =
                   rsp.getFound().getItemsList();
 
-              final List<CacheDictionaryGetFieldResponse> responses = new ArrayList<>();
+              final List<DictionaryGetFieldResponse> responses = new ArrayList<>();
               for (int i = 0; i < elements.size(); ++i) {
                 final _DictionaryGetResponse._DictionaryGetResponsePart part = elements.get(i);
                 if (part.getResult().equals(ECacheResult.Hit)) {
                   responses.add(
-                      new CacheDictionaryGetFieldResponse.Hit(fields.get(i), part.getCacheBody()));
+                      new DictionaryGetFieldResponse.Hit(fields.get(i), part.getCacheBody()));
                 } else if (part.getResult().equals(ECacheResult.Miss)) {
-                  responses.add(new CacheDictionaryGetFieldResponse.Miss(fields.get(i)));
+                  responses.add(new DictionaryGetFieldResponse.Miss(fields.get(i)));
                 } else {
                   responses.add(
-                      new CacheDictionaryGetFieldResponse.Error(
+                      new DictionaryGetFieldResponse.Error(
                           new UnknownException("Unrecognized result: " + part.getResult()),
                           fields.get(i)));
                 }
               }
-              returnFuture.complete(new CacheDictionaryGetFieldsResponse.Hit(responses));
+              returnFuture.complete(new DictionaryGetFieldsResponse.Hit(responses));
             } else {
-              returnFuture.complete(new CacheDictionaryGetFieldsResponse.Miss());
+              returnFuture.complete(new DictionaryGetFieldsResponse.Miss());
             }
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheDictionaryGetFieldsResponse.Error(
+                new DictionaryGetFieldsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -2841,7 +2858,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheDictionaryIncrementResponse> sendDictionaryIncrement(
+  private CompletableFuture<DictionaryIncrementResponse> sendDictionaryIncrement(
       @Nonnull String cacheName,
       @Nonnull ByteString dictionaryName,
       @Nonnull ByteString field,
@@ -2856,8 +2873,8 @@ final class ScsDataClient extends ScsClient {
                 buildDictionaryIncrementRequest(dictionaryName, field, amount, ttl));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheDictionaryIncrementResponse> returnFuture =
-        new CompletableFuture<CacheDictionaryIncrementResponse>() {
+    final CompletableFuture<DictionaryIncrementResponse> returnFuture =
+        new CompletableFuture<DictionaryIncrementResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2873,14 +2890,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_DictionaryIncrementResponse>() {
           @Override
           public void onSuccess(_DictionaryIncrementResponse rsp) {
-            returnFuture.complete(
-                new CacheDictionaryIncrementResponse.Success((int) rsp.getValue()));
+            returnFuture.complete(new DictionaryIncrementResponse.Success((int) rsp.getValue()));
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheDictionaryIncrementResponse.Error(
+                new DictionaryIncrementResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -2891,7 +2907,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheDictionaryRemoveFieldResponse> sendDictionaryRemoveField(
+  private CompletableFuture<DictionaryRemoveFieldResponse> sendDictionaryRemoveField(
       @Nonnull String cacheName, @Nonnull ByteString dictionaryName, @Nonnull ByteString field) {
 
     // Submit request to non-blocking stub
@@ -2901,8 +2917,8 @@ final class ScsDataClient extends ScsClient {
             .dictionaryDelete(buildDictionaryRemoveFieldRequest(dictionaryName, field));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheDictionaryRemoveFieldResponse> returnFuture =
-        new CompletableFuture<CacheDictionaryRemoveFieldResponse>() {
+    final CompletableFuture<DictionaryRemoveFieldResponse> returnFuture =
+        new CompletableFuture<DictionaryRemoveFieldResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2918,13 +2934,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_DictionaryDeleteResponse>() {
           @Override
           public void onSuccess(_DictionaryDeleteResponse rsp) {
-            returnFuture.complete(new CacheDictionaryRemoveFieldResponse.Success());
+            returnFuture.complete(new DictionaryRemoveFieldResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheDictionaryRemoveFieldResponse.Error(
+                new DictionaryRemoveFieldResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
@@ -2935,7 +2951,7 @@ final class ScsDataClient extends ScsClient {
     return returnFuture;
   }
 
-  private CompletableFuture<CacheDictionaryRemoveFieldsResponse> sendDictionaryRemoveFields(
+  private CompletableFuture<DictionaryRemoveFieldsResponse> sendDictionaryRemoveFields(
       @Nonnull String cacheName,
       @Nonnull ByteString dictionaryName,
       @Nonnull List<ByteString> fields) {
@@ -2947,8 +2963,8 @@ final class ScsDataClient extends ScsClient {
             .dictionaryDelete(buildDictionaryRemoveFieldsRequest(dictionaryName, fields));
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<CacheDictionaryRemoveFieldsResponse> returnFuture =
-        new CompletableFuture<CacheDictionaryRemoveFieldsResponse>() {
+    final CompletableFuture<DictionaryRemoveFieldsResponse> returnFuture =
+        new CompletableFuture<DictionaryRemoveFieldsResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -2964,13 +2980,13 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_DictionaryDeleteResponse>() {
           @Override
           public void onSuccess(_DictionaryDeleteResponse rsp) {
-            returnFuture.complete(new CacheDictionaryRemoveFieldsResponse.Success());
+            returnFuture.complete(new DictionaryRemoveFieldsResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new CacheDictionaryRemoveFieldsResponse.Error(
+                new DictionaryRemoveFieldsResponse.Error(
                     CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },

@@ -10,9 +10,9 @@ import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.TimeoutException;
-import momento.sdk.responses.CacheDeleteResponse;
-import momento.sdk.responses.CacheGetResponse;
-import momento.sdk.responses.CacheSetResponse;
+import momento.sdk.responses.cache.DeleteResponse;
+import momento.sdk.responses.cache.GetResponse;
+import momento.sdk.responses.cache.SetResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -45,23 +45,22 @@ final class CacheDataPlaneTest extends BaseTestClass {
     final String value = randomString("value");
 
     // Successful Set
-    final CacheSetResponse setResponse = client.set(cacheName, key, value).join();
-    assertThat(setResponse).isInstanceOf(CacheSetResponse.Success.class);
-    assertThat(((CacheSetResponse.Success) setResponse).valueString()).isEqualTo(value);
-    assertThat(((CacheSetResponse.Success) setResponse).valueByteArray())
-        .isEqualTo(value.getBytes());
+    final SetResponse setResponse = client.set(cacheName, key, value).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+    assertThat(((SetResponse.Success) setResponse).valueString()).isEqualTo(value);
+    assertThat(((SetResponse.Success) setResponse).valueByteArray()).isEqualTo(value.getBytes());
 
     // Successful Get with Hit
-    final CacheGetResponse getResponse = client.get(cacheName, key).join();
-    assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
+    final GetResponse getResponse = client.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
 
   @Test
   void cacheMissSuccess() {
     // Get key that was not set
-    final CacheGetResponse response = client.get(cacheName, randomString("key")).join();
-    assertThat(response).isInstanceOf(CacheGetResponse.Miss.class);
+    final GetResponse response = client.get(cacheName, randomString("key")).join();
+    assertThat(response).isInstanceOf(GetResponse.Miss.class);
   }
 
   @Test
@@ -74,8 +73,8 @@ final class CacheDataPlaneTest extends BaseTestClass {
     Thread.sleep(2000);
 
     // Get Key that was just set
-    final CacheGetResponse rsp = client.get(cacheName, key).join();
-    assertThat(rsp).isInstanceOf(CacheGetResponse.Miss.class);
+    final GetResponse rsp = client.get(cacheName, key).join();
+    assertThat(rsp).isInstanceOf(GetResponse.Miss.class);
   }
 
   @Test
@@ -90,10 +89,9 @@ final class CacheDataPlaneTest extends BaseTestClass {
                 badTokenProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL_SECONDS)
             .build()) {
 
-      final CacheGetResponse response = client.get(cacheName, "").join();
-      assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
-      assertThat(((CacheGetResponse.Error) response))
-          .hasCauseInstanceOf(AuthenticationException.class);
+      final GetResponse response = client.get(cacheName, "").join();
+      assertThat(response).isInstanceOf(GetResponse.Error.class);
+      assertThat(((GetResponse.Error) response)).hasCauseInstanceOf(AuthenticationException.class);
     }
   }
 
@@ -101,14 +99,13 @@ final class CacheDataPlaneTest extends BaseTestClass {
   public void nonExistentCacheNameReturnsErrorOnGetOrSet() {
     final String cacheName = randomString("name");
 
-    final CacheGetResponse getResponse = client.get(cacheName, "").join();
-    assertThat(getResponse).isInstanceOf(CacheGetResponse.Error.class);
-    assertThat(((CacheGetResponse.Error) getResponse)).hasCauseInstanceOf(NotFoundException.class);
+    final GetResponse getResponse = client.get(cacheName, "").join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Error.class);
+    assertThat(((GetResponse.Error) getResponse)).hasCauseInstanceOf(NotFoundException.class);
 
-    final CacheSetResponse setResponse =
-        client.set(cacheName, "", "", Duration.ofSeconds(10)).join();
-    assertThat(setResponse).isInstanceOf(CacheSetResponse.Error.class);
-    assertThat(((CacheSetResponse.Error) setResponse)).hasCauseInstanceOf(NotFoundException.class);
+    final SetResponse setResponse = client.set(cacheName, "", "", Duration.ofSeconds(10)).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Error.class);
+    assertThat(((SetResponse.Error) setResponse)).hasCauseInstanceOf(NotFoundException.class);
   }
 
   @Test
@@ -119,9 +116,9 @@ final class CacheDataPlaneTest extends BaseTestClass {
             .setDeadline(Duration.ofMillis(1))
             .build()) {
 
-      final CacheGetResponse response = client.get("cache", "key").join();
-      assertThat(response).isInstanceOf(CacheGetResponse.Error.class);
-      assertThat(((CacheGetResponse.Error) response)).hasCauseInstanceOf(TimeoutException.class);
+      final GetResponse response = client.get("cache", "key").join();
+      assertThat(response).isInstanceOf(GetResponse.Error.class);
+      assertThat(((GetResponse.Error) response)).hasCauseInstanceOf(TimeoutException.class);
     }
   }
 
@@ -130,9 +127,9 @@ final class CacheDataPlaneTest extends BaseTestClass {
     final String emptyKey = "";
     final String emptyValue = "";
     client.set(cacheName, emptyKey, emptyValue).get();
-    final CacheGetResponse response = client.get(cacheName, emptyKey).get();
-    assertThat(response).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) response).valueString()).isEqualTo(emptyValue);
+    final GetResponse response = client.get(cacheName, emptyKey).get();
+    assertThat(response).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) response).valueString()).isEqualTo(emptyValue);
   }
 
   @Test
@@ -141,15 +138,15 @@ final class CacheDataPlaneTest extends BaseTestClass {
     final String value = "value";
 
     client.set(cacheName, key, value).get();
-    final CacheGetResponse getResponse = client.get(cacheName, key).get();
-    assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
+    final GetResponse getResponse = client.get(cacheName, key).get();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(value);
 
-    final CacheDeleteResponse deleteResponse = client.delete(cacheName, key).get();
-    assertThat(deleteResponse).isInstanceOf(CacheDeleteResponse.Success.class);
+    final DeleteResponse deleteResponse = client.delete(cacheName, key).get();
+    assertThat(deleteResponse).isInstanceOf(DeleteResponse.Success.class);
 
-    final CacheGetResponse getAfterDeleteResponse = client.get(cacheName, key).get();
-    assertThat(getAfterDeleteResponse).isInstanceOf(CacheGetResponse.Miss.class);
+    final GetResponse getAfterDeleteResponse = client.get(cacheName, key).get();
+    assertThat(getAfterDeleteResponse).isInstanceOf(GetResponse.Miss.class);
   }
 
   @Test
@@ -160,9 +157,9 @@ final class CacheDataPlaneTest extends BaseTestClass {
             .setDeadline(Duration.ofMillis(1))
             .build()) {
 
-      final CacheSetResponse response = client.set("cache", "key", "value").join();
-      assertThat(response).isInstanceOf(CacheSetResponse.Error.class);
-      assertThat(((CacheSetResponse.Error) response)).hasCauseInstanceOf(TimeoutException.class);
+      final SetResponse response = client.set("cache", "key", "value").join();
+      assertThat(response).isInstanceOf(SetResponse.Error.class);
+      assertThat(((SetResponse.Error) response)).hasCauseInstanceOf(TimeoutException.class);
     }
   }
 }
