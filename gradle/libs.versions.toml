@@ -8,6 +8,7 @@ junit = "5.9.2"
 gson = "2.10.1"
 guava = "31.1-android"
 java-protos = "0.54.1"
+slf4j = "2.0.7"
 
 [libraries]
 grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpc"}
@@ -23,6 +24,7 @@ gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
 guava = { module = "com.google.guava:guava", version.ref = "guava" }
 momento-java-protos = { module = "software.momento.java:client-protos", version.ref = "java-protos" }
 protobuf-java = { module = "com.google.protobuf:protobuf-java", version.ref = "protobuf" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }

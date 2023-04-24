@@ -15,6 +15,7 @@ dependencies {
     implementation(libs.protobuf.java)
     implementation(libs.guava)
     implementation(libs.gson)
+    implementation(libs.slf4j.api)
 
     // For Auth token
     implementation(libs.jjwt.api)

@@ -55,9 +55,13 @@ import momento.sdk.responses.cache.sortedset.SortedSetPutElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetPutElementsResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Client to perform operations against the Momento Cache Service */
 public final class CacheClient implements Closeable {
+
+  private final Logger logger = LoggerFactory.getLogger(CacheClient.class);
 
   private final ScsControlClient scsControlClient;
   private final ScsDataClient scsDataClient;
@@ -75,6 +79,10 @@ public final class CacheClient implements Closeable {
       @Nonnull Duration itemDefaultTtl) {
     this.scsControlClient = new ScsControlClient(credentialProvider);
     this.scsDataClient = new ScsDataClient(credentialProvider, configuration, itemDefaultTtl);
+
+    logger.info("Creating Momento Cache Client");
+    logger.debug("Cache endpoint: " + credentialProvider.getCacheEndpoint());
+    logger.debug("Control endpoint: " + credentialProvider.getControlEndpoint());
   }
 
   /**
