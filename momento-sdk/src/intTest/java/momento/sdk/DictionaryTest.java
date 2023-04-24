@@ -13,14 +13,14 @@ import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.requests.CollectionTtl;
-import momento.sdk.responses.CacheDictionaryFetchResponse;
-import momento.sdk.responses.CacheDictionaryGetFieldResponse;
-import momento.sdk.responses.CacheDictionaryGetFieldsResponse;
-import momento.sdk.responses.CacheDictionaryIncrementResponse;
-import momento.sdk.responses.CacheDictionaryRemoveFieldResponse;
-import momento.sdk.responses.CacheDictionaryRemoveFieldsResponse;
-import momento.sdk.responses.CacheDictionarySetFieldResponse;
-import momento.sdk.responses.CacheDictionarySetFieldsResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryFetchResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryGetFieldResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryGetFieldsResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryIncrementResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryRemoveFieldResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryRemoveFieldsResponse;
+import momento.sdk.responses.cache.dictionary.DictionarySetFieldResponse;
+import momento.sdk.responses.cache.dictionary.DictionarySetFieldsResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -59,11 +59,11 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(target.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> assertThat(hit.valueMapStringString()).hasSize(1).containsEntry("a", "b"));
 
@@ -72,11 +72,11 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, "c", "d".getBytes(), CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(target.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.valueMapStringByteArray())
@@ -89,22 +89,22 @@ public class DictionaryTest extends BaseTestClass {
     // Set String key, String Value
     assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "b"))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(target.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> assertThat(hit.valueMapStringString()).hasSize(1).containsEntry("a", "b"));
 
     // Set String key, ByteArray Value
     assertThat(target.dictionarySetField(cacheName, dictionaryName, "c", "d".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(target.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.valueMapStringByteArray())
@@ -119,7 +119,7 @@ public class DictionaryTest extends BaseTestClass {
     assertThat(
             target.dictionarySetField(null, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // String Key and Byte value
@@ -127,7 +127,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 null, dictionaryName, "a", "b".getBytes(), CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -137,7 +137,7 @@ public class DictionaryTest extends BaseTestClass {
     // String Key and String value
     assertThat(target.dictionarySetField(cacheName, null, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // String Key and Byte value
@@ -145,7 +145,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, null, "a", "b".getBytes(), CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -157,7 +157,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, null, "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // String Key and Byte value
@@ -165,7 +165,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, null, "b".getBytes(), CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -177,7 +177,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, "a", (String) null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // String Key and Byte value
@@ -185,7 +185,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, "a", (byte[]) null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -194,7 +194,7 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionaryFetchReturnsErrorWithNullCacheName() {
     assertThat(target.dictionaryFetch(null, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -203,7 +203,7 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionaryFetchReturnsErrorWithNullDictionaryName() {
     assertThat(target.dictionaryFetch(cacheName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -211,7 +211,7 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionaryFetchReturnsMissWhenDictionaryNotExists() {
     assertThat(target.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryFetchResponse.Miss.class);
+        .isInstanceOf(DictionaryFetchResponse.Miss.class);
   }
 
   @Test
@@ -223,11 +223,11 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetFields(
                 cacheName, dictionaryName, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldsResponse.Success.class);
 
     assertThat(target.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final Map<String, String> stringStringMap = hit.valueMapStringString();
@@ -240,11 +240,11 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetFieldsStringBytes(
                 cacheName, dictionaryName, stringBytesMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldsResponse.Success.class);
 
     assertThat(target.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final Map<String, byte[]> stringBytesMap = hit.valueMapStringByteArray();
@@ -260,11 +260,11 @@ public class DictionaryTest extends BaseTestClass {
     // Set String key, String value
     assertThat(target.dictionarySetFields(cacheName, dictionaryName, stringStringMap))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldsResponse.Success.class);
 
     assertThat(target.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final Map<String, String> stringStringMap = hit.valueMapStringString();
@@ -275,11 +275,11 @@ public class DictionaryTest extends BaseTestClass {
     // Set String key, byte array value
     assertThat(target.dictionarySetFieldsStringBytes(cacheName, dictionaryName, stringBytesMap))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldsResponse.Success.class);
 
     assertThat(target.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryFetchResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
             hit -> {
               final Map<String, byte[]> stringBytesMap = hit.valueMapStringByteArray();
@@ -298,7 +298,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetFields(
                 null, dictionaryName, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // String Key and Byte value
@@ -306,7 +306,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetFieldsStringBytes(
                 null, dictionaryName, stringBytesMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -320,7 +320,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetFields(
                 cacheName, null, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // String Key and Byte value
@@ -328,7 +328,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetFieldsStringBytes(
                 cacheName, null, stringBytesMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -340,7 +340,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetFields(
                 cacheName, dictionaryName, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     // String Key and Byte value
@@ -348,7 +348,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetFieldsStringBytes(
                 cacheName, dictionaryName, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionarySetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionarySetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -359,11 +359,11 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Hit.class))
         .satisfies(
             hit -> {
               assertThat(hit.fieldString()).isEqualTo("a");
@@ -375,11 +375,11 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, "c", "d".getBytes(), CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, "c"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Hit.class))
         .satisfies(
             hit -> {
               assertThat(hit.field()).isEqualTo("c");
@@ -393,7 +393,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryGetField(null, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -403,7 +403,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryGetField(cacheName, null, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -413,7 +413,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -423,12 +423,12 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     // String field
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, "c"))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+        .isInstanceOf(DictionaryGetFieldResponse.Miss.class);
   }
 
   @Test
@@ -436,7 +436,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+        .isInstanceOf(DictionaryGetFieldResponse.Miss.class);
   }
 
   @Test
@@ -445,24 +445,24 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(
             target.dictionarySetField(
                 cacheName, dictionaryName, "c", "d", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(
             target.dictionarySetField(
                 cacheName, dictionaryName, "e", "f", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     // Gets a map of string keys and string values
     assertThat(target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "c", "e")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldsResponse.Hit.class))
         .satisfies(
             hit -> {
               final Map<String, String> stringStringMap = hit.valueMapStringString();
@@ -473,7 +473,7 @@ public class DictionaryTest extends BaseTestClass {
     // Gets a map of string keys and byte array values
     assertThat(target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "c", "e")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldsResponse.Hit.class))
         .satisfies(
             hit -> {
               final Map<String, byte[]> stringStringMap = hit.valueMapStringByteArray();
@@ -489,7 +489,7 @@ public class DictionaryTest extends BaseTestClass {
     // String fields
     assertThat(target.dictionaryGetFields(null, dictionaryName, Arrays.asList("a", "c", "e")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -499,7 +499,7 @@ public class DictionaryTest extends BaseTestClass {
     // String fields
     assertThat(target.dictionaryGetFields(cacheName, null, Arrays.asList("a", "c", "e")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -509,7 +509,7 @@ public class DictionaryTest extends BaseTestClass {
     // String fields
     assertThat(target.dictionaryGetFields(cacheName, dictionaryName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     List<String> stringListWithAtleastOneNullField = Arrays.asList("a", null);
@@ -518,7 +518,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionaryGetFields(
                 cacheName, dictionaryName, stringListWithAtleastOneNullField))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -528,46 +528,42 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionarySetField(
                 cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(
             target.dictionarySetField(
                 cacheName, dictionaryName, "c", "d", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     // get raw responses and validate Hit/Miss
-    CacheDictionaryGetFieldsResponse response =
+    DictionaryGetFieldsResponse response =
         target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "c", "r")).join();
 
-    assertThat(response).isInstanceOf(CacheDictionaryGetFieldsResponse.Hit.class);
+    assertThat(response).isInstanceOf(DictionaryGetFieldsResponse.Hit.class);
 
-    List<CacheDictionaryGetFieldResponse> responseList =
-        ((CacheDictionaryGetFieldsResponse.Hit) response).perFieldResponses();
+    List<DictionaryGetFieldResponse> responseList =
+        ((DictionaryGetFieldsResponse.Hit) response).perFieldResponses();
     assertThat(responseList).hasSize(3);
 
-    assertThat(responseList.get(0)).isInstanceOf(CacheDictionaryGetFieldResponse.Hit.class);
-    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(0)).fieldString())
-        .isEqualTo("a");
-    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(0)).valueString())
-        .isEqualTo("b");
-    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(0)).valueByteArray())
+    assertThat(responseList.get(0)).isInstanceOf(DictionaryGetFieldResponse.Hit.class);
+    assertThat(((DictionaryGetFieldResponse.Hit) responseList.get(0)).fieldString()).isEqualTo("a");
+    assertThat(((DictionaryGetFieldResponse.Hit) responseList.get(0)).valueString()).isEqualTo("b");
+    assertThat(((DictionaryGetFieldResponse.Hit) responseList.get(0)).valueByteArray())
         .isEqualTo("b".getBytes());
 
-    assertThat(((CacheDictionaryGetFieldsResponse.Hit) response).perFieldResponses().get(1))
-        .isInstanceOf(CacheDictionaryGetFieldResponse.Hit.class);
-    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(1)).fieldString())
-        .isEqualTo("c");
-    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(1)).valueString())
-        .isEqualTo("d");
-    assertThat(((CacheDictionaryGetFieldResponse.Hit) responseList.get(1)).valueByteArray())
+    assertThat(((DictionaryGetFieldsResponse.Hit) response).perFieldResponses().get(1))
+        .isInstanceOf(DictionaryGetFieldResponse.Hit.class);
+    assertThat(((DictionaryGetFieldResponse.Hit) responseList.get(1)).fieldString()).isEqualTo("c");
+    assertThat(((DictionaryGetFieldResponse.Hit) responseList.get(1)).valueString()).isEqualTo("d");
+    assertThat(((DictionaryGetFieldResponse.Hit) responseList.get(1)).valueByteArray())
         .isEqualTo("d".getBytes());
 
-    assertThat(((CacheDictionaryGetFieldsResponse.Hit) response).perFieldResponses().get(2))
-        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
-    assertThat(((CacheDictionaryGetFieldResponse.Miss) responseList.get(2)).fieldString())
+    assertThat(((DictionaryGetFieldsResponse.Hit) response).perFieldResponses().get(2))
+        .isInstanceOf(DictionaryGetFieldResponse.Miss.class);
+    assertThat(((DictionaryGetFieldResponse.Miss) responseList.get(2)).fieldString())
         .isEqualTo("r");
-    assertThat(((CacheDictionaryGetFieldResponse.Miss) responseList.get(2)).fieldByteArray())
+    assertThat(((DictionaryGetFieldResponse.Miss) responseList.get(2)).fieldByteArray())
         .isEqualTo("r".getBytes());
   }
 
@@ -577,7 +573,7 @@ public class DictionaryTest extends BaseTestClass {
     assertThat(
             target.dictionaryGetFields(cacheName, dictionaryName, Collections.singletonList("a")))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryGetFieldsResponse.Miss.class);
+        .isInstanceOf(DictionaryGetFieldsResponse.Miss.class);
   }
 
   @Test
@@ -585,16 +581,14 @@ public class DictionaryTest extends BaseTestClass {
     // Increment with ttl
     assertThat(target.dictionaryIncrement(cacheName, dictionaryName, "a", 1))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Success.class))
         .satisfies(success -> assertThat(success.value()).isEqualTo(1));
 
     assertThat(
             target.dictionaryIncrement(
                 cacheName, dictionaryName, "a", 41, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Success.class))
         .satisfies(success -> assertThat(success.value()).isEqualTo(42));
 
     // Increment without ttl
@@ -602,13 +596,12 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionaryIncrement(
                 cacheName, dictionaryName, "a", -1042, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Success.class))
         .satisfies(success -> assertThat(success.value()).isEqualTo(-1000));
 
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Hit.class))
         .satisfies(
             hit -> {
               assertThat(hit.fieldString()).isEqualTo("a");
@@ -621,35 +614,32 @@ public class DictionaryTest extends BaseTestClass {
     // Set field
     assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "10"))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(
             target.dictionaryIncrement(
                 cacheName, dictionaryName, "a", 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Success.class))
         .satisfies(success -> assertThat(success.value()).isEqualTo(10));
 
     assertThat(
             target.dictionaryIncrement(
                 cacheName, dictionaryName, "a", 90, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Success.class))
         .satisfies(success -> assertThat(success.value()).isEqualTo(100));
 
     // Reset field
     assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "0"))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(
             target.dictionaryIncrement(
                 cacheName, dictionaryName, "a", 0, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Success.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Success.class))
         .satisfies(success -> assertThat(success.value()).isEqualTo(0));
   }
 
@@ -660,7 +650,7 @@ public class DictionaryTest extends BaseTestClass {
     assertThat(
             target.dictionaryIncrement(null, dictionaryName, "a", 1, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -670,7 +660,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryIncrement(cacheName, null, "a", 1, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -682,7 +672,7 @@ public class DictionaryTest extends BaseTestClass {
             target.dictionaryIncrement(
                 cacheName, dictionaryName, null, 1, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -690,13 +680,13 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionaryIncrementReturnsBadRequestError() {
     assertThat(target.dictionarySetField(cacheName, dictionaryName, "a", "xyz"))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(
             target.dictionaryIncrement(
                 cacheName, dictionaryName, "a", 1, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryIncrementResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Error.class))
         .satisfies(
             error -> {
               assertThat(error).hasCauseInstanceOf(BadRequestException.class);
@@ -708,17 +698,17 @@ public class DictionaryTest extends BaseTestClass {
   public void dictionaryRemoveFieldStringHappyPath() {
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+        .isInstanceOf(DictionaryGetFieldResponse.Miss.class);
 
     assertThat(
             target.dictionarySetField(
                 cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Hit.class))
         .satisfies(
             hit -> {
               assertThat(hit.fieldString()).isEqualTo("a");
@@ -727,11 +717,11 @@ public class DictionaryTest extends BaseTestClass {
 
     assertThat(target.dictionaryRemoveField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryRemoveFieldResponse.Success.class);
+        .isInstanceOf(DictionaryRemoveFieldResponse.Success.class);
 
     assertThat(target.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryGetFieldResponse.Miss.class);
+        .isInstanceOf(DictionaryGetFieldResponse.Miss.class);
   }
 
   @SuppressWarnings("DataFlowIssue")
@@ -740,8 +730,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryRemoveField(null, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryRemoveFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -751,8 +740,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryRemoveField(cacheName, null, "a"))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryRemoveFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -762,8 +750,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryRemoveField(cacheName, dictionaryName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryRemoveFieldResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -772,17 +759,17 @@ public class DictionaryTest extends BaseTestClass {
     populateTestMaps();
     assertThat(target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "aa")))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryGetFieldsResponse.Miss.class);
+        .isInstanceOf(DictionaryGetFieldsResponse.Miss.class);
 
     assertThat(
             target.dictionarySetFields(
                 cacheName, dictionaryName, stringStringMap, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionarySetFieldsResponse.Success.class);
+        .isInstanceOf(DictionarySetFieldsResponse.Success.class);
 
     assertThat(target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "aa")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheDictionaryGetFieldsResponse.Hit.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldsResponse.Hit.class))
         .satisfies(
             hit -> {
               final Map<String, String> stringStringMap = hit.valueMapStringString();
@@ -792,11 +779,11 @@ public class DictionaryTest extends BaseTestClass {
 
     assertThat(target.dictionaryRemoveFields(cacheName, dictionaryName, Arrays.asList("a", "aa")))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryRemoveFieldsResponse.Success.class);
+        .isInstanceOf(DictionaryRemoveFieldsResponse.Success.class);
 
     assertThat(target.dictionaryGetFields(cacheName, dictionaryName, Arrays.asList("a", "aa")))
         .succeedsWithin(FIVE_SECONDS)
-        .isInstanceOf(CacheDictionaryGetFieldsResponse.Miss.class);
+        .isInstanceOf(DictionaryGetFieldsResponse.Miss.class);
   }
 
   @SuppressWarnings("DataFlowIssue")
@@ -805,8 +792,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryRemoveFields(null, dictionaryName, Collections.singletonList("a")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryRemoveFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -816,8 +802,7 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryRemoveFields(cacheName, null, Collections.singletonList("a")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryRemoveFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -827,14 +812,12 @@ public class DictionaryTest extends BaseTestClass {
     // String field
     assertThat(target.dictionaryRemoveFields(cacheName, dictionaryName, null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryRemoveFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(target.dictionaryRemoveFields(cacheName, dictionaryName, Arrays.asList("a", null)))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(
-            InstanceOfAssertFactories.type(CacheDictionaryRemoveFieldsResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(DictionaryRemoveFieldsResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 

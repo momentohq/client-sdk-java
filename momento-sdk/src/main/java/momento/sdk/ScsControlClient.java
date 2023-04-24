@@ -32,15 +32,15 @@ import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
-import momento.sdk.responses.CacheInfo;
-import momento.sdk.responses.CreateCacheResponse;
-import momento.sdk.responses.CreateSigningKeyResponse;
-import momento.sdk.responses.DeleteCacheResponse;
-import momento.sdk.responses.FlushCacheResponse;
-import momento.sdk.responses.ListCachesResponse;
-import momento.sdk.responses.ListSigningKeysResponse;
-import momento.sdk.responses.RevokeSigningKeyResponse;
-import momento.sdk.responses.SigningKey;
+import momento.sdk.responses.cache.control.CacheCreateResponse;
+import momento.sdk.responses.cache.control.CacheDeleteResponse;
+import momento.sdk.responses.cache.control.CacheFlushResponse;
+import momento.sdk.responses.cache.control.CacheInfo;
+import momento.sdk.responses.cache.control.CacheListResponse;
+import momento.sdk.responses.cache.signing.SigningKey;
+import momento.sdk.responses.cache.signing.SigningKeyCreateResponse;
+import momento.sdk.responses.cache.signing.SigningKeyListResponse;
+import momento.sdk.responses.cache.signing.SigningKeyRevokeResponse;
 
 /** Client for interacting with Scs Control Plane. */
 final class ScsControlClient extends ScsClient {
@@ -53,80 +53,80 @@ final class ScsControlClient extends ScsClient {
     this.controlGrpcStubsManager = new ScsControlGrpcStubsManager(credentialProvider);
   }
 
-  CompletableFuture<CreateCacheResponse> createCache(String cacheName) {
+  CompletableFuture<CacheCreateResponse> createCache(String cacheName) {
     try {
       checkCacheNameValid(cacheName);
 
       return sendCreateCache(cacheName);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CreateCacheResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new CacheCreateResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<DeleteCacheResponse> deleteCache(String cacheName) {
+  CompletableFuture<CacheDeleteResponse> deleteCache(String cacheName) {
     try {
       checkCacheNameValid(cacheName);
 
       return sendDeleteCache(cacheName);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new DeleteCacheResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<FlushCacheResponse> flushCache(String cacheName) {
+  CompletableFuture<CacheFlushResponse> flushCache(String cacheName) {
     try {
       checkCacheNameValid(cacheName);
 
       return sendFlushCache(cacheName);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new FlushCacheResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new CacheFlushResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<ListCachesResponse> listCaches() {
+  CompletableFuture<CacheListResponse> listCaches() {
     try {
       return sendListCaches();
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new ListCachesResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new CacheListResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<CreateSigningKeyResponse> createSigningKey(Duration ttl) {
+  CompletableFuture<SigningKeyCreateResponse> createSigningKey(Duration ttl) {
     try {
       ensureValidTtlMinutes(ttl);
 
       return sendCreateSigningKey(ttl);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new CreateSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SigningKeyCreateResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<RevokeSigningKeyResponse> revokeSigningKey(String keyId) {
+  CompletableFuture<SigningKeyRevokeResponse> revokeSigningKey(String keyId) {
     try {
       ensureValidKey(keyId);
 
       return sendRevokeSigningKey(keyId);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new RevokeSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SigningKeyRevokeResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<ListSigningKeysResponse> listSigningKeys() {
+  CompletableFuture<SigningKeyListResponse> listSigningKeys() {
     try {
       return sendListSigningKeys();
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new ListSigningKeysResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new SigningKeyListResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  private CompletableFuture<CreateCacheResponse> sendCreateCache(String cacheName) {
+  private CompletableFuture<CacheCreateResponse> sendCreateCache(String cacheName) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_CreateCacheResponse>> stubSupplier =
@@ -134,16 +134,16 @@ final class ScsControlClient extends ScsClient {
             attachMetadata(controlGrpcStubsManager.getStub(), metadata)
                 .createCache(_CreateCacheRequest.newBuilder().setCacheName(cacheName).build());
 
-    final Function<_CreateCacheResponse, CreateCacheResponse> success =
-        rsp -> new CreateCacheResponse.Success();
+    final Function<_CreateCacheResponse, CacheCreateResponse> success =
+        rsp -> new CacheCreateResponse.Success();
 
-    final Function<Throwable, CreateCacheResponse> failure =
-        e -> new CreateCacheResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+    final Function<Throwable, CacheCreateResponse> failure =
+        e -> new CacheCreateResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<DeleteCacheResponse> sendDeleteCache(String cacheName) {
+  private CompletableFuture<CacheDeleteResponse> sendDeleteCache(String cacheName) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_DeleteCacheResponse>> stubSupplier =
@@ -151,16 +151,16 @@ final class ScsControlClient extends ScsClient {
             attachMetadata(controlGrpcStubsManager.getStub(), metadata)
                 .deleteCache(_DeleteCacheRequest.newBuilder().setCacheName(cacheName).build());
 
-    final Function<_DeleteCacheResponse, DeleteCacheResponse> success =
-        rsp -> new DeleteCacheResponse.Success();
+    final Function<_DeleteCacheResponse, CacheDeleteResponse> success =
+        rsp -> new CacheDeleteResponse.Success();
 
-    final Function<Throwable, DeleteCacheResponse> failure =
-        e -> new DeleteCacheResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+    final Function<Throwable, CacheDeleteResponse> failure =
+        e -> new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<FlushCacheResponse> sendFlushCache(String cacheName) {
+  private CompletableFuture<CacheFlushResponse> sendFlushCache(String cacheName) {
     final Metadata metadata = metadataWithCache(cacheName);
 
     final Supplier<ListenableFuture<_FlushCacheResponse>> stubSupplier =
@@ -168,16 +168,16 @@ final class ScsControlClient extends ScsClient {
             attachMetadata(controlGrpcStubsManager.getStub(), metadata)
                 .flushCache(_FlushCacheRequest.newBuilder().setCacheName(cacheName).build());
 
-    final Function<_FlushCacheResponse, FlushCacheResponse> success =
-        rsp -> new FlushCacheResponse.Success();
+    final Function<_FlushCacheResponse, CacheFlushResponse> success =
+        rsp -> new CacheFlushResponse.Success();
 
-    final Function<Throwable, FlushCacheResponse> failure =
-        e -> new FlushCacheResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+    final Function<Throwable, CacheFlushResponse> failure =
+        e -> new CacheFlushResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<ListCachesResponse> sendListCaches() {
+  private CompletableFuture<CacheListResponse> sendListCaches() {
 
     final Supplier<ListenableFuture<_ListCachesResponse>> stubSupplier =
         () ->
@@ -185,20 +185,20 @@ final class ScsControlClient extends ScsClient {
                 .getStub()
                 .listCaches(_ListCachesRequest.newBuilder().setNextToken("").build());
 
-    final Function<_ListCachesResponse, ListCachesResponse> success =
+    final Function<_ListCachesResponse, CacheListResponse> success =
         rsp ->
-            new ListCachesResponse.Success(
+            new CacheListResponse.Success(
                 rsp.getCacheList().stream()
                     .map(c -> new CacheInfo(c.getCacheName()))
                     .collect(Collectors.toList()));
 
-    final Function<Throwable, ListCachesResponse> failure =
-        e -> new ListCachesResponse.Error(CacheServiceExceptionMapper.convert(e));
+    final Function<Throwable, CacheListResponse> failure =
+        e -> new CacheListResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<CreateSigningKeyResponse> sendCreateSigningKey(Duration ttl) {
+  private CompletableFuture<SigningKeyCreateResponse> sendCreateSigningKey(Duration ttl) {
 
     final Supplier<ListenableFuture<_CreateSigningKeyResponse>> stubSupplier =
         () ->
@@ -209,30 +209,30 @@ final class ScsControlClient extends ScsClient {
                         .setTtlMinutes((int) ttl.toMinutes())
                         .build());
 
-    final Function<_CreateSigningKeyResponse, CreateSigningKeyResponse> success =
+    final Function<_CreateSigningKeyResponse, SigningKeyCreateResponse> success =
         rsp -> {
           try {
             final JsonObject jsonObject = JsonParser.parseString(rsp.getKey()).getAsJsonObject();
             final String keyId = jsonObject.get("kid").getAsString();
-            return new CreateSigningKeyResponse.Success(
+            return new SigningKeyCreateResponse.Success(
                 keyId,
                 credentialProvider.getCacheEndpoint(),
                 rsp.getKey(),
                 new Date(rsp.getExpiresAt() * 1000));
           } catch (Exception e) {
-            return new CreateSigningKeyResponse.Error(
+            return new SigningKeyCreateResponse.Error(
                 new InternalServerException(
                     "Unable to parse key ID from server response. Please contact Momento."));
           }
         };
 
-    final Function<Throwable, CreateSigningKeyResponse> failure =
-        e -> new CreateSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
+    final Function<Throwable, SigningKeyCreateResponse> failure =
+        e -> new SigningKeyCreateResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<RevokeSigningKeyResponse> sendRevokeSigningKey(String keyId) {
+  private CompletableFuture<SigningKeyRevokeResponse> sendRevokeSigningKey(String keyId) {
 
     final Supplier<ListenableFuture<_RevokeSigningKeyResponse>> stubSupplier =
         () ->
@@ -240,16 +240,16 @@ final class ScsControlClient extends ScsClient {
                 .getStub()
                 .revokeSigningKey(_RevokeSigningKeyRequest.newBuilder().setKeyId(keyId).build());
 
-    final Function<_RevokeSigningKeyResponse, RevokeSigningKeyResponse> success =
-        rsp -> new RevokeSigningKeyResponse.Success();
+    final Function<_RevokeSigningKeyResponse, SigningKeyRevokeResponse> success =
+        rsp -> new SigningKeyRevokeResponse.Success();
 
-    final Function<Throwable, RevokeSigningKeyResponse> failure =
-        e -> new RevokeSigningKeyResponse.Error(CacheServiceExceptionMapper.convert(e));
+    final Function<Throwable, SigningKeyRevokeResponse> failure =
+        e -> new SigningKeyRevokeResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<ListSigningKeysResponse> sendListSigningKeys() {
+  private CompletableFuture<SigningKeyListResponse> sendListSigningKeys() {
 
     final Supplier<ListenableFuture<_ListSigningKeysResponse>> stubSupplier =
         () ->
@@ -257,9 +257,9 @@ final class ScsControlClient extends ScsClient {
                 .getStub()
                 .listSigningKeys(_ListSigningKeysRequest.newBuilder().setNextToken("").build());
 
-    final Function<_ListSigningKeysResponse, ListSigningKeysResponse> success =
+    final Function<_ListSigningKeysResponse, SigningKeyListResponse> success =
         rsp ->
-            new ListSigningKeysResponse.Success(
+            new SigningKeyListResponse.Success(
                 rsp.getSigningKeyList().stream()
                     .map(
                         sk ->
@@ -269,8 +269,8 @@ final class ScsControlClient extends ScsClient {
                                 credentialProvider.getCacheEndpoint()))
                     .collect(Collectors.toList()));
 
-    final Function<Throwable, ListSigningKeysResponse> failure =
-        e -> new ListSigningKeysResponse.Error(CacheServiceExceptionMapper.convert(e));
+    final Function<Throwable, SigningKeyListResponse> failure =
+        e -> new SigningKeyListResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }

@@ -78,10 +78,10 @@ package momento.client.example;
 
 import momento.sdk.CacheClient;
 import momento.sdk.exceptions.AlreadyExistsException;
-import momento.sdk.responses.CacheGetResponse;
-import momento.sdk.responses.CacheInfo;
-import momento.sdk.responses.CreateCacheResponse;
-import momento.sdk.responses.ListCachesResponse;
+import momento.sdk.responses.cache.GetResponse;
+import momento.sdk.responses.cache.control.CacheInfo;
+import momento.sdk.responses.cache.control.CacheCreateResponse;
+import momento.sdk.responses.cache.control.CacheListResponse;
 
 public class BasicExample extends AbstractExample {
 

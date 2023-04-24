@@ -12,13 +12,13 @@ import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.ServerUnavailableException;
-import momento.sdk.responses.CacheDeleteResponse;
-import momento.sdk.responses.CacheGetResponse;
-import momento.sdk.responses.CacheIncrementResponse;
-import momento.sdk.responses.CacheSetIfNotExistsResponse;
-import momento.sdk.responses.CacheSetResponse;
-import momento.sdk.responses.CreateCacheResponse;
-import momento.sdk.responses.FlushCacheResponse;
+import momento.sdk.responses.cache.DeleteResponse;
+import momento.sdk.responses.cache.GetResponse;
+import momento.sdk.responses.cache.IncrementResponse;
+import momento.sdk.responses.cache.SetIfNotExistsResponse;
+import momento.sdk.responses.cache.SetResponse;
+import momento.sdk.responses.cache.control.CacheCreateResponse;
+import momento.sdk.responses.cache.control.CacheFlushResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -91,18 +91,18 @@ final class CacheClientTest extends BaseTestClass {
     try {
       target.set(cacheName, key, value).join();
 
-      final CacheGetResponse getResponse = target.get(cacheName, key).join();
-      assertThat(getResponse).isInstanceOf(CacheGetResponse.Hit.class);
-      assertThat(((CacheGetResponse.Hit) getResponse).valueString()).isEqualTo(value);
+      final GetResponse getResponse = target.get(cacheName, key).join();
+      assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+      assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(value);
 
-      final CacheDeleteResponse deleteResponse = target.delete(cacheName, key).join();
-      assertThat(deleteResponse).isInstanceOf(CacheDeleteResponse.Success.class);
+      final DeleteResponse deleteResponse = target.delete(cacheName, key).join();
+      assertThat(deleteResponse).isInstanceOf(DeleteResponse.Success.class);
 
-      final CacheGetResponse getAfterDeleteResponse = target.get(cacheName, key).join();
-      assertThat(getAfterDeleteResponse).isInstanceOf(CacheGetResponse.Miss.class);
+      final GetResponse getAfterDeleteResponse = target.get(cacheName, key).join();
+      assertThat(getAfterDeleteResponse).isInstanceOf(GetResponse.Miss.class);
 
-      final CacheGetResponse getForKeyInSomeOtherCache = target.get(alternateCacheName, key).join();
-      assertThat(getForKeyInSomeOtherCache).isInstanceOf(CacheGetResponse.Miss.class);
+      final GetResponse getForKeyInSomeOtherCache = target.get(alternateCacheName, key).join();
+      assertThat(getForKeyInSomeOtherCache).isInstanceOf(GetResponse.Miss.class);
     } finally {
       target.deleteCache(alternateCacheName).join();
     }
@@ -117,18 +117,18 @@ final class CacheClientTest extends BaseTestClass {
     try {
       assertThat(target.set(cacheName, key, value, ttl1Hour))
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(CacheSetResponse.Success.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(SetResponse.Success.class))
           .satisfies(success -> assertThat(success.value()).isEqualTo(value));
 
       // Execute Flush
       assertThat(target.flushCache(cacheName))
           .succeedsWithin(FIVE_SECONDS)
-          .isInstanceOf(FlushCacheResponse.Success.class);
+          .isInstanceOf(CacheFlushResponse.Success.class);
 
       // Verify that previously set key is now a MISS
       assertThat(target.get(cacheName, key))
           .succeedsWithin(FIVE_SECONDS)
-          .isInstanceOf(CacheGetResponse.Miss.class);
+          .isInstanceOf(GetResponse.Miss.class);
     } finally {
       target.deleteCache(cacheName).join();
     }
@@ -138,7 +138,7 @@ final class CacheClientTest extends BaseTestClass {
   public void shouldReturnNotFoundWhenCacheToFlushDoesNotExist() {
     assertThat(target.flushCache(randomString("name")))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(FlushCacheResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheFlushResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 
@@ -146,7 +146,7 @@ final class CacheClientTest extends BaseTestClass {
   public void shouldReturnIllegalArgWhenCacheNameToFlushIsInvalid() {
     assertThat(target.flushCache(null))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(FlushCacheResponse.Error.class))
+        .asInstanceOf(InstanceOfAssertFactories.type(CacheFlushResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
 
@@ -170,14 +170,14 @@ final class CacheClientTest extends BaseTestClass {
       // Unable to hit control plane
       assertThat(client.createCache(randomString("cacheName")))
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(CreateCacheResponse.Error.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
           .satisfies(
               error -> assertThat(error).hasCauseInstanceOf(ServerUnavailableException.class));
 
       // But gets a valid response from Data plane
       assertThat(client.get("helloCache", "key"))
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(CacheGetResponse.Error.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
           .satisfies(
               error -> {
                 assertThat(error).hasCauseInstanceOf(AuthenticationException.class);
@@ -186,7 +186,7 @@ final class CacheClientTest extends BaseTestClass {
 
       assertThat(client.set("helloCache", "key", "value"))
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(CacheSetResponse.Error.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(SetResponse.Error.class))
           .satisfies(error -> assertThat(error).hasCauseInstanceOf(AuthenticationException.class));
     }
   }
@@ -201,19 +201,19 @@ final class CacheClientTest extends BaseTestClass {
       // Can reach control plane.
       assertThat(client.createCache(randomString("cacheName")))
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(CreateCacheResponse.Error.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
           .satisfies(error -> assertThat(error).hasCauseInstanceOf(AuthenticationException.class));
 
       // Unable to reach data plane
       assertThat(client.set("helloCache", "key", "value"))
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(CacheSetResponse.Error.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(SetResponse.Error.class))
           .satisfies(
               error -> assertThat(error).hasCauseInstanceOf(ServerUnavailableException.class));
 
       assertThat(client.get("helloCache", "key"))
           .succeedsWithin(FIVE_SECONDS)
-          .asInstanceOf(InstanceOfAssertFactories.type(CacheGetResponse.Error.class))
+          .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
           .satisfies(
               error -> assertThat(error).hasCauseInstanceOf(ServerUnavailableException.class));
     }
@@ -223,54 +223,54 @@ final class CacheClientTest extends BaseTestClass {
   public void shouldReturnCacheIncrementedValuesWithStringField() {
     final String field = "field";
 
-    CacheIncrementResponse incrementResponse =
+    IncrementResponse incrementResponse =
         target.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
-    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Success.class);
+    assertThat(((IncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
 
     // increment with ttl specified
     incrementResponse = target.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
-    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Success.class);
+    assertThat(((IncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
 
     // increment without ttl specified
     incrementResponse = target.increment(cacheName, field, -1051).join();
 
-    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
-    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Success.class);
+    assertThat(((IncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
 
-    CacheGetResponse getResp = target.get(cacheName, field).join();
-    assertThat(getResp).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) getResp).valueString()).isEqualTo("-1000");
+    GetResponse getResp = target.get(cacheName, field).join();
+    assertThat(getResp).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResp).valueString()).isEqualTo("-1000");
   }
 
   @Test
   public void shouldReturnCacheIncrementedValuesWithByteArrayField() {
     final byte[] field = "field".getBytes();
 
-    CacheIncrementResponse incrementResponse =
+    IncrementResponse incrementResponse =
         target.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
-    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Success.class);
+    assertThat(((IncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
 
     // increment with ttl specified
     incrementResponse = target.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
-    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Success.class);
+    assertThat(((IncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
 
     // increment without ttl specified
     incrementResponse = target.increment(cacheName, field, -1051).join();
 
-    assertThat(incrementResponse).isInstanceOf(CacheIncrementResponse.Success.class);
-    assertThat(((CacheIncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Success.class);
+    assertThat(((IncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
 
-    CacheGetResponse getResp = target.get(cacheName, field).join();
-    assertThat(getResp).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) getResp).valueString()).isEqualTo("-1000");
+    GetResponse getResp = target.get(cacheName, field).join();
+    assertThat(getResp).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResp).valueString()).isEqualTo("-1000");
   }
 
   @Test
@@ -278,13 +278,13 @@ final class CacheClientTest extends BaseTestClass {
     final String field = "field";
 
     // With ttl specified
-    CacheIncrementResponse cacheIncrementResponse =
+    IncrementResponse incrementResponse =
         target.increment(null, field, 1, DEFAULT_TTL_SECONDS).join();
-    assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Error.class);
 
     // Without ttl specified
-    cacheIncrementResponse = target.increment(null, field, 1).join();
-    assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
+    incrementResponse = target.increment(null, field, 1).join();
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Error.class);
   }
 
   @Test
@@ -293,13 +293,13 @@ final class CacheClientTest extends BaseTestClass {
     final String field = "field";
 
     // With ttl specified
-    CacheIncrementResponse cacheIncrementResponse =
+    IncrementResponse incrementResponse =
         target.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
-    assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Error.class);
 
     // Without ttl specified
-    cacheIncrementResponse = target.increment(cacheName, field, 1).join();
-    assertThat(cacheIncrementResponse).isInstanceOf(CacheIncrementResponse.Error.class);
+    incrementResponse = target.increment(cacheName, field, 1).join();
+    assertThat(incrementResponse).isInstanceOf(IncrementResponse.Error.class);
   }
 
   @Test
@@ -307,18 +307,17 @@ final class CacheClientTest extends BaseTestClass {
     final String key = randomString("test-key");
     final String value = randomString("test-value");
 
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
-        .isEqualTo(key);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyString()).isEqualTo(key);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueString())
         .isEqualTo(value);
 
-    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(value);
+    GetResponse getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
 
   @Test
@@ -326,18 +325,17 @@ final class CacheClientTest extends BaseTestClass {
     final String key = randomString("test-key");
     final String value = randomString("test-value");
 
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
-        .isEqualTo(key);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyString()).isEqualTo(key);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueString())
         .isEqualTo(value);
 
-    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(value);
+    GetResponse getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
 
   @Test
@@ -345,18 +343,17 @@ final class CacheClientTest extends BaseTestClass {
     final String key = randomString("test-key");
     final byte[] value = "test-value".getBytes();
 
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
-        .isEqualTo(key);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueByteArray())
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyString()).isEqualTo(key);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueByteArray())
         .isEqualTo(value);
 
-    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueByteArray()).isEqualTo(value);
+    GetResponse getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueByteArray()).isEqualTo(value);
   }
 
   @Test
@@ -364,18 +361,17 @@ final class CacheClientTest extends BaseTestClass {
     final String key = randomString("test-key");
     final byte[] value = "test-value".getBytes();
 
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
-        .isEqualTo(key);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueByteArray())
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyString()).isEqualTo(key);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueByteArray())
         .isEqualTo(value);
 
-    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueByteArray()).isEqualTo(value);
+    GetResponse getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueByteArray()).isEqualTo(value);
   }
 
   @Test
@@ -383,18 +379,18 @@ final class CacheClientTest extends BaseTestClass {
     final byte[] key = "test-key".getBytes();
     final String value = "test-value";
 
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyByteArray())
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyByteArray())
         .isEqualTo(key);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueString())
         .isEqualTo(value);
 
-    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(value);
+    GetResponse getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
 
   @Test
@@ -402,18 +398,18 @@ final class CacheClientTest extends BaseTestClass {
     final byte[] key = "test-key".getBytes();
     final String value = "test-value";
 
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyByteArray())
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyByteArray())
         .isEqualTo(key);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueString())
         .isEqualTo(value);
 
-    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(value);
+    GetResponse getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
 
   @Test
@@ -421,18 +417,18 @@ final class CacheClientTest extends BaseTestClass {
     final byte[] key = "test-key".getBytes();
     final byte[] value = "test-value".getBytes();
 
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyByteArray())
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyByteArray())
         .isEqualTo(key);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueByteArray())
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueByteArray())
         .isEqualTo(value);
 
-    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueByteArray()).isEqualTo(value);
+    GetResponse getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueByteArray()).isEqualTo(value);
   }
 
   @Test
@@ -440,18 +436,18 @@ final class CacheClientTest extends BaseTestClass {
     final byte[] key = "test-key".getBytes();
     final byte[] value = "test-value".getBytes();
 
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyByteArray())
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyByteArray())
         .isEqualTo(key);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueByteArray())
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueByteArray())
         .isEqualTo(value);
 
-    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueByteArray()).isEqualTo(value);
+    GetResponse getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueByteArray()).isEqualTo(value);
   }
 
   @Test
@@ -460,35 +456,32 @@ final class CacheClientTest extends BaseTestClass {
     final String oldValue = "old-test-value";
     final String newValue = "new-test-value";
 
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, oldValue, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Stored.class);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).keyString())
-        .isEqualTo(key);
-    assertThat(((CacheSetIfNotExistsResponse.Stored) cacheSetIfNotExistsResponse).valueString())
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyString()).isEqualTo(key);
+    assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueString())
         .isEqualTo(oldValue);
 
     // When ttl is specified
-    cacheSetIfNotExistsResponse =
+    setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, newValue, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(cacheSetIfNotExistsResponse)
-        .isInstanceOf(CacheSetIfNotExistsResponse.NotStored.class);
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.NotStored.class);
 
-    CacheGetResponse cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(oldValue);
+    GetResponse getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(oldValue);
 
     // When ttl is not specified
-    cacheSetIfNotExistsResponse = target.setIfNotExists(cacheName, key, newValue).join();
+    setIfNotExistsResponse = target.setIfNotExists(cacheName, key, newValue).join();
 
-    assertThat(cacheSetIfNotExistsResponse)
-        .isInstanceOf(CacheSetIfNotExistsResponse.NotStored.class);
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.NotStored.class);
 
-    cacheGetResponse = target.get(cacheName, key).join();
-    assertThat(cacheGetResponse).isInstanceOf(CacheGetResponse.Hit.class);
-    assertThat(((CacheGetResponse.Hit) cacheGetResponse).valueString()).isEqualTo(oldValue);
+    getResponse = target.get(cacheName, key).join();
+    assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
+    assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(oldValue);
   }
 
   @Test
@@ -498,15 +491,15 @@ final class CacheClientTest extends BaseTestClass {
     final String value = "old-test-value";
 
     // With ttl specified
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Error.class);
 
     // Without ttl specified
-    cacheSetIfNotExistsResponse = target.setIfNotExists(cacheName, key, value).join();
+    setIfNotExistsResponse = target.setIfNotExists(cacheName, key, value).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Error.class);
   }
 
   @Test
@@ -515,14 +508,14 @@ final class CacheClientTest extends BaseTestClass {
     final String value = "old-test-value";
 
     // With ttl specified
-    CacheSetIfNotExistsResponse cacheSetIfNotExistsResponse =
+    SetIfNotExistsResponse setIfNotExistsResponse =
         target.setIfNotExists(null, key, value, DEFAULT_TTL_SECONDS).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Error.class);
 
     // Without ttl specified
-    cacheSetIfNotExistsResponse = target.setIfNotExists(null, key, value).join();
+    setIfNotExistsResponse = target.setIfNotExists(null, key, value).join();
 
-    assertThat(cacheSetIfNotExistsResponse).isInstanceOf(CacheSetIfNotExistsResponse.Error.class);
+    assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Error.class);
   }
 }

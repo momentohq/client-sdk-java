@@ -9,52 +9,52 @@ import javax.annotation.Nullable;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
 import momento.sdk.requests.CollectionTtl;
-import momento.sdk.responses.CacheDeleteResponse;
-import momento.sdk.responses.CacheDictionaryFetchResponse;
-import momento.sdk.responses.CacheDictionaryGetFieldResponse;
-import momento.sdk.responses.CacheDictionaryGetFieldsResponse;
-import momento.sdk.responses.CacheDictionaryIncrementResponse;
-import momento.sdk.responses.CacheDictionaryRemoveFieldResponse;
-import momento.sdk.responses.CacheDictionaryRemoveFieldsResponse;
-import momento.sdk.responses.CacheDictionarySetFieldResponse;
-import momento.sdk.responses.CacheDictionarySetFieldsResponse;
-import momento.sdk.responses.CacheGetResponse;
-import momento.sdk.responses.CacheIncrementResponse;
-import momento.sdk.responses.CacheListConcatenateBackResponse;
-import momento.sdk.responses.CacheListConcatenateFrontResponse;
-import momento.sdk.responses.CacheListFetchResponse;
-import momento.sdk.responses.CacheListLengthResponse;
-import momento.sdk.responses.CacheListPopBackResponse;
-import momento.sdk.responses.CacheListPopFrontResponse;
-import momento.sdk.responses.CacheListPushBackResponse;
-import momento.sdk.responses.CacheListPushFrontResponse;
-import momento.sdk.responses.CacheListRemoveValueResponse;
-import momento.sdk.responses.CacheListRetainResponse;
-import momento.sdk.responses.CacheSetAddElementResponse;
-import momento.sdk.responses.CacheSetAddElementsResponse;
-import momento.sdk.responses.CacheSetFetchResponse;
-import momento.sdk.responses.CacheSetIfNotExistsResponse;
-import momento.sdk.responses.CacheSetRemoveElementResponse;
-import momento.sdk.responses.CacheSetRemoveElementsResponse;
-import momento.sdk.responses.CacheSetResponse;
-import momento.sdk.responses.CacheSortedSetFetchResponse;
-import momento.sdk.responses.CacheSortedSetGetRankResponse;
-import momento.sdk.responses.CacheSortedSetGetScoreResponse;
-import momento.sdk.responses.CacheSortedSetGetScoresResponse;
-import momento.sdk.responses.CacheSortedSetIncrementScoreResponse;
-import momento.sdk.responses.CacheSortedSetPutElementResponse;
-import momento.sdk.responses.CacheSortedSetPutElementsResponse;
-import momento.sdk.responses.CacheSortedSetRemoveElementResponse;
-import momento.sdk.responses.CacheSortedSetRemoveElementsResponse;
-import momento.sdk.responses.CreateCacheResponse;
-import momento.sdk.responses.CreateSigningKeyResponse;
-import momento.sdk.responses.DeleteCacheResponse;
-import momento.sdk.responses.FlushCacheResponse;
-import momento.sdk.responses.ListCachesResponse;
-import momento.sdk.responses.ListSigningKeysResponse;
-import momento.sdk.responses.RevokeSigningKeyResponse;
-import momento.sdk.responses.ScoredElement;
 import momento.sdk.responses.SortOrder;
+import momento.sdk.responses.cache.DeleteResponse;
+import momento.sdk.responses.cache.GetResponse;
+import momento.sdk.responses.cache.IncrementResponse;
+import momento.sdk.responses.cache.SetIfNotExistsResponse;
+import momento.sdk.responses.cache.SetResponse;
+import momento.sdk.responses.cache.control.CacheCreateResponse;
+import momento.sdk.responses.cache.control.CacheDeleteResponse;
+import momento.sdk.responses.cache.control.CacheFlushResponse;
+import momento.sdk.responses.cache.control.CacheListResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryFetchResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryGetFieldResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryGetFieldsResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryIncrementResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryRemoveFieldResponse;
+import momento.sdk.responses.cache.dictionary.DictionaryRemoveFieldsResponse;
+import momento.sdk.responses.cache.dictionary.DictionarySetFieldResponse;
+import momento.sdk.responses.cache.dictionary.DictionarySetFieldsResponse;
+import momento.sdk.responses.cache.list.ListConcatenateBackResponse;
+import momento.sdk.responses.cache.list.ListConcatenateFrontResponse;
+import momento.sdk.responses.cache.list.ListFetchResponse;
+import momento.sdk.responses.cache.list.ListLengthResponse;
+import momento.sdk.responses.cache.list.ListPopBackResponse;
+import momento.sdk.responses.cache.list.ListPopFrontResponse;
+import momento.sdk.responses.cache.list.ListPushBackResponse;
+import momento.sdk.responses.cache.list.ListPushFrontResponse;
+import momento.sdk.responses.cache.list.ListRemoveValueResponse;
+import momento.sdk.responses.cache.list.ListRetainResponse;
+import momento.sdk.responses.cache.set.SetAddElementResponse;
+import momento.sdk.responses.cache.set.SetAddElementsResponse;
+import momento.sdk.responses.cache.set.SetFetchResponse;
+import momento.sdk.responses.cache.set.SetRemoveElementResponse;
+import momento.sdk.responses.cache.set.SetRemoveElementsResponse;
+import momento.sdk.responses.cache.signing.SigningKeyCreateResponse;
+import momento.sdk.responses.cache.signing.SigningKeyListResponse;
+import momento.sdk.responses.cache.signing.SigningKeyRevokeResponse;
+import momento.sdk.responses.cache.sortedset.ScoredElement;
+import momento.sdk.responses.cache.sortedset.SortedSetFetchResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetGetRankResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetGetScoreResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetGetScoresResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetIncrementScoreResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetPutElementResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetPutElementsResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementResponse;
+import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
 
 /** Client to perform operations against the Momento Cache Service */
 public final class CacheClient implements Closeable {
@@ -95,9 +95,9 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName The name of the cache to be created.
    * @return A future containing the result of the cache creation: {@link
-   *     CreateCacheResponse.Success} or {@link CreateCacheResponse.Error}.
+   *     CacheCreateResponse.Success} or {@link CacheCreateResponse.Error}.
    */
-  public CompletableFuture<CreateCacheResponse> createCache(String cacheName) {
+  public CompletableFuture<CacheCreateResponse> createCache(String cacheName) {
     return scsControlClient.createCache(cacheName);
   }
 
@@ -108,7 +108,7 @@ public final class CacheClient implements Closeable {
    * @return A future containing the result of the cache deletion: {@link
    *     CacheDeleteResponse.Success} or {@link CacheDeleteResponse.Error}.
    */
-  public CompletableFuture<DeleteCacheResponse> deleteCache(String cacheName) {
+  public CompletableFuture<CacheDeleteResponse> deleteCache(String cacheName) {
     return scsControlClient.deleteCache(cacheName);
   }
 
@@ -116,10 +116,10 @@ public final class CacheClient implements Closeable {
    * Flushes the contents of a cache.
    *
    * @param cacheName The cache to be flushed.
-   * @return A future containing the result of the cache flush: {@link FlushCacheResponse.Success}
-   *     or {@link FlushCacheResponse.Error}.
+   * @return A future containing the result of the cache flush: {@link CacheFlushResponse.Success}
+   *     or {@link CacheFlushResponse.Error}.
    */
-  public CompletableFuture<FlushCacheResponse> flushCache(String cacheName) {
+  public CompletableFuture<CacheFlushResponse> flushCache(String cacheName) {
     return scsControlClient.flushCache(cacheName);
   }
 
@@ -127,10 +127,10 @@ public final class CacheClient implements Closeable {
    * Lists all caches.
    *
    * @return A future containing the result of the list caches operation: {@link
-   *     ListCachesResponse.Success} containing the list of caches, or {@link
-   *     FlushCacheResponse.Error}.
+   *     CacheListResponse.Success} containing the list of caches, or {@link
+   *     CacheListResponse.Error}.
    */
-  public CompletableFuture<ListCachesResponse> listCaches() {
+  public CompletableFuture<CacheListResponse> listCaches() {
     return scsControlClient.listCaches();
   }
 
@@ -139,10 +139,10 @@ public final class CacheClient implements Closeable {
    *
    * @param ttl The key's time-to-live duration.
    * @return A future containing the result of the signing key creation: {@link
-   *     CreateSigningKeyResponse.Success} containing the key and its metadata, or {@link
-   *     CreateSigningKeyResponse.Error}.
+   *     SigningKeyCreateResponse.Success} containing the key and its metadata, or {@link
+   *     SigningKeyCreateResponse.Error}.
    */
-  public CompletableFuture<CreateSigningKeyResponse> createSigningKey(Duration ttl) {
+  public CompletableFuture<SigningKeyCreateResponse> createSigningKey(Duration ttl) {
     return scsControlClient.createSigningKey(ttl);
   }
 
@@ -151,9 +151,9 @@ public final class CacheClient implements Closeable {
    *
    * @param keyId The ID of the key to revoke.
    * @return A future containing the result of the signing key revocation: {@link
-   *     RevokeSigningKeyResponse.Success} or {@link RevokeSigningKeyResponse.Error}.
+   *     SigningKeyRevokeResponse.Success} or {@link SigningKeyRevokeResponse.Error}.
    */
-  public CompletableFuture<RevokeSigningKeyResponse> revokeSigningKey(String keyId) {
+  public CompletableFuture<SigningKeyRevokeResponse> revokeSigningKey(String keyId) {
     return scsControlClient.revokeSigningKey(keyId);
   }
 
@@ -161,10 +161,10 @@ public final class CacheClient implements Closeable {
    * Lists all Momento signing keys.
    *
    * @return A future containing the result of the signing key revocation: {@link
-   *     ListSigningKeysResponse.Success} containing the list of signing keys, or {@link
-   *     ListSigningKeysResponse.Error}.
+   *     SigningKeyListResponse.Success} containing the list of signing keys, or {@link
+   *     SigningKeyListResponse.Error}.
    */
-  public CompletableFuture<ListSigningKeysResponse> listSigningKeys() {
+  public CompletableFuture<SigningKeyListResponse> listSigningKeys() {
     return scsControlClient.listSigningKeys();
   }
 
@@ -173,10 +173,10 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName Name of the cache to get the item from.
    * @param key The key to get.
-   * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
+   * @return Future with {@link GetResponse} containing the status of the get operation and the
    *     associated value data.
    */
-  public CompletableFuture<CacheGetResponse> get(String cacheName, byte[] key) {
+  public CompletableFuture<GetResponse> get(String cacheName, byte[] key) {
     return scsDataClient.get(cacheName, key);
   }
 
@@ -185,10 +185,10 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName Name of the cache to get the item from.
    * @param key The key to get.
-   * @return Future with {@link CacheGetResponse} containing the status of the get operation and the
+   * @return Future with {@link GetResponse} containing the status of the get operation and the
    *     associated value data.
    */
-  public CompletableFuture<CacheGetResponse> get(String cacheName, String key) {
+  public CompletableFuture<GetResponse> get(String cacheName, String key) {
     return scsDataClient.get(cacheName, key);
   }
 
@@ -197,9 +197,9 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName Name of the cache to delete the item from.
    * @param key The key to delete
-   * @return Future with {@link CacheDeleteResponse}.
+   * @return Future with {@link DeleteResponse}.
    */
-  public CompletableFuture<CacheDeleteResponse> delete(String cacheName, String key) {
+  public CompletableFuture<DeleteResponse> delete(String cacheName, String key) {
     return scsDataClient.delete(cacheName, key);
   }
 
@@ -208,9 +208,9 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName Name of the cache to delete the item from.
    * @param key The key to delete.
-   * @return Future with {@link CacheDeleteResponse}.
+   * @return Future with {@link DeleteResponse}.
    */
-  public CompletableFuture<CacheDeleteResponse> delete(String cacheName, byte[] key) {
+  public CompletableFuture<DeleteResponse> delete(String cacheName, byte[] key) {
     return scsDataClient.delete(cacheName, key);
   }
 
@@ -227,7 +227,7 @@ public final class CacheClient implements Closeable {
    *     Duration)}.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetResponse> set(
+  public CompletableFuture<SetResponse> set(
       String cacheName, byte[] key, byte[] value, @Nullable Duration ttl) {
     return scsDataClient.set(cacheName, key, value, ttl);
   }
@@ -244,7 +244,7 @@ public final class CacheClient implements Closeable {
    * @param value The value to be stored.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetResponse> set(String cacheName, byte[] key, byte[] value) {
+  public CompletableFuture<SetResponse> set(String cacheName, byte[] key, byte[] value) {
     return scsDataClient.set(cacheName, key, value, null);
   }
 
@@ -261,7 +261,7 @@ public final class CacheClient implements Closeable {
    *     Duration)}.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetResponse> set(
+  public CompletableFuture<SetResponse> set(
       String cacheName, String key, String value, @Nullable Duration ttl) {
     return scsDataClient.set(cacheName, key, value, ttl);
   }
@@ -278,7 +278,7 @@ public final class CacheClient implements Closeable {
    * @param value The value to be stored.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetResponse> set(String cacheName, String key, String value) {
+  public CompletableFuture<SetResponse> set(String cacheName, String key, String value) {
     return scsDataClient.set(cacheName, key, value, null);
   }
 
@@ -294,7 +294,7 @@ public final class CacheClient implements Closeable {
    *     Duration)}.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, String key, String value, @Nullable Duration ttl) {
     return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
   }
@@ -311,7 +311,7 @@ public final class CacheClient implements Closeable {
    * @param value {String} The value to be stored.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, String key, String value) {
     return scsDataClient.setIfNotExists(cacheName, key, value, null);
   }
@@ -328,7 +328,7 @@ public final class CacheClient implements Closeable {
    *     Duration)}.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, String key, byte[] value, @Nullable Duration ttl) {
     return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
   }
@@ -345,7 +345,7 @@ public final class CacheClient implements Closeable {
    * @param value {Byte Array} The value to be stored.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, String key, byte[] value) {
     return scsDataClient.setIfNotExists(cacheName, key, value, null);
   }
@@ -362,7 +362,7 @@ public final class CacheClient implements Closeable {
    *     Duration)}.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, byte[] key, String value, @Nullable Duration ttl) {
     return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
   }
@@ -379,7 +379,7 @@ public final class CacheClient implements Closeable {
    * @param value {String} The value to be stored.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, byte[] key, String value) {
     return scsDataClient.setIfNotExists(cacheName, key, value, null);
   }
@@ -396,7 +396,7 @@ public final class CacheClient implements Closeable {
    *     Duration)}.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, byte[] key, byte[] value, @Nullable Duration ttl) {
     return scsDataClient.setIfNotExists(cacheName, key, value, ttl);
   }
@@ -413,7 +413,7 @@ public final class CacheClient implements Closeable {
    * @param value {Byte Array} The value to be stored.
    * @return Future containing the result of the set operation.
    */
-  public CompletableFuture<CacheSetIfNotExistsResponse> setIfNotExists(
+  public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, byte[] key, byte[] value) {
     return scsDataClient.setIfNotExists(cacheName, key, value, null);
   }
@@ -429,7 +429,7 @@ public final class CacheClient implements Closeable {
    *     Duration)}.
    * @return Future containing the result of the increment operation.
    */
-  public CompletableFuture<CacheIncrementResponse> increment(
+  public CompletableFuture<IncrementResponse> increment(
       String cacheName, String field, long amount, @Nullable Duration ttl) {
     return scsDataClient.increment(cacheName, field, amount, ttl);
   }
@@ -445,7 +445,7 @@ public final class CacheClient implements Closeable {
    * @param amount The amount by which the cache value is to be incremented.
    * @return Future containing the result of the increment operation.
    */
-  public CompletableFuture<CacheIncrementResponse> increment(
+  public CompletableFuture<IncrementResponse> increment(
       String cacheName, String field, long amount) {
     return scsDataClient.increment(cacheName, field, amount, null);
   }
@@ -461,7 +461,7 @@ public final class CacheClient implements Closeable {
    *     Duration)}.
    * @return Future containing the result of the increment operation.
    */
-  public CompletableFuture<CacheIncrementResponse> increment(
+  public CompletableFuture<IncrementResponse> increment(
       String cacheName, byte[] field, long amount, @Nullable Duration ttl) {
     return scsDataClient.increment(cacheName, field, amount, ttl);
   }
@@ -477,7 +477,7 @@ public final class CacheClient implements Closeable {
    * @param amount The amount by which the cache value is to be incremented.
    * @return Future containing the result of the increment operation.
    */
-  public CompletableFuture<CacheIncrementResponse> increment(
+  public CompletableFuture<IncrementResponse> increment(
       String cacheName, byte[] field, long amount) {
     return scsDataClient.increment(cacheName, field, amount, null);
   }
@@ -494,9 +494,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the add element operation: {@link
-   *     CacheSetAddElementResponse.Success} or {@link CacheSetAddElementResponse.Error}.
+   *     SetAddElementResponse.Success} or {@link SetAddElementResponse.Error}.
    */
-  public CompletableFuture<CacheSetAddElementResponse> setAddElement(
+  public CompletableFuture<SetAddElementResponse> setAddElement(
       @Nonnull String cacheName,
       @Nonnull String setName,
       @Nonnull String element,
@@ -514,9 +514,9 @@ public final class CacheClient implements Closeable {
    * @param setName The set to add the element to.
    * @param element The data to add to the set.
    * @return Future containing the result of the add element operation: {@link
-   *     CacheSetAddElementResponse.Success} or {@link CacheSetAddElementResponse.Error}.
+   *     SetAddElementResponse.Success} or {@link SetAddElementResponse.Error}.
    */
-  public CompletableFuture<CacheSetAddElementResponse> setAddElement(
+  public CompletableFuture<SetAddElementResponse> setAddElement(
       @Nonnull String cacheName, @Nonnull String setName, @Nonnull String element) {
     return scsDataClient.setAddElement(cacheName, setName, element, null);
   }
@@ -533,9 +533,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the add element operation: {@link
-   *     CacheSetAddElementResponse.Success} or {@link CacheSetAddElementResponse.Error}.
+   *     SetAddElementResponse.Success} or {@link SetAddElementResponse.Error}.
    */
-  public CompletableFuture<CacheSetAddElementResponse> setAddElement(
+  public CompletableFuture<SetAddElementResponse> setAddElement(
       @Nonnull String cacheName,
       @Nonnull String setName,
       @Nonnull byte[] element,
@@ -553,9 +553,9 @@ public final class CacheClient implements Closeable {
    * @param setName The set to add the element to.
    * @param element The data to add to the set.
    * @return Future containing the result of the add element operation: {@link
-   *     CacheSetAddElementResponse.Success} or {@link CacheSetAddElementResponse.Error}.
+   *     SetAddElementResponse.Success} or {@link SetAddElementResponse.Error}.
    */
-  public CompletableFuture<CacheSetAddElementResponse> setAddElement(
+  public CompletableFuture<SetAddElementResponse> setAddElement(
       @Nonnull String cacheName, @Nonnull String setName, @Nonnull byte[] element) {
     return scsDataClient.setAddElement(cacheName, setName, element, null);
   }
@@ -572,9 +572,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the add elements operation: {@link
-   *     CacheSetAddElementsResponse.Success} or {@link CacheSetAddElementsResponse.Error}.
+   *     SetAddElementsResponse.Success} or {@link SetAddElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
+  public CompletableFuture<SetAddElementsResponse> setAddElements(
       @Nonnull String cacheName,
       @Nonnull String setName,
       @Nonnull Iterable<String> elements,
@@ -592,9 +592,9 @@ public final class CacheClient implements Closeable {
    * @param setName The set to add the elements to.
    * @param elements The data to add to the set.
    * @return Future containing the result of the add elements operation: {@link
-   *     CacheSetAddElementsResponse.Success} or {@link CacheSetAddElementsResponse.Error}.
+   *     SetAddElementsResponse.Success} or {@link SetAddElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddElements(
+  public CompletableFuture<SetAddElementsResponse> setAddElements(
       @Nonnull String cacheName, @Nonnull String setName, @Nonnull Iterable<String> elements) {
     return scsDataClient.setAddElements(cacheName, setName, elements, null);
   }
@@ -611,9 +611,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the add elements operation: {@link
-   *     CacheSetAddElementsResponse.Success} or {@link CacheSetAddElementsResponse.Error}.
+   *     SetAddElementsResponse.Success} or {@link SetAddElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
+  public CompletableFuture<SetAddElementsResponse> setAddElementsByteArray(
       @Nonnull String cacheName,
       @Nonnull String setName,
       @Nonnull Iterable<byte[]> elements,
@@ -631,9 +631,9 @@ public final class CacheClient implements Closeable {
    * @param setName The set to add the elements to.
    * @param elements The data to add to the set.
    * @return Future containing the result of the add elements operation: {@link
-   *     CacheSetAddElementsResponse.Success} or {@link CacheSetAddElementsResponse.Error}.
+   *     SetAddElementsResponse.Success} or {@link SetAddElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSetAddElementsResponse> setAddElementsByteArray(
+  public CompletableFuture<SetAddElementsResponse> setAddElementsByteArray(
       @Nonnull String cacheName, @Nonnull String setName, @Nonnull Iterable<byte[]> elements) {
     return scsDataClient.setAddElementsByteArray(cacheName, setName, elements, null);
   }
@@ -645,9 +645,9 @@ public final class CacheClient implements Closeable {
    * @param setName The set to remove the element from.
    * @param element The value to remove from the set.
    * @return Future containing the result of the remove element operation: {@link
-   *     CacheSetRemoveElementResponse.Success} or {@link CacheSetRemoveElementResponse.Error}.
+   *     SetRemoveElementResponse.Success} or {@link SetRemoveElementResponse.Error}.
    */
-  public CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
+  public CompletableFuture<SetRemoveElementResponse> setRemoveElement(
       @Nonnull String cacheName, @Nonnull String setName, @Nonnull String element) {
     return scsDataClient.setRemoveElement(cacheName, setName, element);
   }
@@ -659,9 +659,9 @@ public final class CacheClient implements Closeable {
    * @param setName The set to remove the element from.
    * @param element The value to remove from the set.
    * @return Future containing the result of the remove element operation: {@link
-   *     CacheSetRemoveElementResponse.Success} or {@link CacheSetRemoveElementResponse.Error}.
+   *     SetRemoveElementResponse.Success} or {@link SetRemoveElementResponse.Error}.
    */
-  public CompletableFuture<CacheSetRemoveElementResponse> setRemoveElement(
+  public CompletableFuture<SetRemoveElementResponse> setRemoveElement(
       @Nonnull String cacheName, @Nonnull String setName, @Nonnull byte[] element) {
     return scsDataClient.setRemoveElement(cacheName, setName, element);
   }
@@ -673,9 +673,9 @@ public final class CacheClient implements Closeable {
    * @param setName The set to remove the elements from.
    * @param elements The values to remove from the set.
    * @return Future containing the result of the remove elements operation: {@link
-   *     CacheSetRemoveElementsResponse.Success} or {@link CacheSetRemoveElementsResponse.Error}.
+   *     SetRemoveElementsResponse.Success} or {@link SetRemoveElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElements(
+  public CompletableFuture<SetRemoveElementsResponse> setRemoveElements(
       @Nonnull String cacheName, @Nonnull String setName, @Nonnull Iterable<String> elements) {
     return scsDataClient.setRemoveElements(cacheName, setName, elements);
   }
@@ -687,9 +687,9 @@ public final class CacheClient implements Closeable {
    * @param setName The set to remove the elements from.
    * @param elements The value to remove from the set.
    * @return Future containing the result of the remove elements operation: {@link
-   *     CacheSetRemoveElementsResponse.Success} or {@link CacheSetRemoveElementsResponse.Error}.
+   *     SetRemoveElementsResponse.Success} or {@link SetRemoveElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSetRemoveElementsResponse> setRemoveElementsByteArray(
+  public CompletableFuture<SetRemoveElementsResponse> setRemoveElementsByteArray(
       @Nonnull String cacheName, @Nonnull String setName, @Nonnull Iterable<byte[]> elements) {
     return scsDataClient.setRemoveElementsByteArray(cacheName, setName, elements);
   }
@@ -699,10 +699,10 @@ public final class CacheClient implements Closeable {
    *
    * @param cacheName Name of the cache to perform the lookup in.
    * @param setName The set to fetch.
-   * @return Future containing the result of the fetch operation: {@link CacheSetFetchResponse.Hit},
-   *     {@link CacheSetFetchResponse.Miss}, or {@link CacheSetFetchResponse.Error}.
+   * @return Future containing the result of the fetch operation: {@link SetFetchResponse.Hit},
+   *     {@link SetFetchResponse.Miss}, or {@link SetFetchResponse.Error}.
    */
-  public CompletableFuture<CacheSetFetchResponse> setFetch(
+  public CompletableFuture<SetFetchResponse> setFetch(
       @Nonnull String cacheName, @Nonnull String setName) {
     return scsDataClient.setFetch(cacheName, setName);
   }
@@ -718,10 +718,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the put element operation: {@link
-   *     CacheSortedSetPutElementResponse.Success} or {@link
-   *     CacheSortedSetPutElementResponse.Error}.
+   *     SortedSetPutElementResponse.Success} or {@link SortedSetPutElementResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+  public CompletableFuture<SortedSetPutElementResponse> sortedSetPutElement(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull String value,
@@ -739,10 +738,9 @@ public final class CacheClient implements Closeable {
    * @param value - The value of the element to add.
    * @param score - The score to assign to the element.
    * @return Future containing the result of the put element operation: {@link
-   *     CacheSortedSetPutElementResponse.Success} or {@link
-   *     CacheSortedSetPutElementResponse.Error}.
+   *     SortedSetPutElementResponse.Success} or {@link SortedSetPutElementResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+  public CompletableFuture<SortedSetPutElementResponse> sortedSetPutElement(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull String value,
@@ -761,10 +759,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the put element operation: {@link
-   *     CacheSortedSetPutElementResponse.Success} or {@link
-   *     CacheSortedSetPutElementResponse.Error}.
+   *     SortedSetPutElementResponse.Success} or {@link SortedSetPutElementResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+  public CompletableFuture<SortedSetPutElementResponse> sortedSetPutElement(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull byte[] value,
@@ -782,10 +779,9 @@ public final class CacheClient implements Closeable {
    * @param value - The value of the element to add.
    * @param score - The score to assign to the element.
    * @return Future containing the result of the put element operation: {@link
-   *     CacheSortedSetPutElementResponse.Success} or {@link
-   *     CacheSortedSetPutElementResponse.Error}.
+   *     SortedSetPutElementResponse.Success} or {@link SortedSetPutElementResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementResponse> sortedSetPutElement(
+  public CompletableFuture<SortedSetPutElementResponse> sortedSetPutElement(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull byte[] value,
@@ -803,10 +799,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the put elements operation: {@link
-   *     CacheSortedSetPutElementsResponse.Success} or {@link
-   *     CacheSortedSetPutElementsResponse.Error}.
+   *     SortedSetPutElementsResponse.Success} or {@link SortedSetPutElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+  public CompletableFuture<SortedSetPutElementsResponse> sortedSetPutElements(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull Map<String, Double> elements,
@@ -822,10 +817,9 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to add to.
    * @param elements - The value to score map to add to the sorted set.
    * @return Future containing the result of the put elements operation: {@link
-   *     CacheSortedSetPutElementsResponse.Success} or {@link
-   *     CacheSortedSetPutElementsResponse.Error}.
+   *     SortedSetPutElementsResponse.Success} or {@link SortedSetPutElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+  public CompletableFuture<SortedSetPutElementsResponse> sortedSetPutElements(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull Map<String, Double> elements) {
@@ -842,10 +836,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the put elements operation: {@link
-   *     CacheSortedSetPutElementsResponse.Success} or {@link
-   *     CacheSortedSetPutElementsResponse.Error}.
+   *     SortedSetPutElementsResponse.Success} or {@link SortedSetPutElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElementsByteArray(
+  public CompletableFuture<SortedSetPutElementsResponse> sortedSetPutElementsByteArray(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull Map<byte[], Double> elements,
@@ -861,10 +854,9 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to add to.
    * @param elements - The value to score map to add to the sorted set.
    * @return Future containing the result of the put elements operation: {@link
-   *     CacheSortedSetPutElementsResponse.Success} or {@link
-   *     CacheSortedSetPutElementsResponse.Error}.
+   *     SortedSetPutElementsResponse.Success} or {@link SortedSetPutElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElementsByteArray(
+  public CompletableFuture<SortedSetPutElementsResponse> sortedSetPutElementsByteArray(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull Map<byte[], Double> elements) {
@@ -881,10 +873,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the put elements operation: {@link
-   *     CacheSortedSetPutElementsResponse.Success} or {@link
-   *     CacheSortedSetPutElementsResponse.Error}.
+   *     SortedSetPutElementsResponse.Success} or {@link SortedSetPutElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+  public CompletableFuture<SortedSetPutElementsResponse> sortedSetPutElements(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull Iterable<ScoredElement> elements,
@@ -900,10 +891,9 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to add to.
    * @param elements - The value-score pairs to add to the sorted set.
    * @return Future containing the result of the put elements operation: {@link
-   *     CacheSortedSetPutElementsResponse.Success} or {@link
-   *     CacheSortedSetPutElementsResponse.Error}.
+   *     SortedSetPutElementsResponse.Success} or {@link SortedSetPutElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetPutElementsResponse> sortedSetPutElements(
+  public CompletableFuture<SortedSetPutElementsResponse> sortedSetPutElements(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull Iterable<ScoredElement> elements) {
@@ -922,10 +912,10 @@ public final class CacheClient implements Closeable {
    *     the last element.
    * @param order - The order to fetch the elements in. Defaults to ascending.
    * @return Future containing the result of the fetch operation: {@link
-   *     CacheSortedSetFetchResponse.Hit}, {@link CacheSortedSetFetchResponse.Miss}, or {@link
-   *     CacheSortedSetFetchResponse.Error}.
+   *     SortedSetFetchResponse.Hit}, {@link SortedSetFetchResponse.Miss}, or {@link
+   *     SortedSetFetchResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
+  public CompletableFuture<SortedSetFetchResponse> sortedSetFetchByRank(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nullable Integer startRank,
@@ -940,10 +930,10 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
    * @return Future containing the result of the fetch operation: {@link
-   *     CacheSortedSetFetchResponse.Hit}, {@link CacheSortedSetFetchResponse.Miss}, or {@link
-   *     CacheSortedSetFetchResponse.Error}.
+   *     SortedSetFetchResponse.Hit}, {@link SortedSetFetchResponse.Miss}, or {@link
+   *     SortedSetFetchResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByRank(
+  public CompletableFuture<SortedSetFetchResponse> sortedSetFetchByRank(
       @Nonnull String cacheName, @Nonnull String sortedSetName) {
     return scsDataClient.sortedSetFetchByRank(cacheName, sortedSetName, null, null, null);
   }
@@ -963,10 +953,10 @@ public final class CacheClient implements Closeable {
    *     the result set to skip before returning the first element.
    * @param count - The maximum number of elements to return. Defaults to all elements.
    * @return Future containing the result of the fetch operation: {@link
-   *     CacheSortedSetFetchResponse.Hit}, {@link CacheSortedSetFetchResponse.Miss}, or {@link
-   *     CacheSortedSetFetchResponse.Error}.
+   *     SortedSetFetchResponse.Hit}, {@link SortedSetFetchResponse.Miss}, or {@link
+   *     SortedSetFetchResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
+  public CompletableFuture<SortedSetFetchResponse> sortedSetFetchByScore(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nullable Double minScore,
@@ -989,10 +979,10 @@ public final class CacheClient implements Closeable {
    *     infinity.
    * @param order - The order to fetch the elements in. Defaults to ascending.
    * @return Future containing the result of the fetch operation: {@link
-   *     CacheSortedSetFetchResponse.Hit}, {@link CacheSortedSetFetchResponse.Miss}, or {@link
-   *     CacheSortedSetFetchResponse.Error}.
+   *     SortedSetFetchResponse.Hit}, {@link SortedSetFetchResponse.Miss}, or {@link
+   *     SortedSetFetchResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
+  public CompletableFuture<SortedSetFetchResponse> sortedSetFetchByScore(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nullable Double minScore,
@@ -1008,10 +998,10 @@ public final class CacheClient implements Closeable {
    * @param cacheName - The cache containing the sorted set.
    * @param sortedSetName - The sorted set to fetch from.
    * @return Future containing the result of the fetch operation: {@link
-   *     CacheSortedSetFetchResponse.Hit}, {@link CacheSortedSetFetchResponse.Miss}, or {@link
-   *     CacheSortedSetFetchResponse.Error}.
+   *     SortedSetFetchResponse.Hit}, {@link SortedSetFetchResponse.Miss}, or {@link
+   *     SortedSetFetchResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetFetchResponse> sortedSetFetchByScore(
+  public CompletableFuture<SortedSetFetchResponse> sortedSetFetchByScore(
       @Nonnull String cacheName, @Nonnull String sortedSetName) {
     return scsDataClient.sortedSetFetchByScore(
         cacheName, sortedSetName, null, null, null, null, null);
@@ -1026,10 +1016,10 @@ public final class CacheClient implements Closeable {
    * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
    *     ascending, i.e. the rank of the element with the lowest score will be 0.
    * @return Future containing the result of the get rank operation: {@link
-   *     CacheSortedSetGetRankResponse.Hit}, {@link CacheSortedSetGetRankResponse.Miss}, or {@link
-   *     CacheSortedSetGetRankResponse.Error}.
+   *     SortedSetGetRankResponse.Hit}, {@link SortedSetGetRankResponse.Miss}, or {@link
+   *     SortedSetGetRankResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+  public CompletableFuture<SortedSetGetRankResponse> sortedSetGetRank(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull String value,
@@ -1046,10 +1036,10 @@ public final class CacheClient implements Closeable {
    * @param order - The order to read through the scores of the set. Affects the rank. Defaults to
    *     ascending, i.e. the rank of the element with the lowest score will be 0.
    * @return Future containing the result of the get rank operation: {@link
-   *     CacheSortedSetGetRankResponse.Hit}, {@link CacheSortedSetGetRankResponse.Miss}, or {@link
-   *     CacheSortedSetGetRankResponse.Error}.
+   *     SortedSetGetRankResponse.Hit}, {@link SortedSetGetRankResponse.Miss}, or {@link
+   *     SortedSetGetRankResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetGetRankResponse> sortedSetGetRank(
+  public CompletableFuture<SortedSetGetRankResponse> sortedSetGetRank(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull byte[] value,
@@ -1064,10 +1054,10 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to fetch from.
    * @param value - The value whose score we are retrieving.
    * @return Future containing the result of the get score operation: {@link
-   *     CacheSortedSetGetScoreResponse.Hit}, {@link CacheSortedSetGetScoreResponse.Miss}, or {@link
-   *     CacheSortedSetGetScoreResponse.Error}.
+   *     SortedSetGetScoreResponse.Hit}, {@link SortedSetGetScoreResponse.Miss}, or {@link
+   *     SortedSetGetScoreResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
+  public CompletableFuture<SortedSetGetScoreResponse> sortedSetGetScore(
       @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull String value) {
     return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, value);
   }
@@ -1079,10 +1069,10 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to fetch from.
    * @param value - The value whose score we are retrieving.
    * @return Future containing the result of the get score operation: {@link
-   *     CacheSortedSetGetScoreResponse.Hit}, {@link CacheSortedSetGetScoreResponse.Miss}, or {@link
-   *     CacheSortedSetGetScoreResponse.Error}.
+   *     SortedSetGetScoreResponse.Hit}, {@link SortedSetGetScoreResponse.Miss}, or {@link
+   *     SortedSetGetScoreResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetGetScoreResponse> sortedSetGetScore(
+  public CompletableFuture<SortedSetGetScoreResponse> sortedSetGetScore(
       @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull byte[] value) {
     return scsDataClient.sortedSetGetScore(cacheName, sortedSetName, value);
   }
@@ -1094,10 +1084,10 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to fetch from.
    * @param values - The values whose scores we are retrieving.
    * @return Future containing the result of the get scores operation: {@link
-   *     CacheSortedSetGetScoresResponse.Hit}, {@link CacheSortedSetGetScoresResponse.Miss}, or
-   *     {@link CacheSortedSetGetScoresResponse.Error}.
+   *     SortedSetGetScoresResponse.Hit}, {@link SortedSetGetScoresResponse.Miss}, or {@link
+   *     SortedSetGetScoresResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScores(
+  public CompletableFuture<SortedSetGetScoresResponse> sortedSetGetScores(
       @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull Iterable<String> values) {
     return scsDataClient.sortedSetGetScores(cacheName, sortedSetName, values);
   }
@@ -1109,10 +1099,10 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to fetch from.
    * @param values - The values whose scores we are retrieving.
    * @return Future containing the result of the get scores operation: {@link
-   *     CacheSortedSetGetScoresResponse.Hit}, {@link CacheSortedSetGetScoresResponse.Miss}, or
-   *     {@link CacheSortedSetGetScoresResponse.Error}.
+   *     SortedSetGetScoresResponse.Hit}, {@link SortedSetGetScoresResponse.Miss}, or {@link
+   *     SortedSetGetScoresResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetGetScoresResponse> sortedSetGetScoresByteArray(
+  public CompletableFuture<SortedSetGetScoresResponse> sortedSetGetScoresByteArray(
       @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull Iterable<byte[]> values) {
     return scsDataClient.sortedSetGetScoresByteArray(cacheName, sortedSetName, values);
   }
@@ -1127,10 +1117,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the increment operation: {@link
-   *     CacheSortedSetIncrementScoreResponse.Success} or {@link
-   *     CacheSortedSetIncrementScoreResponse.Error}.
+   *     SortedSetIncrementScoreResponse.Success} or {@link SortedSetIncrementScoreResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+  public CompletableFuture<SortedSetIncrementScoreResponse> sortedSetIncrementScore(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull String value,
@@ -1147,10 +1136,9 @@ public final class CacheClient implements Closeable {
    * @param value - The value whose score we are incrementing.
    * @param amount - The quantity to add to the score. May be positive, negative, or zero.
    * @return Future containing the result of the increment operation: {@link
-   *     CacheSortedSetIncrementScoreResponse.Success} or {@link
-   *     CacheSortedSetIncrementScoreResponse.Error}.
+   *     SortedSetIncrementScoreResponse.Success} or {@link SortedSetIncrementScoreResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+  public CompletableFuture<SortedSetIncrementScoreResponse> sortedSetIncrementScore(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull String value,
@@ -1168,10 +1156,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to client TTL.
    * @return Future containing the result of the increment operation: {@link
-   *     CacheSortedSetIncrementScoreResponse.Success} or {@link
-   *     CacheSortedSetIncrementScoreResponse.Error}.
+   *     SortedSetIncrementScoreResponse.Success} or {@link SortedSetIncrementScoreResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+  public CompletableFuture<SortedSetIncrementScoreResponse> sortedSetIncrementScore(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull byte[] value,
@@ -1188,10 +1175,9 @@ public final class CacheClient implements Closeable {
    * @param value - The value whose score we are incrementing.
    * @param amount - The quantity to add to the score. May be positive, negative, or zero.
    * @return Future containing the result of the increment operation: {@link
-   *     CacheSortedSetIncrementScoreResponse.Success} or {@link
-   *     CacheSortedSetIncrementScoreResponse.Error}.
+   *     SortedSetIncrementScoreResponse.Success} or {@link SortedSetIncrementScoreResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetIncrementScoreResponse> sortedSetIncrementScore(
+  public CompletableFuture<SortedSetIncrementScoreResponse> sortedSetIncrementScore(
       @Nonnull String cacheName,
       @Nonnull String sortedSetName,
       @Nonnull byte[] value,
@@ -1206,10 +1192,9 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to remove from.
    * @param value - The value of the element to remove from the set.
    * @return Future containing the result of the remove operation: {@link
-   *     CacheSortedSetRemoveElementResponse.Success} or {@link
-   *     CacheSortedSetRemoveElementResponse.Error}.
+   *     SortedSetRemoveElementResponse.Success} or {@link SortedSetRemoveElementResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
+  public CompletableFuture<SortedSetRemoveElementResponse> sortedSetRemoveElement(
       @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull String value) {
     return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, value);
   }
@@ -1221,10 +1206,9 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to remove from.
    * @param value - The value of the element to remove from the set.
    * @return Future containing the result of the remove operation: {@link
-   *     CacheSortedSetRemoveElementResponse.Success} or {@link
-   *     CacheSortedSetRemoveElementResponse.Error}.
+   *     SortedSetRemoveElementResponse.Success} or {@link SortedSetRemoveElementResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetRemoveElementResponse> sortedSetRemoveElement(
+  public CompletableFuture<SortedSetRemoveElementResponse> sortedSetRemoveElement(
       @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull byte[] value) {
     return scsDataClient.sortedSetRemoveElement(cacheName, sortedSetName, value);
   }
@@ -1236,10 +1220,9 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to remove from.
    * @param values - The values of elements to remove from the set.
    * @return Future containing the result of the remove operation: {@link
-   *     CacheSortedSetRemoveElementsResponse.Success} or {@link
-   *     CacheSortedSetRemoveElementsResponse.Error}.
+   *     SortedSetRemoveElementsResponse.Success} or {@link SortedSetRemoveElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElements(
+  public CompletableFuture<SortedSetRemoveElementsResponse> sortedSetRemoveElements(
       @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull Iterable<String> values) {
     return scsDataClient.sortedSetRemoveElements(cacheName, sortedSetName, values);
   }
@@ -1251,10 +1234,9 @@ public final class CacheClient implements Closeable {
    * @param sortedSetName - The sorted set to remove from.
    * @param values - The values of the elements to remove from the set.
    * @return Future containing the result of the remove operation: {@link
-   *     CacheSortedSetRemoveElementsResponse.Success} or {@link
-   *     CacheSortedSetRemoveElementsResponse.Error}.
+   *     SortedSetRemoveElementsResponse.Success} or {@link SortedSetRemoveElementsResponse.Error}.
    */
-  public CompletableFuture<CacheSortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
+  public CompletableFuture<SortedSetRemoveElementsResponse> sortedSetRemoveElementsByteArray(
       @Nonnull String cacheName, @Nonnull String sortedSetName, @Nonnull Iterable<byte[]> values) {
     return scsDataClient.sortedSetRemoveElementsByteArray(cacheName, sortedSetName, values);
   }
@@ -1270,10 +1252,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the list concatenate back operation: {@link
-   *     CacheListConcatenateBackResponse.Success} or {@link
-   *     CacheListConcatenateBackResponse.Error}.
+   *     ListConcatenateBackResponse.Success} or {@link ListConcatenateBackResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  public CompletableFuture<ListConcatenateBackResponse> listConcatenateBack(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<String> values,
@@ -1291,10 +1272,9 @@ public final class CacheClient implements Closeable {
    * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive. Will not truncate if not provided.
    * @return Future containing the result of the list concatenate back operation: {@link
-   *     CacheListConcatenateBackResponse.Success} or {@link
-   *     CacheListConcatenateBackResponse.Error}.
+   *     ListConcatenateBackResponse.Success} or {@link ListConcatenateBackResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  public CompletableFuture<ListConcatenateBackResponse> listConcatenateBack(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<String> values,
@@ -1310,10 +1290,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list in which to add the values.
    * @param values The values to add to the list.
    * @return Future containing the result of the list concatenate back operation: {@link
-   *     CacheListConcatenateBackResponse.Success} or {@link
-   *     CacheListConcatenateBackResponse.Error}.
+   *     ListConcatenateBackResponse.Success} or {@link ListConcatenateBackResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBack(
+  public CompletableFuture<ListConcatenateBackResponse> listConcatenateBack(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull Iterable<String> values) {
     return scsDataClient.listConcatenateBack(cacheName, listName, values, null, null);
   }
@@ -1329,10 +1308,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the list concatenate back operation: {@link
-   *     CacheListConcatenateBackResponse.Success} or {@link
-   *     CacheListConcatenateBackResponse.Error}.
+   *     ListConcatenateBackResponse.Success} or {@link ListConcatenateBackResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
+  public CompletableFuture<ListConcatenateBackResponse> listConcatenateBackByteArray(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<byte[]> values,
@@ -1351,10 +1329,9 @@ public final class CacheClient implements Closeable {
    * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive. Will not truncate if not provided.
    * @return Future containing the result of the list concatenate back operation: {@link
-   *     CacheListConcatenateBackResponse.Success} or {@link
-   *     CacheListConcatenateBackResponse.Error}.
+   *     ListConcatenateBackResponse.Success} or {@link ListConcatenateBackResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
+  public CompletableFuture<ListConcatenateBackResponse> listConcatenateBackByteArray(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<byte[]> values,
@@ -1370,10 +1347,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list in which to add the values.
    * @param values The values to add to the list.
    * @return Future containing the result of the list concatenate back operation: {@link
-   *     CacheListConcatenateBackResponse.Success} or {@link
-   *     CacheListConcatenateBackResponse.Error}.
+   *     ListConcatenateBackResponse.Success} or {@link ListConcatenateBackResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateBackResponse> listConcatenateBackByteArray(
+  public CompletableFuture<ListConcatenateBackResponse> listConcatenateBackByteArray(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull Iterable<byte[]> values) {
     return scsDataClient.listConcatenateBackByteArray(cacheName, listName, values, null, null);
   }
@@ -1389,10 +1365,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the list concatenate front operation: {@link
-   *     CacheListConcatenateFrontResponse.Success} or {@link
-   *     CacheListConcatenateFrontResponse.Error}.
+   *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+  public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFront(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<String> values,
@@ -1410,10 +1385,9 @@ public final class CacheClient implements Closeable {
    * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive. Will not truncate if not provided.
    * @return Future containing the result of the list concatenate front operation: {@link
-   *     CacheListConcatenateFrontResponse.Success} or {@link
-   *     CacheListConcatenateFrontResponse.Error}.
+   *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+  public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFront(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<String> values,
@@ -1429,10 +1403,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list in which to add the values.
    * @param values The values to add to the list.
    * @return Future containing the result of the list concatenate front operation: {@link
-   *     CacheListConcatenateFrontResponse.Success} or {@link
-   *     CacheListConcatenateFrontResponse.Error}.
+   *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFront(
+  public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFront(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull Iterable<String> values) {
     return scsDataClient.listConcatenateFront(cacheName, listName, values, null, null);
   }
@@ -1448,10 +1421,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the list concatenate front operation: {@link
-   *     CacheListConcatenateFrontResponse.Success} or {@link
-   *     CacheListConcatenateFrontResponse.Error}.
+   *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
+  public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<byte[]> values,
@@ -1470,10 +1442,9 @@ public final class CacheClient implements Closeable {
    * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive. Will not truncate if not provided.
    * @return Future containing the result of the list concatenate front operation: {@link
-   *     CacheListConcatenateFrontResponse.Success} or {@link
-   *     CacheListConcatenateFrontResponse.Error}.
+   *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
+  public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<byte[]> values,
@@ -1489,10 +1460,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list in which to add the values.
    * @param values The values to add to the list.
    * @return Future containing the result of the list concatenate front operation: {@link
-   *     CacheListConcatenateFrontResponse.Success} or {@link
-   *     CacheListConcatenateFrontResponse.Error}.
+   *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListConcatenateFrontResponse> listConcatenateFrontByteArray(
+  public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull Iterable<byte[]> values) {
     return scsDataClient.listConcatenateFrontByteArray(cacheName, listName, values, null, null);
   }
@@ -1506,10 +1476,10 @@ public final class CacheClient implements Closeable {
    * @param endIndex End index (inclusive) for fetch operation. Defaults to the end of the list if
    *     not provided.
    * @return Future containing the result of the list fetch back operation: {@link
-   *     CacheListFetchResponse.Hit} containing the fetched data, {@link
-   *     CacheListFetchResponse.Miss} if no data was found, or {@link CacheListFetchResponse.Error}.
+   *     ListFetchResponse.Hit} containing the fetched data, {@link ListFetchResponse.Miss} if no
+   *     data was found, or {@link ListFetchResponse.Error}.
    */
-  public CompletableFuture<CacheListFetchResponse> listFetch(
+  public CompletableFuture<ListFetchResponse> listFetch(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nullable Integer startIndex,
@@ -1523,10 +1493,10 @@ public final class CacheClient implements Closeable {
    * @param cacheName The cache containing the list.
    * @param listName The list to fetch.
    * @return Future containing the result of the list fetch back operation: {@link
-   *     CacheListFetchResponse.Hit} containing the fetched data, {@link
-   *     CacheListFetchResponse.Miss} if no data was found, or {@link CacheListFetchResponse.Error}.
+   *     ListFetchResponse.Hit} containing the fetched data, {@link ListFetchResponse.Miss} if no
+   *     data was found, or {@link ListFetchResponse.Error}.
    */
-  public CompletableFuture<CacheListFetchResponse> listFetch(
+  public CompletableFuture<ListFetchResponse> listFetch(
       @Nonnull String cacheName, @Nonnull String listName) {
     return scsDataClient.listFetch(cacheName, listName, null, null);
   }
@@ -1537,10 +1507,10 @@ public final class CacheClient implements Closeable {
    * @param cacheName The cache containing the list.
    * @param listName The list to measure.
    * @return Future containing the result of the list length back operation: {@link
-   *     CacheListLengthResponse.Hit} containing the length, {@link CacheListLengthResponse.Miss} if
-   *     no list was found, or {@link CacheListLengthResponse.Error}.
+   *     ListLengthResponse.Hit} containing the length, {@link ListLengthResponse.Miss} if no list
+   *     was found, or {@link ListLengthResponse.Error}.
    */
-  public CompletableFuture<CacheListLengthResponse> listLength(
+  public CompletableFuture<ListLengthResponse> listLength(
       @Nonnull String cacheName, @Nonnull String listName) {
     return scsDataClient.listLength(cacheName, listName);
   }
@@ -1551,10 +1521,10 @@ public final class CacheClient implements Closeable {
    * @param cacheName The cache containing the list.
    * @param listName The list to fetch the value from.
    * @return Future containing the result of the list pop back operation: {@link
-   *     CacheListPopBackResponse.Hit} containing the element, {@link CacheListPopBackResponse.Miss}
-   *     if no list was found, or {@link CacheListPopBackResponse.Error}.
+   *     ListPopBackResponse.Hit} containing the element, {@link ListPopBackResponse.Miss} if no
+   *     list was found, or {@link ListPopBackResponse.Error}.
    */
-  public CompletableFuture<CacheListPopBackResponse> listPopBack(
+  public CompletableFuture<ListPopBackResponse> listPopBack(
       @Nonnull String cacheName, @Nonnull String listName) {
     return scsDataClient.listPopBack(cacheName, listName);
   }
@@ -1565,11 +1535,10 @@ public final class CacheClient implements Closeable {
    * @param cacheName The cache containing the list.
    * @param listName The list to fetch the value from.
    * @return Future containing the result of the list pop front operation: {@link
-   *     CacheListPopFrontResponse.Hit} containing the element, {@link
-   *     CacheListPopFrontResponse.Miss} if no list was found, or {@link
-   *     CacheListPopFrontResponse.Error}.
+   *     ListPopFrontResponse.Hit} containing the element, {@link ListPopFrontResponse.Miss} if no
+   *     list was found, or {@link ListPopFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListPopFrontResponse> listPopFront(
+  public CompletableFuture<ListPopFrontResponse> listPopFront(
       @Nonnull String cacheName, @Nonnull String listName) {
     return scsDataClient.listPopFront(cacheName, listName);
   }
@@ -1585,9 +1554,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the list push back operation: {@link
-   *     CacheListPushBackResponse.Success} or {@link CacheListPushBackResponse.Error}.
+   *     ListPushBackResponse.Success} or {@link ListPushBackResponse.Error}.
    */
-  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+  public CompletableFuture<ListPushBackResponse> listPushBack(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull String value,
@@ -1605,9 +1574,9 @@ public final class CacheClient implements Closeable {
    * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive. Will not truncate if not provided.
    * @return Future containing the result of the list push back operation: {@link
-   *     CacheListPushBackResponse.Success} or {@link CacheListPushBackResponse.Error}.
+   *     ListPushBackResponse.Success} or {@link ListPushBackResponse.Error}.
    */
-  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+  public CompletableFuture<ListPushBackResponse> listPushBack(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull String value,
@@ -1622,9 +1591,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list in which to add the value.
    * @param value The value to add to the list.
    * @return Future containing the result of the list push back operation: {@link
-   *     CacheListPushBackResponse.Success} or {@link CacheListPushBackResponse.Error}.
+   *     ListPushBackResponse.Success} or {@link ListPushBackResponse.Error}.
    */
-  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+  public CompletableFuture<ListPushBackResponse> listPushBack(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull String value) {
     return scsDataClient.listPushBack(cacheName, listName, value, null, null);
   }
@@ -1640,9 +1609,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the list push back operation: {@link
-   *     CacheListPushBackResponse.Success} or {@link CacheListPushBackResponse.Error}.
+   *     ListPushBackResponse.Success} or {@link ListPushBackResponse.Error}.
    */
-  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+  public CompletableFuture<ListPushBackResponse> listPushBack(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull byte[] value,
@@ -1660,9 +1629,9 @@ public final class CacheClient implements Closeable {
    * @param truncateFrontToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive. Will not truncate if not provided.
    * @return Future containing the result of the list push back operation: {@link
-   *     CacheListPushBackResponse.Success} or {@link CacheListPushBackResponse.Error}.
+   *     ListPushBackResponse.Success} or {@link ListPushBackResponse.Error}.
    */
-  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+  public CompletableFuture<ListPushBackResponse> listPushBack(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull byte[] value,
@@ -1677,9 +1646,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list in which to add the value.
    * @param value The value to add to the list.
    * @return Future containing the result of the list push back operation: {@link
-   *     CacheListPushBackResponse.Success} or {@link CacheListPushBackResponse.Error}.
+   *     ListPushBackResponse.Success} or {@link ListPushBackResponse.Error}.
    */
-  public CompletableFuture<CacheListPushBackResponse> listPushBack(
+  public CompletableFuture<ListPushBackResponse> listPushBack(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull byte[] value) {
     return scsDataClient.listPushBack(cacheName, listName, value, null, null);
   }
@@ -1695,9 +1664,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the list push front operation: {@link
-   *     CacheListPushFrontResponse.Success} or {@link CacheListPushFrontResponse.Error}.
+   *     ListPushFrontResponse.Success} or {@link ListPushFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+  public CompletableFuture<ListPushFrontResponse> listPushFront(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull String value,
@@ -1715,9 +1684,9 @@ public final class CacheClient implements Closeable {
    * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive. Will not truncate if not provided.
    * @return Future containing the result of the list push front operation: {@link
-   *     CacheListPushFrontResponse.Success} or {@link CacheListPushFrontResponse.Error}.
+   *     ListPushFrontResponse.Success} or {@link ListPushFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+  public CompletableFuture<ListPushFrontResponse> listPushFront(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull String value,
@@ -1732,9 +1701,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list in which to add the value.
    * @param value The value to add to the list.
    * @return Future containing the result of the list push front operation: {@link
-   *     CacheListPushFrontResponse.Success} or {@link CacheListPushFrontResponse.Error}.
+   *     ListPushFrontResponse.Success} or {@link ListPushFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+  public CompletableFuture<ListPushFrontResponse> listPushFront(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull String value) {
     return scsDataClient.listPushFront(cacheName, listName, value, null, null);
   }
@@ -1750,9 +1719,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the list push front operation: {@link
-   *     CacheListPushFrontResponse.Success} or {@link CacheListPushFrontResponse.Error}.
+   *     ListPushFrontResponse.Success} or {@link ListPushFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+  public CompletableFuture<ListPushFrontResponse> listPushFront(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull byte[] value,
@@ -1770,9 +1739,9 @@ public final class CacheClient implements Closeable {
    * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
    *     list. Must be positive. Will not truncate if not provided.
    * @return Future containing the result of the list push front operation: {@link
-   *     CacheListPushFrontResponse.Success} or {@link CacheListPushFrontResponse.Error}.
+   *     ListPushFrontResponse.Success} or {@link ListPushFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+  public CompletableFuture<ListPushFrontResponse> listPushFront(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull byte[] value,
@@ -1787,9 +1756,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list in which to add the value.
    * @param value The value to add to the list.
    * @return Future containing the result of the list push front operation: {@link
-   *     CacheListPushFrontResponse.Success} or {@link CacheListPushFrontResponse.Error}.
+   *     ListPushFrontResponse.Success} or {@link ListPushFrontResponse.Error}.
    */
-  public CompletableFuture<CacheListPushFrontResponse> listPushFront(
+  public CompletableFuture<ListPushFrontResponse> listPushFront(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull byte[] value) {
     return scsDataClient.listPushFront(cacheName, listName, value, null, null);
   }
@@ -1801,9 +1770,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list to remove the value from.
    * @param value The value to remove.
    * @return Future containing the result of the list remove value operation: {@link
-   *     CacheListRemoveValueResponse.Success} or {@link CacheListRemoveValueResponse.Error}.
+   *     ListRemoveValueResponse.Success} or {@link ListRemoveValueResponse.Error}.
    */
-  public CompletableFuture<CacheListRemoveValueResponse> listRemoveValue(
+  public CompletableFuture<ListRemoveValueResponse> listRemoveValue(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull String value) {
     return scsDataClient.listRemoveValue(cacheName, listName, value);
   }
@@ -1815,9 +1784,9 @@ public final class CacheClient implements Closeable {
    * @param listName The list to remove the value from.
    * @param value The value to remove.
    * @return Future containing the result of the list remove value operation: {@link
-   *     CacheListRemoveValueResponse.Success} or {@link CacheListRemoveValueResponse.Error}.
+   *     ListRemoveValueResponse.Success} or {@link ListRemoveValueResponse.Error}.
    */
-  public CompletableFuture<CacheListRemoveValueResponse> listRemoveValue(
+  public CompletableFuture<ListRemoveValueResponse> listRemoveValue(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull byte[] value) {
     return scsDataClient.listRemoveValue(cacheName, listName, value);
   }
@@ -1830,9 +1799,9 @@ public final class CacheClient implements Closeable {
    * @param startIndex - Start index (inclusive) for list retain operation.
    * @param endIndex - End index (exclusive) for list retain operation.
    * @return Future containing the result of the list retain value operation: {@link
-   *     CacheListRetainResponse.Success} or {@link CacheListRetainResponse.Error}.
+   *     ListRetainResponse.Success} or {@link ListRetainResponse.Error}.
    */
-  public CompletableFuture<CacheListRetainResponse> listRetain(
+  public CompletableFuture<ListRetainResponse> listRetain(
       @Nonnull String cacheName,
       @Nonnull String listName,
       @Nullable Integer startIndex,
@@ -1846,11 +1815,11 @@ public final class CacheClient implements Closeable {
    * @param cacheName The cache containing the dictionary.
    * @param dictionaryName The dictionary to fetch.
    * @return Future containing the result of the dictionary fetch operation: {@link
-   *     CacheDictionaryFetchResponse.Hit} containing the dictionary, {@link
-   *     CacheDictionaryFetchResponse.Miss} if no dictionary was found, or {@link
-   *     CacheDictionaryFetchResponse.Error}.
+   *     DictionaryFetchResponse.Hit} containing the dictionary, {@link
+   *     DictionaryFetchResponse.Miss} if no dictionary was found, or {@link
+   *     DictionaryFetchResponse.Error}.
    */
-  public CompletableFuture<CacheDictionaryFetchResponse> dictionaryFetch(
+  public CompletableFuture<DictionaryFetchResponse> dictionaryFetch(
       @Nonnull String cacheName, @Nonnull String dictionaryName) {
     return scsDataClient.dictionaryFetch(cacheName, dictionaryName);
   }
@@ -1865,9 +1834,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the dictionary set field operation: {@link
-   *     CacheDictionarySetFieldResponse.Success} or {@link CacheDictionarySetFieldResponse.Error}.
+   *     DictionarySetFieldResponse.Success} or {@link DictionarySetFieldResponse.Error}.
    */
-  public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+  public CompletableFuture<DictionarySetFieldResponse> dictionarySetField(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull String field,
@@ -1884,9 +1853,9 @@ public final class CacheClient implements Closeable {
    * @param field The field to set.
    * @param value The value to set.
    * @return Future containing the result of the dictionary set field operation: {@link
-   *     CacheDictionarySetFieldResponse.Success} or {@link CacheDictionarySetFieldResponse.Error}.
+   *     DictionarySetFieldResponse.Success} or {@link DictionarySetFieldResponse.Error}.
    */
-  public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+  public CompletableFuture<DictionarySetFieldResponse> dictionarySetField(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull String field,
@@ -1904,9 +1873,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the dictionary set field operation: {@link
-   *     CacheDictionarySetFieldResponse.Success} or {@link CacheDictionarySetFieldResponse.Error}.
+   *     DictionarySetFieldResponse.Success} or {@link DictionarySetFieldResponse.Error}.
    */
-  public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+  public CompletableFuture<DictionarySetFieldResponse> dictionarySetField(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull String field,
@@ -1923,9 +1892,9 @@ public final class CacheClient implements Closeable {
    * @param field The field to set.
    * @param value The value to set.
    * @return Future containing the result of the dictionary set field operation: {@link
-   *     CacheDictionarySetFieldResponse.Success} or {@link CacheDictionarySetFieldResponse.Error}.
+   *     DictionarySetFieldResponse.Success} or {@link DictionarySetFieldResponse.Error}.
    */
-  public CompletableFuture<CacheDictionarySetFieldResponse> dictionarySetField(
+  public CompletableFuture<DictionarySetFieldResponse> dictionarySetField(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull String field,
@@ -1942,10 +1911,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the dictionary set field operation: {@link
-   *     CacheDictionarySetFieldsResponse.Success} or {@link
-   *     CacheDictionarySetFieldsResponse.Error}.
+   *     DictionarySetFieldsResponse.Success} or {@link DictionarySetFieldsResponse.Error}.
    */
-  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
+  public CompletableFuture<DictionarySetFieldsResponse> dictionarySetFields(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull Map<String, String> elements,
@@ -1961,10 +1929,9 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName The dictionary to set the fields in.
    * @param elements The fields to set.
    * @return Future containing the result of the dictionary set field operation: {@link
-   *     CacheDictionarySetFieldsResponse.Success} or {@link
-   *     CacheDictionarySetFieldsResponse.Error}.
+   *     DictionarySetFieldsResponse.Success} or {@link DictionarySetFieldsResponse.Error}.
    */
-  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFields(
+  public CompletableFuture<DictionarySetFieldsResponse> dictionarySetFields(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull Map<String, String> elements) {
@@ -1980,10 +1947,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the dictionary set field operation: {@link
-   *     CacheDictionarySetFieldsResponse.Success} or {@link
-   *     CacheDictionarySetFieldsResponse.Error}.
+   *     DictionarySetFieldsResponse.Success} or {@link DictionarySetFieldsResponse.Error}.
    */
-  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
+  public CompletableFuture<DictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull Map<String, byte[]> elements,
@@ -1999,10 +1965,9 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName The dictionary to set the fields in.
    * @param elements The fields to set.
    * @return Future containing the result of the dictionary set field operation: {@link
-   *     CacheDictionarySetFieldsResponse.Success} or {@link
-   *     CacheDictionarySetFieldsResponse.Error}.
+   *     DictionarySetFieldsResponse.Success} or {@link DictionarySetFieldsResponse.Error}.
    */
-  public CompletableFuture<CacheDictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
+  public CompletableFuture<DictionarySetFieldsResponse> dictionarySetFieldsStringBytes(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull Map<String, byte[]> elements) {
@@ -2016,11 +1981,11 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName The dictionary to get the value from.
    * @param field The field to look up.
    * @return Future containing the result of the dictionary get field operation: {@link
-   *     CacheDictionaryGetFieldResponse.Hit} containing the field and value, {@link
-   *     CacheDictionaryGetFieldResponse.Miss} if the field was not found in the dictionary, or
-   *     {@link CacheDictionaryGetFieldResponse.Error}.
+   *     DictionaryGetFieldResponse.Hit} containing the field and value, {@link
+   *     DictionaryGetFieldResponse.Miss} if the field was not found in the dictionary, or {@link
+   *     DictionaryGetFieldResponse.Error}.
    */
-  public CompletableFuture<CacheDictionaryGetFieldResponse> dictionaryGetField(
+  public CompletableFuture<DictionaryGetFieldResponse> dictionaryGetField(
       @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull String field) {
     return scsDataClient.dictionaryGetField(cacheName, dictionaryName, field);
   }
@@ -2032,11 +1997,11 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName The dictionary to get the values from.
    * @param fields The fields to look up.
    * @return Future containing the result of the dictionary get fields operation: {@link
-   *     CacheDictionaryGetFieldsResponse.Hit} containing the fields, values, and a per-field {@link
-   *     CacheDictionaryGetFieldResponse}, {@link CacheDictionaryGetFieldsResponse.Miss} if none of
-   *     the fields were found in the dictionary, or {@link CacheDictionaryGetFieldsResponse.Error}.
+   *     DictionaryGetFieldsResponse.Hit} containing the fields, values, and a per-field {@link
+   *     DictionaryGetFieldResponse}, {@link DictionaryGetFieldsResponse.Miss} if none of the fields
+   *     were found in the dictionary, or {@link DictionaryGetFieldsResponse.Error}.
    */
-  public CompletableFuture<CacheDictionaryGetFieldsResponse> dictionaryGetFields(
+  public CompletableFuture<DictionaryGetFieldsResponse> dictionaryGetFields(
       @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull Iterable<String> fields) {
     return scsDataClient.dictionaryGetFields(cacheName, dictionaryName, fields);
   }
@@ -2051,10 +2016,9 @@ public final class CacheClient implements Closeable {
    * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
    *     initializing a cache client. Defaults to the client's TTL if not provided.
    * @return Future containing the result of the dictionary increment operation: {@link
-   *     CacheDictionaryIncrementResponse.Success} or {@link
-   *     CacheDictionaryIncrementResponse.Error}.
+   *     DictionaryIncrementResponse.Success} or {@link DictionaryIncrementResponse.Error}.
    */
-  public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
+  public CompletableFuture<DictionaryIncrementResponse> dictionaryIncrement(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull String field,
@@ -2072,10 +2036,9 @@ public final class CacheClient implements Closeable {
    * @param field The field for which the value is to be incremented.
    * @param amount The amount to increment.
    * @return Future containing the result of the dictionary increment operation: {@link
-   *     CacheDictionaryIncrementResponse.Success} or {@link
-   *     CacheDictionaryIncrementResponse.Error}.
+   *     DictionaryIncrementResponse.Success} or {@link DictionaryIncrementResponse.Error}.
    */
-  public CompletableFuture<CacheDictionaryIncrementResponse> dictionaryIncrement(
+  public CompletableFuture<DictionaryIncrementResponse> dictionaryIncrement(
       @Nonnull String cacheName,
       @Nonnull String dictionaryName,
       @Nonnull String field,
@@ -2090,10 +2053,9 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName The dictionary to remove the field from.
    * @param field The field to remove.
    * @return Future containing the result of the dictionary remove field operation: {@link
-   *     CacheDictionaryRemoveFieldResponse.Success} or {@link
-   *     CacheDictionaryRemoveFieldResponse.Error}.
+   *     DictionaryRemoveFieldResponse.Success} or {@link DictionaryRemoveFieldResponse.Error}.
    */
-  public CompletableFuture<CacheDictionaryRemoveFieldResponse> dictionaryRemoveField(
+  public CompletableFuture<DictionaryRemoveFieldResponse> dictionaryRemoveField(
       @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull String field) {
     return scsDataClient.dictionaryRemoveField(cacheName, dictionaryName, field);
   }
@@ -2105,10 +2067,9 @@ public final class CacheClient implements Closeable {
    * @param dictionaryName The dictionary to remove the fields from.
    * @param fields The fields to remove.
    * @return Future containing the result of the dictionary remove field operation: {@link
-   *     CacheDictionaryRemoveFieldsResponse.Success} or {@link
-   *     CacheDictionaryRemoveFieldsResponse.Error}.
+   *     DictionaryRemoveFieldsResponse.Success} or {@link DictionaryRemoveFieldsResponse.Error}.
    */
-  public CompletableFuture<CacheDictionaryRemoveFieldsResponse> dictionaryRemoveFields(
+  public CompletableFuture<DictionaryRemoveFieldsResponse> dictionaryRemoveFields(
       @Nonnull String cacheName, @Nonnull String dictionaryName, @Nonnull Iterable<String> fields) {
     return scsDataClient.dictionaryRemoveFields(cacheName, dictionaryName, fields);
   }
