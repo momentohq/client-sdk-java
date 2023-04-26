@@ -53,7 +53,7 @@ Add our dependency your `pom.xml`
 
 Checkout our [examples](./examples/README.md) directory for complete examples of how to use the SDK.
 
-Here is a quickstart you can use in your own project:
+Here is a basic example you can use to get started:
 
 ```java
 {{usageExampleCode}}
@@ -68,12 +68,12 @@ response types they can return.
 Here is an example of how the response can be matched to different outcomes:
 
 ```java
-final CacheListFetchResponse fetchResponse=client.listFetch(...).join();
-if (fetchResponse instanceof CacheListFetchResponse.Hit hit) {
+final ListFetchResponse fetchResponse=client.listFetch(...).join();
+if (fetchResponse instanceof ListFetchResponse.Hit hit) {
   // A successful call that returned a result.
-} else if(fetchResponse instanceof CacheListFetchResponse.Miss miss) {
+} else if(fetchResponse instanceof ListFetchResponse.Miss miss) {
   // A successful call that didn't find anything
-}else if(fetchResponse instanceof CacheListFetchResponse.Error error) {
+}else if(fetchResponse instanceof ListFetchResponse.Error error) {
   // An error result. It is an exception and can be thrown if desired.
 }
 ```

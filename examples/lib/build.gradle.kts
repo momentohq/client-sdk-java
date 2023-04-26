@@ -17,7 +17,10 @@ repositories {
 }
 
 dependencies {
-    implementation("software.momento.java:sdk:0.24.0")
+    implementation("software.momento.java:sdk:1.0.0")
+
+    // Logging framework to log and enable logging in the Momento client.
+    implementation("ch.qos.logback:logback-classic:1.4.7")
 
     // Use JUnit Jupiter for testing.
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")

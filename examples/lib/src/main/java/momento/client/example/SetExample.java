@@ -1,88 +1,112 @@
 package momento.client.example;
 
+import static momento.client.example.ExampleUtils.logEndBanner;
+import static momento.client.example.ExampleUtils.logStartBanner;
+
+import java.time.Duration;
 import java.util.Set;
 import momento.sdk.CacheClient;
+import momento.sdk.auth.CredentialProvider;
+import momento.sdk.auth.EnvVarCredentialProvider;
+import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
-import momento.sdk.messages.CacheSetAddElementResponse;
-import momento.sdk.messages.CacheSetAddElementsResponse;
-import momento.sdk.messages.CacheSetFetchResponse;
-import momento.sdk.messages.CacheSetRemoveElementResponse;
-import momento.sdk.messages.CreateCacheResponse;
+import momento.sdk.exceptions.SdkException;
+import momento.sdk.responses.cache.control.CacheCreateResponse;
+import momento.sdk.responses.cache.set.SetAddElementResponse;
+import momento.sdk.responses.cache.set.SetAddElementsResponse;
+import momento.sdk.responses.cache.set.SetFetchResponse;
+import momento.sdk.responses.cache.set.SetRemoveElementResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-public class SetExample extends AbstractExample {
+public class SetExample {
+
+  private static final String AUTH_TOKEN_ENV_VAR = "MOMENTO_AUTH_TOKEN";
+  private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   private static final String CACHE_NAME = "set-example-cache";
   private static final String SET_NAME = "example-set";
 
-  public static void main(String[] args) {
-    printStartBanner("Set");
+  private static final Logger logger = LoggerFactory.getLogger(SetExample.class);
 
-    try (final CacheClient client = buildCacheClient()) {
-      // create a cache
-      final CreateCacheResponse createCacheResponse = client.createCache(CACHE_NAME);
-      if (createCacheResponse instanceof CreateCacheResponse.Error error) {
+  public static void main(String[] args) {
+    logStartBanner(logger);
+
+    final CredentialProvider credentialProvider;
+    try {
+      credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
+    } catch (SdkException e) {
+      logger.error("Unable to load credential from environment variable " + AUTH_TOKEN_ENV_VAR, e);
+      throw e;
+    }
+
+    try (final CacheClient client =
+        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)
+            .build()) {
+      // Create a cache
+      final CacheCreateResponse createResponse = client.createCache(CACHE_NAME).join();
+      if (createResponse instanceof CacheCreateResponse.Error error) {
         if (error.getCause() instanceof AlreadyExistsException) {
-          System.out.println("Cache with name '" + CACHE_NAME + "' already exists.");
+          logger.info("Cache with name '{}' already exists.", CACHE_NAME);
         } else {
-          System.out.println("Unable to create cache with error: " + error.getMessage());
+          logger.error("Cache creation failed with error " + error.getErrorCode(), error);
         }
       }
 
-      // add elements to a set
-      System.out.println("Adding elements to " + SET_NAME);
+      // Add elements to a set
+      logger.info("Adding elements to " + SET_NAME);
 
-      final CacheSetAddElementResponse addElementResponse =
+      final SetAddElementResponse addElementResponse =
           client.setAddElement(CACHE_NAME, SET_NAME, "element1").join();
-      if (addElementResponse instanceof CacheSetAddElementResponse.Error error) {
-        System.out.println("Set add element failed with error: " + error.getMessage());
+      if (addElementResponse instanceof SetAddElementResponse.Error error) {
+        logger.error("Set add element failed with error " + error.getErrorCode(), error);
       }
 
       final Set<String> elements = Set.of("element2", "element3", "element4");
-      final CacheSetAddElementsResponse addElementsResponse =
+      final SetAddElementsResponse addElementsResponse =
           client.setAddElements(CACHE_NAME, SET_NAME, elements).join();
-      if (addElementsResponse instanceof CacheSetAddElementsResponse.Error error) {
-        System.out.println("Set add elements failed with error: " + error.getMessage());
+      if (addElementsResponse instanceof SetAddElementsResponse.Error error) {
+        logger.error("Set add elements failed with error " + error.getErrorCode(), error);
       }
 
-      // fetch the set
-      System.out.println("Fetching " + SET_NAME);
+      // Fetch the set
+      logger.info("Fetching " + SET_NAME);
 
-      final CacheSetFetchResponse fetchResponse = client.setFetch(CACHE_NAME, SET_NAME).join();
-      if (fetchResponse instanceof CacheSetFetchResponse.Hit hit) {
+      final SetFetchResponse fetchResponse = client.setFetch(CACHE_NAME, SET_NAME).join();
+      if (fetchResponse instanceof SetFetchResponse.Hit hit) {
         final Set<String> fetchedElements = hit.valueSet();
-        System.out.println(SET_NAME + " has elements:");
-        System.out.println(String.join(", ", fetchedElements));
-      } else if (fetchResponse instanceof CacheSetFetchResponse.Miss) {
-        System.out.println("Did not find set with name " + SET_NAME);
-      } else if (fetchResponse instanceof CacheSetFetchResponse.Error error) {
-        System.out.println("Set fetch failed with error: " + error.getMessage());
+        logger.info(SET_NAME + " has elements:");
+        logger.info(String.join(", ", fetchedElements));
+      } else if (fetchResponse instanceof SetFetchResponse.Miss) {
+        logger.info("Did not find set with name " + SET_NAME);
+      } else if (fetchResponse instanceof SetFetchResponse.Error error) {
+        logger.error("Set fetch failed with error " + error.getErrorCode(), error);
       }
 
       // Remove an element
-      System.out.println("Removing an element from " + SET_NAME);
+      logger.info("Removing an element from " + SET_NAME);
 
-      final CacheSetRemoveElementResponse removeResponse =
+      final SetRemoveElementResponse removeResponse =
           client.setRemoveElement(CACHE_NAME, SET_NAME, "element2").join();
-      if (removeResponse instanceof CacheSetRemoveElementResponse.Error error) {
-        System.out.println("Set remove failed with error: " + error.getMessage());
+      if (removeResponse instanceof SetRemoveElementResponse.Error error) {
+        logger.error("Set remove failed with error " + error.getErrorCode(), error);
       }
 
       // Fetch the now smaller set
-      System.out.println("Fetching " + SET_NAME + " once again");
+      logger.info("Fetching {} once again", SET_NAME);
 
-      final CacheSetFetchResponse secondFetchResponse =
-          client.setFetch(CACHE_NAME, SET_NAME).join();
-      if (secondFetchResponse instanceof CacheSetFetchResponse.Hit hit) {
+      final SetFetchResponse secondFetchResponse = client.setFetch(CACHE_NAME, SET_NAME).join();
+      if (secondFetchResponse instanceof SetFetchResponse.Hit hit) {
         final Set<String> fetchedElements = hit.valueSet();
-        System.out.println(SET_NAME + " has elements:");
-        System.out.println(String.join(", ", fetchedElements));
-      } else if (secondFetchResponse instanceof CacheSetFetchResponse.Miss) {
-        System.out.println("Did not find set with name " + SET_NAME);
-      } else if (secondFetchResponse instanceof CacheSetFetchResponse.Error error) {
-        System.out.println("Set fetch failed with error: " + error.getMessage());
+        logger.info(SET_NAME + " has elements:");
+        logger.info(String.join(", ", fetchedElements));
+      } else if (secondFetchResponse instanceof SetFetchResponse.Miss) {
+        logger.info("Did not find set with name " + SET_NAME);
+      } else if (secondFetchResponse instanceof SetFetchResponse.Error error) {
+        logger.error("Set fetch failed with error " + error.getErrorCode(), error);
       }
     }
 
-    printEndBanner("Set");
+    logEndBanner(logger);
   }
 }
