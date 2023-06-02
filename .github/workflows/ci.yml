@@ -24,13 +24,13 @@ jobs:
         distribution: 'corretto'
 
     - name: Verify README generation
-      uses: momentohq/standards-and-practices/github-actions/oss-readme-template@gh-actions-v1
+      uses: momentohq/standards-and-practices/github-actions/oss-readme-template@gh-actions-v2
       with:
         project_status: official
-        project_stability: experimental
+        project_stability: stable
         project_type: sdk
         sdk_language: Java
-        usage_example_path: ./examples/lib/src/main/java/momento/client/example/BasicExample.java
+        dev_docs_slug: nodejs
 
     - name: Commitlint and Other Shared Build Steps
       uses: momentohq/standards-and-practices/github-actions/shared-build@gh-actions-v1
@@ -49,6 +49,8 @@ jobs:
 
   build-examples:
     runs-on: ubuntu-latest
+    env:
+      MOMENTO_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
 
     steps:
       - name: Checkout project
@@ -67,6 +69,12 @@ jobs:
         with:
           build-root-directory: ./examples
           arguments: clean build
+
+      - name: Run doc examples
+        uses: gradle/gradle-build-action@v2
+        with:
+          build-root-directory: ./examples
+          arguments: docsTasks
 
       - name: Send CI failure mail
         if: ${{ steps.validation.outcome == 'failure' }}

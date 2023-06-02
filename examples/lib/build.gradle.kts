@@ -74,5 +74,29 @@ task("sortedSet", JavaExec::class) {
     mainClass.set("momento.client.example.SortedSetExample")
 }
 
+task("docExamples", JavaExec::class) {
+    description = "Validate that the API doc examples run"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.doc_examples.DocExamplesJavaAPIs")
+}
+
+task("docCheatSheet", JavaExec::class) {
+    description = "Validate that the doc cheat sheet runs"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.doc_examples.CheatSheet")
+}
+
+task("docReadme", JavaExec::class) {
+    description = "Validate that the readme example runs"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.doc_examples.ReadmeExample")
+}
+
+task("docsTasks") {
+    dependsOn("docExamples")
+    dependsOn("docCheatSheet")
+    dependsOn("docReadme")
+}
+
 
 task("prepareKotlinBuildScriptModel") {}
