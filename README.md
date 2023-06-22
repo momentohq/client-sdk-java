@@ -1,194 +1,88 @@
 <head>
-  <meta name="Momento Java Client Library Documentation" content="Java client software development kit for Momento Serverless Cache">
+  <meta name="Momento Java Client Library Documentation" content="Java client software development kit for Momento Cache">
 </head>
 <img src="https://docs.momentohq.com/img/logo.svg" alt="logo" width="400"/>
 
 [![project status](https://momentohq.github.io/standards-and-practices/badges/project-status-official.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
-[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-stable.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md) 
+[![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-stable.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
 
 # Momento Java Client Library
 
+Momento Cache is a fast, simple, pay-as-you-go caching solution without any of the operational overhead
+required by traditional caching solutions.  This repo contains the source code for the Momento Java client library.
 
-Java client SDK for Momento Serverless Cache: a fast, simple, pay-as-you-go caching solution without
-any of the operational overhead required by traditional caching solutions!
+* Website: [https://www.gomomento.com/](https://www.gomomento.com/)
+* Momento Documentation: [https://docs.momentohq.com/](https://docs.momentohq.com/)
+* Getting Started: [https://docs.momentohq.com/getting-started](https://docs.momentohq.com/getting-started)
+* Java SDK Documentation: [https://docs.momentohq.com/develop/sdks/java](https://docs.momentohq.com/develop/sdks/java)
+* Discuss: [Momento Discord](https://discord.gg/3HkAKjUZGq)
 
+## Packages
 
+The Java SDK is available on Maven Central:
 
-## Getting Started :running:
-
-### Requirements
-
-- A Momento Auth Token is required, you can generate one using
-  the [Momento CLI](https://github.com/momentohq/momento-cli)
-- At least the java 8 run time installed
-- mvn or gradle for downloading the sdk
-
-### Examples
-
-Ready to dive right in? Just check out the [examples](./examples/README.md) directory for complete, working examples of
-how to use the SDK.
-
-### Installation
-
-#### Gradle
-
-Add our dependency to your `gradle.build.kts`
+### Gradle
 
 ```kotlin
-buildscript {
-    dependencies {
-        implementation("software.momento.java:sdk:0.24.0")
-    }
-}
+implementation("software.momento.java:sdk:1.0.0")
 ```
 
-#### Maven
-
-Add our dependency your `pom.xml`
+### Maven
 
 ```xml
-
-<project>
-    ...
-    <dependencyManagement>
-        <dependencies>
-            <dependency>
-                <groupId>software.momento.java</groupId>
-                <artifactId>sdk</artifactId>
-                <version>0.24.0</version>
-            </dependency>
-        </dependencies>
-    </dependencyManagement>
-    ...
-</project>
+<dependency>
+    <groupId>software.momento.java</groupId>
+    <artifactId>sdk</artifactId>
+    <version>1.0.0</version>
+</dependency>
 ```
 
-### Usage
-
-Checkout our [examples](./examples/README.md) directory for complete examples of how to use the SDK.
-
-Here is a basic example you can use to get started:
+## Usage
 
 ```java
-package momento.client.example;
+package momento.client.example.doc_examples;
 
 import java.time.Duration;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
-import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.responses.cache.GetResponse;
-import momento.sdk.responses.cache.control.CacheCreateResponse;
-import momento.sdk.responses.cache.control.CacheInfo;
-import momento.sdk.responses.cache.control.CacheListResponse;
 
-public class BasicExample {
-
-  private static final String AUTH_TOKEN_ENV_VAR = "MOMENTO_AUTH_TOKEN";
-  private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
-
-  private static final String CACHE_NAME = "cache";
-  private static final String KEY = "key";
-  private static final String VALUE = "value";
-
+public class ReadmeExample {
   public static void main(String[] args) {
-    printStartBanner();
+    try (final CacheClient cacheClient =
+        CacheClient.builder(
+                CredentialProvider.fromEnvVar("MOMENTO_AUTH_TOKEN"),
+                Configurations.Laptop.v1(),
+                Duration.ofSeconds(60))
+            .build()) {
+      final String cacheName = "cache";
 
-    final CredentialProvider credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
+      cacheClient.createCache(cacheName).join();
 
-    try (final CacheClient client =
-                 CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)
-                         .build()) {
+      cacheClient.set(cacheName, "foo", "bar").join();
 
-      createCache(client, CACHE_NAME);
-
-      listCaches(client);
-
-      System.out.printf("Setting key '%s', value '%s'%n", KEY, VALUE);
-      client.set(CACHE_NAME, KEY, VALUE).join();
-
-      System.out.printf("Getting value for key '%s'%n", KEY);
-
-      final GetResponse getResponse = client.get(CACHE_NAME, KEY).join();
-      if (getResponse instanceof GetResponse.Hit hit) {
-        System.out.printf("Found value for key '%s': '%s'%n", KEY, hit.valueString());
-      } else if (getResponse instanceof GetResponse.Miss) {
-        System.out.println("Found no value for key " + KEY);
-      } else if (getResponse instanceof GetResponse.Error error) {
-        System.out.printf(
-                "Unable to look up value for key '%s' with error %s\n", KEY, error.getErrorCode());
-        System.out.println(error.getMessage());
+      final GetResponse response = cacheClient.get(cacheName, "foo").join();
+      if (response instanceof GetResponse.Hit hit) {
+        System.out.println("Got value: " + hit.valueString());
       }
     }
-    printEndBanner();
-  }
-
-  private static void createCache(CacheClient cacheClient, String cacheName) {
-    final CacheCreateResponse createResponse = cacheClient.createCache(cacheName).join();
-    if (createResponse instanceof CacheCreateResponse.Error error) {
-      if (error.getCause() instanceof AlreadyExistsException) {
-        System.out.println("Cache with name '" + cacheName + "' already exists.");
-      } else {
-        System.out.println("Unable to create cache with error " + error.getErrorCode());
-        System.out.println(error.getMessage());
-      }
-    }
-  }
-
-  private static void listCaches(CacheClient cacheClient) {
-    System.out.println("Listing caches:");
-    final CacheListResponse listResponse = cacheClient.listCaches().join();
-    if (listResponse instanceof CacheListResponse.Success success) {
-      for (CacheInfo cacheInfo : success.getCaches()) {
-        System.out.println(cacheInfo.name());
-      }
-    } else if (listResponse instanceof CacheListResponse.Error error) {
-      System.out.println("Unable to list caches with error " + error.getErrorCode());
-      System.out.println(error.getMessage());
-    }
-  }
-
-  private static void printStartBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("Basic Example Start");
-    System.out.println("******************************************************************");
-  }
-
-  private static void printEndBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("Basic Example End");
-    System.out.println("******************************************************************");
   }
 }
 
-
 ```
 
-### Error Handling
+## Getting Started and Documentation
 
-The SDK will only throw exceptions from errors encountered when setting up a client. All errors that occur when calling
-the client methods will result in an error response. All methods have an `Error` response subclass alongside the other
-response types they can return.
+Documentation is available on the [Momento Docs website](https://docs.momentohq.com).
 
-Here is an example of how the response can be matched to different outcomes:
+## Examples
 
-```java
-final ListFetchResponse fetchResponse=client.listFetch(...).join();
-if (fetchResponse instanceof ListFetchResponse.Hit hit) {
-  // A successful call that returned a result.
-} else if(fetchResponse instanceof ListFetchResponse.Miss miss) {
-  // A successful call that didn't find anything
-}else if(fetchResponse instanceof ListFetchResponse.Error error) {
-  // An error result. It is an exception and can be thrown if desired.
-}
-```
+Working example projects, with all required build configuration files, are available in the [examples](./examples) subdirectory.
 
-### Tuning
+## Developing
 
-SDK tuning is done through the Configuration object passed into the client builder. Preset Configuration objects for
-different environments are defined
-in [Configurations](momento-sdk/src/main/java/momento/sdk/config/Configurations.java).
+If you are interested in contributing to the SDK, please see the [CONTRIBUTING](./CONTRIBUTING.md) docs.
 
 ----------------------------------------------------------------------------------------
 For more info, visit our website at [https://gomomento.com](https://gomomento.com)!
