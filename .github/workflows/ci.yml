@@ -30,7 +30,7 @@ jobs:
         project_stability: stable
         project_type: sdk
         sdk_language: Java
-        dev_docs_slug: nodejs
+        dev_docs_slug: java
 
     - name: Commitlint and Other Shared Build Steps
       uses: momentohq/standards-and-practices/github-actions/shared-build@gh-actions-v1
