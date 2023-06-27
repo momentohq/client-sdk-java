@@ -8,7 +8,7 @@ junit = "5.9.2"
 gson = "2.10.1"
 guava = "31.1-android"
 java-protos = "0.54.1"
-slf4j = "2.0.7"
+slf4j = "1.7.36"
 
 [libraries]
 grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpc"}
