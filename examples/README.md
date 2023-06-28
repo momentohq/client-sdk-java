@@ -14,7 +14,7 @@ _Read this in other languages_: [日本語](README.ja.md)
 ```bash
 MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew basic
 ```
-Example Code: [BasicExmaple.java](lib/src/main/java/momento/client/example/BasicExample.java)
+Example Code: [BasicExample.java](lib/src/main/java/momento/client/example/BasicExample.java)
 
 
 ### List

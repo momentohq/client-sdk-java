@@ -1,29 +1,33 @@
 package momento.client.example;
 
+import static momento.client.example.ExampleUtils.logEndBanner;
+import static momento.client.example.ExampleUtils.logStartBanner;
+
 import java.time.Duration;
+
+import momento.client.example.util.AuthUtil;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheInfo;
 import momento.sdk.responses.cache.control.CacheListResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BasicExample {
-
-  private static final String AUTH_TOKEN_ENV_VAR = "MOMENTO_AUTH_TOKEN";
+  private static final Logger logger = LoggerFactory.getLogger(SetExample.class);
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
-
   private static final String CACHE_NAME = "cache";
   private static final String KEY = "key";
   private static final String VALUE = "value";
 
   public static void main(String[] args) {
-    printStartBanner();
+    logStartBanner(logger);
 
-    final CredentialProvider credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
+    final CredentialProvider credentialProvider = AuthUtil.getCredentials();
 
     try (final CacheClient client =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)
@@ -49,7 +53,7 @@ public class BasicExample {
         System.out.println(error.getMessage());
       }
     }
-    printEndBanner();
+    logEndBanner(logger);
   }
 
   private static void createCache(CacheClient cacheClient, String cacheName) {
@@ -75,17 +79,5 @@ public class BasicExample {
       System.out.println("Unable to list caches with error " + error.getErrorCode());
       System.out.println(error.getMessage());
     }
-  }
-
-  private static void printStartBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("Basic Example Start");
-    System.out.println("******************************************************************");
-  }
-
-  private static void printEndBanner() {
-    System.out.println("******************************************************************");
-    System.out.println("Basic Example End");
-    System.out.println("******************************************************************");
   }
 }

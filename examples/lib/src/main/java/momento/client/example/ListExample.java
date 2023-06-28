@@ -5,12 +5,12 @@ import static momento.client.example.ExampleUtils.logStartBanner;
 
 import java.time.Duration;
 import java.util.List;
+
+import momento.client.example.util.AuthUtil;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
-import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.list.ListConcatenateFrontResponse;
 import momento.sdk.responses.cache.list.ListFetchResponse;
@@ -21,25 +21,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class ListExample {
-
-  private static final String AUTH_TOKEN_ENV_VAR = "MOMENTO_AUTH_TOKEN";
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
-
   private static final String CACHE_NAME = "list-example-cache";
   private static final String LIST_NAME = "example-list";
-
   private static final Logger logger = LoggerFactory.getLogger(ListExample.class);
 
   public static void main(String[] args) {
     logStartBanner(logger);
 
-    final CredentialProvider credentialProvider;
-    try {
-      credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
-    } catch (SdkException e) {
-      logger.error("Unable to load credential from environment variable " + AUTH_TOKEN_ENV_VAR, e);
-      throw e;
-    }
+    final CredentialProvider credentialProvider = AuthUtil.getCredentials();
 
     try (final CacheClient client =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)

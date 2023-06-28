@@ -7,12 +7,12 @@ import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import momento.client.example.util.AuthUtil;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
-import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetFetchResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetGetScoresResponse;
@@ -36,13 +36,7 @@ public class SortedSetExample {
   public static void main(String[] args) {
     logStartBanner(logger);
 
-    final CredentialProvider credentialProvider;
-    try {
-      credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
-    } catch (SdkException e) {
-      logger.error("Unable to load credential from environment variable " + AUTH_TOKEN_ENV_VAR, e);
-      throw e;
-    }
+    final CredentialProvider credentialProvider = AuthUtil.getCredentials();
 
     try (final CacheClient client =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)
