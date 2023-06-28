@@ -4,7 +4,6 @@ import static momento.client.example.ExampleUtils.logEndBanner;
 import static momento.client.example.ExampleUtils.logStartBanner;
 
 import java.time.Duration;
-
 import momento.client.example.util.AuthUtil;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;

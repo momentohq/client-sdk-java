@@ -6,7 +6,6 @@ import static momento.client.example.ExampleUtils.logStartBanner;
 import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import momento.client.example.util.AuthUtil;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
