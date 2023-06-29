@@ -14,7 +14,7 @@ _他言語もあります_: [English](README.md)
 MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew basic
 ```
 
-SDK コード例: [MomentoApplication.java](cache/main/java/momento/client/example/BasicExample.java)
+SDK コード例: [MomentoApplication.java](cache/src/main/java/momento/client/example/BasicExample.java)
 
 ## Java SDK を自身のプロジェクトで使用する
 
