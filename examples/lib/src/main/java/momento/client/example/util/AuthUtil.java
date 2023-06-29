@@ -15,6 +15,7 @@ public class AuthUtil {
   private static final String AUTH_TOKEN_VAR = "MOMENTO_AUTH_TOKEN";
   private static final Logger logger = LoggerFactory.getLogger(AuthUtil.class);
 
+  /** Helper method to vend Momento credentials through auth token stored in environment variable */
   public static CredentialProvider getCredentialsFromEnvironmentVariable() {
     try {
       return CredentialProvider.fromEnvVar(AUTH_TOKEN_VAR);
@@ -24,6 +25,7 @@ public class AuthUtil {
     }
   }
 
+  /** Helper method to vend Momento credentials through auth token stored in secrets manager */
   public static CredentialProvider getCredentialsFromSecretsManagerAuthToken() {
     final Region region = Region.of("us-east-1");
 
@@ -48,6 +50,11 @@ public class AuthUtil {
     }
 
     final String secret = getSecretValueResponse.secretString();
-    return CredentialProvider.fromString(secret);
+    try {
+      return CredentialProvider.fromString(secret);
+    } catch (SdkException e) {
+      logger.error("Unable to load credential from secrets manager, key: " + AUTH_TOKEN_VAR, e);
+      throw e;
+    }
   }
 }
