@@ -26,7 +26,7 @@ public class BasicExample {
   public static void main(String[] args) {
     logStartBanner(logger);
 
-    final CredentialProvider credentialProvider = AuthUtil.getCredentials();
+    final CredentialProvider credentialProvider = AuthUtil.getCredentialsFromEnvironmentVariable();
 
     try (final CacheClient client =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)
