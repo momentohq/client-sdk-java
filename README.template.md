@@ -23,7 +23,7 @@ implementation("software.momento.java:sdk:1.0.0")
 ## Usage
 
 ```java
-{% include "./examples/lib/src/main/java/momento/client/example/doc_examples/ReadmeExample.java" %}
+{% include "./examples/cache/src/main/java/momento/client/example/doc_examples/ReadmeExample.java" %}
 ```
 
 ## Getting Started and Documentation
