@@ -14,39 +14,39 @@ _Read this in other languages_: [日本語](README.ja.md)
 ```bash
 MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew basic
 ```
-Example Code: [BasicExample.java](src/main/java/momento/client/example/BasicExample.java)
+Example Code: [BasicExample.java](cache/src/main/java/momento/client/example/BasicExample.java)
 
 
 ### List
 ```bash
 MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew list
 ```
-Example Code: [ListExample.java](src/main/java/momento/client/example/ListExample.java)
+Example Code: [ListExample.java](cache/src/main/java/momento/client/example/ListExample.java)
 
 ### Set
 ```bash
 MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew set
 ```
-Example Code: [SetExample.java](src/main/java/momento/client/example/SetExample.java)
+Example Code: [SetExample.java](cache/src/main/java/momento/client/example/SetExample.java)
 
 ### Dictionary
 ```bash
 MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew dictionary
 ```
-Example Code: [DictionaryExample.java](src/main/java/momento/client/example/DictionaryExample.java)
+Example Code: [DictionaryExample.java](cache/src/main/java/momento/client/example/DictionaryExample.java)
 
 ### Sorted Set
 ```bash
 MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew sortedSet
 ```
-Example Code: [SortedSetExample.java](src/main/java/momento/client/example/SortedSetExample.java)
+Example Code: [SortedSetExample.java](cache/src/main/java/momento/client/example/SortedSetExample.java)
 
 
 ### With a Backing Database
 ```bash
 MOMENTO_AUTH_TOKEN=<YOUR AUTH TOKEN> ./gradlew withDatabase
 ```
-Example Code: [WithDatabaseExample.java](src/main/java/momento/client/example/advanced/WithDatabaseExample.java)
+Example Code: [WithDatabaseExample.java](cache/src/main/java/momento/client/example/advanced/WithDatabaseExample.java)
 
 ## Using the Java SDK in your project
 
