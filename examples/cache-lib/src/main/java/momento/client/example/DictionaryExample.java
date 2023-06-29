@@ -1,8 +1,5 @@
 package momento.client.example;
 
-import static momento.client.example.ExampleUtils.logEndBanner;
-import static momento.client.example.ExampleUtils.logStartBanner;
-
 import java.time.Duration;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -31,7 +28,7 @@ public class DictionaryExample {
   private static final Logger logger = LoggerFactory.getLogger(DictionaryExample.class);
 
   public static void main(String[] args) {
-    logStartBanner(logger);
+    logStartBanner();
 
     final CredentialProvider credentialProvider;
     try {
@@ -115,6 +112,18 @@ public class DictionaryExample {
         logger.error("Dictionary fetch failed with error " + error.getErrorCode(), error);
       }
     }
-    logEndBanner(logger);
+    logEndBanner();
+  }
+
+  private static void logStartBanner() {
+    logger.info("******************************************************************");
+    logger.info("Example Start");
+    logger.info("******************************************************************");
+  }
+
+  private static void logEndBanner() {
+    logger.info("******************************************************************");
+    logger.info("Example End");
+    logger.info("******************************************************************");
   }
 }

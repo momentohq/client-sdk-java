@@ -1,8 +1,5 @@
 package momento.client.example;
 
-import static momento.client.example.ExampleUtils.logEndBanner;
-import static momento.client.example.ExampleUtils.logStartBanner;
-
 import java.time.Duration;
 import java.util.List;
 import momento.sdk.CacheClient;
@@ -31,7 +28,7 @@ public class ListExample {
   private static final Logger logger = LoggerFactory.getLogger(ListExample.class);
 
   public static void main(String[] args) {
-    logStartBanner(logger);
+    logStartBanner();
 
     final CredentialProvider credentialProvider;
     try {
@@ -106,6 +103,18 @@ public class ListExample {
         logger.error("List length failed with error " + error.getErrorCode(), error);
       }
     }
-    logEndBanner(logger);
+    logEndBanner();
+  }
+
+  private static void logStartBanner() {
+    logger.info("******************************************************************");
+    logger.info("Example Start");
+    logger.info("******************************************************************");
+  }
+
+  private static void logEndBanner() {
+    logger.info("******************************************************************");
+    logger.info("Example End");
+    logger.info("******************************************************************");
   }
 }

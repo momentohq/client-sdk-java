@@ -1,8 +1,5 @@
 package momento.client.example.advanced;
 
-import static momento.client.example.ExampleUtils.logEndBanner;
-import static momento.client.example.ExampleUtils.logStartBanner;
-
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -41,13 +38,13 @@ public class WithDatabaseExample {
   private static final Logger logger = LoggerFactory.getLogger(WithDatabaseExample.class);
 
   public static void main(String[] args) {
-    logStartBanner(logger);
+    logStartBanner();
     final Database database = new DatabaseImpl();
     try (final CacheClient cacheClient = createCacheClient()) {
       createCache(cacheClient, CACHE_NAME);
       runExample(cacheClient, database);
     }
-    logEndBanner(logger);
+    logEndBanner();
   }
 
   private static void runExample(CacheClient cache, Database database) {
@@ -131,6 +128,18 @@ public class WithDatabaseExample {
     }
     return CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)
         .build();
+  }
+
+  private static void logStartBanner() {
+    logger.info("******************************************************************");
+    logger.info("Example Start");
+    logger.info("******************************************************************");
+  }
+
+  private static void logEndBanner() {
+    logger.info("******************************************************************");
+    logger.info("Example End");
+    logger.info("******************************************************************");
   }
 }
 
