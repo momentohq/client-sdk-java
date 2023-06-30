@@ -30,7 +30,6 @@ public class DictionaryExample {
   public static void main(String[] args) {
     logStartBanner();
 
-
     final CredentialProvider credentialProvider;
     try {
       credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);

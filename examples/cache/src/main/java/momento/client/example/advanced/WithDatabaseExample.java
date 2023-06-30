@@ -39,7 +39,7 @@ public class WithDatabaseExample {
 
   public static void main(String[] args) {
     logStartBanner();
-    
+
     final Database database = new DatabaseImpl();
     try (final CacheClient cacheClient = createCacheClient()) {
       createCache(cacheClient, CACHE_NAME);
