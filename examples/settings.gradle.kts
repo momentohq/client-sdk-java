@@ -8,4 +8,4 @@
  */
 
 rootProject.name = "java-gradle"
-include("lib")
+include("cache")
