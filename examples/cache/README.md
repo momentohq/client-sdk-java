@@ -8,7 +8,8 @@ _Read this in other languages_: [日本語](README.ja.md)
 
 - You do not need gradle to be installed
 - JDK 14 or above is required to run the example
-- A Momento Auth Token is required, you can generate one using the [Momento CLI](https://github.com/momentohq/momento-cli)
+- To get started with Momento you will need a Momento Auth Token. You can get one from the
+  [Momento Console](https://console.gomomento.com).
 
 ### Basic
 ```bash

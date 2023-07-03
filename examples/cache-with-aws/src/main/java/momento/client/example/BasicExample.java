@@ -115,7 +115,10 @@ public class BasicExample {
       return CredentialProvider.fromString(secret);
     } catch (SdkException e) {
       logger.error(
-          "Unable to load credential from secrets manager, key: " + AUTH_TOKEN_SECRET_NAME, e);
+          "An error occured while parsing the secrets manager vended"
+              + " authentication token , key: "
+              + AUTH_TOKEN_SECRET_NAME,
+          e);
       throw e;
     }
   }
