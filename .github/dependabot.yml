@@ -6,8 +6,15 @@
 version: 2
 updates:
   - package-ecosystem: "gradle" # See documentation for possible values
-    directory: "/examples" # Location of package manifests
+    directory: "/examples/cache" # Location of package manifests
     schedule:
       interval: "daily"
     allow:
       - dependency-name: "software.momento.java:sdk"
+  - package-ecosystem: "gradle" # See documentation for possible values
+    directory: "/examples/cache-with-aws" # Location of package manifests
+    schedule:
+      interval: "daily"
+    allow:
+      - dependency-name: "software.momento.java:sdk"
+      - dependency-name: "software.amazon.awssdk:secretsmanager"
