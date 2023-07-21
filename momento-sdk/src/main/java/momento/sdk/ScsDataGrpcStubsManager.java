@@ -30,17 +30,21 @@ final class ScsDataGrpcStubsManager implements Closeable {
       @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
     this.deadline = configuration.getTransportStrategy().getGrpcConfiguration().getDeadline();
 
-    this.channel = setupChannel(credentialProvider);
+    this.channel = setupChannel(credentialProvider, configuration);
     this.futureStub = ScsGrpc.newFutureStub(channel);
   }
 
-  private static ManagedChannel setupChannel(CredentialProvider credentialProvider) {
+  private static ManagedChannel setupChannel(
+      CredentialProvider credentialProvider, Configuration configuration) {
     final NettyChannelBuilder channelBuilder =
         NettyChannelBuilder.forAddress(credentialProvider.getCacheEndpoint(), 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
+    clientInterceptors.add(
+        new RetryClientInterceptor(
+            configuration.getRetryStrategy(), configuration.getRetryEligibilityStrategy()));
     channelBuilder.intercept(clientInterceptors);
     return channelBuilder.build();
   }

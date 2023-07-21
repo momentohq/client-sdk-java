@@ -6,6 +6,10 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
 import momento.sdk.config.transport.GrpcConfiguration;
 import momento.sdk.config.transport.TransportStrategy;
+import momento.sdk.retry.DefaultRetryEligibilityStrategy;
+import momento.sdk.retry.FixedCountRetryStrategy;
+import momento.sdk.retry.RetryEligibilityStrategy;
+import momento.sdk.retry.RetryStrategy;
 
 /** Builder for {@link CacheClient} */
 public final class CacheClientBuilder {
@@ -44,7 +48,23 @@ public final class CacheClientBuilder {
         configuration.getTransportStrategy().getGrpcConfiguration().withDeadline(deadline);
     final TransportStrategy newTransportStrategy =
         configuration.getTransportStrategy().withGrpcConfiguration(newGrpcConfiguration);
-    configuration = configuration.withTransportStrategy(newTransportStrategy);
+    final RetryStrategy retryStrategy =
+        configuration.getRetryStrategy() == null
+            ?
+            // create default if the configuration didn't have a retry strategy otherwise don't
+            // override a customer provided strategy
+            new FixedCountRetryStrategy(Configuration.MAX_RETRIES)
+            : configuration.getRetryStrategy();
+    final RetryEligibilityStrategy retryEligibilityStrategy =
+        configuration.getRetryEligibilityStrategy() == null
+            ?
+            // create default if the configuration didn't have a retry eligbility strategy otherwise
+            // don't override a customer provided strategy
+            new DefaultRetryEligibilityStrategy()
+            : configuration.getRetryEligibilityStrategy();
+    configuration =
+        configuration.withTransportStrategy(
+            newTransportStrategy, retryStrategy, retryEligibilityStrategy);
 
     return this;
   }

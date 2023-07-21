@@ -12,6 +12,7 @@ dependencies {
     api(libs.grpc.api) // Marked api because SdkException contains classes from this dependency
     implementation(libs.grpc.stub)
     implementation(libs.grpc.nettyshaded)
+    implementation(libs.grpc.context)
     implementation(libs.protobuf.java)
     implementation(libs.guava)
     implementation(libs.gson)
@@ -25,6 +26,9 @@ dependencies {
     // Test dependencies
     testImplementation(libs.junit)
     testImplementation(libs.assertj)
+    testImplementation(libs.slf4j.api)
+    testImplementation(libs.logback)
+
 }
 
 spotless {

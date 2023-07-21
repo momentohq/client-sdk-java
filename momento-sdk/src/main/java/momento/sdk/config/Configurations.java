@@ -4,6 +4,10 @@ import java.time.Duration;
 import momento.sdk.config.transport.GrpcConfiguration;
 import momento.sdk.config.transport.StaticTransportStrategy;
 import momento.sdk.config.transport.TransportStrategy;
+import momento.sdk.retry.DefaultRetryEligibilityStrategy;
+import momento.sdk.retry.FixedCountRetryStrategy;
+import momento.sdk.retry.RetryEligibilityStrategy;
+import momento.sdk.retry.RetryStrategy;
 
 /** Prebuilt {@link Configuration}s for different environments. */
 public class Configurations {
@@ -14,8 +18,11 @@ public class Configurations {
    */
   public static class Laptop extends Configuration {
 
-    private Laptop(TransportStrategy transportStrategy) {
-      super(transportStrategy);
+    private Laptop(
+        TransportStrategy transportStrategy,
+        RetryStrategy retryStrategy,
+        RetryEligibilityStrategy retryEligibilityStrategy) {
+      super(transportStrategy, retryStrategy, retryEligibilityStrategy);
     }
 
     /**
@@ -39,7 +46,40 @@ public class Configurations {
     public static Configuration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
-      return new Laptop(transportStrategy);
+      return new Laptop(
+          transportStrategy,
+          new FixedCountRetryStrategy(Configuration.MAX_RETRIES),
+          new DefaultRetryEligibilityStrategy());
+    }
+
+    /**
+     * Provides v1 configuration for a laptop environment with a custom {@link RetryStrategy}. This
+     * configuration is guaranteed not to change in future releases of the Momento Java SDK.
+     *
+     * @param retryStrategy the retry strategy
+     * @return the v1 laptop configuration
+     */
+    public static Configuration v1(RetryStrategy retryStrategy) {
+      final TransportStrategy transportStrategy =
+          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
+      return new Laptop(transportStrategy, retryStrategy, new DefaultRetryEligibilityStrategy());
+    }
+
+    /**
+     * Provides v1 configuration for a laptop environment with a custom {@link RetryStrategy} and a
+     * {@link RetryEligibilityStrategy}
+     *
+     * <p>This configuration is guaranteed not to change in future releases of the Momento Java SDK.
+     *
+     * @param retryStrategy the retry strategy
+     * @param retryEligibilityStrategy the retry eligibility strategy
+     * @return the v1 laptop configuration
+     */
+    public static Configuration v1(
+        RetryStrategy retryStrategy, RetryEligibilityStrategy retryEligibilityStrategy) {
+      final TransportStrategy transportStrategy =
+          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
+      return new Laptop(transportStrategy, retryStrategy, retryEligibilityStrategy);
     }
   }
 
@@ -50,8 +90,11 @@ public class Configurations {
    */
   public static class InRegion extends Configuration {
 
-    private InRegion(TransportStrategy transportStrategy) {
-      super(transportStrategy);
+    private InRegion(
+        TransportStrategy transportStrategy,
+        RetryStrategy retryStrategy,
+        RetryEligibilityStrategy retryEligibilityStrategy) {
+      super(transportStrategy, retryStrategy, retryEligibilityStrategy);
     }
 
     /**
@@ -75,7 +118,40 @@ public class Configurations {
     public static Configuration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(1100)));
-      return new Laptop(transportStrategy);
+      return new InRegion(
+          transportStrategy,
+          new FixedCountRetryStrategy(Configuration.MAX_RETRIES),
+          new DefaultRetryEligibilityStrategy());
+    }
+
+    /**
+     * Provides v1 configuration for an in-region environment with a custom {@link RetryStrategy}.
+     * This configuration is guaranteed not to change in future releases of the Momento Java SDK.
+     *
+     * @param retryStrategy the retry strategy
+     * @return the v1 in-region configuration
+     */
+    public static Configuration v1(RetryStrategy retryStrategy) {
+      final TransportStrategy transportStrategy =
+          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(1100)));
+      return new InRegion(transportStrategy, retryStrategy, new DefaultRetryEligibilityStrategy());
+    }
+
+    /**
+     * Provides v1 configuration for an in-region environment with a custom {@link RetryStrategy}
+     * and a {@link RetryEligibilityStrategy}
+     *
+     * <p>This configuration is guaranteed not to change in future releases of the Momento Java SDK.
+     *
+     * @param retryStrategy the retry strategy
+     * @param retryEligibilityStrategy the retry eligibility strategy
+     * @return the v1 in-region configuration
+     */
+    public static Configuration v1(
+        RetryStrategy retryStrategy, RetryEligibilityStrategy retryEligibilityStrategy) {
+      final TransportStrategy transportStrategy =
+          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(1100)));
+      return new InRegion(transportStrategy, retryStrategy, retryEligibilityStrategy);
     }
   }
 
@@ -86,8 +162,11 @@ public class Configurations {
    */
   public static class LowLatency extends Configuration {
 
-    private LowLatency(TransportStrategy transportStrategy) {
-      super(transportStrategy);
+    private LowLatency(
+        TransportStrategy transportStrategy,
+        RetryStrategy retryStrategy,
+        RetryEligibilityStrategy retryEligibilityStrategy) {
+      super(transportStrategy, retryStrategy, retryEligibilityStrategy);
     }
 
     /**
@@ -111,7 +190,40 @@ public class Configurations {
     public static Configuration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(500)));
-      return new Laptop(transportStrategy);
+      return new LowLatency(
+          transportStrategy,
+          new FixedCountRetryStrategy(Configuration.MAX_RETRIES),
+          new DefaultRetryEligibilityStrategy());
+    }
+
+    /**
+     * Provides v1 configuration for a low-latency environment with a custom {@link RetryStrategy}.
+     * This configuration is guaranteed not to change in future releases of the Momento Java SDK.
+     *
+     * @param retryStrategy the retry strategy
+     * @return the v1 low-latency configuration
+     */
+    public static Configuration v1(RetryStrategy retryStrategy) {
+      final TransportStrategy transportStrategy =
+          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(500)));
+      return new LowLatency(
+          transportStrategy, retryStrategy, new DefaultRetryEligibilityStrategy());
+    }
+
+    /**
+     * Provides v1 configuration for a low-latency environment with a custom {@link RetryStrategy}
+     * and a {@link RetryEligibilityStrategy} This configuration is guaranteed not to change in
+     * future releases of the Momento Java SDK.
+     *
+     * @param retryStrategy the retry strategy
+     * @param retryEligibilityStrategy the retry eligibility strategy
+     * @return the v1 low-latency configuration
+     */
+    public static Configuration v1(
+        RetryStrategy retryStrategy, RetryEligibilityStrategy retryEligibilityStrategy) {
+      final TransportStrategy transportStrategy =
+          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(500)));
+      return new LowLatency(transportStrategy, retryStrategy, retryEligibilityStrategy);
     }
   }
 }
