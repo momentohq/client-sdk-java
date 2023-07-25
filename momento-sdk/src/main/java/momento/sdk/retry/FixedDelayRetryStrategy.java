@@ -46,8 +46,8 @@ public class FixedDelayRetryStrategy implements RetryStrategy {
       long delayMillis,
       long maxDelayMillis,
       RetryEligibilityStrategy retryEligibilityStrategy) {
-    assert delayMillis <= maxDelayMillis : "Delay amount should be " + "less than or equal " +
-            "to the maximum delay";
+    assert delayMillis <= maxDelayMillis
+        : "Delay amount should be " + "less than or equal " + "to the maximum delay";
     Objects.requireNonNull(
         retryEligibilityStrategy, "Retry eligibility strategy should not be null");
     this.maxAttempts = maxAttempts;
@@ -58,8 +58,8 @@ public class FixedDelayRetryStrategy implements RetryStrategy {
 
   /** {@inheritDoc} * */
   public FixedDelayRetryStrategy(int maxAttempts, long delayMillis, long maxDelayMillis) {
-    assert delayMillis <= maxDelayMillis : "Delay amount should be less than or equal " +
-            "to the maximum delay";
+    assert delayMillis <= maxDelayMillis
+        : "Delay amount should be less than or equal " + "to the maximum delay";
     this.maxAttempts = maxAttempts;
     this.delayMillis = delayMillis;
     this.maxDelayMillis = maxDelayMillis;

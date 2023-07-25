@@ -4,10 +4,10 @@ import io.grpc.Status;
 import java.util.HashSet;
 import java.util.Set;
 
-/**iiinter
- * DefaultRetryEligibilityStrategy is an implementation of the RetryEligibilityStrategy interface
- * that determines whether a gRPC call is eligible for retry based on its method name and status
- * code.
+/**
+ * DefaultRetryEligibilityStrategy is an implementation of the RetryEligibilityStrategy
+ * interface that determines whether a gRPC call is eligible for retry based on its method name and
+ * status code.
  */
 public class DefaultRetryEligibilityStrategy implements RetryEligibilityStrategy {
 

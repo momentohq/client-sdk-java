@@ -34,8 +34,7 @@ public class FixedCountRetryStrategy implements RetryStrategy {
   public FixedCountRetryStrategy(
       final int maxAttempts, final RetryEligibilityStrategy eligibilityStrategy) {
     assert maxAttempts > 0 : "Total number " + "of retry attempts should be greater than 0";
-    Objects.requireNonNull(
-        eligibilityStrategy, "Retry eligibility strategy should not be null");
+    Objects.requireNonNull(eligibilityStrategy, "Retry eligibility strategy should not be null");
     this.maxAttempts = maxAttempts;
     this.retryEligibilityStrategy = eligibilityStrategy;
   }
