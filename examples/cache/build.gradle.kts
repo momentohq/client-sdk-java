@@ -19,8 +19,13 @@ repositories {
 dependencies {
     implementation("software.momento.java:sdk:1.0.0")
 
+    implementation("com.google.guava:guava:31.1-android")
+
     // Logging framework to log and enable logging in the Momento client.
     implementation("ch.qos.logback:logback-classic:1.4.7")
+
+    // Histogram for collecting stats in the load generator
+    implementation("org.hdrhistogram:HdrHistogram:2.1.12")
 
     // Use JUnit Jupiter for testing.
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
@@ -66,6 +71,12 @@ task("dictionary", JavaExec::class) {
     description = "Run the dictionary example"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.DictionaryExample")
+}
+
+task("loadgen", JavaExec::class) {
+    description = "Run the load generator"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.LoadGenerator")
 }
 
 task("sortedSet", JavaExec::class) {
