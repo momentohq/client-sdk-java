@@ -9,6 +9,7 @@ import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
+import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.*;
 import javax.annotation.Nullable;
@@ -116,7 +117,7 @@ final class RetryClientInterceptor implements ClientInterceptor {
                 // now we can safely start retrying
 
                 attemptNumber++;
-                final Optional<Long> retryDelay =
+                final Optional<Duration> retryDelay =
                     retryStrategy.determineWhenToRetry(status, method, attemptNumber);
 
                 // a delay not present indicates we have exhausted retries or exceeded
@@ -126,13 +127,21 @@ final class RetryClientInterceptor implements ClientInterceptor {
                   return;
                 }
 
+                logger.debug(
+                    "Retrying request {} on error code {} with delay {} millisecodns",
+                    method.getFullMethodName(),
+                    status.getCode().toString(),
+                    retryDelay.get().toMillis());
+
                 final Runnable runnable =
                     Context.current().wrap(() -> retry(channel.newCall(method, callOptions)));
 
                 // schedule the task to be executed on the executor
                 future =
                     scheduler.schedule(
-                        () -> executor.submit(runnable), retryDelay.get(), TimeUnit.MILLISECONDS);
+                        () -> executor.submit(runnable),
+                        retryDelay.get().toMillis(),
+                        TimeUnit.MILLISECONDS);
               }
 
               @Override

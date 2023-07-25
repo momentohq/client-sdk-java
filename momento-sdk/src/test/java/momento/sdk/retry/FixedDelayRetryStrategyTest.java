@@ -9,6 +9,7 @@ import static org.mockito.Mockito.when;
 
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
+import java.time.Duration;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -42,11 +43,11 @@ class FixedDelayRetryStrategyTest {
         new FixedDelayRetryStrategy(maxAttempts, delayMillis, maxDelayMillis, eligibilityStrategy);
 
     // When getting the delay for the first attempt
-    Optional<Long> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 1);
+    Optional<Duration> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 1);
 
     // Then the delay should be equal to the fixed delay
     assertTrue(delay.isPresent());
-    assertEquals(delayMillis, delay.get());
+    assertEquals(delayMillis, delay.get().toMillis());
   }
 
   @Test
@@ -59,7 +60,7 @@ class FixedDelayRetryStrategyTest {
         new FixedDelayRetryStrategy(maxAttempts, delayMillis, maxDelayMillis, eligibilityStrategy);
 
     // When getting the delay for the fourth attempt
-    Optional<Long> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 4);
+    Optional<Duration> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 4);
 
     // Then the delay should be empty, indicating no more retries
     assertFalse(delay.isPresent());
@@ -75,7 +76,7 @@ class FixedDelayRetryStrategyTest {
         new FixedDelayRetryStrategy(maxAttempts, delayMillis, maxDelayMillis, eligibilityStrategy);
 
     // When getting the delay for the tenth attempt
-    Optional<Long> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 6);
+    Optional<Duration> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 6);
 
     // Then the delay should be empty, indicating no more retries
     assertFalse(delay.isPresent());
@@ -90,7 +91,7 @@ class FixedDelayRetryStrategyTest {
         new FixedDelayRetryStrategy(maxAttempts, 100, 500, eligibilityStrategy);
 
     // valid attempt but not eligible
-    Optional<Long> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 1);
+    Optional<Duration> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 1);
 
     // Then the delay should be empty, indicating no more retries
     assertFalse(delay.isPresent());

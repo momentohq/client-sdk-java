@@ -2,6 +2,7 @@ package momento.sdk.retry;
 
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
+import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -46,6 +47,6 @@ public interface RetryStrategy {
    * @return An {@link Optional} containing the delay in milliseconds for the next retry attempt, or
    *     an empty optional to indicate that no further retry attempts should be made.
    */
-  Optional<Long> determineWhenToRetry(
+  Optional<Duration> determineWhenToRetry(
       Status grpcStatus, MethodDescriptor request, int currentAttempt);
 }

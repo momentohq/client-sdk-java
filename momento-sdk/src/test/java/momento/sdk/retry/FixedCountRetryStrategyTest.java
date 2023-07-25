@@ -10,6 +10,7 @@ import static org.mockito.Mockito.when;
 
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
+import java.time.Duration;
 import java.util.Optional;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,11 +42,11 @@ class FixedCountRetryStrategyTest {
         new FixedCountRetryStrategy(maxAttempts, eligibilityStrategy);
 
     // When getting the delay for the first attempt
-    Optional<Long> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 1);
+    Optional<Duration> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 1);
 
     // Then the delay should be 0, indicating an immediate retry
     assertTrue(delay.isPresent());
-    assertEquals(0L, delay.get());
+    assertEquals(0L, delay.get().toMillis());
   }
 
   @Test
@@ -56,7 +57,7 @@ class FixedCountRetryStrategyTest {
         new FixedCountRetryStrategy(maxAttempts, eligibilityStrategy);
 
     // When getting the delay for the fourth attempt
-    Optional<Long> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 4);
+    Optional<Duration> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 4);
 
     // Then the delay should be empty, indicating no more retries
     assertFalse(delay.isPresent());
@@ -71,7 +72,7 @@ class FixedCountRetryStrategyTest {
         new FixedCountRetryStrategy(maxAttempts, eligibilityStrategy);
 
     // valid attempt but not eligible
-    Optional<Long> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 1);
+    Optional<Duration> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 1);
 
     // Then the delay should be empty, indicating no more retries
     assertFalse(delay.isPresent());

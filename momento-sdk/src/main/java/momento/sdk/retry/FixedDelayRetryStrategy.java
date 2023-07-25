@@ -3,6 +3,7 @@ package momento.sdk.retry;
 import com.google.common.base.Preconditions;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
+import java.time.Duration;
 import java.util.Optional;
 
 /**
@@ -69,7 +70,7 @@ public class FixedDelayRetryStrategy implements RetryStrategy {
 
   /** {@inheritDoc} */
   @Override
-  public Optional<Long> determineWhenToRetry(
+  public Optional<Duration> determineWhenToRetry(
       final Status status, final MethodDescriptor methodDescriptor, final int currentAttempt) {
 
     if (!retryEligibilityStrategy.isEligibileForRetry(
@@ -87,6 +88,7 @@ public class FixedDelayRetryStrategy implements RetryStrategy {
       return Optional.empty();
     }
 
-    return Optional.of(delayMillis); // Return the fixed delay for the current attempt.
+    return Optional.of(
+        Duration.ofMillis(delayMillis)); // Return the fixed delay for the current attempt.
   }
 }
