@@ -31,7 +31,7 @@ public class LoadGenerator {
 
   private final ScheduledExecutorService executorService;
   private final RateLimiter rateLimiter;
-  private final ScheduledExecutorService statsScheduler = Executors.newScheduledThreadPool(1);
+  private final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(2);
 
   private final int requestsPerSecond;
 
@@ -49,7 +49,11 @@ public class LoadGenerator {
   private final long startTime;
 
   public LoadGenerator(
-      int statsInterval, int maxConcurrentRequests, int requestsPerSecond, int cacheValueLength) {
+      int statsInterval,
+      int maxConcurrentRequests,
+      int requestsPerSecond,
+      int cacheValueLength,
+      int warmupTime) {
     cacheValue = "x".repeat(cacheValueLength);
 
     final CredentialProvider credentialProvider;
@@ -76,9 +80,17 @@ public class LoadGenerator {
       scheduleSet(i, 0);
     }
 
+    // Schedule a histogram reset after the warmup
+    scheduler.schedule(
+        () -> {
+          setHistogram.reset();
+          getHistogram.reset();
+        },
+        warmupTime,
+        TimeUnit.SECONDS);
+
     // Schedule a task to print the stats
-    statsScheduler.scheduleAtFixedRate(
-        this::logInfo, statsInterval, statsInterval, TimeUnit.SECONDS);
+    scheduler.scheduleAtFixedRate(this::logInfo, statsInterval, statsInterval, TimeUnit.SECONDS);
   }
 
   private void scheduleSet(int workerId, int operationNum) {
@@ -124,9 +136,9 @@ public class LoadGenerator {
     executorService.schedule(
         () -> {
           rateLimiter.acquire();
-          final long startTime = System.currentTimeMillis();
+          final long startTime = System.nanoTime();
           T response = operation.apply(key).join();
-          final long endTime = System.currentTimeMillis();
+          final long endTime = System.nanoTime();
 
           globalRequestCount.increment();
           responseHandler.accept(response, operationNum);
@@ -193,24 +205,24 @@ public class LoadGenerator {
 
   private String formatHistogram(Histogram histogram) {
     return String.format("%5s: %d\n", "count", histogram.getTotalCount())
-        + String.format("%5s: %d\n", "min", histogram.getMinValue())
-        + String.format("%5s: %d\n", "p50", histogram.getValueAtPercentile(50.0))
-        + String.format("%5s: %d\n", "p90", histogram.getValueAtPercentile(90.0))
-        + String.format("%5s: %d\n", "p95", histogram.getValueAtPercentile(95.0))
-        + String.format("%5s: %d\n", "p96", histogram.getValueAtPercentile(96.0))
-        + String.format("%5s: %d\n", "p97", histogram.getValueAtPercentile(97.0))
-        + String.format("%5s: %d\n", "p98", histogram.getValueAtPercentile(98.0))
-        + String.format("%5s: %d\n", "p99", histogram.getValueAtPercentile(99.0))
-        + String.format("%5s: %d\n", "p99.9", histogram.getValueAtPercentile(99.9))
-        + String.format("%5s: %d\n", "max", histogram.getMaxValue());
+        + String.format("%5s: %.2f\n", "min", histogram.getMinValue() / 1_000_000.0)
+        + String.format("%5s: %.2f\n", "p50", histogram.getValueAtPercentile(50.0) / 1_000_000.0)
+        + String.format("%5s: %.2f\n", "p90", histogram.getValueAtPercentile(90.0) / 1_000_000.0)
+        + String.format("%5s: %.2f\n", "p95", histogram.getValueAtPercentile(95.0) / 1_000_000.0)
+        + String.format("%5s: %.2f\n", "p96", histogram.getValueAtPercentile(96.0) / 1_000_000.0)
+        + String.format("%5s: %.2f\n", "p97", histogram.getValueAtPercentile(97.0) / 1_000_000.0)
+        + String.format("%5s: %.2f\n", "p98", histogram.getValueAtPercentile(98.0) / 1_000_000.0)
+        + String.format("%5s: %.2f\n", "p99", histogram.getValueAtPercentile(99.0) / 1_000_000.0)
+        + String.format("%5s: %.2f\n", "p99.9", histogram.getValueAtPercentile(99.9) / 1_000_000.0)
+        + String.format("%5s: %.2f\n", "max", histogram.getMaxValue() / 1_000_000.0);
   }
 
   @SuppressWarnings("ResultOfMethodCallIgnored")
   public void shutdown() throws InterruptedException {
     executorService.shutdown();
-    statsScheduler.shutdown();
+    scheduler.shutdown();
     executorService.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
-    statsScheduler.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
+    scheduler.awaitTermination(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
     client.close();
   }
 
@@ -245,18 +257,24 @@ public class LoadGenerator {
     // Controls how long the load test will run.
     //
     final int howLongToRunSeconds = 60;
+    //
+    // Controls how long the load generator will run before resetting the histogram.
+    // Removes outlier times due to client connection or code loading/jit.
+    final int warmupTimeSeconds = 10;
 
     final LoadGenerator loadGenerator =
         new LoadGenerator(
             showStatsInterval,
             numberOfConcurrentRequests,
             maxRequestsPerSecond,
-            cacheItemPayloadBytes);
+            cacheItemPayloadBytes,
+            warmupTimeSeconds);
 
-    // Run for 60 seconds
+    // Wait for the desired time
     Thread.sleep(howLongToRunSeconds * 1000);
 
-    // Shutdown load generator
     loadGenerator.shutdown();
+
+    Thread.sleep(5000);
   }
 }
