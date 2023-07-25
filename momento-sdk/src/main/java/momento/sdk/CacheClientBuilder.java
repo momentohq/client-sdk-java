@@ -4,8 +4,6 @@ import java.time.Duration;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
-import momento.sdk.config.transport.GrpcConfiguration;
-import momento.sdk.config.transport.TransportStrategy;
 
 /** Builder for {@link CacheClient} */
 public final class CacheClientBuilder {
@@ -29,24 +27,6 @@ public final class CacheClientBuilder {
     this.configuration = configuration;
     ValidationUtils.ensureValidTtl(itemDefaultTtl);
     this.itemDefaultTtl = itemDefaultTtl;
-  }
-
-  /**
-   * Sets the maximum duration of a client call.
-   *
-   * @param deadline The deadline duration.
-   * @return The updated builder.
-   */
-  public CacheClientBuilder setDeadline(@Nonnull Duration deadline) {
-    ValidationUtils.ensureRequestDeadlineValid(deadline);
-
-    final GrpcConfiguration newGrpcConfiguration =
-        configuration.getTransportStrategy().getGrpcConfiguration().withDeadline(deadline);
-    final TransportStrategy newTransportStrategy =
-        configuration.getTransportStrategy().withGrpcConfiguration(newGrpcConfiguration);
-    configuration = configuration.withTransportStrategy(newTransportStrategy);
-
-    return this;
   }
 
   /**

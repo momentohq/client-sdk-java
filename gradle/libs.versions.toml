@@ -9,11 +9,14 @@ gson = "2.10.1"
 guava = "31.1-android"
 java-protos = "0.54.1"
 slf4j = "1.7.36"
+logback = "1.4.8"
+mockito = "5.4.0"
 
 [libraries]
 grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpc"}
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
 grpc-nettyshaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
+grpc-context = { module = "io.grpc:grpc-context", version.ref = "grpc" }
 
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
@@ -28,4 +31,8 @@ slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 
 junit = { module = "org.junit.jupiter:junit-jupiter", version.ref = "junit" }
 assertj = { module = "org.assertj:assertj-core", version.ref = "assertj" }
+logback = { module = "ch.qos.logback:logback-classic", version.ref = "logback"}
+mockito = {module = "org.mockito:mockito-core", version.ref = "mockito"}
+mockito-jupiter = {module = "org.mockito:mockito-junit-jupiter", version.ref = "mockito"}
+
 
