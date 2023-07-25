@@ -3,7 +3,9 @@ package momento.sdk.retry;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.*;
+
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.when;
 
@@ -29,7 +31,8 @@ class FixedDelayRetryStrategyTest {
   public void setup() {
     lenient().when(methodDescriptor.getFullMethodName()).thenReturn("methodName");
     lenient()
-        .when(eligibilityStrategy.isEligibileForRetry(eq(status), anyString()))
+        .when(eligibilityStrategy.isEligibileForRetry(eq(status),
+                anyString()))
         .thenReturn(true);
   }
 

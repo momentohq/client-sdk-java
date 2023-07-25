@@ -4,7 +4,7 @@ import io.grpc.Status;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
+/**iiinter
  * DefaultRetryEligibilityStrategy is an implementation of the RetryEligibilityStrategy interface
  * that determines whether a gRPC call is eligible for retry based on its method name and status
  * code.
@@ -30,9 +30,18 @@ public class DefaultRetryEligibilityStrategy implements RetryEligibilityStrategy
           add("cache_client.Scs/DictionaryGet");
           add("cache_client.Scs/DictionaryFetch");
           add("cache_client.Scs/DictionaryDelete");
+          add("cache_client.Scs/SortedSetPut");
+          add("cache_client.Scs/SortedSetFetch");
+          add("cache_client.Scs/SortedSetGetScore");
+          add("cache_client.Scs/SortedSetRemove");
+          add("cache_client.Scs/SortedSetGetRank");
+          add("cache_client.Scs/SortedSetLength");
+          add("cache_client.Scs/SortedSetLengthByScore");
+          // not idempotent: "/cache_client.Scs/SortedSetIncrement"
           add("cache_client.Scs/SetUnion");
           add("cache_client.Scs/SetDifference");
           add("cache_client.Scs/SetFetch");
+          add("cache_client.Scs/SetLength");
           // not idempotent: "/cache_client.Scs/SetIfNotExists"
           // not idempotent: "/cache_client.Scs/ListPushFront",
           // not idempotent: "/cache_client.Scs/ListPushBack",

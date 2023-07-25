@@ -8,7 +8,13 @@ import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
@@ -29,8 +35,7 @@ final class ScsDataGrpcStubsManager implements Closeable {
   private final ExecutorService retryExecutor;
 
   // An arbitary selection of twice the number of available processors.
-  private static final int MAX_RETRY_THREAD_POOL_SIZE =
-      Runtime.getRuntime().availableProcessors() * 2;
+  private static final int MAX_RETRY_THREAD_POOL_SIZE = 64;
   // Timeout to keep threads idle/alive in the retry thread pool
   private static final long RETRY_THREAD_POOL_KEEP_ALIVE_SECONDS = 60L;
 

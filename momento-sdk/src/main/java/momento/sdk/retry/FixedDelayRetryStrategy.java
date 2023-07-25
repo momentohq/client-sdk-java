@@ -1,9 +1,9 @@
 package momento.sdk.retry;
 
-import com.google.common.base.Preconditions;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -46,11 +46,10 @@ public class FixedDelayRetryStrategy implements RetryStrategy {
       long delayMillis,
       long maxDelayMillis,
       RetryEligibilityStrategy retryEligibilityStrategy) {
-    Preconditions.checkArgument(
-        delayMillis <= maxDelayMillis,
-        "Delay amount should be " + "less than or equal to the maximum delay");
-    Preconditions.checkNotNull(
-        retryEligibilityStrategy, "Retry eligibility strategy should" + " not be null");
+    assert delayMillis <= maxDelayMillis : "Delay amount should be " + "less than or equal " +
+            "to the maximum delay";
+    Objects.requireNonNull(
+        retryEligibilityStrategy, "Retry eligibility strategy should not be null");
     this.maxAttempts = maxAttempts;
     this.delayMillis = delayMillis;
     this.maxDelayMillis = maxDelayMillis;
@@ -59,9 +58,8 @@ public class FixedDelayRetryStrategy implements RetryStrategy {
 
   /** {@inheritDoc} * */
   public FixedDelayRetryStrategy(int maxAttempts, long delayMillis, long maxDelayMillis) {
-    Preconditions.checkArgument(
-        delayMillis <= maxDelayMillis,
-        "Delay amount should be " + "less than or equal to the maximum delay");
+    assert delayMillis <= maxDelayMillis : "Delay amount should be less than or equal " +
+            "to the maximum delay";
     this.maxAttempts = maxAttempts;
     this.delayMillis = delayMillis;
     this.maxDelayMillis = maxDelayMillis;

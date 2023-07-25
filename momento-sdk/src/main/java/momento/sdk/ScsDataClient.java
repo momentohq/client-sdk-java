@@ -101,7 +101,8 @@ import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.UnknownException;
 import momento.sdk.requests.CollectionTtl;
-import momento.sdk.responses.*;
+
+import momento.sdk.responses.SortOrder;
 import momento.sdk.responses.cache.DeleteResponse;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.IncrementResponse;

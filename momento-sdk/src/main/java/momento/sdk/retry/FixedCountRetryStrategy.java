@@ -1,9 +1,9 @@
 package momento.sdk.retry;
 
-import com.google.common.base.Preconditions;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 
 /**
@@ -33,19 +33,16 @@ public class FixedCountRetryStrategy implements RetryStrategy {
    */
   public FixedCountRetryStrategy(
       final int maxAttempts, final RetryEligibilityStrategy eligibilityStrategy) {
-    Preconditions.checkArgument(
-        maxAttempts > 0, "Total number " + "of retry attempts should be greater than 0");
-    Preconditions.checkNotNull(
-        eligibilityStrategy, "Retry eligibility strategy should" + " not be null");
+    assert maxAttempts > 0 : "Total number " + "of retry attempts should be greater than 0";
+    Objects.requireNonNull(
+        eligibilityStrategy, "Retry eligibility strategy should not be null");
     this.maxAttempts = maxAttempts;
     this.retryEligibilityStrategy = eligibilityStrategy;
   }
 
   /** {@inheritDoc} * */
   public FixedCountRetryStrategy(final int maxAttempts) {
-    Preconditions.checkArgument(
-        maxAttempts > 0, "Total number " + "of retry attempts should be greater than 0");
-
+    assert maxAttempts > 0 : "Total number of retry attempts should be greater than 0";
     this.maxAttempts = maxAttempts;
     this.retryEligibilityStrategy = new DefaultRetryEligibilityStrategy();
   }
