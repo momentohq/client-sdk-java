@@ -30,16 +30,17 @@ public class DefaultRetryEligibilityStrategy implements RetryEligibilityStrategy
           add("cache_client.Scs/DictionaryGet");
           add("cache_client.Scs/DictionaryFetch");
           add("cache_client.Scs/DictionaryDelete");
-          add("cache_client.Scs/SortedSetPut");
+          // not idempotent: "/cache_client.Scs/SortedSetPut"
           add("cache_client.Scs/SortedSetFetch");
           add("cache_client.Scs/SortedSetGetScore");
-          add("cache_client.Scs/SortedSetRemove");
+          // not idempotent: "/cache_client.Scs/SortedSetRemove"
           add("cache_client.Scs/SortedSetGetRank");
           add("cache_client.Scs/SortedSetLength");
           add("cache_client.Scs/SortedSetLengthByScore");
           // not idempotent: "/cache_client.Scs/SortedSetIncrement"
-          add("cache_client.Scs/SetUnion");
-          add("cache_client.Scs/SetDifference");
+          // not idempotent: "/cache_client.Scs/SetUnion"
+          // not idempotent: "/cache_client.Scs/SetDifference"
+          add("cache_client.Scs/SetContains");
           add("cache_client.Scs/SetFetch");
           add("cache_client.Scs/SetLength");
           // not idempotent: "/cache_client.Scs/SetIfNotExists"
