@@ -112,8 +112,9 @@ final class CacheDataPlaneTest extends BaseTestClass {
   public void getWithShortTimeoutReturnsError() {
     try (final CacheClient client =
         CacheClient.builder(
-                credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL_SECONDS)
-            .setDeadline(Duration.ofMillis(1))
+                credentialProvider,
+                Configurations.Laptop.latest().withTimeout(Duration.ofMillis(1)),
+                DEFAULT_ITEM_TTL_SECONDS)
             .build()) {
 
       final GetResponse response = client.get("cache", "key").join();
@@ -151,10 +152,11 @@ final class CacheDataPlaneTest extends BaseTestClass {
 
   @Test
   public void setWithShortTimeoutReturnsError() {
-    try (CacheClient client =
+    try (final CacheClient client =
         CacheClient.builder(
-                credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL_SECONDS)
-            .setDeadline(Duration.ofMillis(1))
+                credentialProvider,
+                Configurations.Laptop.latest().withTimeout(Duration.ofMillis(1)),
+                DEFAULT_ITEM_TTL_SECONDS)
             .build()) {
 
       final SetResponse response = client.set("cache", "key", "value").join();

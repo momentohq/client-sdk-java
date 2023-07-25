@@ -10,8 +10,9 @@ import java.util.Optional;
  *
  * <p>Implementations of this interface allow clients to customize the delay between consecutive
  * retry attempts when a gRPC call fails. The {@link #determineWhenToRetry(Status, MethodDescriptor,
- * int)} method is called by the RetryClientInterceptor to retrieve the delay for the next retry attempt
- * based on the status of the gRPC failure, the request properties, and the current attempt number.
+ * int)} method is called by the RetryClientInterceptor to retrieve the delay for the next retry
+ * attempt based on the status of the gRPC failure, the request properties, and the current attempt
+ * number.
  *
  * <p>When a gRPC call encounters an error, the retry strategy can decide how long the client should
  * wait before attempting to retry the call. The delay can be constant, incrementally increasing, or
