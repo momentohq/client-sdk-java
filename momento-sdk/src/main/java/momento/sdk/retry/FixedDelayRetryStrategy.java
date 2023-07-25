@@ -1,6 +1,8 @@
 package momento.sdk.retry;
 
 import com.google.common.base.Preconditions;
+import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import java.util.Optional;
 
 /**
@@ -23,6 +25,8 @@ public class FixedDelayRetryStrategy implements RetryStrategy {
   private final long delayMillis;
   private final long maxDelayMillis;
 
+  private final RetryEligibilityStrategy retryEligibilityStrategy;
+
   /**
    * Constructs a `FixedDelayRetryStrategy` with the provided parameters.
    *
@@ -32,8 +36,27 @@ public class FixedDelayRetryStrategy implements RetryStrategy {
    * @param maxDelayMillis The maximum cumulative delay in milliseconds that is allowed for all
    *     retry attempts combined. If the cumulative delay exceeds this value, no more retries will
    *     be performed, and the strategy will return an empty optional.
+   * @param retryEligibilityStrategy a strategy that determines if the gRPC status code and methods
+   *     are eligible or safe to retry.
    * @throws IllegalArgumentException if delayMillis is greater than maxDelayMillis.
    */
+  public FixedDelayRetryStrategy(
+      int maxAttempts,
+      long delayMillis,
+      long maxDelayMillis,
+      RetryEligibilityStrategy retryEligibilityStrategy) {
+    Preconditions.checkArgument(
+        delayMillis <= maxDelayMillis,
+        "Delay amount should be " + "less than or equal to the maximum delay");
+    Preconditions.checkNotNull(
+        retryEligibilityStrategy, "Retry eligibility strategy should" + " not be null");
+    this.maxAttempts = maxAttempts;
+    this.delayMillis = delayMillis;
+    this.maxDelayMillis = maxDelayMillis;
+    this.retryEligibilityStrategy = retryEligibilityStrategy;
+  }
+
+  /** {@inheritDoc} * */
   public FixedDelayRetryStrategy(int maxAttempts, long delayMillis, long maxDelayMillis) {
     Preconditions.checkArgument(
         delayMillis <= maxDelayMillis,
@@ -41,11 +64,19 @@ public class FixedDelayRetryStrategy implements RetryStrategy {
     this.maxAttempts = maxAttempts;
     this.delayMillis = delayMillis;
     this.maxDelayMillis = maxDelayMillis;
+    this.retryEligibilityStrategy = new DefaultRetryEligibilityStrategy();
   }
 
   /** {@inheritDoc} */
   @Override
-  public Optional<Long> getDelay(int currentAttempt) {
+  public Optional<Long> determineWhenToRetry(
+      final Status status, final MethodDescriptor methodDescriptor, final int currentAttempt) {
+
+    if (!retryEligibilityStrategy.isEligibileForRetry(
+        status, methodDescriptor.getFullMethodName())) {
+      return Optional.empty();
+    }
+
     if (currentAttempt > maxAttempts) {
       return Optional.empty(); // Exceeded the maximum number of retry attempts.
     }

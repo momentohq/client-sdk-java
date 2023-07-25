@@ -16,6 +16,7 @@ public class DefaultRetryEligibilityStrategy implements RetryEligibilityStrategy
   static {
     RETRYABLE_STATUS_CODES.add(Status.Code.UNAVAILABLE);
     RETRYABLE_STATUS_CODES.add(Status.Code.INTERNAL);
+    RETRYABLE_STATUS_CODES.add(Status.Code.NOT_FOUND);
   }
 
   private static final Set<String> RETRYABLE_GRPC_FULL_METHOD_NAMES =

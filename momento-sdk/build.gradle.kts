@@ -26,9 +26,10 @@ dependencies {
     // Test dependencies
     testImplementation(libs.junit)
     testImplementation(libs.assertj)
+    testImplementation(libs.mockito)
+    testImplementation(libs.mockito.jupiter)
     testImplementation(libs.slf4j.api)
     testImplementation(libs.logback)
-
 }
 
 spotless {

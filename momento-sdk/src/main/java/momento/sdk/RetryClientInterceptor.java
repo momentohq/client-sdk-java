@@ -1,6 +1,5 @@
 package momento.sdk;
 
-import com.google.common.util.concurrent.MoreExecutors;
 import io.grpc.CallOptions;
 import io.grpc.Channel;
 import io.grpc.ClientCall;
@@ -11,8 +10,7 @@ import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
 import io.grpc.Status;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Future;
+import java.util.concurrent.*;
 import javax.annotation.Nullable;
 import momento.sdk.retry.RetryEligibilityStrategy;
 import momento.sdk.retry.RetryStrategy;
@@ -30,14 +28,8 @@ import org.slf4j.LoggerFactory;
  *
  * <p>This retry client interceptor returns an instance of a {@link RetryingUnaryClientCall}, which
  * is a client call designed to handle retrying unary (single request, single response) operations.
- * The interceptor uses a provided {@link RetryStrategy} and {@link RetryEligibilityStrategy} to
- * determine when and how to retry failed calls.
- *
- * <p>The interceptor is constructed with a {@link RetryStrategy} and a {@link
- * RetryEligibilityStrategy}, both of which can be customized based on specific requirements. The
- * {@link RetryStrategy} is responsible for providing the delay between retry attempts, while the
- * {@link RetryEligibilityStrategy} helps decide whether a request is eligible for retry based on
- * the status and method details.
+ * The interceptor uses a provided {@link RetryStrategy} to determine when and how to retry failed
+ * calls.
  *
  * <p>When a gRPC call is intercepted, the interceptor checks whether the method is unary (client
  * sends one message), and if so, it wraps the original {@link ClientCall} with the {@link
@@ -45,10 +37,8 @@ import org.slf4j.LoggerFactory;
  *
  * <p>When the gRPC call is closed, the {@code onClose} method is called, which is the point where
  * we can safely check the status of the initial request that was made and determine if we want to
- * retry or not. If the request was successful or ineligible for retry (based on the {@link
- * RetryEligibilityStrategy}), the interceptor returns the result to the original listener,
- * effectively completing the call. Otherwise, it starts the retrying process by scheduling a new
- * call attempt with a delay provided by the {@link RetryStrategy}.
+ * retry or not. It starts the retrying process by scheduling a new call attempt with a delay
+ * provided by the {@link RetryStrategy}.
  *
  * <p>If the retry attempts are exhausted or if the provided delay is not present (indicating that
  * we should not retry anymore), the interceptor propagates the final result to the original
@@ -64,13 +54,17 @@ import org.slf4j.LoggerFactory;
 final class RetryClientInterceptor implements ClientInterceptor {
 
   private final RetryStrategy retryStrategy;
-  private final RetryEligibilityStrategy retryEligibilityStrategy;
+  private final ScheduledExecutorService scheduler;
+  private final ExecutorService executor;
   private final Logger logger = LoggerFactory.getLogger(RetryClientInterceptor.class);
 
   public RetryClientInterceptor(
-      final RetryStrategy retryStrategy, final RetryEligibilityStrategy retryEligibilityStrategy) {
+      final RetryStrategy retryStrategy,
+      final ScheduledExecutorService scheduler,
+      final ExecutorService executor) {
     this.retryStrategy = retryStrategy;
-    this.retryEligibilityStrategy = retryEligibilityStrategy;
+    this.scheduler = scheduler;
+    this.executor = executor;
   }
 
   @Override
@@ -119,22 +113,11 @@ final class RetryClientInterceptor implements ClientInterceptor {
                   return;
                 }
 
-                // isRequestIneligibleToRetry is an internal construct to determine if it's safe to
-                // retry and/or on which error codes. This has intentionally been decoupled from the
-                // RetryStrategy logic. Advanced clients who want to make a decision based on gRPC
-                // request can override
-                // {@link RetryEligibilityStrategy}
-                if (isRequestIneligibleToRetry(status)) {
-                  // since this was not a success, we will propagate the error and not retry
-                  logger.debug("Request was ineligible to retry; status code " + status.getCode());
-                  super.onClose(status, trailers);
-                  return;
-                }
-
                 // now we can safely start retrying
 
                 attemptNumber++;
-                final Optional<Long> retryDelay = retryStrategy.getDelay(attemptNumber);
+                final Optional<Long> retryDelay =
+                    retryStrategy.determineWhenToRetry(status, method, attemptNumber);
 
                 // a delay not present indicates we have exhausted retries or exceeded
                 // delay or any variable the strategy author wishes to not retry anymore
@@ -143,31 +126,18 @@ final class RetryClientInterceptor implements ClientInterceptor {
                   return;
                 }
 
-                // Thread.sleep(0) also makes the OS prioritize it at some point
-                if (retryDelay.get() > 0L) {
-                  try {
-                    Thread.sleep(retryDelay.get());
-                  } catch (InterruptedException e) {
-                    // Restore the interrupted status
-                    Thread.currentThread().interrupt();
-                    // we continue even if we're interrupted
-                  }
-                }
-
                 final Runnable runnable =
                     Context.current().wrap(() -> retry(channel.newCall(method, callOptions)));
-                // use the current thread to run the task
-                future = CompletableFuture.runAsync(runnable, MoreExecutors.directExecutor());
+
+                // schedule the task to be executed on the executor
+                future =
+                    scheduler.schedule(
+                        () -> executor.submit(runnable), retryDelay.get(), TimeUnit.MILLISECONDS);
               }
 
               @Override
               public void onMessage(RespT message) {
                 super.onMessage(message);
-              }
-
-              private boolean isRequestIneligibleToRetry(Status status) {
-                return !retryEligibilityStrategy.isEligibileForRetry(
-                    status, method.getFullMethodName());
               }
             },
             headers);

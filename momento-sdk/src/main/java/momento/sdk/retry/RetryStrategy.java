@@ -1,5 +1,7 @@
 package momento.sdk.retry;
 
+import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import java.util.Optional;
 
 /**
@@ -7,9 +9,9 @@ import java.util.Optional;
  * failed gRPC call.
  *
  * <p>Implementations of this interface allow clients to customize the delay between consecutive
- * retry attempts when a gRPC call fails. The {@link #getDelay(int)} method when provided to a
- * Configuration, is called by the RetryClientInterceptor to retrieve the delay for the next retry
- * attempt based on the current attempt number.
+ * retry attempts when a gRPC call fails. The {@link #determineWhenToRetry(Status, MethodDescriptor,
+ * int)} method is called by the RetryClientInterceptor to retrieve the delay for the next retry attempt
+ * based on the status of the gRPC failure, the request properties, and the current attempt number.
  *
  * <p>When a gRPC call encounters an error, the retry strategy can decide how long the client should
  * wait before attempting to retry the call. The delay can be constant, incrementally increasing, or
@@ -21,9 +23,10 @@ import java.util.Optional;
  * failed attempt, effectively completing the call with the last status received without further
  * retries.
  *
- * <p>The value returned by {@link #getDelay(int)} should be a non-negative long value representing
- * the delay in milliseconds for the next retry attempt. If the returned value is 0 or a negative
- * number, the interceptor may interpret it as a request to retry immediately without any delay.
+ * <p>The value returned by {@link #determineWhenToRetry(Status, MethodDescriptor, int)} should be a
+ * non-negative long value representing the delay in milliseconds for the next retry attempt. If the
+ * returned value is 0 or a negative number, the interceptor may interpret it as a request to retry
+ * immediately without any delay.
  *
  * <p>Note that the decision to retry and the specific delay calculation can be influenced by
  * various factors such as network conditions, server load, and the specific requirements of the
@@ -35,10 +38,13 @@ public interface RetryStrategy {
    * Retrieves the delay in milliseconds for the next retry attempt based on the current attempt
    * number.
    *
+   * @param grpcStatus The status of the gRPC request
+   * @param request {@link MethodDescriptor} for the gRPC request
    * @param currentAttempt The current attempt number of the retry. Starts from 1 for the first
    *     retry attempt.
    * @return An {@link Optional} containing the delay in milliseconds for the next retry attempt, or
    *     an empty optional to indicate that no further retry attempts should be made.
    */
-  Optional<Long> getDelay(int currentAttempt);
+  Optional<Long> determineWhenToRetry(
+      Status grpcStatus, MethodDescriptor request, int currentAttempt);
 }

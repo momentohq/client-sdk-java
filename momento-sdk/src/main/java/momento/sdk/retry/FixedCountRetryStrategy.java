@@ -1,6 +1,8 @@
 package momento.sdk.retry;
 
 import com.google.common.base.Preconditions;
+import io.grpc.MethodDescriptor;
+import io.grpc.Status;
 import java.util.Optional;
 
 /**
@@ -17,25 +19,48 @@ import java.util.Optional;
  */
 public class FixedCountRetryStrategy implements RetryStrategy {
   private final int maxAttempts;
+  private final RetryEligibilityStrategy retryEligibilityStrategy;
 
   /**
    * Constructs a `FixedCountRetryStrategy` with the provided maximum number of retry attempts.
    *
    * @param maxAttempts The maximum number of retry attempts. After reaching this limit, no more
    *     retries will be performed, and the strategy will return an empty optional.
+   * @param eligibilityStrategy a strategy that determines if the gRPC status code and methods are
+   *     eligible or safe to retry.
    * @throws IllegalArgumentException if maxAttempts is not greater than 0.
    */
+  public FixedCountRetryStrategy(
+      final int maxAttempts, final RetryEligibilityStrategy eligibilityStrategy) {
+    Preconditions.checkArgument(
+        maxAttempts > 0, "Total number " + "of retry attempts should be greater than 0");
+    Preconditions.checkNotNull(
+        eligibilityStrategy, "Retry eligibility strategy should" + " not be null");
+    this.maxAttempts = maxAttempts;
+    this.retryEligibilityStrategy = eligibilityStrategy;
+  }
+
+  /** {@inheritDoc} * */
   public FixedCountRetryStrategy(final int maxAttempts) {
     Preconditions.checkArgument(
         maxAttempts > 0, "Total number " + "of retry attempts should be greater than 0");
+
     this.maxAttempts = maxAttempts;
+    this.retryEligibilityStrategy = new DefaultRetryEligibilityStrategy();
   }
 
   /** {@inheritDoc} */
   @Override
-  public Optional<Long> getDelay(final int currentAttempt) {
+  public Optional<Long> determineWhenToRetry(
+      final Status status, final MethodDescriptor methodDescriptor, final int currentAttempt) {
+
+    if (!retryEligibilityStrategy.isEligibileForRetry(
+        status, methodDescriptor.getFullMethodName())) {
+      return Optional.empty();
+    }
+
     if (currentAttempt > maxAttempts) {
-      return Optional.empty(); // No more retries after reaching the maximum attempts.
+      return Optional.empty();
     }
     return Optional.of(0L); // Retry immediately with no delay for the fixed number of attempts.
   }
