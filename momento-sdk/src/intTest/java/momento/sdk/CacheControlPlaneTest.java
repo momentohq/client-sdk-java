@@ -189,8 +189,9 @@ final class CacheControlPlaneTest extends BaseTestClass {
         .isThrownBy(
             () ->
                 CacheClient.builder(
-                        credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
-                    .setDeadline(Duration.ofMillis(0))
+                        credentialProvider,
+                        Configurations.Laptop.latest().withTimeout(Duration.ofMillis(0)),
+                        DEFAULT_TTL_SECONDS)
                     .build());
   }
 
@@ -201,8 +202,9 @@ final class CacheControlPlaneTest extends BaseTestClass {
         .isThrownBy(
             () ->
                 CacheClient.builder(
-                        credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
-                    .setDeadline(Duration.ofMillis(-1))
+                        credentialProvider,
+                        Configurations.Laptop.latest().withTimeout(Duration.ofMillis(-1)),
+                        DEFAULT_TTL_SECONDS)
                     .build());
   }
 
@@ -213,8 +215,9 @@ final class CacheControlPlaneTest extends BaseTestClass {
         .isThrownBy(
             () ->
                 CacheClient.builder(
-                        credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
-                    .setDeadline(null)
+                        credentialProvider,
+                        Configurations.Laptop.latest().withTimeout(null),
+                        DEFAULT_TTL_SECONDS)
                     .build());
   }
 }

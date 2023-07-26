@@ -4,9 +4,14 @@ import java.time.Duration;
 import momento.sdk.config.transport.GrpcConfiguration;
 import momento.sdk.config.transport.StaticTransportStrategy;
 import momento.sdk.config.transport.TransportStrategy;
+import momento.sdk.retry.DefaultRetryEligibilityStrategy;
+import momento.sdk.retry.FixedCountRetryStrategy;
+import momento.sdk.retry.RetryStrategy;
 
 /** Prebuilt {@link Configuration}s for different environments. */
 public class Configurations {
+
+  public static final int DEFAULT_MAX_RETRIES = 3;
 
   /**
    * Provides defaults suitable for a medium-to-high-latency dev environment. Permissive timeouts,
@@ -14,8 +19,8 @@ public class Configurations {
    */
   public static class Laptop extends Configuration {
 
-    private Laptop(TransportStrategy transportStrategy) {
-      super(transportStrategy);
+    private Laptop(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
+      super(transportStrategy, retryStrategy);
     }
 
     /**
@@ -39,7 +44,9 @@ public class Configurations {
     public static Configuration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
-      return new Laptop(transportStrategy);
+      final RetryStrategy retryStrategy =
+          new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
+      return new Laptop(transportStrategy, retryStrategy);
     }
   }
 
@@ -50,8 +57,8 @@ public class Configurations {
    */
   public static class InRegion extends Configuration {
 
-    private InRegion(TransportStrategy transportStrategy) {
-      super(transportStrategy);
+    private InRegion(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
+      super(transportStrategy, retryStrategy);
     }
 
     /**
@@ -75,7 +82,9 @@ public class Configurations {
     public static Configuration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(1100)));
-      return new Laptop(transportStrategy);
+      final RetryStrategy retryStrategy =
+          new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
+      return new InRegion(transportStrategy, retryStrategy);
     }
   }
 
@@ -86,8 +95,8 @@ public class Configurations {
    */
   public static class LowLatency extends Configuration {
 
-    private LowLatency(TransportStrategy transportStrategy) {
-      super(transportStrategy);
+    private LowLatency(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
+      super(transportStrategy, retryStrategy);
     }
 
     /**
@@ -111,7 +120,9 @@ public class Configurations {
     public static Configuration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(500)));
-      return new Laptop(transportStrategy);
+      final RetryStrategy retryStrategy =
+          new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
+      return new LowLatency(transportStrategy, retryStrategy);
     }
   }
 }
