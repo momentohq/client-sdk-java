@@ -6,7 +6,6 @@ import momento.sdk.config.Configurations;
 import org.junit.jupiter.api.BeforeAll;
 
 class BaseTestClass {
-
   public static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
 
   public static final CredentialProvider credentialProvider =
