@@ -125,4 +125,26 @@ public class Configurations {
       return new LowLatency(transportStrategy, retryStrategy);
     }
   }
+
+  public static class Lambda extends Configuration {
+    private Lambda(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
+      super(transportStrategy, retryStrategy);
+    }
+
+    /**
+     * Provides the latest recommended configuration for a Lambda environment.
+     *
+     * <p>This configuration may change in future releases to take advantage of improvements we
+     * identify for default configurations.
+     *
+     * @return the latest Lambda configuration
+     */
+    public static Configuration latest() {
+      final TransportStrategy transportStrategy =
+          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(1100)));
+      final RetryStrategy retryStrategy =
+          new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
+      return new Lambda(transportStrategy, retryStrategy);
+    }
+  }
 }
