@@ -8,6 +8,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
+import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.requests.CollectionTtl;
 import momento.sdk.responses.SortOrder;
 import momento.sdk.responses.cache.DeleteResponse;
@@ -66,6 +67,8 @@ public final class CacheClient implements Closeable {
   private final ScsControlClient scsControlClient;
   private final ScsDataClient scsDataClient;
 
+  private static final long DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS = 30;
+
   /**
    * Constructs a CacheClient.
    *
@@ -83,6 +86,48 @@ public final class CacheClient implements Closeable {
     logger.info("Creating Momento Cache Client");
     logger.debug("Cache endpoint: " + credentialProvider.getCacheEndpoint());
     logger.debug("Control endpoint: " + credentialProvider.getControlEndpoint());
+  }
+
+  /**
+   * Constructs a CacheClient.
+   *
+   * @param credentialProvider Provider for the credentials required to connect to Momento.
+   * @param configuration Configuration object containing all tunable client settings.
+   * @param itemDefaultTtl The default TTL for values written to a cache.
+   * @param eagerConnectionTimeout The timeout value while trying to establish an eager connection
+   *     with the Momento server.
+   * @return CacheClient
+   */
+  public static CacheClient create(
+      @Nonnull CredentialProvider credentialProvider,
+      @Nonnull Configuration configuration,
+      @Nonnull Duration itemDefaultTtl,
+      @Nullable Duration eagerConnectionTimeout) {
+    final CacheClient client =
+        CacheClient.builder(credentialProvider, configuration, itemDefaultTtl).build();
+
+    final long timeout;
+    if (eagerConnectionTimeout == null) {
+      timeout = DEFAULT_EAGER_CONNECTION_TIMEOUT_SECONDS;
+    } else {
+      timeout = eagerConnectionTimeout.getSeconds();
+    }
+
+    checkTimeoutValid(timeout);
+
+    // a client can explicitly set the timeout to be 0 in which case we don't want to establish an
+    // eager connection
+    if (timeout != 0) {
+      client.scsDataClient.connect(timeout);
+    }
+
+    return client;
+  }
+
+  private static void checkTimeoutValid(long timeout) {
+    if (timeout < 0) {
+      throw new InvalidArgumentException("Timeout must be positive");
+    }
   }
 
   /**

@@ -155,6 +155,10 @@ final class ScsDataClient extends ScsClient {
     this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(credentialProvider, configuration);
   }
 
+  public void connect(final long eagerConnectionTimeout) {
+    this.scsDataGrpcStubsManager.connect(eagerConnectionTimeout);
+  }
+
   CompletableFuture<GetResponse> get(String cacheName, byte[] key) {
     try {
       ensureValidKey(key);
