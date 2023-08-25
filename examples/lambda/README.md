@@ -10,9 +10,9 @@
 
 ## Example Lambda
 
-This repo contains an example lambda, built using AWS CDK, that performs a basic set and get operation on Momento cache.
+This directory contains an example lambda, built using AWS CDK, that performs a basic set and get operation on Momento cache.
 
-The primary use is to provide a base for testing Momento in an AWS lambda environment. The lambda creates a Momento client, and then calls a set and get on a hard-coded key,value.
+The primary use is to provide a base for testing Momento in an AWS lambda environment. The lambda creates a Momento client, and then calls a set and get on a hard-coded key/value pair.
 
 ## Prerequisites
 

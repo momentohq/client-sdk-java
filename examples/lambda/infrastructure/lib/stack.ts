@@ -7,6 +7,10 @@ export class MomentoLambdaStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
+        if (!process.env.MOMENTO_AUTH_TOKEN) {
+            throw new Error('The environment variable MOMENTO_AUTH_TOKEN must be set.');
+        }
+
         // Create Lambda function from Docker Image
         const dockerLambda = new lambda.DockerImageFunction(this, 'MomentoDockerLambdaJava', {
             functionName: 'MomentoDockerLambdaJava',
