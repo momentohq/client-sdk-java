@@ -64,8 +64,7 @@ public class LoadGenerator {
       throw e;
     }
     client =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.v1(), DEFAULT_ITEM_TTL)
-            .build();
+        CacheClient.create(credentialProvider, Configurations.Laptop.v1(), DEFAULT_ITEM_TTL, null);
 
     client.createCache(CACHE_NAME);
 

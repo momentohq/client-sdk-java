@@ -56,11 +56,11 @@ public class DocExamplesJavaAPIs {
   @SuppressWarnings("EmptyTryBlock")
   public static void example_API_InstantiateCacheClient() {
     try (CacheClient cacheClient =
-        CacheClient.builder(
+        CacheClient.create(
                 CredentialProvider.fromEnvVar("MOMENTO_AUTH_TOKEN"),
                 Configurations.Laptop.v1(),
-                Duration.ofSeconds(60))
-            .build()) {
+                Duration.ofSeconds(60),
+                null /* eagerConnectionTimeout, default is 30 seconds */)) {
       // ...
     }
   }

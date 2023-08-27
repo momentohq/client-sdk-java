@@ -28,8 +28,7 @@ public class MomentoJavaLambda implements RequestHandler<Map<String, String>, St
         final CredentialProvider credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
 
         try (final CacheClient client =
-                     CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)
-                             .build()) {
+                     CacheClient.create(credentialProvider, Configurations.Lambda.latest(), DEFAULT_ITEM_TTL, null)) {
 
             createCache(client, CACHE_NAME);
 
