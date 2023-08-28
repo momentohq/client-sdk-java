@@ -10,10 +10,10 @@ public class ReadmeExample {
   public static void main(String[] args) {
     try (final CacheClient cacheClient =
         CacheClient.create(
-                CredentialProvider.fromEnvVar("MOMENTO_AUTH_TOKEN"),
-                Configurations.Laptop.v1(),
-                Duration.ofSeconds(60),
-                null /* eagerConnectionTimeout, default is 30 seconds */)) {
+            CredentialProvider.fromEnvVar("MOMENTO_AUTH_TOKEN"),
+            Configurations.Laptop.v1(),
+            Duration.ofSeconds(60),
+            null /* eagerConnectionTimeout, default is 30 seconds */)) {
       final String cacheName = "cache";
 
       cacheClient.createCache(cacheName).join();

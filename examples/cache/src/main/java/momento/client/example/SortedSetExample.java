@@ -42,7 +42,8 @@ public class SortedSetExample {
     }
 
     try (final CacheClient client =
-                 CacheClient.create(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL, null)) {
+        CacheClient.create(
+            credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL, null)) {
 
       // Create a cache
       final CacheCreateResponse createResponse = client.createCache(CACHE_NAME).join();
