@@ -94,6 +94,22 @@ public final class CacheClient implements Closeable {
    * @param credentialProvider Provider for the credentials required to connect to Momento.
    * @param configuration Configuration object containing all tunable client settings.
    * @param itemDefaultTtl The default TTL for values written to a cache.
+   * @return CacheClient
+   */
+  public static CacheClient create(
+      @Nonnull CredentialProvider credentialProvider,
+      @Nonnull Configuration configuration,
+      @Nonnull Duration itemDefaultTtl) {
+    return create(
+        credentialProvider, configuration, itemDefaultTtl, null /* eagerConnectionTimeout */);
+  }
+
+  /**
+   * Constructs a CacheClient.
+   *
+   * @param credentialProvider Provider for the credentials required to connect to Momento.
+   * @param configuration Configuration object containing all tunable client settings.
+   * @param itemDefaultTtl The default TTL for values written to a cache.
    * @param eagerConnectionTimeout The timeout value while trying to establish an eager connection
    *     with the Momento server.
    * @return CacheClient
