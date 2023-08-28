@@ -97,10 +97,11 @@ public final class CacheClient implements Closeable {
    * @return CacheClient
    */
   public static CacheClient create(
-          @Nonnull CredentialProvider credentialProvider,
-          @Nonnull Configuration configuration,
-          @Nonnull Duration itemDefaultTtl) {
-    return create(credentialProvider, configuration, itemDefaultTtl, null /* eagerConnectionTimeout */);
+      @Nonnull CredentialProvider credentialProvider,
+      @Nonnull Configuration configuration,
+      @Nonnull Duration itemDefaultTtl) {
+    return create(
+        credentialProvider, configuration, itemDefaultTtl, null /* eagerConnectionTimeout */);
   }
 
   /**
