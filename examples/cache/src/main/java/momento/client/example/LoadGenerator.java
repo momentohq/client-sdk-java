@@ -63,9 +63,7 @@ public class LoadGenerator {
       logger.error("Unable to load credential from environment variable " + AUTH_TOKEN_ENV_VAR, e);
       throw e;
     }
-    client =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.v1(), DEFAULT_ITEM_TTL)
-            .build();
+    client = CacheClient.create(credentialProvider, Configurations.Laptop.v1(), DEFAULT_ITEM_TTL);
 
     client.createCache(CACHE_NAME);
 

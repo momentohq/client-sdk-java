@@ -26,7 +26,7 @@ First let's build our lambda Java code:
 
 ```bash
 cd docker
-gradle build clean shadowJar
+gradle clean build shadowJar
 ```
 
 The source code for the CDK application lives in the `infrastructure` directory.

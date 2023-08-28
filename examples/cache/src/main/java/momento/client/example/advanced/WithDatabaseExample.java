@@ -127,8 +127,12 @@ public class WithDatabaseExample {
       logger.error("Unable to load credential from environment variable " + AUTH_TOKEN_ENV_VAR, e);
       throw e;
     }
-    return CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)
-        .build();
+    return CacheClient.create(
+        // try to eagerly connect within 10 seconds
+        credentialProvider,
+        Configurations.Laptop.latest(),
+        DEFAULT_ITEM_TTL,
+        Duration.ofSeconds(10) /* eagerConnectionTimeout */);
   }
 
   private static void logStartBanner() {
