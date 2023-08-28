@@ -34,8 +34,7 @@ public class BasicExample {
     final CredentialProvider credentialProvider = getCredentialsFromSecretsManagerAuthToken();
 
     try (final CacheClient client =
-        CacheClient.create(
-            credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL, null)) {
+        CacheClient.create(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)) {
 
       createCache(client, CACHE_NAME);
 

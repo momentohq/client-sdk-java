@@ -128,7 +128,11 @@ public class WithDatabaseExample {
       throw e;
     }
     return CacheClient.create(
-        credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL, null);
+        // try to eagerly connect within 10 seconds
+        credentialProvider,
+        Configurations.Laptop.latest(),
+        DEFAULT_ITEM_TTL,
+        Duration.ofSeconds(10) /* eagerConnectionTimeout */);
   }
 
   private static void logStartBanner() {

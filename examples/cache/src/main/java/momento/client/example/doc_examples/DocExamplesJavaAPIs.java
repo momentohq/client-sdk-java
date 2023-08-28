@@ -59,8 +59,7 @@ public class DocExamplesJavaAPIs {
         CacheClient.create(
             CredentialProvider.fromEnvVar("MOMENTO_AUTH_TOKEN"),
             Configurations.Laptop.v1(),
-            Duration.ofSeconds(60),
-            null /* eagerConnectionTimeout, default is 30 seconds */)) {
+            Duration.ofSeconds(60))) {
       // ...
     }
   }
