@@ -4,7 +4,7 @@ import java.time.Duration;
 import java.util.List;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
+import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.SdkException;
@@ -32,7 +32,9 @@ public class ListExample {
 
     final CredentialProvider credentialProvider;
     try {
-      credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
+      credentialProvider =
+          new StringCredentialProvider(
+              "eyJlbmRwb2ludCI6ImNlbGwtNC11cy13ZXN0LTItMS5wcm9kLmEubW9tZW50b2hxLmNvbSIsImFwaV9rZXkiOiJleUpoYkdjaU9pSklVekkxTmlKOS5leUp6ZFdJaU9pSndjbUYwYVd0QWJXOXRaVzUwYjJoeExtTnZiU0lzSW5abGNpSTZNU3dpY0NJNklrTkJRVDBpTENKbGVIQWlPakUyT1RVNE1qQTFNREI5Lk50cVdwYVBpNnNBVmd1WFNlVDg4OFFVa3JDOW5ldVlqbFk2TXp4ZW9DUVkifQ==");
     } catch (SdkException e) {
       logger.error("Unable to load credential from environment variable " + AUTH_TOKEN_ENV_VAR, e);
       throw e;
@@ -71,7 +73,7 @@ public class ListExample {
       logger.info("Fetching " + LIST_NAME);
 
       final ListFetchResponse fetchResponse =
-          client.listFetch(CACHE_NAME, LIST_NAME, null, null).join();
+          client.listFetch(CACHE_NAME, LIST_NAME, -2, null).join();
       if (fetchResponse instanceof ListFetchResponse.Hit hit) {
         final List<String> fetchedElements = hit.valueList();
         logger.info("{} has length {} with elements:", LIST_NAME, fetchedElements.size());
