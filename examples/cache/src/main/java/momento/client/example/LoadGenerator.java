@@ -242,7 +242,8 @@ public class LoadGenerator {
     // but it will also increase CPU consumption. As CPU usage increases and there
     // is more contention between the concurrent function calls, client-side latencies
     // may increase.
-    //
+    // Note: You are likely to see degraded performance if you increase this above 50
+    // and observe elevated client-side latencies.
     final int numberOfConcurrentRequests = 50;
     //
     // Sets an upper bound on how many requests per second will be sent to the server.
