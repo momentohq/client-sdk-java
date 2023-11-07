@@ -20,6 +20,8 @@ import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheDeleteResponse;
 import momento.sdk.responses.cache.control.CacheFlushResponse;
 import momento.sdk.responses.cache.control.CacheListResponse;
+import momento.sdk.responses.cache.ttl.ItemGetTtlResponse;
+import momento.sdk.responses.cache.ttl.UpdateTtlResponse;
 import momento.sdk.responses.cache.dictionary.DictionaryFetchResponse;
 import momento.sdk.responses.cache.dictionary.DictionaryGetFieldResponse;
 import momento.sdk.responses.cache.dictionary.DictionaryGetFieldsResponse;
@@ -485,6 +487,58 @@ public final class CacheClient implements Closeable {
   public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, byte[] key, byte[] value) {
     return scsDataClient.setIfNotExists(cacheName, key, value, null);
+  }
+
+  /**
+   * Updates Ttl for a key to the given ttl.
+   *
+   * @param cacheName Name of the cache to update the ttl for an item/key.
+   * @param key {String} The key for which the ttl is to be updated.
+   * @param ttl {Duration} The new ttl for the item
+   * @return Future containing the result of the updateTtl operation.
+   */
+  public CompletableFuture<UpdateTtlResponse> updateTtl(
+          String cacheName, String key, Duration ttl) {
+    return scsDataClient.updateTtl(cacheName, key, ttl);
+  }
+
+
+  /**
+   * Updates TTL for a key to the given value.
+   *
+   * @param cacheName Name of the cache to update the ttl for an item/key.
+   * @param key {Byte Array} The key under for the ttl is to be updated.
+   * @param ttl {Duration} The new ttl for the item
+   * @return Future containing the result of the updateTtl operation.
+   */
+  public CompletableFuture<UpdateTtlResponse> updateTtl(
+          String cacheName, byte[] key, Duration ttl) {
+    return scsDataClient.updateTtl(cacheName, key, ttl);
+  }
+
+  /**
+   * Retrieves TTL for a key.
+   *
+   * @param cacheName Name of the cache to retrieve the ttl for an item/key.
+   * @param key {String} The key for which the ttl is to be retrieved.
+   * @return Future containing the result of the itemGetTtl operation.
+   */
+  public CompletableFuture<ItemGetTtlResponse> itemGetTtl(
+          String cacheName, String key) {
+    return scsDataClient.itemGetTtl(cacheName, key);
+  }
+
+
+  /**
+   * Retrieves TTL for a key.
+   *
+   * @param cacheName Name of the cache to retrieve the ttl for an item/key.
+   * @param key {Byte Array} The key for which the ttl is to be retrieved.
+   * @return Future containing the result of the itemGetTtl operation.
+   */
+  public CompletableFuture<ItemGetTtlResponse> itemGetTtl(
+          String cacheName, byte[] key) {
+    return scsDataClient.itemGetTtl(cacheName, key);
   }
 
   /**
