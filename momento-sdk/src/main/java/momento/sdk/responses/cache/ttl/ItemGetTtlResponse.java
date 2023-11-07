@@ -12,33 +12,33 @@ public interface ItemGetTtlResponse {
 
   /** A successful ≈ operation for a key that exists. */
   class Hit implements ItemGetTtlResponse {
-    private final Duration ttl;
+    private final Duration remainingTtl;
 
     /**
      * Constructs a cache itemGetTtl hit with a ttl value.
      *
-     * @param ttl the retrieved ttl
+     * @param remainingTtl the retrieved ttl
      */
-    public Hit(Duration ttl) {
-      this.ttl = ttl;
+    public Hit(Duration remainingTtl) {
+      this.remainingTtl = remainingTtl;
     }
 
     /**
-     * Gets the retrieved ttl as a Duration.
+     * Gets the retrieved ttl as a Duration. This value represents the remaining ttl for the item.
      *
-     * @return the ttl.
+     * @return the remainingTtl.
      */
-    public Duration ttl() {
-      return ttl;
+    public Duration remainingTtl() {
+      return remainingTtl;
     }
 
     /**
-     * Gets the retrieved ttl as milliseconds since epoch
+     * Gets the retrieved ttl as milliseconds. This value represents the remaining ttl for the item.
      *
-     * @return the ttl.
+     * @return the remainingTtl.
      */
-    public long ttlMillis() {
-      return ttl.toMillis();
+    public long remainingTtlMillis() {
+      return remainingTtl.toMillis();
     }
 
     /**
@@ -48,7 +48,7 @@ public interface ItemGetTtlResponse {
      */
     @Override
     public String toString() {
-      return super.toString() + ": ttl: \"" + StringHelpers.truncate(ttl.toString());
+      return super.toString() + ": ttl: \"" + StringHelpers.truncate(remainingTtl.toString());
     }
   }
 

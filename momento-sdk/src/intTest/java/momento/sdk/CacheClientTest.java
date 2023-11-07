@@ -235,7 +235,7 @@ final class CacheClientTest extends BaseTestClass {
 
     // retrieved ttl should work and less than default ttl
     assertThat(itemGetTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).remainingTtlMillis())
         .isLessThan(DEFAULT_TTL_SECONDS.toMillis());
 
     // update ttl to 300 seconds
@@ -249,9 +249,9 @@ final class CacheClientTest extends BaseTestClass {
     // assert that the updated ttl is less than 300 seconds but more than 300 - epsilon (taken as 60
     // to reduce flakiness)
     assertThat(itemGetTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).remainingTtlMillis())
         .isLessThan(updatedTTL.toMillis());
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).remainingTtlMillis())
         .isGreaterThan(updatedTTL.minusSeconds(60).toMillis());
   }
 
@@ -269,7 +269,7 @@ final class CacheClientTest extends BaseTestClass {
 
     // retrieved ttl should work and less than default ttl
     assertThat(itemGetTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).remainingTtlMillis())
         .isLessThan(DEFAULT_TTL_SECONDS.toMillis());
 
     // update ttl to 300 seconds
@@ -283,9 +283,9 @@ final class CacheClientTest extends BaseTestClass {
     // assert that the updated ttl is less than 300 seconds but more than 300 - epsilon (taken as 60
     // to reduce flakiness)
     assertThat(itemGetTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).remainingTtlMillis())
         .isLessThan(updatedTTL.toMillis());
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).remainingTtlMillis())
         .isGreaterThan(updatedTTL.minusSeconds(60).toMillis());
   }
 
