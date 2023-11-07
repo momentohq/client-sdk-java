@@ -12,6 +12,7 @@ import static momento.sdk.ValidationUtils.checkSortedSetOffsetValid;
 import static momento.sdk.ValidationUtils.ensureValidCacheSet;
 import static momento.sdk.ValidationUtils.ensureValidKey;
 import static momento.sdk.ValidationUtils.ensureValidTruncateToSize;
+import static momento.sdk.ValidationUtils.ensureValidTtl;
 import static momento.sdk.ValidationUtils.ensureValidValue;
 
 import com.google.common.util.concurrent.FutureCallback;
@@ -37,6 +38,8 @@ import grpc.cache_client._GetRequest;
 import grpc.cache_client._GetResponse;
 import grpc.cache_client._IncrementRequest;
 import grpc.cache_client._IncrementResponse;
+import grpc.cache_client._ItemGetTtlRequest;
+import grpc.cache_client._ItemGetTtlResponse;
 import grpc.cache_client._ListConcatenateBackRequest;
 import grpc.cache_client._ListConcatenateBackResponse;
 import grpc.cache_client._ListConcatenateFrontRequest;
@@ -81,8 +84,11 @@ import grpc.cache_client._SortedSetPutResponse;
 import grpc.cache_client._SortedSetRemoveRequest;
 import grpc.cache_client._SortedSetRemoveResponse;
 import grpc.cache_client._Unbounded;
+import grpc.cache_client._UpdateTtlRequest;
+import grpc.cache_client._UpdateTtlResponse;
 import io.grpc.Metadata;
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -140,6 +146,8 @@ import momento.sdk.responses.cache.sortedset.SortedSetPutElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetPutElementsResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
+import momento.sdk.responses.cache.ttl.ItemGetTtlResponse;
+import momento.sdk.responses.cache.ttl.UpdateTtlResponse;
 
 /** Client for interacting with Scs Data plane. */
 final class ScsDataClient extends ScsClient {
@@ -308,6 +316,52 @@ final class ScsDataClient extends ScsClient {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new SetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<UpdateTtlResponse> updateTtl(String cacheName, String key, Duration ttl) {
+    try {
+      ensureValidKey(key);
+      ensureValidTtl(ttl);
+      checkCacheNameValid(cacheName);
+      return sendUpdateTtl(cacheName, convert(key), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new UpdateTtlResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<UpdateTtlResponse> updateTtl(String cacheName, byte[] key, Duration ttl) {
+    try {
+      ensureValidKey(key);
+      ensureValidTtl(ttl);
+      checkCacheNameValid(cacheName);
+      return sendUpdateTtl(cacheName, convert(key), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new UpdateTtlResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<ItemGetTtlResponse> itemGetTtl(String cacheName, String key) {
+    try {
+      ensureValidKey(key);
+      checkCacheNameValid(cacheName);
+      return sendItemGetTtl(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new ItemGetTtlResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<ItemGetTtlResponse> itemGetTtl(String cacheName, byte[] key) {
+    try {
+      ensureValidKey(key);
+      checkCacheNameValid(cacheName);
+      return sendItemGetTtl(cacheName, convert(key));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new ItemGetTtlResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1517,6 +1571,62 @@ final class ScsDataClient extends ScsClient {
 
     final Function<Throwable, SetIfNotExistsResponse> failure =
         e -> new SetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
+  private CompletableFuture<UpdateTtlResponse> sendUpdateTtl(
+      String cacheName, ByteString key, Duration ttl) {
+
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_UpdateTtlResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .updateTtl(buildUpdateTtlRequest(key, ttl));
+
+    final Function<_UpdateTtlResponse, UpdateTtlResponse> success =
+        rsp -> {
+          if (rsp.getResultCase().equals(_UpdateTtlResponse.ResultCase.SET)) {
+            return new UpdateTtlResponse.Set();
+          } else if (rsp.getResultCase().equals(_UpdateTtlResponse.ResultCase.MISSING)) {
+            return new UpdateTtlResponse.Miss();
+          } else {
+            return new UpdateTtlResponse.Error(
+                new UnknownException("Unrecognized update-ttl result: " + rsp.getResultCase()));
+          }
+        };
+
+    final Function<Throwable, UpdateTtlResponse> failure =
+        e -> new UpdateTtlResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
+  private CompletableFuture<ItemGetTtlResponse> sendItemGetTtl(String cacheName, ByteString key) {
+
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_ItemGetTtlResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .itemGetTtl(buildItemGetTtlRequest(key));
+
+    final Function<_ItemGetTtlResponse, ItemGetTtlResponse> success =
+        rsp -> {
+          if (rsp.getResultCase().equals(_ItemGetTtlResponse.ResultCase.FOUND)) {
+            return new ItemGetTtlResponse.Hit(
+                Duration.of(rsp.getFound().getRemainingTtlMillis(), ChronoUnit.MILLIS));
+          } else if (rsp.getResultCase().equals(_ItemGetTtlResponse.ResultCase.MISSING)) {
+            return new ItemGetTtlResponse.Miss();
+          } else {
+            return new ItemGetTtlResponse.Error(
+                new UnknownException("Unrecognized item-get-ttl result: " + rsp.getResultCase()));
+          }
+        };
+
+    final Function<Throwable, ItemGetTtlResponse> failure =
+        e -> new ItemGetTtlResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -3032,6 +3142,17 @@ final class ScsDataClient extends ScsClient {
         .setCacheBody(value)
         .setTtlMilliseconds(ttl.toMillis())
         .build();
+  }
+
+  private _UpdateTtlRequest buildUpdateTtlRequest(@Nonnull ByteString key, @Nonnull Duration ttl) {
+    return _UpdateTtlRequest.newBuilder()
+        .setCacheKey(key)
+        .setOverwriteToMilliseconds(ttl.toMillis())
+        .build();
+  }
+
+  private _ItemGetTtlRequest buildItemGetTtlRequest(@Nonnull ByteString key) {
+    return _ItemGetTtlRequest.newBuilder().setCacheKey(key).build();
   }
 
   private _SetUnionRequest buildSetUnionRequest(
