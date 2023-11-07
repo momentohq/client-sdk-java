@@ -6,7 +6,6 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
-
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.config.Configurations;
@@ -236,7 +235,8 @@ final class CacheClientTest extends BaseTestClass {
 
     // retrieved ttl should work and less than default ttl
     assertThat(itemGetTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis()).isLessThan(DEFAULT_TTL_SECONDS.toMillis());
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+        .isLessThan(DEFAULT_TTL_SECONDS.toMillis());
 
     // update ttl to 300 seconds
     Duration updatedTTL = Duration.of(300, ChronoUnit.SECONDS);
@@ -246,10 +246,13 @@ final class CacheClientTest extends BaseTestClass {
 
     itemGetTtlResponse = target.itemGetTtl(cacheName, key).join();
 
-    // assert that the updated ttl is less than 300 seconds but more than 300 - epsilon (taken as 60 to reduce flakiness)
+    // assert that the updated ttl is less than 300 seconds but more than 300 - epsilon (taken as 60
+    // to reduce flakiness)
     assertThat(itemGetTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis()).isLessThan(updatedTTL.toMillis());
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis()).isGreaterThan(updatedTTL.minusSeconds(60).toMillis());
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+        .isLessThan(updatedTTL.toMillis());
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+        .isGreaterThan(updatedTTL.minusSeconds(60).toMillis());
   }
 
   @Test
@@ -257,7 +260,8 @@ final class CacheClientTest extends BaseTestClass {
     final byte[] key = "updateTTlGetTTLTestByteArray".getBytes();
 
     // set a key with default ttl
-    SetResponse setResponse = target.set(cacheName, key, "value".getBytes(), DEFAULT_TTL_SECONDS).join();
+    SetResponse setResponse =
+        target.set(cacheName, key, "value".getBytes(), DEFAULT_TTL_SECONDS).join();
 
     assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
 
@@ -265,7 +269,8 @@ final class CacheClientTest extends BaseTestClass {
 
     // retrieved ttl should work and less than default ttl
     assertThat(itemGetTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis()).isLessThan(DEFAULT_TTL_SECONDS.toMillis());
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+        .isLessThan(DEFAULT_TTL_SECONDS.toMillis());
 
     // update ttl to 300 seconds
     Duration updatedTTL = Duration.of(300, ChronoUnit.SECONDS);
@@ -275,19 +280,24 @@ final class CacheClientTest extends BaseTestClass {
 
     itemGetTtlResponse = target.itemGetTtl(cacheName, key).join();
 
-    // assert that the updated ttl is less than 300 seconds but more than 300 - epsilon (taken as 60 to reduce flakiness)
+    // assert that the updated ttl is less than 300 seconds but more than 300 - epsilon (taken as 60
+    // to reduce flakiness)
     assertThat(itemGetTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis()).isLessThan(updatedTTL.toMillis());
-    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis()).isGreaterThan(updatedTTL.minusSeconds(60).toMillis());
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+        .isLessThan(updatedTTL.toMillis());
+    assertThat(((ItemGetTtlResponse.Hit) itemGetTtlResponse).ttlMillis())
+        .isGreaterThan(updatedTTL.minusSeconds(60).toMillis());
   }
 
   @Test
   public void throwsOnUpdateTTLWhenNegative() {
     final byte[] key = "updateTTlGetTTLTestByteArray".getBytes();
 
-    UpdateTtlResponse updateTtlResponse = target.updateTtl(cacheName, key, Duration.of(-1, ChronoUnit.SECONDS)).join();
+    UpdateTtlResponse updateTtlResponse =
+        target.updateTtl(cacheName, key, Duration.of(-1, ChronoUnit.SECONDS)).join();
     assertThat(updateTtlResponse).isInstanceOf(UpdateTtlResponse.Error.class);
-    assertThat(((UpdateTtlResponse.Error) updateTtlResponse).getMessage()).contains("Cache item TTL cannot be negative");
+    assertThat(((UpdateTtlResponse.Error) updateTtlResponse).getMessage())
+        .contains("Cache item TTL cannot be negative");
   }
 
   @Test

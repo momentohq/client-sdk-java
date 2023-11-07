@@ -20,8 +20,6 @@ import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheDeleteResponse;
 import momento.sdk.responses.cache.control.CacheFlushResponse;
 import momento.sdk.responses.cache.control.CacheListResponse;
-import momento.sdk.responses.cache.ttl.ItemGetTtlResponse;
-import momento.sdk.responses.cache.ttl.UpdateTtlResponse;
 import momento.sdk.responses.cache.dictionary.DictionaryFetchResponse;
 import momento.sdk.responses.cache.dictionary.DictionaryGetFieldResponse;
 import momento.sdk.responses.cache.dictionary.DictionaryGetFieldsResponse;
@@ -58,6 +56,8 @@ import momento.sdk.responses.cache.sortedset.SortedSetPutElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetPutElementsResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
+import momento.sdk.responses.cache.ttl.ItemGetTtlResponse;
+import momento.sdk.responses.cache.ttl.UpdateTtlResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -498,10 +498,9 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the updateTtl operation.
    */
   public CompletableFuture<UpdateTtlResponse> updateTtl(
-          String cacheName, String key, Duration ttl) {
+      String cacheName, String key, Duration ttl) {
     return scsDataClient.updateTtl(cacheName, key, ttl);
   }
-
 
   /**
    * Updates Ttl for a key to the given value.
@@ -512,7 +511,7 @@ public final class CacheClient implements Closeable {
    * @return Future containing the result of the updateTtl operation.
    */
   public CompletableFuture<UpdateTtlResponse> updateTtl(
-          String cacheName, byte[] key, Duration ttl) {
+      String cacheName, byte[] key, Duration ttl) {
     return scsDataClient.updateTtl(cacheName, key, ttl);
   }
 
@@ -523,11 +522,9 @@ public final class CacheClient implements Closeable {
    * @param key {String} The key for which the ttl is to be retrieved.
    * @return Future containing the result of the itemGetTtl operation.
    */
-  public CompletableFuture<ItemGetTtlResponse> itemGetTtl(
-          String cacheName, String key) {
+  public CompletableFuture<ItemGetTtlResponse> itemGetTtl(String cacheName, String key) {
     return scsDataClient.itemGetTtl(cacheName, key);
   }
-
 
   /**
    * Retrieves Ttl for a key.
@@ -536,8 +533,7 @@ public final class CacheClient implements Closeable {
    * @param key {Byte Array} The key for which the ttl is to be retrieved.
    * @return Future containing the result of the itemGetTtl operation.
    */
-  public CompletableFuture<ItemGetTtlResponse> itemGetTtl(
-          String cacheName, byte[] key) {
+  public CompletableFuture<ItemGetTtlResponse> itemGetTtl(String cacheName, byte[] key) {
     return scsDataClient.itemGetTtl(cacheName, key);
   }
 
