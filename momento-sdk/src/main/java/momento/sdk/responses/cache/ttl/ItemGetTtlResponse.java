@@ -1,16 +1,16 @@
 package momento.sdk.responses.cache.ttl;
 
-import com.google.protobuf.ByteString;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Base64;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.internal.StringHelpers;
 
-/** Response for a cache itemGetTtl operation */
+/**
+ * Parent response type for a cache itemGetTtl request. The response object is resolved to a
+ * type-safe object of one of the following subtypes: {Hit}, {Miss}, {Error}
+ */
 public interface ItemGetTtlResponse {
 
-    /** A successful ≈ operation for a key that has a value. */
+    /** A successful ≈ operation for a key that exists. */
     class Hit implements ItemGetTtlResponse {
         private final Duration ttl;
 

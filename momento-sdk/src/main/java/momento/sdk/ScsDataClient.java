@@ -1628,7 +1628,7 @@ final class ScsDataClient extends ScsClient {
               } else {
                 return new ItemGetTtlResponse.Error(
                         new UnknownException(
-                                "Unrecognized update-ttl result: " + rsp.getResultCase()));
+                                "Unrecognized item-get-ttl result: " + rsp.getResultCase()));
               }
             };
 

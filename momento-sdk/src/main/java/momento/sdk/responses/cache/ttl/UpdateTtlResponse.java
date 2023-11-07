@@ -3,17 +3,17 @@ package momento.sdk.responses.cache.ttl;
 import momento.sdk.exceptions.SdkException;
 
 /**
- * Parent response type for a cache updateTTL request. The response object is resolved to a
+ * Parent response type for a cache updateTtl request. The response object is resolved to a
  * type-safe object of one of the following subtypes: {Set}, {Miss}, {Error}
  */
 public interface UpdateTtlResponse {
 
 
-    /** A successful updateTTL operation for an existent key. */
+    /** A successful updateTtl operation for an existent key. */
     class Set implements UpdateTtlResponse {
 
         /**
-         * Constructs a cache updateTTL set
+         * Constructs a cache updateTtl set
          *
          */
         public Set() {}
@@ -29,11 +29,11 @@ public interface UpdateTtlResponse {
         }
     }
 
-    /** A successful updateTTL operation for a non-existent key. */
+    /** A successful updateTtl operation for a non-existent key. */
     class Miss implements UpdateTtlResponse {}
 
     /**
-     * A failed updateTTL operation. The response itself is an exception, so it can be directly thrown, or
+     * A failed updateTtl operation. The response itself is an exception, so it can be directly thrown, or
      * the cause of the error can be retrieved with {@link #getCause()}. The message is a copy of the
      * message of the cause.
      */

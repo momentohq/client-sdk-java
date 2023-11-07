@@ -504,7 +504,7 @@ public final class CacheClient implements Closeable {
 
 
   /**
-   * Updates TTL for a key to the given value.
+   * Updates Ttl for a key to the given value.
    *
    * @param cacheName Name of the cache to update the ttl for an item/key.
    * @param key {Byte Array} The key under for the ttl is to be updated.
@@ -517,7 +517,7 @@ public final class CacheClient implements Closeable {
   }
 
   /**
-   * Retrieves TTL for a key.
+   * Retrieves Ttl for a key.
    *
    * @param cacheName Name of the cache to retrieve the ttl for an item/key.
    * @param key {String} The key for which the ttl is to be retrieved.
@@ -530,7 +530,7 @@ public final class CacheClient implements Closeable {
 
 
   /**
-   * Retrieves TTL for a key.
+   * Retrieves Ttl for a key.
    *
    * @param cacheName Name of the cache to retrieve the ttl for an item/key.
    * @param key {Byte Array} The key for which the ttl is to be retrieved.
