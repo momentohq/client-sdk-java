@@ -28,9 +28,7 @@ public class BatchGetRequest<T> {
     return keys;
   }
 
-  /**
-   * Specialized version of BatchGetRequest for String keys.
-   */
+  /** Specialized version of BatchGetRequest for String keys. */
   public static class StringKeyBatchGetRequest extends BatchGetRequest<String> {
     /**
      * Constructs a StringKeyBatchGetRequest with the specified collection of String keys.
@@ -42,9 +40,7 @@ public class BatchGetRequest<T> {
     }
   }
 
-  /**
-   * Specialized version of BatchGetRequest for byte array keys.
-   */
+  /** Specialized version of BatchGetRequest for byte array keys. */
   public static class ByteArrayKeyBatchGetRequest extends BatchGetRequest<byte[]> {
     /**
      * Constructs a ByteArrayKeyBatchGetRequest with the specified collection of byte array keys.
