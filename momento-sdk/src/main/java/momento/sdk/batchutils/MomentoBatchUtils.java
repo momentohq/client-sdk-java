@@ -1,11 +1,8 @@
 package momento.sdk.batchutils;
 
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
-import java.util.function.Function;
 import momento.sdk.CacheClient;
 import momento.sdk.batchutils.request.BatchGetRequest;
 import momento.sdk.batchutils.response.BatchGetResponse;
@@ -84,11 +81,24 @@ public class MomentoBatchUtils {
    *
    * @param cacheName The name of the cache.
    * @param request The batch get request with String keys.
-   * @return A CompletableFuture of BatchGetResponse.
+   * @return BatchGetResponse The batch get response
    */
   public BatchGetResponse batchGet(
       final String cacheName, final BatchGetRequest.StringKeyBatchGetRequest request) {
-    return batchGetInternal(cacheName, request.getKeys(), String::valueOf);
+
+    if (request.getKeys().size() > this.maxConcurrentRequests) {
+      return maxConcurrentRequestExceededError();
+    }
+
+    final List<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> summaries = new ArrayList<>();
+
+    for (final String key : request.getKeys()) {
+      CompletableFuture<GetResponse> getResponseFuture = cacheClient.get(cacheName, key);
+      summaries.add(
+          new BatchGetResponse.StringKeyBatchGetSummary.GetSummary(key, getResponseFuture));
+    }
+
+    return new BatchGetResponse.StringKeyBatchGetSummary(summaries);
   }
 
   /**
@@ -96,44 +106,35 @@ public class MomentoBatchUtils {
    *
    * @param cacheName The name of the cache.
    * @param request The batch get request with byte array keys.
-   * @return A CompletableFuture of BatchGetResponse.
+   * @return BatchGetResponse The batch get response
    */
   public BatchGetResponse batchGet(
       final String cacheName, final BatchGetRequest.ByteArrayKeyBatchGetRequest request) {
-    return batchGetInternal(
-        cacheName, request.getKeys(), key -> new String(key, StandardCharsets.UTF_8));
+
+    if (request.getKeys().size() > this.maxConcurrentRequests) {
+      return maxConcurrentRequestExceededError();
+    }
+
+    final List<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary> summaries =
+        new ArrayList<>();
+
+    for (final byte[] key : request.getKeys()) {
+      CompletableFuture<GetResponse> getResponseFuture = cacheClient.get(cacheName, key);
+      summaries.add(
+          new BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary(key, getResponseFuture));
+    }
+
+    return new BatchGetResponse.ByteArrayKeyBatchGetSummary(summaries);
   }
 
-  /**
-   * Internal method to handle the common batch get logic.
-   *
-   * @param cacheName The name of the cache.
-   * @param keys The collection of keys to get.
-   * @param keyMapper Function to map the key to a String representation.
-   * @return A CompletableFuture of BatchGetResponse.
-   */
-  private <T> BatchGetResponse batchGetInternal(
-      final String cacheName, final Collection<T> keys, final Function<T, String> keyMapper) {
-
-    if (keys.size() > this.maxConcurrentRequests) {
-      return new BatchGetResponse.Error(
-          CacheServiceExceptionMapper.convert(
-              new InvalidArgumentException(
-                  String.format(
-                      "Number of keys should be less than "
-                          + "or equal to maxConcurrentRequests. You can configure this value using MomentoBatchUtilsBuilder "
-                          + "option withMaxConcurrentRequests. Current value for maxConcurrentRequests: %d",
-                      this.maxConcurrentRequests))));
-    }
-
-    final List<BatchGetResponse.BatchGetSummary.GetSummary> summaries = new ArrayList<>();
-
-    for (final T key : keys) {
-      final String keyStr = keyMapper.apply(key);
-      CompletableFuture<GetResponse> getResponseFuture = cacheClient.get(cacheName, keyStr);
-      summaries.add(new BatchGetResponse.BatchGetSummary.GetSummary(keyStr, getResponseFuture));
-    }
-
-    return new BatchGetResponse.BatchGetSummary(summaries);
+  private BatchGetResponse.Error maxConcurrentRequestExceededError() {
+    return new BatchGetResponse.Error(
+        CacheServiceExceptionMapper.convert(
+            new InvalidArgumentException(
+                String.format(
+                    "Number of keys should be less than "
+                        + "or equal to maxConcurrentRequests. You can configure this value using MomentoBatchUtilsBuilder "
+                        + "option withMaxConcurrentRequests. Current value for maxConcurrentRequests: %d",
+                    this.maxConcurrentRequests))));
   }
 }

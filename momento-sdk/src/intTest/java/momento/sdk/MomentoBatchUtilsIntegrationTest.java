@@ -61,25 +61,33 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
 
     // Assertions
     assertThat(response).isNotNull();
-    assertThat(response).isInstanceOf(BatchGetResponse.BatchGetSummary.class);
-    List<BatchGetResponse.BatchGetSummary.GetSummary> summaries =
-        ((BatchGetResponse.BatchGetSummary) response).getSummaries();
+    assertThat(response).isInstanceOf(BatchGetResponse.StringKeyBatchGetSummary.class);
+    List<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> summaries =
+        ((BatchGetResponse.StringKeyBatchGetSummary) response).getSummaries();
     assertThat(summaries).hasSize(2);
 
+    boolean key1Found = false;
+    boolean key2Found = false;
     // Assert each response
-    for (BatchGetResponse.BatchGetSummary.GetSummary summary : summaries) {
+    for (BatchGetResponse.StringKeyBatchGetSummary.GetSummary summary : summaries) {
       String key = summary.getKey();
       GetResponse getResponse = summary.getGetResponse().join();
 
       assertThat(key).isIn(key1, key2);
 
       if (key.equals(key1)) {
+        key1Found = true;
         validateResponse(getResponse, value1);
       } else if (key.equals(key2)) {
+        key2Found = true;
         validateResponse(getResponse, value2);
       } else {
         fail("Unexpected key encountered in the response");
       }
+    }
+
+    if (!key1Found || !key2Found) {
+      fail("key not encountered in the response and should have been found");
     }
   }
 
@@ -110,32 +118,38 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
 
     // Assertions
     assertThat(response).isNotNull();
-    assertThat(response).isInstanceOf(BatchGetResponse.BatchGetSummary.class);
-    List<BatchGetResponse.BatchGetSummary.GetSummary> summaries =
-        ((BatchGetResponse.BatchGetSummary) response).getSummaries();
+    assertThat(response).isInstanceOf(BatchGetResponse.ByteArrayKeyBatchGetSummary.class);
+    List<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary> summaries =
+        ((BatchGetResponse.ByteArrayKeyBatchGetSummary) response).getSummaries();
     assertThat(summaries).hasSize(2);
 
+    boolean key1Found = false;
+    boolean key2Found = false;
     // Assert each response
-    for (BatchGetResponse.BatchGetSummary.GetSummary summary : summaries) {
-      String key = summary.getKey();
+    for (BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary summary : summaries) {
+      byte[] key = summary.getKey();
       GetResponse getResponse = summary.getGetResponse().join();
 
-      assertThat(key)
-          .isIn(new String(key1, StandardCharsets.UTF_8), new String(key2, StandardCharsets.UTF_8));
+      assertThat(key).isIn(key1, key2);
 
-      if (key.equals(new String(key1, StandardCharsets.UTF_8))) {
+      if (Arrays.equals(key, key1)) {
+        key1Found = true;
         validateResponse(getResponse, new String(value1, StandardCharsets.UTF_8));
-      } else if (key.equals(new String(key2, StandardCharsets.UTF_8))) {
+      } else if (Arrays.equals(key, key2)) {
+        key2Found = true;
         validateResponse(getResponse, new String(value2, StandardCharsets.UTF_8));
       } else {
         fail("Unexpected key encountered in the response");
       }
     }
+
+    if (!key1Found || !key2Found) {
+      fail("key not encountered in the response and should have been found");
+    }
   }
 
   @Test
-  void testBatchGetWithStringKeys_MoreThanMaxConcurrentThrows()
-      throws ExecutionException, InterruptedException {
+  void testBatchGetWithStringKeys_MoreThanMaxConcurrentThrows() {
     MomentoBatchUtils momentoBatchUtils =
         MomentoBatchUtils.builder(cacheClient).withMaxConcurrentRequests(1).build();
     // Setup test data
