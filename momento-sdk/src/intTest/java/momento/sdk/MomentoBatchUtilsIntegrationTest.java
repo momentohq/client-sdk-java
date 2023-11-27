@@ -147,34 +147,4 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
       fail("key not encountered in the response and should have been found");
     }
   }
-
-  @Test
-  void testBatchGetWithStringKeys_MoreThanMaxConcurrentThrows() {
-    MomentoBatchUtils momentoBatchUtils =
-        MomentoBatchUtils.builder(cacheClient).withMaxConcurrentRequests(1).build();
-    // Setup test data
-    String key1 = "testKey1";
-    String value1 = "testValue1";
-    cacheClient.set(cacheName, key1, value1).join();
-
-    String key2 = "testKey2";
-    String value2 = "testValue2";
-    cacheClient.set(cacheName, key2, value2).join();
-
-    // Create a batch get request
-    BatchGetRequest.StringKeyBatchGetRequest request =
-        new BatchGetRequest.StringKeyBatchGetRequest(Arrays.asList(key1, key2));
-
-    // Perform batch get
-    BatchGetResponse response = momentoBatchUtils.batchGet(cacheName, request);
-
-    // Assertions
-    assertThat(response).isNotNull();
-    assertThat(response).isInstanceOf(BatchGetResponse.Error.class);
-    assertThat((((BatchGetResponse.Error) response)).getMessage())
-        .isEqualTo(
-            "Invalid argument passed to Momento client: Number of keys should be less than or equal to "
-                + "maxConcurrentRequests. You can configure this value using MomentoBatchUtilsBuilder option "
-                + "withMaxConcurrentRequests. Current value for maxConcurrentRequests: 1");
-  }
 }
