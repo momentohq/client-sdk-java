@@ -16,7 +16,7 @@ import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.responses.cache.GetResponse;
 
 /** Utility class for handling batch operations in Momento SDK. */
-public class MomentoBatchUtils implements Closeable  {
+public class MomentoBatchUtils implements Closeable {
 
   private static final int DEFAULT_MAX_CONCURRENT_REQUESTS = 5;
 
