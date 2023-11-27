@@ -1,5 +1,7 @@
 package momento.sdk.batchutils;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -14,7 +16,7 @@ import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.responses.cache.GetResponse;
 
 /** Utility class for handling batch operations in Momento SDK. */
-public class MomentoBatchUtils {
+public class MomentoBatchUtils implements Closeable  {
 
   private static final int DEFAULT_MAX_CONCURRENT_REQUESTS = 5;
 
@@ -50,6 +52,17 @@ public class MomentoBatchUtils {
             THREAD_POOL_KEEP_ALIVE_TTL_SECONDS,
             TimeUnit.SECONDS,
             new LinkedBlockingQueue<>());
+  }
+
+  @Override
+  public void close() throws IOException {
+    try {
+      this.executorService.shutdown();
+      this.executorService.awaitTermination(60, TimeUnit.SECONDS);
+    } catch (InterruptedException e) {
+      Thread.currentThread().interrupt();
+      this.executorService.shutdownNow();
+    }
   }
 
   public static class MomentoBatchUtilsBuilder {
