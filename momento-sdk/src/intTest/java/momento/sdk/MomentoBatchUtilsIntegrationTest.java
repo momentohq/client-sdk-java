@@ -42,7 +42,7 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
   }
 
   @Test
-  void testBatchGetWithStringKeys() throws ExecutionException, InterruptedException {
+  void testBatchGetWithStringKeys() {
     // Setup test data
     String key1 = "testKey1";
     String value1 = "testValue1";
@@ -99,7 +99,7 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
   }
 
   @Test
-  void testBatchGetWithByteArrayKeys() throws ExecutionException, InterruptedException {
+  void testBatchGetWithByteArrayKeys() {
     // Setup test data
     byte[] key1 = "testKey1".getBytes();
     byte[] value1 = "testValue1".getBytes();
