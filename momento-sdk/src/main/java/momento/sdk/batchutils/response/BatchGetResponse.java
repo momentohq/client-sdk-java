@@ -1,7 +1,6 @@
 package momento.sdk.batchutils.response;
 
 import java.util.List;
-import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.GetResponse;
 
@@ -14,7 +13,7 @@ public interface BatchGetResponse {
     /** Represents the result of a get operation for a single key within a batch request. */
     public static class GetSummary {
       private final String key;
-      private final CompletableFuture<GetResponse> getResponse;
+      private final GetResponse getResponse;
 
       /**
        * Constructs a GetSummary with the provided key and its corresponding get response.
@@ -22,7 +21,7 @@ public interface BatchGetResponse {
        * @param key The key for which the get operation was performed.
        * @param getResponse The response from the get operation for the specified key.
        */
-      public GetSummary(String key, CompletableFuture<GetResponse> getResponse) {
+      public GetSummary(String key, GetResponse getResponse) {
         this.key = key;
         this.getResponse = getResponse;
       }
@@ -41,7 +40,7 @@ public interface BatchGetResponse {
        *
        * @return The response from the get operation.
        */
-      public CompletableFuture<GetResponse> getGetResponse() {
+      public GetResponse getGetResponse() {
         return getResponse;
       }
     }
@@ -72,7 +71,7 @@ public interface BatchGetResponse {
     /** Represents the result of a get operation for a single key within a batch request. */
     public static class GetSummary {
       private final byte[] key;
-      private final CompletableFuture<GetResponse> getResponse;
+      private final GetResponse getResponse;
 
       /**
        * Constructs a GetSummary with the provided key and its corresponding get response.
@@ -80,7 +79,7 @@ public interface BatchGetResponse {
        * @param key The key for which the get operation was performed.
        * @param getResponse The response from the get operation for the specified key.
        */
-      public GetSummary(byte[] key, CompletableFuture<GetResponse> getResponse) {
+      public GetSummary(byte[] key, GetResponse getResponse) {
         this.key = key;
         this.getResponse = getResponse;
       }
@@ -99,7 +98,7 @@ public interface BatchGetResponse {
        *
        * @return The response from the get operation.
        */
-      public CompletableFuture<GetResponse> getGetResponse() {
+      public GetResponse getGetResponse() {
         return getResponse;
       }
     }

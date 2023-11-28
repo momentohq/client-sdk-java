@@ -56,7 +56,7 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
         new BatchGetRequest.StringKeyBatchGetRequest(Arrays.asList(key1, key2));
 
     // Perform batch get
-    BatchGetResponse response = momentoBatchUtils.batchGet(cacheName, request);
+    BatchGetResponse response = momentoBatchUtils.batchGet(cacheName, request).join();
 
     // Assertions
     assertThat(response).isNotNull();
@@ -70,7 +70,7 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
     // Assert each response
     for (BatchGetResponse.StringKeyBatchGetSummary.GetSummary summary : summaries) {
       String key = summary.getKey();
-      GetResponse getResponse = summary.getGetResponse().join();
+      GetResponse getResponse = summary.getGetResponse();
 
       assertThat(key).isIn(key1, key2);
 
@@ -113,7 +113,7 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
         new BatchGetRequest.ByteArrayKeyBatchGetRequest(Arrays.asList(key1, key2));
 
     // Perform batch get
-    BatchGetResponse response = momentoBatchUtils.batchGet(cacheName, request);
+    BatchGetResponse response = momentoBatchUtils.batchGet(cacheName, request).join();
 
     // Assertions
     assertThat(response).isNotNull();
@@ -127,7 +127,7 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
     // Assert each response
     for (BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary summary : summaries) {
       byte[] key = summary.getKey();
-      GetResponse getResponse = summary.getGetResponse().join();
+      GetResponse getResponse = summary.getGetResponse();
 
       assertThat(key).isIn(key1, key2);
 

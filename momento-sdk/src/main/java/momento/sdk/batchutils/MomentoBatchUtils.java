@@ -9,6 +9,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import momento.sdk.CacheClient;
 import momento.sdk.batchutils.request.BatchGetRequest;
 import momento.sdk.batchutils.response.BatchGetResponse;
@@ -47,8 +48,8 @@ public class MomentoBatchUtils implements Closeable {
     this.requestTimeoutSeconds = requestTimeoutSeconds;
     this.executorService =
         new ThreadPoolExecutor(
-            maxConcurrentRequests,
-            maxConcurrentRequests,
+            this.maxConcurrentRequests,
+            this.maxConcurrentRequests,
             THREAD_POOL_KEEP_ALIVE_TTL_SECONDS,
             TimeUnit.SECONDS,
             new LinkedBlockingQueue<>());
@@ -134,26 +135,47 @@ public class MomentoBatchUtils implements Closeable {
    * @param request The batch get request with String keys.
    * @return BatchGetResponse The batch get response
    */
-  public BatchGetResponse batchGet(
+  public CompletableFuture<BatchGetResponse> batchGet(
       final String cacheName, final BatchGetRequest.StringKeyBatchGetRequest request) {
 
-    final List<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> summaries = new ArrayList<>();
+    final List<CompletableFuture<BatchGetResponse.StringKeyBatchGetSummary.GetSummary>>
+        futureSummaries = new ArrayList<>();
 
     for (final String key : request.getKeys()) {
-      final CompletableFuture<GetResponse> getResponseFuture;
-      try {
-        getResponseFuture =
-            executorService
-                .submit(() -> cacheClient.get(cacheName, key))
-                .get(this.requestTimeoutSeconds, TimeUnit.SECONDS);
-      } catch (Exception e) {
-        return new BatchGetResponse.Error(CacheServiceExceptionMapper.convert(e.getCause()));
-      }
-      summaries.add(
-          new BatchGetResponse.StringKeyBatchGetSummary.GetSummary(key, getResponseFuture));
+      final CompletableFuture<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> futureSummary =
+          CompletableFuture.supplyAsync(
+              () -> {
+                try {
+                  final GetResponse getResponse =
+                      cacheClient
+                          .get(cacheName, key)
+                          .get(this.requestTimeoutSeconds, TimeUnit.SECONDS);
+                  return new BatchGetResponse.StringKeyBatchGetSummary.GetSummary(key, getResponse);
+                } catch (Exception e) {
+                  // Handle the exception and return a suitable GetSummary
+                  // For example, you might want to include an error response inside GetSummary
+                  // or handle the error differently.
+                  // This is a placeholder for error handling.
+                  return new BatchGetResponse.StringKeyBatchGetSummary.GetSummary(
+                      key,
+                      new GetResponse.Error(CacheServiceExceptionMapper.convert(e.getCause())));
+                }
+              },
+              executorService);
+
+      futureSummaries.add(futureSummary);
     }
 
-    return new BatchGetResponse.StringKeyBatchGetSummary(summaries);
+    // chain all the futures to generate a future returned back to the caller
+    return CompletableFuture.allOf(futureSummaries.toArray(new CompletableFuture[0]))
+        .thenApply(
+            v -> {
+              List<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> summaries =
+                  futureSummaries.stream()
+                      .map(CompletableFuture::join) // This blocks until all futures are complete
+                      .collect(Collectors.toList());
+              return new BatchGetResponse.StringKeyBatchGetSummary(summaries);
+            });
   }
 
   /**
@@ -163,26 +185,44 @@ public class MomentoBatchUtils implements Closeable {
    * @param request The batch get request with byte array keys.
    * @return BatchGetResponse The batch get response
    */
-  public BatchGetResponse batchGet(
+  public CompletableFuture<BatchGetResponse> batchGet(
       final String cacheName, final BatchGetRequest.ByteArrayKeyBatchGetRequest request) {
 
-    final List<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary> summaries =
-        new ArrayList<>();
+    final List<CompletableFuture<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary>>
+        futureSummaries = new ArrayList<>();
 
     for (final byte[] key : request.getKeys()) {
-      final CompletableFuture<GetResponse> getResponseFuture;
-      try {
-        getResponseFuture =
-            executorService
-                .submit(() -> cacheClient.get(cacheName, key))
-                .get(this.requestTimeoutSeconds, TimeUnit.SECONDS);
-      } catch (Exception e) {
-        return new BatchGetResponse.Error(CacheServiceExceptionMapper.convert(e.getCause()));
-      }
-      summaries.add(
-          new BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary(key, getResponseFuture));
+      final CompletableFuture<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary>
+          futureSummary =
+              CompletableFuture.supplyAsync(
+                  () -> {
+                    try {
+                      GetResponse getResponse =
+                          cacheClient
+                              .get(cacheName, key)
+                              .get(this.requestTimeoutSeconds, TimeUnit.SECONDS);
+                      return new BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary(
+                          key, getResponse);
+                    } catch (Exception e) {
+                      return new BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary(
+                          key,
+                          new GetResponse.Error(CacheServiceExceptionMapper.convert(e.getCause())));
+                    }
+                  },
+                  executorService);
+
+      futureSummaries.add(futureSummary);
     }
 
-    return new BatchGetResponse.ByteArrayKeyBatchGetSummary(summaries);
+    // chain all the futures to generate a future returned back to the caller
+    return CompletableFuture.allOf(futureSummaries.toArray(new CompletableFuture[0]))
+        .thenApply(
+            v -> {
+              List<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary> summaries =
+                  futureSummaries.stream()
+                      .map(CompletableFuture::join) // This blocks until all futures are complete
+                      .collect(Collectors.toList());
+              return new BatchGetResponse.ByteArrayKeyBatchGetSummary(summaries);
+            });
   }
 }
