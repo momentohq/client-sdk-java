@@ -200,4 +200,35 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
 
     limitedBatchUtils.close();
   }
+
+  @Test
+  void testBatchGetOrderWithStringKeys() {
+    // Setup test data with a specific order
+    List<String> keys = Arrays.asList("key3", "key1", "key2");
+    List<String> values = Arrays.asList("value3", "value1", "value2");
+
+    for (int i = 0; i < keys.size(); i++) {
+      cacheClient.set(cacheName, keys.get(i), values.get(i)).join();
+    }
+
+    // Batch get request with keys in specific order
+    BatchGetRequest.StringKeyBatchGetRequest request =
+        new BatchGetRequest.StringKeyBatchGetRequest(keys);
+
+    BatchGetResponse response = momentoBatchUtils.batchGet(cacheName, request).join();
+
+    // Assertions
+    assertThat(response).isNotNull();
+    assertThat(response).isInstanceOf(BatchGetResponse.StringKeyBatchGetSummary.class);
+    List<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> summaries =
+        ((BatchGetResponse.StringKeyBatchGetSummary) response).getSummaries();
+
+    assertThat(summaries).hasSize(keys.size());
+
+    // Assert that the order of keys in the response matches the order of requested keys
+    for (int i = 0; i < keys.size(); i++) {
+      assertThat(summaries.get(i).getKey()).isEqualTo(keys.get(i));
+      validateResponse(summaries.get(i).getGetResponse(), values.get(i));
+    }
+  }
 }

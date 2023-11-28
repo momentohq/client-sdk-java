@@ -1,8 +1,9 @@
 package momento.sdk.batchutils;
 
 import java.io.Closeable;
-import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -143,8 +144,9 @@ public class MomentoBatchUtils implements Closeable {
   public CompletableFuture<BatchGetResponse> batchGet(
       final String cacheName, final BatchGetRequest.StringKeyBatchGetRequest request) {
 
-    final List<CompletableFuture<BatchGetResponse.StringKeyBatchGetSummary.GetSummary>>
-        futureSummaries = new ArrayList<>();
+    final Map<String, CompletableFuture<BatchGetResponse.StringKeyBatchGetSummary.GetSummary>>
+        // LinkedHashMap preserves ordering of keys in the final generated result
+        futureSummaries = new LinkedHashMap<>();
 
     for (final String key : request.getKeys()) {
       final CompletableFuture<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> futureSummary =
@@ -164,16 +166,19 @@ public class MomentoBatchUtils implements Closeable {
               },
               executorService);
 
-      futureSummaries.add(futureSummary);
+      futureSummaries.put(key, futureSummary);
     }
 
     // chain all the futures to generate a new future returned back to the caller
-    return CompletableFuture.allOf(futureSummaries.toArray(new CompletableFuture[0]))
+    return CompletableFuture.allOf(futureSummaries.values().toArray(new CompletableFuture[0]))
         .thenApply(
             v -> {
               List<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> summaries =
-                  futureSummaries.stream()
-                      .map(CompletableFuture::join)
+                  request.getKeys().stream()
+                      .map(
+                          key ->
+                              new BatchGetResponse.StringKeyBatchGetSummary.GetSummary(
+                                  key, futureSummaries.get(key).join().getGetResponse()))
                       .collect(Collectors.toList());
               return new BatchGetResponse.StringKeyBatchGetSummary(summaries);
             });
@@ -189,8 +194,9 @@ public class MomentoBatchUtils implements Closeable {
   public CompletableFuture<BatchGetResponse> batchGet(
       final String cacheName, final BatchGetRequest.ByteArrayKeyBatchGetRequest request) {
 
-    final List<CompletableFuture<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary>>
-        futureSummaries = new ArrayList<>();
+    final Map<byte[], CompletableFuture<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary>>
+        // LinkedHashMap preserves ordering of keys in the final generated result
+        futureSummaries = new LinkedHashMap<>();
 
     for (final byte[] key : request.getKeys()) {
       final CompletableFuture<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary>
@@ -212,16 +218,19 @@ public class MomentoBatchUtils implements Closeable {
                   },
                   executorService);
 
-      futureSummaries.add(futureSummary);
+      futureSummaries.put(key, futureSummary);
     }
 
     // chain all the futures to generate a new future returned back to the caller
-    return CompletableFuture.allOf(futureSummaries.toArray(new CompletableFuture[0]))
+    return CompletableFuture.allOf(futureSummaries.values().toArray(new CompletableFuture[0]))
         .thenApply(
             v -> {
               List<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary> summaries =
-                  futureSummaries.stream()
-                      .map(CompletableFuture::join)
+                  request.getKeys().stream()
+                      .map(
+                          key ->
+                              new BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary(
+                                  key, futureSummaries.get(key).join().getGetResponse()))
                       .collect(Collectors.toList());
               return new BatchGetResponse.ByteArrayKeyBatchGetSummary(summaries);
             });
