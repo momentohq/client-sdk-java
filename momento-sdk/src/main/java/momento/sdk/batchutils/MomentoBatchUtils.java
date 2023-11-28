@@ -173,7 +173,7 @@ public class MomentoBatchUtils implements Closeable {
             v -> {
               List<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> summaries =
                   futureSummaries.stream()
-                      .map(CompletableFuture::join) // This blocks until all futures are complete
+                      .map(CompletableFuture::join)
                       .collect(Collectors.toList());
               return new BatchGetResponse.StringKeyBatchGetSummary(summaries);
             });
@@ -221,7 +221,7 @@ public class MomentoBatchUtils implements Closeable {
             v -> {
               List<BatchGetResponse.ByteArrayKeyBatchGetSummary.GetSummary> summaries =
                   futureSummaries.stream()
-                      .map(CompletableFuture::join) // This blocks until all futures are complete
+                      .map(CompletableFuture::join)
                       .collect(Collectors.toList());
               return new BatchGetResponse.ByteArrayKeyBatchGetSummary(summaries);
             });
