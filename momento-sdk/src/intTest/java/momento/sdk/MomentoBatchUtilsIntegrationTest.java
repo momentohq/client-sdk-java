@@ -7,6 +7,8 @@ import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import momento.sdk.batchutils.MomentoBatchUtils;
 import momento.sdk.batchutils.request.BatchGetRequest;
 import momento.sdk.batchutils.response.BatchGetResponse;
@@ -36,6 +38,7 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
 
   @AfterEach
   void teardown() {
+    momentoBatchUtils.close();
     cacheClient.deleteCache(cacheName).join();
     cacheClient.close();
   }
@@ -145,5 +148,56 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
     if (!key1Found || !key2Found) {
       fail("key not encountered in the response and should have been found");
     }
+  }
+
+  @Test
+  void testBatchGetWithStringKeys_RequestsMoreThanMaxConn() {
+    final int numberOfKeys = 10;
+    final MomentoBatchUtils limitedBatchUtils =
+        MomentoBatchUtils.builder(cacheClient)
+            .withMaxConcurrentRequests(1)
+            .withRequestTimeoutSeconds(5)
+            .build();
+
+    // test data with more keys than max concurrent requests
+    for (int i = 0; i < numberOfKeys; i++) {
+      String key = "testKey" + i;
+      String value = "testValue" + i;
+      cacheClient.set(cacheName, key, value).join();
+    }
+
+    List<String> keys =
+        IntStream.range(0, numberOfKeys).mapToObj(i -> "testKey" + i).collect(Collectors.toList());
+    BatchGetRequest.StringKeyBatchGetRequest request =
+        new BatchGetRequest.StringKeyBatchGetRequest(keys);
+
+    // Perform batch get
+    BatchGetResponse response = limitedBatchUtils.batchGet(cacheName, request).join();
+
+    // Assertions
+    assertThat(response).isNotNull();
+    assertThat(response).isInstanceOf(BatchGetResponse.StringKeyBatchGetSummary.class);
+    List<BatchGetResponse.StringKeyBatchGetSummary.GetSummary> summaries =
+        ((BatchGetResponse.StringKeyBatchGetSummary) response).getSummaries();
+    assertThat(summaries).hasSize(numberOfKeys);
+
+    // Assert each response
+    for (int i = 0; i < numberOfKeys; i++) {
+      String expectedKey = "testKey" + i;
+      String expectedValue = "testValue" + i;
+      boolean keyFound =
+          summaries.stream()
+              .anyMatch(
+                  summary ->
+                      expectedKey.equals(summary.getKey())
+                          && expectedValue.equals(
+                              ((GetResponse.Hit) summary.getGetResponse()).valueString()));
+
+      assertThat(keyFound)
+          .withFailMessage("Key " + expectedKey + " not found in the response")
+          .isTrue();
+    }
+
+    limitedBatchUtils.close();
   }
 }

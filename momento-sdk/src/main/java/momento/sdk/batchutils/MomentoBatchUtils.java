@@ -1,7 +1,6 @@
 package momento.sdk.batchutils;
 
 import java.io.Closeable;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -15,9 +14,13 @@ import momento.sdk.batchutils.request.BatchGetRequest;
 import momento.sdk.batchutils.response.BatchGetResponse;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.responses.cache.GetResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Utility class for handling batch operations in Momento SDK. */
 public class MomentoBatchUtils implements Closeable {
+
+  private final Logger logger = LoggerFactory.getLogger(MomentoBatchUtils.class);
 
   private static final int DEFAULT_MAX_CONCURRENT_REQUESTS = 5;
 
@@ -46,6 +49,8 @@ public class MomentoBatchUtils implements Closeable {
     this.cacheClient = cacheClient;
     this.maxConcurrentRequests = maxConcurrentRequests;
     this.requestTimeoutSeconds = requestTimeoutSeconds;
+    logger.debug(
+        "Setting thread pool for batch utils with a core size of " + this.maxConcurrentRequests);
     this.executorService =
         new ThreadPoolExecutor(
             this.maxConcurrentRequests,
@@ -56,7 +61,7 @@ public class MomentoBatchUtils implements Closeable {
   }
 
   @Override
-  public void close() throws IOException {
+  public void close() {
     try {
       this.executorService.shutdown();
       this.executorService.awaitTermination(60, TimeUnit.SECONDS);
@@ -152,10 +157,6 @@ public class MomentoBatchUtils implements Closeable {
                           .get(this.requestTimeoutSeconds, TimeUnit.SECONDS);
                   return new BatchGetResponse.StringKeyBatchGetSummary.GetSummary(key, getResponse);
                 } catch (Exception e) {
-                  // Handle the exception and return a suitable GetSummary
-                  // For example, you might want to include an error response inside GetSummary
-                  // or handle the error differently.
-                  // This is a placeholder for error handling.
                   return new BatchGetResponse.StringKeyBatchGetSummary.GetSummary(
                       key,
                       new GetResponse.Error(CacheServiceExceptionMapper.convert(e.getCause())));
@@ -166,7 +167,7 @@ public class MomentoBatchUtils implements Closeable {
       futureSummaries.add(futureSummary);
     }
 
-    // chain all the futures to generate a future returned back to the caller
+    // chain all the futures to generate a new future returned back to the caller
     return CompletableFuture.allOf(futureSummaries.toArray(new CompletableFuture[0]))
         .thenApply(
             v -> {
@@ -214,7 +215,7 @@ public class MomentoBatchUtils implements Closeable {
       futureSummaries.add(futureSummary);
     }
 
-    // chain all the futures to generate a future returned back to the caller
+    // chain all the futures to generate a new future returned back to the caller
     return CompletableFuture.allOf(futureSummaries.toArray(new CompletableFuture[0]))
         .thenApply(
             v -> {
