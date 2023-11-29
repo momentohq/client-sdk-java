@@ -13,7 +13,7 @@ import momento.sdk.responses.cache.control.CacheListResponse;
 
 public class BasicExample {
 
-  private static final String AUTH_TOKEN_ENV_VAR = "MOMENTO_AUTH_TOKEN";
+  private static final String API_KEY_ENV_VAR = "MOMENTO_API_KEY";
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   private static final String CACHE_NAME = "cache";
@@ -23,7 +23,7 @@ public class BasicExample {
   public static void main(String[] args) {
     printStartBanner();
 
-    final CredentialProvider credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
+    final CredentialProvider credentialProvider = new EnvVarCredentialProvider(API_KEY_ENV_VAR);
 
     try (final CacheClient client =
         CacheClient.create(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)) {

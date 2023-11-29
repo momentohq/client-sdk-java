@@ -22,7 +22,7 @@ import org.slf4j.LoggerFactory;
 
 public class SortedSetExample {
 
-  private static final String AUTH_TOKEN_ENV_VAR = "MOMENTO_AUTH_TOKEN";
+  private static final String API_KEY_ENV_VAR = "MOMENTO_API_KEY";
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   private static final String CACHE_NAME = "set-example-cache";
@@ -35,9 +35,9 @@ public class SortedSetExample {
 
     final CredentialProvider credentialProvider;
     try {
-      credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
+      credentialProvider = new EnvVarCredentialProvider(API_KEY_ENV_VAR);
     } catch (SdkException e) {
-      logger.error("Unable to load credential from environment variable " + AUTH_TOKEN_ENV_VAR, e);
+      logger.error("Unable to load credential from environment variable " + API_KEY_ENV_VAR, e);
       throw e;
     }
 
