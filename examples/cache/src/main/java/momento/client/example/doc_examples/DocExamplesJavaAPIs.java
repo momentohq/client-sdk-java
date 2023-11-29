@@ -30,7 +30,7 @@ public class DocExamplesJavaAPIs {
   }
 
   public static void example_API_CredentialProviderFromEnvVar() {
-    CredentialProvider.fromEnvVar("MOMENTO_AUTH_TOKEN");
+    CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
   }
 
   public static void example_API_CredentialProviderFromString() {
@@ -57,7 +57,7 @@ public class DocExamplesJavaAPIs {
   public static void example_API_InstantiateCacheClient() {
     try (CacheClient cacheClient =
         CacheClient.create(
-            CredentialProvider.fromEnvVar("MOMENTO_AUTH_TOKEN"),
+            CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
             Configurations.Laptop.v1(),
             Duration.ofSeconds(60))) {
       // ...
@@ -220,7 +220,7 @@ public class DocExamplesJavaAPIs {
     example_API_InstantiateCacheClient();
     try (final CacheClient cacheClient =
         CacheClient.builder(
-                CredentialProvider.fromEnvVar("MOMENTO_AUTH_TOKEN"),
+                CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
                 Configurations.Laptop.v1(),
                 Duration.ofSeconds(60))
             .build()) {

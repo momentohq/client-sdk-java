@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("software.momento.java:sdk:1.3.1")
+    implementation("software.momento.java:sdk:1.5.0")
 
     implementation("com.google.guava:guava:31.1-android")
 
@@ -83,6 +83,12 @@ task("sortedSet", JavaExec::class) {
     description = "Run the sorted set example"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.SortedSetExample")
+}
+
+task("batchUtil", JavaExec::class) {
+    description = "Run the batch util example"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.BatchUtilsExample")
 }
 
 task("docExamples", JavaExec::class) {
