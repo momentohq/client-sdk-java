@@ -14,18 +14,16 @@ import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 
 /**
- * BatchUtilsExample demonstrates the use of MomentoBatchUtils for performing batch operations
- * with the Momento SDK. This class includes examples of setting up a cache, adding test data,
- * and performing batch get operations.
+ * BatchUtilsExample demonstrates the use of MomentoBatchUtils for performing batch operations with
+ * the Momento SDK. This class includes examples of setting up a cache, adding test data, and
+ * performing batch get operations.
  *
- * The example covers:
- * - Creating a cache if it does not exist.
- * - Adding a set of key-value pairs to the cache.
- * - Performing a batch get operation to retrieve multiple keys in a single call.
- * - Handling responses and displaying the results.
+ * <p>The example covers: - Creating a cache if it does not exist. - Adding a set of key-value pairs
+ * to the cache. - Performing a batch get operation to retrieve multiple keys in a single call. -
+ * Handling responses and displaying the results.
  *
- * It utilizes the Momento SDK's CacheClient for cache operations and the MomentoBatchUtils
- * for handling batch operations efficiently.
+ * <p>It utilizes the Momento SDK's CacheClient for cache operations and the MomentoBatchUtils for
+ * handling batch operations efficiently.
  */
 public class BatchUtilsExample {
 
