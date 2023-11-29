@@ -51,6 +51,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MOMENTO_AUTH_TOKEN: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+      MOMENTO_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
 
     steps:
       - name: Checkout project

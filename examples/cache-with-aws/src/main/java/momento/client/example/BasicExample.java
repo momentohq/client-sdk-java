@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 
 public class BasicExample {
 
-  private static final String AUTH_TOKEN_SECRET_NAME = "MOMENTO_AUTH_TOKEN";
+  private static final String API_KEY_SECRET_NAME = "MOMENTO_API_KEY";
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   private static final Logger logger = LoggerFactory.getLogger(BasicExample.class);
@@ -97,7 +97,7 @@ public class BasicExample {
             .build();
 
     final GetSecretValueRequest getSecretValueRequest =
-        GetSecretValueRequest.builder().secretId(AUTH_TOKEN_SECRET_NAME).build();
+        GetSecretValueRequest.builder().secretId(API_KEY_SECRET_NAME).build();
 
     final GetSecretValueResponse getSecretValueResponse;
 
@@ -116,7 +116,7 @@ public class BasicExample {
       logger.error(
           "An error occured while parsing the secrets manager vended"
               + " authentication token , key: "
-              + AUTH_TOKEN_SECRET_NAME,
+              + API_KEY_SECRET_NAME,
           e);
       throw e;
     }
