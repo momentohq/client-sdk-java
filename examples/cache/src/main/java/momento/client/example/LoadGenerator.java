@@ -15,6 +15,7 @@ import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.responses.cache.DeleteResponse;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
 import org.HdrHistogram.ConcurrentHistogram;
@@ -122,6 +123,23 @@ public class LoadGenerator {
           scheduleSet(workerId, nextOperationNum);
         },
         getHistogram);
+  }
+
+  private void scheduleDelete(int workerId, int operationNum) {
+    final int nextOperationNum = operationNum + 1;
+    scheduleOperation(
+            workerId,
+            operationNum,
+            key -> client.delete(CACHE_NAME, key),
+            (response, operationNumValue) -> {
+              if (response instanceof DeleteResponse.Success) {
+                globalSuccessCount.increment();
+              } else if (response instanceof GetResponse.Error error) {
+                handleErrorResponse(error.getErrorCode());
+              }
+              scheduleSet(workerId, nextOperationNum);
+            },
+            getHistogram);
   }
 
   private <T> void scheduleOperation(
@@ -235,7 +253,7 @@ public class LoadGenerator {
     // the load test. Smaller payloads will generally provide lower latencies than
     // larger payloads.
     //
-    final int cacheItemPayloadBytes = 100;
+    final int cacheItemPayloadBytes = 200;
     //
     // Controls the number of concurrent requests that will be made (via asynchronous
     // function calls) by the load test. Increasing this number may improve throughput,
