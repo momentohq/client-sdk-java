@@ -191,9 +191,6 @@ public class LoadGeneratorSet {
     builder.append("\nCumulative write latencies:\n");
     builder.append(formatHistogram(setHistogram));
 
-    builder.append("\nCumulative read latencies:\n");
-    builder.append(formatHistogram(getHistogram));
-
     logger.info(builder.toString());
   }
 
