@@ -1,13 +1,12 @@
 package momento.client.example;
 
+import com.google.common.util.concurrent.RateLimiter;
 import java.time.Duration;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
-
-import com.google.common.util.concurrent.RateLimiter;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
@@ -15,6 +14,7 @@ import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.SetResponse;
+import momento.sdk.responses.cache.control.CacheCreateResponse;
 import org.HdrHistogram.ConcurrentHistogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -55,7 +55,11 @@ public class BasicSetLoad {
 
   public void run() {
 
-    this.client.createCache(CACHE_NAME).join();
+    final CacheCreateResponse cresponse = this.client.createCache(CACHE_NAME).join();
+    if (cresponse instanceof CacheCreateResponse.Error) {
+      throw new RuntimeException(((CacheCreateResponse.Error) cresponse).getMessage());
+    }
+
     final long testEndTime =
         System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
 
