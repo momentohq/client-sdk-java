@@ -39,7 +39,7 @@ public class BasicSetLoad {
   private final ExecutorService executorService;
 
   public BasicSetLoad() {
-    this.executorService = Executors.newFixedThreadPool(10);
+    this.executorService = Executors.newFixedThreadPool(100);
     final CredentialProvider credentialProvider;
     try {
       credentialProvider = new EnvVarCredentialProvider(API_KEY_ENV_VAR);
@@ -75,11 +75,11 @@ public class BasicSetLoad {
 
     // Submitting tasks for the duration of the test
     while (System.currentTimeMillis() < testEndTime) {
+      rateLimiter.acquire();
       this.executorService.submit(
           () -> {
             final String key = "key" + Thread.currentThread().getId();
             final String value = "x".repeat(200);
-            rateLimiter.acquire();
             final long startTime = System.nanoTime();
             final SetResponse response = this.client.set(CACHE_NAME, key, value).join();
             final long endTime = System.nanoTime();
@@ -92,7 +92,6 @@ public class BasicSetLoad {
               if (errorCode.equals(MomentoErrorCode.LIMIT_EXCEEDED_ERROR)) {
                 this.globalThrottleCount.increment();
               } else {
-
                 System.out.println(((SetResponse.Error) response).getMessage());
               }
               this.globalErrorCount.increment();
