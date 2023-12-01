@@ -2,6 +2,9 @@ package momento.client.example;
 
 import com.google.common.util.concurrent.RateLimiter;
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -13,6 +16,8 @@ import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.responses.cache.DeleteResponse;
+import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import org.HdrHistogram.ConcurrentHistogram;
@@ -29,12 +34,22 @@ public class BasicSetLoad {
   private static final String API_KEY_ENV_VAR = "MOMENTO_API_KEY";
 
   private final ConcurrentHistogram setHistogram = new ConcurrentHistogram(3);
+  private final ConcurrentHistogram getHistogram = new ConcurrentHistogram(3);
+  private final ConcurrentHistogram deleteHistogram = new ConcurrentHistogram(3);
   private static final String CACHE_NAME = "java-loadgen";
   private final CacheClient client;
   private final LongAdder globalRequestCount = new LongAdder();
   private final LongAdder globalSuccessCount = new LongAdder();
   private final LongAdder globalErrorCount = new LongAdder();
   private final LongAdder globalThrottleCount = new LongAdder();
+
+  private final LongAdder globalGetHitsCount = new LongAdder();
+
+  private final LongAdder globalDeleteSuccessCount = new LongAdder();
+  private final LongAdder globalDeleteErrorCount = new LongAdder();
+  private final LongAdder globalGetMissesCount = new LongAdder();
+  private final LongAdder globalGetErrorCount = new LongAdder();
+
 
   private final ExecutorService executorService;
 
@@ -62,19 +77,22 @@ public class BasicSetLoad {
     final RateLimiter rateLimiter = RateLimiter.create(100);
 
     // Scheduled task for printing histogram
-    ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
-    scheduledExecutor.scheduleAtFixedRate(
-        () -> printData(),
+    ScheduledExecutorService setScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+    setScheduledExecutor.scheduleAtFixedRate(
+        () -> printSetData(),
         HISTOGRAM_PRINT_INTERVAL_SECONDS,
         HISTOGRAM_PRINT_INTERVAL_SECONDS,
         TimeUnit.SECONDS);
 
+    final List<String> keys = new ArrayList<>();
     // Submitting tasks for the duration of the test
+    // set test
     while (System.currentTimeMillis() < testEndTime) {
       rateLimiter.acquire();
       this.executorService.submit(
           () -> {
             final String key = "key" + Thread.currentThread().getId();
+            keys.add(key);
             final String value = "x".repeat(200);
             final long startTime = System.nanoTime();
             final SetResponse response = this.client.set(CACHE_NAME, key, value).join();
@@ -84,39 +102,124 @@ public class BasicSetLoad {
             if (response instanceof SetResponse.Success) {
               this.globalSuccessCount.increment();
             } else if (response instanceof SetResponse.Error) {
-              MomentoErrorCode errorCode = ((SetResponse.Error) response).getErrorCode();
-              if (errorCode.equals(MomentoErrorCode.LIMIT_EXCEEDED_ERROR)) {
-                this.globalThrottleCount.increment();
-              } else {
-                System.out.println(((SetResponse.Error) response).getMessage());
-              }
               this.globalErrorCount.increment();
             }
           });
     }
 
+    setScheduledExecutor.shutdown();
+    try {
+      if (!setScheduledExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+        setScheduledExecutor.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      setScheduledExecutor.shutdownNow();
+    }
+
+    ScheduledExecutorService getScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+    getScheduledExecutor.scheduleAtFixedRate(
+            () -> printGetData(),
+            HISTOGRAM_PRINT_INTERVAL_SECONDS,
+            HISTOGRAM_PRINT_INTERVAL_SECONDS,
+            TimeUnit.SECONDS);
+
+    // Submitting tasks for the duration of the test
+    // get test
+    Random random = new Random();
+    while (System.currentTimeMillis() < testEndTime) {
+      rateLimiter.acquire();
+      this.executorService.submit(() -> {
+        if (!keys.isEmpty()) {
+          final String key = keys.get(random.nextInt(keys.size()));
+          final long startTime = System.nanoTime();
+          final GetResponse response = this.client.get(CACHE_NAME, key).join();
+          final long endTime = System.nanoTime();
+          this.getHistogram.recordValue(endTime - startTime);
+          this.globalRequestCount.increment();
+          if (response instanceof GetResponse.Hit) {
+            this.globalSuccessCount.increment();
+            this.globalGetHitsCount.increment();
+          } else if (response instanceof GetResponse.Miss) {
+            this.globalSuccessCount.increment();
+            this.globalGetMissesCount.increment();
+          } else {
+            this.globalGetErrorCount.increment();
+          }
+        }
+      });
+    }
+
+    getScheduledExecutor.shutdown();
+    try {
+      if (!getScheduledExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+        getScheduledExecutor.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      getScheduledExecutor.shutdownNow();
+    }
+
+
+    ScheduledExecutorService deleteScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
+    deleteScheduledExecutor.scheduleAtFixedRate(
+            () -> printDeleteData(),
+            HISTOGRAM_PRINT_INTERVAL_SECONDS,
+            HISTOGRAM_PRINT_INTERVAL_SECONDS,
+            TimeUnit.SECONDS);
+
+    // delete test
+    int index = 0;
+    while (index < keys.size()) {
+      int endIndex = Math.min(index + 100, keys.size());
+      List<String> batchKeys = keys.subList(index, endIndex);
+      batchKeys.stream().parallel().forEach(key -> {
+        rateLimiter.acquire();
+        this.executorService.submit(() -> {
+          final long startTime = System.nanoTime();
+          final DeleteResponse response = this.client.delete(CACHE_NAME, key).join();
+          final long endTime = System.nanoTime();
+          this.deleteHistogram.recordValue(endTime - startTime);
+          this.globalRequestCount.increment();
+          if (response instanceof DeleteResponse.Success) {
+            this.globalSuccessCount.increment();
+            this.globalDeleteSuccessCount.increment();
+          } else {
+            this.globalErrorCount.increment();
+            this.globalDeleteErrorCount.increment();
+          }
+        });
+      });
+      index = endIndex;
+    }
+
+    deleteScheduledExecutor.shutdown();
+    try {
+      if (!deleteScheduledExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
+        deleteScheduledExecutor.shutdownNow();
+      }
+    } catch (InterruptedException e) {
+      deleteScheduledExecutor.shutdownNow();
+    }
+
+
     // Shutting down executors after the test duration
     this.executorService.shutdown();
-    scheduledExecutor.shutdown();
+
     try {
       if (!this.executorService.awaitTermination(60, TimeUnit.SECONDS)) {
         this.executorService.shutdownNow();
       }
-      if (!scheduledExecutor.awaitTermination(60, TimeUnit.SECONDS)) {
-        scheduledExecutor.shutdownNow();
-      }
+
     } catch (InterruptedException e) {
       this.executorService.shutdownNow();
-      scheduledExecutor.shutdownNow();
     }
   }
 
-  private void printData() {
+  private void printSetData() {
     StringBuilder builder = new StringBuilder();
     builder.append("\n--- Histogram Data ---\n");
 
     // Printing the histogram for latencies
-    builder.append("Latency (in microseconds):\n");
+    builder.append("Latency (in millis):\n");
     builder.append(formatHistogram(setHistogram));
 
     // Printing the counts for success and error
@@ -126,6 +229,25 @@ public class BasicSetLoad {
     builder.append(String.format("Error Count: %d\n", globalErrorCount.sum()));
     builder.append(String.format("Throttle Count: %d\n", globalThrottleCount.sum()));
 
+    logger.info(builder.toString());
+  }
+
+  private void printGetData() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("\n--- Get Operation Data ---\n");
+    builder.append("Get Latency (in millis):\n").append(formatHistogram(getHistogram));
+    builder.append(String.format("Get Hits Count: %d\n", globalGetHitsCount.sum()));
+    builder.append(String.format("Get Misses Count: %d\n", globalGetMissesCount.sum()));
+    builder.append(String.format("Get Error Count: %d\n", globalGetErrorCount.sum()));
+    logger.info(builder.toString());
+  }
+
+  private void printDeleteData() {
+    StringBuilder builder = new StringBuilder();
+    builder.append("\n--- Delete Operation Data ---\n");
+    builder.append("Delete Latency (in millis):\n").append(formatHistogram(deleteHistogram));
+    builder.append(String.format("Delete Success Count: %d\n", globalDeleteSuccessCount.sum()));
+    builder.append(String.format("Delete Error Count: %d\n", globalDeleteErrorCount.sum()));
     logger.info(builder.toString());
   }
 
