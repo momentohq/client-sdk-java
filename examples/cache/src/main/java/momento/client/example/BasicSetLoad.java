@@ -55,7 +55,7 @@ public class BasicSetLoad {
 
   public void run() {
 
-    this.client.createCache(CACHE_NAME);
+    this.client.createCache(CACHE_NAME).join();
     final long testEndTime =
         System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
 
