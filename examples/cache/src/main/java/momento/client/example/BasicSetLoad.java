@@ -14,12 +14,10 @@ import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
-import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.DeleteResponse;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
-import momento.sdk.responses.cache.control.CacheCreateResponse;
 import org.HdrHistogram.ConcurrentHistogram;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +48,6 @@ public class BasicSetLoad {
   private final LongAdder globalGetMissesCount = new LongAdder();
   private final LongAdder globalGetErrorCount = new LongAdder();
 
-
   private final ExecutorService executorService;
 
   public BasicSetLoad() {
@@ -69,7 +66,6 @@ public class BasicSetLoad {
   }
 
   public void run() {
-
 
     final long testEndTime =
         System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
@@ -118,35 +114,36 @@ public class BasicSetLoad {
 
     ScheduledExecutorService getScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
     getScheduledExecutor.scheduleAtFixedRate(
-            () -> printGetData(),
-            HISTOGRAM_PRINT_INTERVAL_SECONDS,
-            HISTOGRAM_PRINT_INTERVAL_SECONDS,
-            TimeUnit.SECONDS);
+        () -> printGetData(),
+        HISTOGRAM_PRINT_INTERVAL_SECONDS,
+        HISTOGRAM_PRINT_INTERVAL_SECONDS,
+        TimeUnit.SECONDS);
 
     // Submitting tasks for the duration of the test
     // get test
     Random random = new Random();
     while (System.currentTimeMillis() < testEndTime) {
       rateLimiter.acquire();
-      this.executorService.submit(() -> {
-        if (!keys.isEmpty()) {
-          final String key = keys.get(random.nextInt(keys.size()));
-          final long startTime = System.nanoTime();
-          final GetResponse response = this.client.get(CACHE_NAME, key).join();
-          final long endTime = System.nanoTime();
-          this.getHistogram.recordValue(endTime - startTime);
-          this.globalRequestCount.increment();
-          if (response instanceof GetResponse.Hit) {
-            this.globalSuccessCount.increment();
-            this.globalGetHitsCount.increment();
-          } else if (response instanceof GetResponse.Miss) {
-            this.globalSuccessCount.increment();
-            this.globalGetMissesCount.increment();
-          } else {
-            this.globalGetErrorCount.increment();
-          }
-        }
-      });
+      this.executorService.submit(
+          () -> {
+            if (!keys.isEmpty()) {
+              final String key = keys.get(random.nextInt(keys.size()));
+              final long startTime = System.nanoTime();
+              final GetResponse response = this.client.get(CACHE_NAME, key).join();
+              final long endTime = System.nanoTime();
+              this.getHistogram.recordValue(endTime - startTime);
+              this.globalRequestCount.increment();
+              if (response instanceof GetResponse.Hit) {
+                this.globalSuccessCount.increment();
+                this.globalGetHitsCount.increment();
+              } else if (response instanceof GetResponse.Miss) {
+                this.globalSuccessCount.increment();
+                this.globalGetMissesCount.increment();
+              } else {
+                this.globalGetErrorCount.increment();
+              }
+            }
+          });
     }
 
     getScheduledExecutor.shutdown();
@@ -158,36 +155,39 @@ public class BasicSetLoad {
       getScheduledExecutor.shutdownNow();
     }
 
-
     ScheduledExecutorService deleteScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
     deleteScheduledExecutor.scheduleAtFixedRate(
-            () -> printDeleteData(),
-            HISTOGRAM_PRINT_INTERVAL_SECONDS,
-            HISTOGRAM_PRINT_INTERVAL_SECONDS,
-            TimeUnit.SECONDS);
+        () -> printDeleteData(),
+        HISTOGRAM_PRINT_INTERVAL_SECONDS,
+        HISTOGRAM_PRINT_INTERVAL_SECONDS,
+        TimeUnit.SECONDS);
 
     // delete test
     int index = 0;
     while (index < keys.size()) {
       int endIndex = Math.min(index + 100, keys.size());
       List<String> batchKeys = keys.subList(index, endIndex);
-      batchKeys.stream().parallel().forEach(key -> {
-        rateLimiter.acquire();
-        this.executorService.submit(() -> {
-          final long startTime = System.nanoTime();
-          final DeleteResponse response = this.client.delete(CACHE_NAME, key).join();
-          final long endTime = System.nanoTime();
-          this.deleteHistogram.recordValue(endTime - startTime);
-          this.globalRequestCount.increment();
-          if (response instanceof DeleteResponse.Success) {
-            this.globalSuccessCount.increment();
-            this.globalDeleteSuccessCount.increment();
-          } else {
-            this.globalErrorCount.increment();
-            this.globalDeleteErrorCount.increment();
-          }
-        });
-      });
+      batchKeys.stream()
+          .parallel()
+          .forEach(
+              key -> {
+                rateLimiter.acquire();
+                this.executorService.submit(
+                    () -> {
+                      final long startTime = System.nanoTime();
+                      final DeleteResponse response = this.client.delete(CACHE_NAME, key).join();
+                      final long endTime = System.nanoTime();
+                      this.deleteHistogram.recordValue(endTime - startTime);
+                      this.globalRequestCount.increment();
+                      if (response instanceof DeleteResponse.Success) {
+                        this.globalSuccessCount.increment();
+                        this.globalDeleteSuccessCount.increment();
+                      } else {
+                        this.globalErrorCount.increment();
+                        this.globalDeleteErrorCount.increment();
+                      }
+                    });
+              });
       index = endIndex;
     }
 
@@ -199,7 +199,6 @@ public class BasicSetLoad {
     } catch (InterruptedException e) {
       deleteScheduledExecutor.shutdownNow();
     }
-
 
     // Shutting down executors after the test duration
     this.executorService.shutdown();
