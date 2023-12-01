@@ -103,7 +103,6 @@ public class LoadGenerator {
           } else if (response instanceof SetResponse.Error error) {
             handleErrorResponse(error.getErrorCode());
           }
-          scheduleGet(workerId, operationNumValue);
         },
         setHistogram);
   }
