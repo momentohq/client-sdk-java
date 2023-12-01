@@ -55,10 +55,6 @@ public class BasicSetLoad {
 
   public void run() {
 
-    final CacheCreateResponse cresponse = this.client.createCache(CACHE_NAME).join();
-    if (cresponse instanceof CacheCreateResponse.Error) {
-      throw new RuntimeException(((CacheCreateResponse.Error) cresponse).getMessage());
-    }
 
     final long testEndTime =
         System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
