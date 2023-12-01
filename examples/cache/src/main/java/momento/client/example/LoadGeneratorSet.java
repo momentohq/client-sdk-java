@@ -64,7 +64,7 @@ public class LoadGeneratorSet {
       logger.error("Unable to load credential from environment variable " + API_KEY_ENV_VAR, e);
       throw e;
     }
-    client = CacheClient.create(credentialProvider, Configurations.Laptop.v1(), DEFAULT_ITEM_TTL);
+    client = CacheClient.create(credentialProvider, Configurations.InRegion.v1(), DEFAULT_ITEM_TTL);
 
     client.createCache(CACHE_NAME);
 
@@ -263,7 +263,7 @@ public class LoadGeneratorSet {
     //
     // Controls how long the load test will run.
     //
-    final int howLongToRunSeconds = 60;
+    final int howLongToRunSeconds = 180;
     //
     // Controls how long the load generator will run before resetting the histogram.
     // Removes outlier times due to client connection or code loading/jit.
