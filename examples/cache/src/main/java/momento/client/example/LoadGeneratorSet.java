@@ -240,7 +240,7 @@ public class LoadGeneratorSet {
     // Each time this amount of time in seconds has passed, statistics about throughput and latency
     // will be printed.
     //
-    final int showStatsInterval = 5;
+    final int showStatsInterval = 10;
     //
     // Controls the size of the payload that will be used for the cache items in
     // the load test. Smaller payloads will generally provide lower latencies than
@@ -255,7 +255,7 @@ public class LoadGeneratorSet {
     // may increase.
     // Note: You are likely to see degraded performance if you increase this above 50
     // and observe elevated client-side latencies.
-    final int numberOfConcurrentRequests = 10;
+    final int numberOfConcurrentRequests = 100;
     //
     // Sets an upper bound on how many requests per second will be sent to the server.
     // Momento caches have a default throttling limit of 100 requests per second,
