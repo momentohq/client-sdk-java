@@ -68,7 +68,7 @@ public class LoadGeneratorSet {
 
     client.createCache(CACHE_NAME);
 
-    executorService = Executors.newScheduledThreadPool(maxConcurrentRequests);
+    executorService = Executors.newScheduledThreadPool(requestsPerSecond);
     rateLimiter = RateLimiter.create(requestsPerSecond);
     this.requestsPerSecond = requestsPerSecond;
 
@@ -144,7 +144,6 @@ public class LoadGeneratorSet {
     final String key = "worker" + workerId + "operation" + operationNum;
     executorService.schedule(
         () -> {
-          rateLimiter.acquire();
           final long startTime = System.nanoTime();
           T response = operation.apply(key).join();
           final long endTime = System.nanoTime();
@@ -252,7 +251,7 @@ public class LoadGeneratorSet {
     // may increase.
     // Note: You are likely to see degraded performance if you increase this above 50
     // and observe elevated client-side latencies.
-    final int numberOfConcurrentRequests = 100;
+    final int numberOfConcurrentRequests = 1000;
     //
     // Sets an upper bound on how many requests per second will be sent to the server.
     // Momento caches have a default throttling limit of 100 requests per second,
