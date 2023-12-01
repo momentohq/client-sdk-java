@@ -85,6 +85,8 @@ public class BasicSetLoad {
               MomentoErrorCode errorCode = ((SetResponse.Error) response).getErrorCode();
               if (errorCode.equals(MomentoErrorCode.LIMIT_EXCEEDED_ERROR)) {
                 this.globalThrottleCount.increment();
+              } else {
+                System.out.println(errorCode);
               }
               this.globalErrorCount.increment();
             }
