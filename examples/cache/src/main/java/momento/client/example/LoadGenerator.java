@@ -128,18 +128,18 @@ public class LoadGenerator {
   private void scheduleDelete(int workerId, int operationNum) {
     final int nextOperationNum = operationNum + 1;
     scheduleOperation(
-            workerId,
-            operationNum,
-            key -> client.delete(CACHE_NAME, key),
-            (response, operationNumValue) -> {
-              if (response instanceof DeleteResponse.Success) {
-                globalSuccessCount.increment();
-              } else if (response instanceof GetResponse.Error error) {
-                handleErrorResponse(error.getErrorCode());
-              }
-              scheduleSet(workerId, nextOperationNum);
-            },
-            getHistogram);
+        workerId,
+        operationNum,
+        key -> client.delete(CACHE_NAME, key),
+        (response, operationNumValue) -> {
+          if (response instanceof DeleteResponse.Success) {
+            globalSuccessCount.increment();
+          } else if (response instanceof GetResponse.Error error) {
+            handleErrorResponse(error.getErrorCode());
+          }
+          scheduleSet(workerId, nextOperationNum);
+        },
+        getHistogram);
   }
 
   private <T> void scheduleOperation(
