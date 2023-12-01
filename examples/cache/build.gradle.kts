@@ -79,6 +79,12 @@ task("loadgen", JavaExec::class) {
     mainClass.set("momento.client.example.LoadGenerator")
 }
 
+task("loadgenset", JavaExec::class) {
+    description = "Run the load generator"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.LoadGeneratorSet")
+}
+
 task("sortedSet", JavaExec::class) {
     description = "Run the sorted set example"
     classpath = sourceSets.main.get().runtimeClasspath
