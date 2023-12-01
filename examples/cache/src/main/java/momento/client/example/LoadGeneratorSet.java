@@ -79,9 +79,6 @@ public class LoadGeneratorSet {
       scheduleSet(i, 0);
     }
 
-    // Schedule a histogram reset after the warmup
-    scheduler.schedule(setHistogram::reset, warmupTime, TimeUnit.SECONDS);
-
     // Schedule a task to print the stats
     scheduler.scheduleAtFixedRate(this::logInfo, statsInterval, statsInterval, TimeUnit.SECONDS);
   }
@@ -251,7 +248,7 @@ public class LoadGeneratorSet {
     // may increase.
     // Note: You are likely to see degraded performance if you increase this above 50
     // and observe elevated client-side latencies.
-    final int numberOfConcurrentRequests = 1000;
+    final int numberOfConcurrentRequests = 100000;
     //
     // Sets an upper bound on how many requests per second will be sent to the server.
     // Momento caches have a default throttling limit of 100 requests per second,
@@ -266,7 +263,7 @@ public class LoadGeneratorSet {
     //
     // Controls how long the load generator will run before resetting the histogram.
     // Removes outlier times due to client connection or code loading/jit.
-    final int warmupTimeSeconds = 10;
+    final int warmupTimeSeconds = 0;
 
     final LoadGeneratorSet loadGenerator =
         new LoadGeneratorSet(
