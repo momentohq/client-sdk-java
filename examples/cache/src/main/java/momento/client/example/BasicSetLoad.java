@@ -6,10 +6,13 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
+
+import com.google.common.util.concurrent.RateLimiter;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
+import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.SetResponse;
 import org.HdrHistogram.ConcurrentHistogram;
@@ -31,11 +34,12 @@ public class BasicSetLoad {
   private final LongAdder globalRequestCount = new LongAdder();
   private final LongAdder globalSuccessCount = new LongAdder();
   private final LongAdder globalErrorCount = new LongAdder();
+  private final LongAdder globalThrottleCount = new LongAdder();
 
   private final ExecutorService executorService;
 
   public BasicSetLoad() {
-    this.executorService = Executors.newFixedThreadPool(100);
+    this.executorService = Executors.newFixedThreadPool(10);
     final CredentialProvider credentialProvider;
     try {
       credentialProvider = new EnvVarCredentialProvider(API_KEY_ENV_VAR);
@@ -53,6 +57,8 @@ public class BasicSetLoad {
     final long testEndTime =
         System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
 
+    final RateLimiter rateLimiter = RateLimiter.create(100);
+
     // Scheduled task for printing histogram
     ScheduledExecutorService scheduledExecutor = Executors.newSingleThreadScheduledExecutor();
     scheduledExecutor.scheduleAtFixedRate(
@@ -67,6 +73,7 @@ public class BasicSetLoad {
           () -> {
             final String key = "key" + Thread.currentThread().getId();
             final String value = "x".repeat(200);
+            rateLimiter.acquire();
             final long startTime = System.nanoTime();
             final SetResponse response = this.client.set(CACHE_NAME, key, value).join();
             final long endTime = System.nanoTime();
@@ -74,9 +81,12 @@ public class BasicSetLoad {
             this.globalRequestCount.increment();
             if (response instanceof SetResponse.Success) {
               this.globalSuccessCount.increment();
-            } else {
+            } else if (response instanceof SetResponse.Error) {
+              MomentoErrorCode errorCode = ((SetResponse.Error) response).getErrorCode();
+              if (errorCode.equals(MomentoErrorCode.LIMIT_EXCEEDED_ERROR)) {
+                this.globalThrottleCount.increment();
+              }
               this.globalErrorCount.increment();
-              ;
             }
           });
     }
@@ -110,6 +120,7 @@ public class BasicSetLoad {
     builder.append(String.format("Total Requests: %d\n", globalRequestCount.sum()));
     builder.append(String.format("Success Count: %d\n", globalSuccessCount.sum()));
     builder.append(String.format("Error Count: %d\n", globalErrorCount.sum()));
+    builder.append(String.format("Throttle Count: %d\n", globalThrottleCount.sum()));
 
     logger.info(builder.toString());
   }
