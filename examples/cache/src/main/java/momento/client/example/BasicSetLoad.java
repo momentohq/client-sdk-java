@@ -67,8 +67,7 @@ public class BasicSetLoad {
 
   public void run() {
 
-    final long testEndTime =
-        System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
+    long testEndTime = System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
 
     final RateLimiter rateLimiter = RateLimiter.create(100);
 
@@ -83,6 +82,8 @@ public class BasicSetLoad {
     final List<String> keys = new ArrayList<>();
     // Submitting tasks for the duration of the test
     // set test
+
+    System.out.println("Running set tests");
     while (System.currentTimeMillis() < testEndTime) {
       rateLimiter.acquire();
       this.executorService.submit(
@@ -122,6 +123,9 @@ public class BasicSetLoad {
     // Submitting tasks for the duration of the test
     // get test
     Random random = new Random();
+    testEndTime = System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
+
+    System.out.println("Running get tests");
     while (System.currentTimeMillis() < testEndTime) {
       rateLimiter.acquire();
       this.executorService.submit(
@@ -164,6 +168,7 @@ public class BasicSetLoad {
 
     // delete test
     int index = 0;
+    System.out.println("Running delete tests");
     while (index < keys.size()) {
       int endIndex = Math.min(index + 100, keys.size());
       List<String> batchKeys = keys.subList(index, endIndex);
@@ -215,17 +220,17 @@ public class BasicSetLoad {
 
   private void printSetData() {
     StringBuilder builder = new StringBuilder();
-    builder.append("\n--- Histogram Data ---\n");
+    builder.append("\n--- Set Operation Data ---\n");
 
     // Printing the histogram for latencies
-    builder.append("Latency (in millis):\n");
+    builder.append("Set Latency (in millis):\n");
     builder.append(formatHistogram(setHistogram));
 
     // Printing the counts for success and error
     builder.append("\n--- Request Counts ---\n");
-    builder.append(String.format("Total Requests: %d\n", globalRequestCount.sum()));
-    builder.append(String.format("Success Count: %d\n", globalSuccessCount.sum()));
-    builder.append(String.format("Error Count: %d\n", globalErrorCount.sum()));
+    builder.append(String.format("Set Total Requests: %d\n", globalRequestCount.sum()));
+    builder.append(String.format("Set Success Count: %d\n", globalSuccessCount.sum()));
+    builder.append(String.format("Set Error Count: %d\n", globalErrorCount.sum()));
     builder.append(String.format("Throttle Count: %d\n", globalThrottleCount.sum()));
 
     logger.info(builder.toString());
@@ -235,6 +240,7 @@ public class BasicSetLoad {
     StringBuilder builder = new StringBuilder();
     builder.append("\n--- Get Operation Data ---\n");
     builder.append("Get Latency (in millis):\n").append(formatHistogram(getHistogram));
+    builder.append(String.format("Get Total Requests: %d\n", globalGetHitsCount.sum() + globalGetMissesCount.sum() + globalGetErrorCount.sum()));
     builder.append(String.format("Get Hits Count: %d\n", globalGetHitsCount.sum()));
     builder.append(String.format("Get Misses Count: %d\n", globalGetMissesCount.sum()));
     builder.append(String.format("Get Error Count: %d\n", globalGetErrorCount.sum()));
@@ -245,6 +251,7 @@ public class BasicSetLoad {
     StringBuilder builder = new StringBuilder();
     builder.append("\n--- Delete Operation Data ---\n");
     builder.append("Delete Latency (in millis):\n").append(formatHistogram(deleteHistogram));
+    builder.append(String.format("Delete Total Requests: %d\n", globalDeleteSuccessCount.sum() + globalDeleteErrorCount.sum()));
     builder.append(String.format("Delete Success Count: %d\n", globalDeleteSuccessCount.sum()));
     builder.append(String.format("Delete Error Count: %d\n", globalDeleteErrorCount.sum()));
     logger.info(builder.toString());
