@@ -132,13 +132,13 @@ public class BasicSetLoad {
 
   private String formatHistogram(ConcurrentHistogram histogram) {
     return String.format("Count: %d\n", histogram.getTotalCount())
-        + String.format("Min: %.2f µs\n", histogram.getMinValue() / 1000.0)
-        + String.format("p50: %.2f µs\n", histogram.getValueAtPercentile(50.0) / 1000.0)
-        + String.format("p90: %.2f µs\n", histogram.getValueAtPercentile(90.0) / 1000.0)
-        + String.format("p95: %.2f µs\n", histogram.getValueAtPercentile(95.0) / 1000.0)
-        + String.format("p99: %.2f µs\n", histogram.getValueAtPercentile(99.0) / 1000.0)
-        + String.format("p99.9: %.2f µs\n", histogram.getValueAtPercentile(99.9) / 1000.0)
-        + String.format("Max: %.2f µs\n", histogram.getMaxValue() / 1000.0);
+        + String.format("Min: %.2f ms\n", histogram.getMinValue() / 1_000_000.0)
+        + String.format("p50: %.2f ms\n", histogram.getValueAtPercentile(50.0) / 1_000_000.0)
+        + String.format("p90: %.2f ms\n", histogram.getValueAtPercentile(90.0) / 1_000_000.0)
+        + String.format("p95: %.2f ms\n", histogram.getValueAtPercentile(95.0) / 1_000_000.0)
+        + String.format("p99: %.2f ms\n", histogram.getValueAtPercentile(99.0) / 1_000_000.0)
+        + String.format("p99.9: %.2f ms\n", histogram.getValueAtPercentile(99.9) / 1_000_000.0)
+        + String.format("Max: %.2f ms\n", histogram.getMaxValue() / 1_000_000.0);
   }
 
   public static void main(String... args) {
