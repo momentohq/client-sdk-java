@@ -34,6 +34,7 @@ public class BatchGetLoadTest {
   private static final LongAdder batchGetIndividualHits = new LongAdder();
   private static final LongAdder batchGetIndividualMisses = new LongAdder();
   private static final LongAdder batchGetIndividualErrors = new LongAdder();
+  private static final List<String> keys = new ArrayList<>();
 
   public static void main(String[] args) {
 
@@ -52,12 +53,6 @@ public class BatchGetLoadTest {
   }
 
   private static void performBatchGet(MomentoBatchUtils batchUtils, String cacheName) {
-
-    List<String> keys = new ArrayList<>();
-    for (int i = 0; i < 1000; i++) {
-      final String key = "key" + i;
-      keys.add(key);
-    }
 
     List<List<String>> allKeys = Lists.partition(keys, 10);
 
@@ -85,14 +80,16 @@ public class BatchGetLoadTest {
         batchGetErrors.increment();
       }
     }
+
+    printBatchGetData();
   }
 
   private static void setupTestData(CacheClient cacheClient, String cacheName) {
     final String val = "x".repeat(200000);
     for (int i = 0; i < 1000; i++) {
       final String key = "key" + i;
-      cacheClient.set(cacheName, "key" + i, val).join();
-      System.out.println("Added " + key + " -> " + val);
+      cacheClient.set(cacheName, key, val).join();
+      keys.add(key);
     }
   }
 
@@ -108,7 +105,7 @@ public class BatchGetLoadTest {
     }
   }
 
-  private void printBatchGetData() {
+  private static void printBatchGetData() {
     StringBuilder builder = new StringBuilder();
     builder.append("\n--- Delete Operation Data ---\n");
     builder.append("Delete Latency (in millis):\n").append(formatHistogram(batchGetHistogram));
@@ -121,7 +118,7 @@ public class BatchGetLoadTest {
     logger.info(builder.toString());
   }
 
-  private String formatHistogram(ConcurrentHistogram histogram) {
+  private static String formatHistogram(ConcurrentHistogram histogram) {
     return String.format("Count: %d\n", histogram.getTotalCount())
         + String.format("Min: %.2f ms\n", histogram.getMinValue() / 1_000_000.0)
         + String.format("p50: %.2f ms\n", histogram.getValueAtPercentile(50.0) / 1_000_000.0)
