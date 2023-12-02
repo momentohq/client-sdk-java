@@ -30,6 +30,7 @@ public class BatchGetLoadTest {
   private static final String CACHE_NAME = "cache";
 
   private static final LongAdder batchGetSuccesses = new LongAdder();
+  private static final LongAdder batchGetSummaries = new LongAdder();
   private static final LongAdder batchGetErrors = new LongAdder();
   private static final LongAdder batchGetIndividualHits = new LongAdder();
   private static final LongAdder batchGetIndividualMisses = new LongAdder();
@@ -65,7 +66,9 @@ public class BatchGetLoadTest {
       final long endTime = System.nanoTime();
       batchGetHistogram.recordValue(endTime - startTime);
       if (response instanceof BatchGetResponse.StringKeyBatchGetSummary summary) {
+        batchGetSummaries.add(((BatchGetResponse.StringKeyBatchGetSummary) response).getSummaries().size());
         batchGetSuccesses.increment();
+
         for (BatchGetResponse.StringKeyBatchGetSummary.GetSummary getSummary :
             summary.getSummaries()) {
           if (getSummary.getGetResponse() instanceof GetResponse.Error) {
@@ -114,7 +117,8 @@ public class BatchGetLoadTest {
         String.format("BatchGet Individual Hit Count: %d\n", batchGetIndividualHits.sum()));
     builder.append(
         String.format("BatchGet Individual Miss Count: %d\n", batchGetIndividualMisses.sum()));
-
+    builder.append(
+            String.format("BatchGet Error Count: %d\n", batchGetErrors.sum()));
     logger.info(builder.toString());
   }
 
