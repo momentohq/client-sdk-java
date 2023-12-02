@@ -67,7 +67,8 @@ public class BasicSetLoad {
 
   public void run() {
 
-    long testEndTime = System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
+    long testEndTime =
+        System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
 
     final RateLimiter rateLimiter = RateLimiter.create(100);
 
@@ -240,7 +241,10 @@ public class BasicSetLoad {
     StringBuilder builder = new StringBuilder();
     builder.append("\n--- Get Operation Data ---\n");
     builder.append("Get Latency (in millis):\n").append(formatHistogram(getHistogram));
-    builder.append(String.format("Get Total Requests: %d\n", globalGetHitsCount.sum() + globalGetMissesCount.sum() + globalGetErrorCount.sum()));
+    builder.append(
+        String.format(
+            "Get Total Requests: %d\n",
+            globalGetHitsCount.sum() + globalGetMissesCount.sum() + globalGetErrorCount.sum()));
     builder.append(String.format("Get Hits Count: %d\n", globalGetHitsCount.sum()));
     builder.append(String.format("Get Misses Count: %d\n", globalGetMissesCount.sum()));
     builder.append(String.format("Get Error Count: %d\n", globalGetErrorCount.sum()));
@@ -251,7 +255,10 @@ public class BasicSetLoad {
     StringBuilder builder = new StringBuilder();
     builder.append("\n--- Delete Operation Data ---\n");
     builder.append("Delete Latency (in millis):\n").append(formatHistogram(deleteHistogram));
-    builder.append(String.format("Delete Total Requests: %d\n", globalDeleteSuccessCount.sum() + globalDeleteErrorCount.sum()));
+    builder.append(
+        String.format(
+            "Delete Total Requests: %d\n",
+            globalDeleteSuccessCount.sum() + globalDeleteErrorCount.sum()));
     builder.append(String.format("Delete Success Count: %d\n", globalDeleteSuccessCount.sum()));
     builder.append(String.format("Delete Error Count: %d\n", globalDeleteErrorCount.sum()));
     logger.info(builder.toString());
