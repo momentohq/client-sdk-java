@@ -55,9 +55,13 @@ public class BatchGetLoadTest {
 
   private static void performBatchGet(MomentoBatchUtils batchUtils, String cacheName) {
 
+    System.out.println("all keys size " + keys.size());
     List<List<String>> allKeys = Lists.partition(keys, 10);
 
     for (List<String> keyBatch : allKeys) {
+
+      System.out.println("batch keys size " + keyBatch.size());
+
       final BatchGetRequest.StringKeyBatchGetRequest request =
           new BatchGetRequest.StringKeyBatchGetRequest(keyBatch);
 
