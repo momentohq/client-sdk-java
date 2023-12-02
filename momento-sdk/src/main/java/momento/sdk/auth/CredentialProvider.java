@@ -48,4 +48,11 @@ public abstract class CredentialProvider {
    * @return The endpoint.
    */
   public abstract String getCacheEndpoint();
+
+  /**
+   * Gets the token endpoint with which the Momento client will connect to the Momento token service.
+   *
+   * @return The token endpoint.
+   */
+  public abstract String getTokenEndpoint();
 }

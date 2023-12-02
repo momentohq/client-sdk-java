@@ -89,7 +89,7 @@ class StringCredentialProviderTest {
   public void testCredentialProviderLegacyTokenOverrideEndpointsHappyPath() {
     assertThat(
             new StringCredentialProvider(
-                VALID_LEGACY_AUTH_TOKEN, "my.control.host", "my.cache.host"))
+                VALID_LEGACY_AUTH_TOKEN, "my.control.host", "my.cache.host", "my.token.host"))
         .satisfies(
             provider -> {
               assertThat(provider.getAuthToken()).isEqualTo(VALID_LEGACY_AUTH_TOKEN);
@@ -112,7 +112,7 @@ class StringCredentialProviderTest {
   @Test
   public void testCredentialProviderV1TokenOverrideEndpointsHappyPath() {
     assertThat(
-            new StringCredentialProvider(VALID_V1_AUTH_TOKEN, "my.control.host", "my.cache.host"))
+            new StringCredentialProvider(VALID_V1_AUTH_TOKEN, "my.control.host", "my.cache.host", "my.token.host"))
         .satisfies(
             provider -> {
               assertThat(provider.getAuthToken()).isEqualTo(VALID_V1_API_KEY);
