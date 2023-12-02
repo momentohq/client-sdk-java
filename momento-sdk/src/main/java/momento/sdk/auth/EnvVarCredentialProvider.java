@@ -27,7 +27,9 @@ public class EnvVarCredentialProvider extends StringCredentialProvider {
    * @param cacheHost URI to use for data plane operations.
    */
   public EnvVarCredentialProvider(
-      @Nonnull String envVarName, @Nullable String controlHost, @Nullable String cacheHost) {
+      @Nonnull String envVarName,
+      @Nullable String controlHost,
+      @Nullable String cacheHost) {
     super(getApiKeyValueFromEnvVar(envVarName), controlHost, cacheHost);
   }
 

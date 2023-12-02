@@ -21,44 +21,44 @@ import momento.token.TokenGrpc;
  */
 final class TokenGrpcStubsManager implements Closeable {
 
-    private static final Duration DEADLINE = Duration.ofMinutes(1);
+  private static final Duration DEADLINE = Duration.ofMinutes(1);
 
-    private final ManagedChannel channel;
+  private final ManagedChannel channel;
 
-    private final TokenGrpc.TokenFutureStub futureStub;
+  private final TokenGrpc.TokenFutureStub futureStub;
 
-    TokenGrpcStubsManager(@Nonnull CredentialProvider credentialProvider) {
-        this.channel = setupConnection(credentialProvider);
-        this.futureStub = TokenGrpc.newFutureStub(channel);
-    }
+  TokenGrpcStubsManager(@Nonnull CredentialProvider credentialProvider) {
+    this.channel = setupConnection(credentialProvider);
+    this.futureStub = TokenGrpc.newFutureStub(channel);
+  }
 
-    private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
-        final NettyChannelBuilder channelBuilder =
-                NettyChannelBuilder.forAddress(credentialProvider.getTokenEndpoint(), 443);
-        channelBuilder.useTransportSecurity();
-        channelBuilder.disableRetry();
-        final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-        clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
-        channelBuilder.intercept(clientInterceptors);
-        return channelBuilder.build();
-    }
+  private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
+    final NettyChannelBuilder channelBuilder =
+        NettyChannelBuilder.forAddress(credentialProvider.getTokenEndpoint(), 443);
+    channelBuilder.useTransportSecurity();
+    channelBuilder.disableRetry();
+    final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
+    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
+    channelBuilder.intercept(clientInterceptors);
+    return channelBuilder.build();
+  }
 
-    /**
-     * Returns a stub with appropriate deadlines.
-     *
-     * <p>Each stub is deliberately decorated with Deadline. Deadlines work differently than timeouts.
-     * When a deadline is set on a stub, it simply means that once the stub is created it must be used
-     * before the deadline expires. Hence, the stub returned from here should never be cached and the
-     * safest behavior is for clients to request a new stub each time.
-     *
-     * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
-     */
-    TokenGrpc.TokenFutureStub getStub() {
-        return futureStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);
-    }
+  /**
+   * Returns a stub with appropriate deadlines.
+   *
+   * <p>Each stub is deliberately decorated with Deadline. Deadlines work differently than timeouts.
+   * When a deadline is set on a stub, it simply means that once the stub is created it must be used
+   * before the deadline expires. Hence, the stub returned from here should never be cached and the
+   * safest behavior is for clients to request a new stub each time.
+   *
+   * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
+   */
+  TokenGrpc.TokenFutureStub getStub() {
+    return futureStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);
+  }
 
-    @Override
-    public void close() {
-        channel.shutdown();
-    }
+  @Override
+  public void close() {
+    channel.shutdown();
+  }
 }

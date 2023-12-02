@@ -21,7 +21,8 @@ public class StringCredentialProvider extends CredentialProvider {
     public final String authToken;
     public final String tokenEndpoint;
 
-    public TokenAndEndpoints(String controlEndpoint, String cacheEndpoint, String tokenEndpoint, String authToken) {
+    public TokenAndEndpoints(
+        String controlEndpoint, String cacheEndpoint, String tokenEndpoint, String authToken) {
       this.controlEndpoint = controlEndpoint;
       this.cacheEndpoint = cacheEndpoint;
       this.tokenEndpoint = tokenEndpoint;
@@ -55,7 +56,10 @@ public class StringCredentialProvider extends CredentialProvider {
    * @param tokenHost URI for token service.
    */
   public StringCredentialProvider(
-      @Nonnull String authToken, @Nullable String controlHost, @Nullable String cacheHost, @Nullable String tokenHost) {
+      @Nonnull String authToken,
+      @Nullable String controlHost,
+      @Nullable String cacheHost,
+      @Nullable String tokenHost) {
     TokenAndEndpoints data;
     try {
       data = processV1Token(authToken);
