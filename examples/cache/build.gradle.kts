@@ -87,7 +87,7 @@ task("loadgenset", JavaExec::class) {
 
 
 task("batchgetload", JavaExec::class) {
-    description = "Run the load generator"
+    description = "Run the load generator for batch get"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.BatchGetLoadTest")
 }
