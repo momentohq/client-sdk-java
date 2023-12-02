@@ -14,6 +14,7 @@ import momento.sdk.batchutils.response.BatchGetResponse;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.responses.cache.GetResponse;
+import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import org.HdrHistogram.ConcurrentHistogram;
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class BatchGetLoadTest {
   private static void performBatchGet(MomentoBatchUtils batchUtils, String cacheName) {
 
     System.out.println("all keys size " + keys.size());
-    List<List<String>> allKeys = Lists.partition(keys, 10);
+    List<List<String>> allKeys = Lists.partition(keys, 100);
 
     for (List<String> keyBatch : allKeys) {
 
@@ -95,7 +96,10 @@ public class BatchGetLoadTest {
     final String val = "x".repeat(200000);
     for (int i = 0; i < 1000; i++) {
       final String key = "key" + i;
-      cacheClient.set(cacheName, key, val).join();
+      final SetResponse setResponse = cacheClient.set(cacheName, key, val).join();
+      if (setResponse instanceof SetResponse.Error) {
+        System.err.println(((SetResponse.Error) setResponse).getMessage());
+      }
       keys.add(key);
     }
   }
