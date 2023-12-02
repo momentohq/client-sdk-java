@@ -107,8 +107,8 @@ public class BatchGetLoadTest {
 
   private static void printBatchGetData() {
     StringBuilder builder = new StringBuilder();
-    builder.append("\n--- Delete Operation Data ---\n");
-    builder.append("Delete Latency (in millis):\n").append(formatHistogram(batchGetHistogram));
+    builder.append("\n--- BatchGet Operation Data ---\n");
+    builder.append("BatchGet Latency (in millis):\n").append(formatHistogram(batchGetHistogram));
     builder.append(String.format("BatchGet Total Requests: %d\n", batchGetSuccesses.sum()));
     builder.append(
         String.format("BatchGet Individual Hit Count: %d\n", batchGetIndividualHits.sum()));
