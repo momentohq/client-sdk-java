@@ -114,7 +114,8 @@ public class BatchGetLoadTest {
     int writeErrors = 0;
     for (int i = 0; i < 100; i++) {
       final String key = "key" + i;
-      final SetResponse setResponse = cacheClient.set(cacheName, key, val).join();
+      final SetResponse setResponse = cacheClient.set(cacheName, key, val,
+              Duration.ofHours(1)).join();
       if (setResponse instanceof SetResponse.Error) {
         writeErrors++;
         System.err.println("Error while writing" + ((SetResponse.Error) setResponse).getMessage());
