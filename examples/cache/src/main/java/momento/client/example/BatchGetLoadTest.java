@@ -101,14 +101,17 @@ public class BatchGetLoadTest {
     Arrays.fill(data, 'a');
     String val = new String(data);
 
+    int writeErrors = 0;
     for (int i = 0; i < 100; i++) {
       final String key = "key" + i;
       final SetResponse setResponse = cacheClient.set(cacheName, key, val).join();
       if (setResponse instanceof SetResponse.Error) {
+        writeErrors++;
         System.err.println("Error while writing" + ((SetResponse.Error) setResponse).getMessage());
       }
       keys.add(key);
     }
+    System.out.println("Total write errors " + writeErrors );
   }
 
   private static void createCache(CacheClient cacheClient, String cacheName) {
