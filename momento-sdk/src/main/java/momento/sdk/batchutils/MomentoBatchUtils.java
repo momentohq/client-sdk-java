@@ -23,7 +23,7 @@ public class MomentoBatchUtils implements Closeable {
 
   private final Logger logger = LoggerFactory.getLogger(MomentoBatchUtils.class);
 
-  private static final int DEFAULT_MAX_CONCURRENT_REQUESTS = 5;
+  private static final int DEFAULT_MAX_CONCURRENT_REQUESTS = 20;
 
   private static final int DEFAULT_REQUEST_TIMEOUT_SECONDS = 10;
 
