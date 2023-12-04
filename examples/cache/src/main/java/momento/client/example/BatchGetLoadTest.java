@@ -3,6 +3,7 @@ package momento.client.example;
 import com.google.common.collect.Lists;
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.atomic.LongAdder;
 
@@ -95,25 +96,10 @@ public class BatchGetLoadTest {
   }
 
   private static void setupTestData(CacheClient cacheClient, String cacheName) {
-    Runtime runtime = Runtime.getRuntime();
 
-    // Run garbage collector to clear as much memory as possible
-    runtime.gc();
-
-    // Memory usage before creating the string
-    long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
-    System.out.println("Memory used before creating string: " + memoryBefore + " bytes");
-
-    // Create the string each
-    final String val = "x".repeat(50000);
-
-    // Memory usage after creating the string
-    long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
-    System.out.println("Memory used after creating string: " + memoryAfter + " bytes");
-
-    // Approximate size of the string object
-    long stringSize = memoryAfter - memoryBefore;
-    System.out.println("Approximate size of the string object: " + stringSize + " bytes");
+    char[] data = new char[200000];
+    Arrays.fill(data, 'a');
+    String val = new String(data);
 
     for (int i = 0; i < 1000; i++) {
       final String key = "key" + i;
