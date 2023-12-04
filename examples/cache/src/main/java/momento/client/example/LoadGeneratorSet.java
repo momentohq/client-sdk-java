@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 public class LoadGeneratorSet {
   private static final String API_KEY_ENV_VAR = "MOMENTO_API_KEY";
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofHours(24);
-  private static final String CACHE_NAME = "java-loadgen";
+  private static final String CACHE_NAME = "cache";
   private static final Logger logger = LoggerFactory.getLogger(LoadGenerator.class);
 
   private final ScheduledExecutorService executorService;
@@ -66,7 +66,7 @@ public class LoadGeneratorSet {
     }
     client = CacheClient.create(credentialProvider, Configurations.InRegion.v1(), DEFAULT_ITEM_TTL);
 
-    client.createCache(CACHE_NAME);
+    client.createCache(CACHE_NAME).join();
 
     executorService = Executors.newScheduledThreadPool(requestsPerSecond);
     rateLimiter = RateLimiter.create(requestsPerSecond);
