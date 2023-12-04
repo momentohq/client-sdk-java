@@ -1,4 +1,4 @@
-package momento.sdk.responses;
+package momento.sdk.responses.auth;
 
 import com.google.gson.Gson;
 import java.util.HashMap;
@@ -10,9 +10,9 @@ import momento.token._GenerateDisposableTokenResponse;
 public interface GenerateDisposableTokenResponse {
 
   class Success implements GenerateDisposableTokenResponse {
-    public final String authToken;
-    public final String endpoint;
-    public final ExpiresAt expiresAt;
+    private final String authToken;
+    private final String endpoint;
+    private final ExpiresAt expiresAt;
 
     public Success(_GenerateDisposableTokenResponse response) {
       Map<String, Object> jsonMap = new HashMap<>();
@@ -29,6 +29,18 @@ public interface GenerateDisposableTokenResponse {
     public String toString() {
       int len = authToken.length();
       return authToken.substring(0, 10) + "..." + authToken.substring(len - 10, len);
+    }
+
+    public String authToken() {
+      return authToken;
+    }
+
+    public String endpoint() {
+      return endpoint;
+    }
+
+    public ExpiresAt expiresAt() {
+      return expiresAt;
     }
   }
 

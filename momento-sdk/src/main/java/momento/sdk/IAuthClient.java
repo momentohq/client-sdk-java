@@ -1,11 +1,12 @@
 package momento.sdk;
 
+import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.auth.accessControl.DisposableTokenScope;
 import momento.sdk.auth.accessControl.ExpiresIn;
-import momento.sdk.responses.GenerateDisposableTokenResponse;
+import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
 
-public interface IAuthClient extends AutoCloseable {
+public interface IAuthClient extends Closeable {
 
   CompletableFuture<GenerateDisposableTokenResponse> generateDisposableTokenAsync(
       DisposableTokenScope scope, ExpiresIn expiresIn, String tokenId);

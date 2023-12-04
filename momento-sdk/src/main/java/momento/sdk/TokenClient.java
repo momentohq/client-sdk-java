@@ -19,17 +19,17 @@ import momento.sdk.auth.accessControl.ExpiresIn;
 import momento.sdk.auth.accessControl.TopicSelector;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.UnknownException;
-import momento.sdk.responses.GenerateDisposableTokenResponse;
+import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
 import momento.token._GenerateDisposableTokenRequest;
 import momento.token._GenerateDisposableTokenResponse;
 
 public class TokenClient {
   private final CredentialProvider credentialProvider;
-  private final TokenGrpcStubsManager tokenGrpcStubsManager;
+  private final ScsTokenGrpcStubsManager tokenGrpcStubsManager;
 
   public TokenClient(@Nonnull CredentialProvider credentialProvider) {
     this.credentialProvider = credentialProvider;
-    this.tokenGrpcStubsManager = new TokenGrpcStubsManager(credentialProvider);
+    this.tokenGrpcStubsManager = new ScsTokenGrpcStubsManager(credentialProvider);
   }
 
   private Permissions permissionsFromDisposableTokenScope(DisposableTokenScope scope) {

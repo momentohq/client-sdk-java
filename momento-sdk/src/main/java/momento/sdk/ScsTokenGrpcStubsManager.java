@@ -19,7 +19,7 @@ import momento.token.TokenGrpc;
  * independent and any future pooling of channels can happen exclusively in the manager without
  * impacting the API business logic.
  */
-final class TokenGrpcStubsManager implements Closeable {
+final class ScsTokenGrpcStubsManager implements Closeable {
 
   private static final Duration DEADLINE = Duration.ofMinutes(1);
 
@@ -27,7 +27,7 @@ final class TokenGrpcStubsManager implements Closeable {
 
   private final TokenGrpc.TokenFutureStub futureStub;
 
-  TokenGrpcStubsManager(@Nonnull CredentialProvider credentialProvider) {
+  ScsTokenGrpcStubsManager(@Nonnull CredentialProvider credentialProvider) {
     this.channel = setupConnection(credentialProvider);
     this.futureStub = TokenGrpc.newFutureStub(channel);
   }

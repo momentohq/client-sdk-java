@@ -9,7 +9,7 @@ import momento.sdk.auth.accessControl.DisposableTokenScopes;
 import momento.sdk.auth.accessControl.ExpiresIn;
 import momento.sdk.auth.accessControl.TopicSelector;
 import momento.sdk.exceptions.MomentoErrorCode;
-import momento.sdk.responses.GenerateDisposableTokenResponse;
+import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 

@@ -20,7 +20,7 @@ import momento.sdk.auth.accessControl.DisposableTokenScopes;
 import momento.sdk.auth.accessControl.ExpiresIn;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.MomentoErrorCode;
-import momento.sdk.responses.GenerateDisposableTokenResponse;
+import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
@@ -56,8 +56,8 @@ public class AuthClientCacheTests extends BaseTestClass {
               if (response instanceof GenerateDisposableTokenResponse.Success) {
                 GenerateDisposableTokenResponse.Success token =
                     (GenerateDisposableTokenResponse.Success) response;
-                assert !token.authToken.isEmpty();
-                String authToken = token.authToken;
+                assert !token.authToken().isEmpty();
+                String authToken = token.authToken();
                 StringCredentialProvider authProvider = new StringCredentialProvider(authToken);
                 return CompletableFuture.completedFuture(
                     new CacheClient(
