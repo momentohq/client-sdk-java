@@ -30,7 +30,7 @@ public class BatchGetLoadTest {
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
   private static final ConcurrentHistogram batchGetHistogram = new ConcurrentHistogram(3);
 
-  private static final String CACHE_NAME = "cache";
+  private static final String CACHE_NAME = "test_batch_get";
 
   private static final LongAdder batchGetSuccesses = new LongAdder();
   private static final LongAdder batchGetSummaries = new LongAdder();
