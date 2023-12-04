@@ -81,6 +81,7 @@ public class BatchGetLoadTest {
             summary.getSummaries()) {
           if (getSummary.getGetResponse() instanceof GetResponse.Error) {
             batchGetIndividualErrors.increment();
+            System.out.println(((GetResponse.Error) getSummary.getGetResponse()).getMessage());
           } else if (getSummary.getGetResponse() instanceof GetResponse.Hit) {
             batchGetIndividualHits.increment();
           } else if (getSummary.getGetResponse() instanceof GetResponse.Miss) {
