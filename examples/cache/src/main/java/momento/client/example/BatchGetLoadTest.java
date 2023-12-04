@@ -101,7 +101,7 @@ public class BatchGetLoadTest {
     Arrays.fill(data, 'a');
     String val = new String(data);
 
-    for (int i = 0; i < 1000; i++) {
+    for (int i = 0; i < 100; i++) {
       final String key = "key" + i;
       final SetResponse setResponse = cacheClient.set(cacheName, key, val).join();
       if (setResponse instanceof SetResponse.Error) {
