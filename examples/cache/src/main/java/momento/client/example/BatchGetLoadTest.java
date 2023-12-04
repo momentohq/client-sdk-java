@@ -50,7 +50,9 @@ public class BatchGetLoadTest {
 
       createCache(client, CACHE_NAME);
 
-      try (final MomentoBatchUtils momentoBatchUtils = MomentoBatchUtils.builder(client).build()) {
+      try (final MomentoBatchUtils momentoBatchUtils = MomentoBatchUtils.builder(client)
+              .withMaxConcurrentRequests(20)
+              .build()) {
         setupTestData(client, CACHE_NAME);
         performBatchGet(momentoBatchUtils, CACHE_NAME);
       }
