@@ -8,6 +8,19 @@
  */
 
 rootProject.name = "java-gradle"
+
+/*
+ * Uncomment the code below if you would like to develop the examples against your local
+ * copy of the SDK code. This is useful if you are making changes to the SDK and want to
+ * test them in the examples before committing them.
+ */
+//includeBuild("..") {
+//    dependencySubstitution {
+//        substitute(module("software.momento.java:sdk")).using(project(":momento-sdk"))
+//    }
+//}
+
 include("cache")
 include("cache-with-aws")
 include("lambda:docker")
+

@@ -23,3 +23,6 @@ To fix the formatting either reformat the code using the IDE based plugin or run
 
 `./gradlew :momento-sdk:spotlessApply`
 
+### Examples
+
+The example code can be found in the `examples` directory. If you would like to run the examples against your local copy of the SDK source code, uncomment the `includeBuild` stanza in the `examples/settings.gradle.kts` file. This will allow you to test the example code against local changes that you have made to the SDK.
