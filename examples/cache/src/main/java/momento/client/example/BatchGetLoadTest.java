@@ -105,7 +105,7 @@ public class BatchGetLoadTest {
     System.out.println("Memory used before creating string: " + memoryBefore + " bytes");
 
     // Create the string each
-    final String val = "x".repeat(100000);
+    final String val = "x".repeat(50000);
 
     // Memory usage after creating the string
     long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
