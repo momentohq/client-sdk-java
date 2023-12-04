@@ -72,6 +72,8 @@ public class BasicSetLoad {
 
     final RateLimiter rateLimiter = RateLimiter.create(1000);
 
+    this.client.createCache(CACHE_NAME).join();
+
     // Scheduled task for printing histogram
     ScheduledExecutorService setScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
     setScheduledExecutor.scheduleAtFixedRate(
