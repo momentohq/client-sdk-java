@@ -5,6 +5,9 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.LongAdder;
 
 import com.google.common.util.concurrent.RateLimiter;
@@ -40,6 +43,7 @@ public class BatchGetLoadTest {
   private static final LongAdder batchGetIndividualMisses = new LongAdder();
   private static final LongAdder batchGetIndividualErrors = new LongAdder();
   private static final List<String> keys = new ArrayList<>();
+  private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
   public static void main(String[] args) throws Exception {
 
@@ -49,6 +53,7 @@ public class BatchGetLoadTest {
         CacheClient.create(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)) {
 
       createCache(client, CACHE_NAME);
+      scheduler.scheduleAtFixedRate(() -> printBatchGetData(), 5, 5, TimeUnit.SECONDS);
 
       try (final MomentoBatchUtils momentoBatchUtils = MomentoBatchUtils.builder(client)
               .withMaxConcurrentRequests(20)
@@ -59,43 +64,45 @@ public class BatchGetLoadTest {
     }
   }
 
-  private static void performBatchGet(MomentoBatchUtils batchUtils, String cacheName) {
+  private static void performBatchGet(MomentoBatchUtils batchUtils, String cacheName) throws Exception {
 
     System.out.println("all keys size " + keys.size());
     List<List<String>> allKeys = Lists.partition(keys, 100);
 
-    for (List<String> keyBatch : allKeys) {
+    while (true) {
+      for (List<String> keyBatch : allKeys) {
 
-      System.out.println("batch keys size " + keyBatch.size());
+        System.out.println("batch keys size " + keyBatch.size());
 
-      final BatchGetRequest.StringKeyBatchGetRequest request =
-          new BatchGetRequest.StringKeyBatchGetRequest(keyBatch);
+        final BatchGetRequest.StringKeyBatchGetRequest request =
+                new BatchGetRequest.StringKeyBatchGetRequest(keyBatch);
 
-      final long startTime = System.nanoTime();
-      final BatchGetResponse response = batchUtils.batchGet(cacheName, request).join();
-      final long endTime = System.nanoTime();
-      batchGetHistogram.recordValue(endTime - startTime);
-      if (response instanceof BatchGetResponse.StringKeyBatchGetSummary summary) {
-        batchGetSummaries.add(((BatchGetResponse.StringKeyBatchGetSummary) response).getSummaries().size());
-        batchGetSuccesses.increment();
+        final long startTime = System.nanoTime();
+        final BatchGetResponse response = batchUtils.batchGet(cacheName, request).join();
+        final long endTime = System.nanoTime();
+        batchGetHistogram.recordValue(endTime - startTime);
+        if (response instanceof BatchGetResponse.StringKeyBatchGetSummary summary) {
+          batchGetSummaries.add(((BatchGetResponse.StringKeyBatchGetSummary) response).getSummaries().size());
+          batchGetSuccesses.increment();
 
-        for (BatchGetResponse.StringKeyBatchGetSummary.GetSummary getSummary :
-            summary.getSummaries()) {
-          if (getSummary.getGetResponse() instanceof GetResponse.Error) {
-            batchGetIndividualErrors.increment();
-            System.out.println(((GetResponse.Error) getSummary.getGetResponse()).getMessage());
-          } else if (getSummary.getGetResponse() instanceof GetResponse.Hit) {
-            batchGetIndividualHits.increment();
-          } else if (getSummary.getGetResponse() instanceof GetResponse.Miss) {
-            batchGetIndividualMisses.increment();
+          for (BatchGetResponse.StringKeyBatchGetSummary.GetSummary getSummary :
+                  summary.getSummaries()) {
+            if (getSummary.getGetResponse() instanceof GetResponse.Error) {
+              batchGetIndividualErrors.increment();
+              System.out.println(((GetResponse.Error) getSummary.getGetResponse()).getMessage());
+            } else if (getSummary.getGetResponse() instanceof GetResponse.Hit) {
+              batchGetIndividualHits.increment();
+            } else if (getSummary.getGetResponse() instanceof GetResponse.Miss) {
+              batchGetIndividualMisses.increment();
+            }
           }
+        } else {
+          batchGetErrors.increment();
         }
-      } else {
-        batchGetErrors.increment();
       }
+      Thread.sleep(1000);
     }
 
-    printBatchGetData();
   }
 
   private static void setupTestData(CacheClient cacheClient, String cacheName) throws InterruptedException{
