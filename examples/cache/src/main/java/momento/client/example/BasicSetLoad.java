@@ -70,7 +70,7 @@ public class BasicSetLoad {
     long testEndTime =
         System.currentTimeMillis() + Duration.ofMinutes(TEST_DURATION_MINUTES).toMillis();
 
-    final RateLimiter rateLimiter = RateLimiter.create(100);
+    final RateLimiter rateLimiter = RateLimiter.create(1000);
 
     // Scheduled task for printing histogram
     ScheduledExecutorService setScheduledExecutor = Executors.newSingleThreadScheduledExecutor();
