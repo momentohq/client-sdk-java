@@ -95,7 +95,26 @@ public class BatchGetLoadTest {
   }
 
   private static void setupTestData(CacheClient cacheClient, String cacheName) {
+    Runtime runtime = Runtime.getRuntime();
+
+    // Run garbage collector to clear as much memory as possible
+    runtime.gc();
+
+    // Memory usage before creating the string
+    long memoryBefore = runtime.totalMemory() - runtime.freeMemory();
+    System.out.println("Memory used before creating string: " + memoryBefore + " bytes");
+
+    // Create the string
     final String val = "x".repeat(200000);
+
+    // Memory usage after creating the string
+    long memoryAfter = runtime.totalMemory() - runtime.freeMemory();
+    System.out.println("Memory used after creating string: " + memoryAfter + " bytes");
+
+    // Approximate size of the string object
+    long stringSize = memoryAfter - memoryBefore;
+    System.out.println("Approximate size of the string object: " + stringSize + " bytes");
+
     for (int i = 0; i < 1000; i++) {
       final String key = "key" + i;
       final SetResponse setResponse = cacheClient.set(cacheName, key, val).join();
