@@ -34,9 +34,9 @@ public class BatchUtilsExample {
   private static final String CACHE_NAME = "cache";
 
   // represents the concurrency level for the batch of requests we send to Momento
-  private static final int MAX_CONCURRENT_REQUESTS = 5;
+  private static final int MAX_CONCURRENT_REQUESTS = 20;
 
-  private static final int TOTAL_KEYS = 20;
+  private static final int TOTAL_KEYS = 100;
 
   public static void main(String[] args) {
 
