@@ -29,7 +29,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class AuthClientCacheTests extends BaseTestClass {
-  private final TokenClient tokenClient = new TokenClient(credentialProvider);
   private AuthClient authClient;
   private CacheClient cacheClient;
 
@@ -41,7 +40,7 @@ public class AuthClientCacheTests extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    authClient = new AuthClient(tokenClient);
+    authClient = new AuthClient(credentialProvider);
     cacheClient =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();

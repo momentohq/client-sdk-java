@@ -14,14 +14,13 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class AuthClientTopicTests extends BaseTestClass {
-  private final TokenClient tokenClient = new TokenClient(credentialProvider);
   private AuthClient authClient;
   private String cacheName;
   private String topicName = "topic";
 
   @BeforeEach
   void setup() {
-    authClient = new AuthClient(tokenClient);
+    authClient = new AuthClient(credentialProvider);
     cacheName = System.getenv("TEST_CACHE_NAME");
   }
 

@@ -17,15 +17,6 @@ public class AuthClient implements IAuthClient {
   /**
    * Constructs a AuthClient.
    *
-   * @param tokenClient Token Client to connect to Momento.
-   */
-  public AuthClient(TokenClient tokenClient) {
-    this.tokenClient = tokenClient;
-  }
-
-  /**
-   * Constructs a AuthClient.
-   *
    * @param credentialProvider Provider for the credentials required to connect to Momento.
    */
   public AuthClient(@Nonnull CredentialProvider credentialProvider) {
