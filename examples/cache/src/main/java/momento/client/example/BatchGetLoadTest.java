@@ -41,7 +41,7 @@ public class BatchGetLoadTest {
   private static final LongAdder batchGetIndividualErrors = new LongAdder();
   private static final List<String> keys = new ArrayList<>();
 
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
 
     final CredentialProvider credentialProvider = new EnvVarCredentialProvider(API_KEY_ENV_VAR);
 
