@@ -4,15 +4,14 @@ import grpc.cache_client.pubsub.PubsubGrpc;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import momento.sdk.auth.CredentialProvider;
-import momento.sdk.config.Configuration;
-
-import javax.annotation.Nonnull;
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nonnull;
+import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.Configuration;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Topics.
@@ -23,51 +22,45 @@ import java.util.concurrent.TimeUnit;
  */
 final class ScsTopicGrpcStubsManager implements Closeable {
 
-    private final Duration deadline;
+  private final Duration deadline;
 
-    private final ManagedChannel channel;
+  private final ManagedChannel channel;
+  private final PubsubGrpc.PubsubStub stub;
 
-//    private final PubsubGrpc.PubsubFutureStub futureStub;
+  ScsTopicGrpcStubsManager(
+      @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
+    this.channel = setupConnection(credentialProvider);
+    this.stub = PubsubGrpc.newStub(channel);
+    this.deadline = configuration.getTransportStrategy().getGrpcConfiguration().getDeadline();
+  }
 
-    private final PubsubGrpc.PubsubStub stub;
-    ScsTopicGrpcStubsManager(@Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
-        this.channel = setupConnection(credentialProvider);
-//        this.futureStub = PubsubGrpc.newFutureStub(channel);
-        this.stub = PubsubGrpc.newStub(channel);
-        this.deadline = configuration.getTransportStrategy().getGrpcConfiguration().getDeadline();
-    }
+  private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
+    final NettyChannelBuilder channelBuilder =
+        NettyChannelBuilder.forAddress(credentialProvider.getCacheEndpoint(), 443);
+    channelBuilder.useTransportSecurity();
+    channelBuilder.disableRetry();
+    final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
+    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
+    channelBuilder.intercept(clientInterceptors);
+    return channelBuilder.build();
+  }
 
-    private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
-        final NettyChannelBuilder channelBuilder =
-                NettyChannelBuilder.forAddress(credentialProvider.getCacheEndpoint(), 443);
-        channelBuilder.useTransportSecurity();
-        channelBuilder.disableRetry();
-        final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-        clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
-        channelBuilder.intercept(clientInterceptors);
-        return channelBuilder.build();
-    }
+  /**
+   * Returns a stub with appropriate deadlines.
+   *
+   * <p>Each stub is deliberately decorated with Deadline. Deadlines work differently than timeouts.
+   * When a deadline is set on a stub, it simply means that once the stub is created it must be used
+   * before the deadline expires. Hence, the stub returned from here should never be cached and the
+   * safest behavior is for clients to request a new stub each time.
+   *
+   * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
+   */
+  PubsubGrpc.PubsubStub getStub() {
+    return stub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
+  }
 
-    /**
-     * Returns a stub with appropriate deadlines.
-     *
-     * <p>Each stub is deliberately decorated with Deadline. Deadlines work differently than timeouts.
-     * When a deadline is set on a stub, it simply means that once the stub is created it must be used
-     * before the deadline expires. Hence, the stub returned from here should never be cached and the
-     * safest behavior is for clients to request a new stub each time.
-     *
-     * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
-     */
-//    PubsubGrpc.PubsubFutureStub getStub() {
-//        return futureStub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
-//    }
-
-    PubsubGrpc.PubsubStub getStub() {
-        return stub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
-    }
-
-    @Override
-    public void close() {
-        channel.shutdown();
-    }
+  @Override
+  public void close() {
+    channel.shutdown();
+  }
 }
