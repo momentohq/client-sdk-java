@@ -56,7 +56,7 @@ public class BatchGetLoadTest {
       scheduler.scheduleAtFixedRate(() -> printBatchGetData(), 5, 5, TimeUnit.SECONDS);
 
       try (final MomentoBatchUtils momentoBatchUtils = MomentoBatchUtils.builder(client)
-              .withMaxConcurrentRequests(20)
+              .withMaxConcurrentRequests(50)
               .build()) {
         setupTestData(client, CACHE_NAME);
         performBatchGet(momentoBatchUtils, CACHE_NAME);
