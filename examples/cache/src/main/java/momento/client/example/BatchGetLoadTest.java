@@ -107,7 +107,7 @@ public class BatchGetLoadTest {
 
   private static void setupTestData(CacheClient cacheClient, String cacheName) throws InterruptedException{
 
-    char[] data = new char[200000];
+    char[] data = new char[100000];
     Arrays.fill(data, 'a');
     String val = new String(data);
 

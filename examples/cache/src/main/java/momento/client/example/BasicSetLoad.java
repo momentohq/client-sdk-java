@@ -34,7 +34,7 @@ public class BasicSetLoad {
   private final ConcurrentHistogram setHistogram = new ConcurrentHistogram(3);
   private final ConcurrentHistogram getHistogram = new ConcurrentHistogram(3);
   private final ConcurrentHistogram deleteHistogram = new ConcurrentHistogram(3);
-  private static final String CACHE_NAME = "cache";
+  private static final String CACHE_NAME = "batch";
   private final CacheClient client;
   private final LongAdder globalRequestCount = new LongAdder();
   private final LongAdder globalSuccessCount = new LongAdder();
