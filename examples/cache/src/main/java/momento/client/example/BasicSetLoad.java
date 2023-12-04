@@ -26,8 +26,8 @@ public class BasicSetLoad {
 
   private static final Logger logger = LoggerFactory.getLogger(BasicSetLoad.class);
 
-  private static final long TEST_DURATION_MINUTES = 5;
-  private static final long HISTOGRAM_PRINT_INTERVAL_SECONDS = 60;
+  private static final long TEST_DURATION_MINUTES = 60;
+  private static final long HISTOGRAM_PRINT_INTERVAL_SECONDS = 1;
 
   private static final String API_KEY_ENV_VAR = "MOMENTO_API_KEY";
 
@@ -100,6 +100,7 @@ public class BasicSetLoad {
             if (response instanceof SetResponse.Success) {
               this.globalSuccessCount.increment();
             } else if (response instanceof SetResponse.Error) {
+              System.err.println("Set error" + ((SetResponse.Error) response).getMessage());
               this.globalErrorCount.increment();
             }
           });
