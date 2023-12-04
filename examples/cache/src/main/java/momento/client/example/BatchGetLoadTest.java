@@ -95,7 +95,7 @@ public class BatchGetLoadTest {
     printBatchGetData();
   }
 
-  private static void setupTestData(CacheClient cacheClient, String cacheName) {
+  private static void setupTestData(CacheClient cacheClient, String cacheName) throws InterruptedException{
 
     char[] data = new char[200000];
     Arrays.fill(data, 'a');
@@ -110,6 +110,7 @@ public class BatchGetLoadTest {
         System.err.println("Error while writing" + ((SetResponse.Error) setResponse).getMessage());
       }
       keys.add(key);
+      Thread.sleep(50);
     }
     System.out.println("Total write errors " + writeErrors );
   }
