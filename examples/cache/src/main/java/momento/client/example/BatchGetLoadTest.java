@@ -138,6 +138,8 @@ public class BatchGetLoadTest {
         String.format("BatchGet Individual Miss Count: %d\n", batchGetIndividualMisses.sum()));
     builder.append(
             String.format("BatchGet Error Count: %d\n", batchGetErrors.sum()));
+    builder.append(
+            String.format("BatchGet Error Individual Error Count: %d\n", batchGetIndividualErrors.sum()));
     logger.info(builder.toString());
   }
 
