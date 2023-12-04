@@ -11,7 +11,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class AuthClient implements IAuthClient {
-  private final TokenClient tokenClient;
+  private final ScsTokenClient tokenClient;
   private final Logger logger = LoggerFactory.getLogger(AuthClient.class);
 
   /**
@@ -20,16 +20,16 @@ public class AuthClient implements IAuthClient {
    * @param credentialProvider Provider for the credentials required to connect to Momento.
    */
   public AuthClient(@Nonnull CredentialProvider credentialProvider) {
-    this.tokenClient = new TokenClient(credentialProvider);
+    this.tokenClient = new ScsTokenClient(credentialProvider);
 
-    logger.info("Creating Momento Auth Client");
+    logger.debug("Creating Momento Auth Client");
     logger.debug("Cache endpoint: " + credentialProvider.getCacheEndpoint());
     logger.debug("Control endpoint: " + credentialProvider.getControlEndpoint());
     logger.debug("Token endpoint: " + credentialProvider.getTokenEndpoint());
   }
 
   /**
-   * Constructs a CacheClient.
+   * Constructs a AuthClient.
    *
    * @param credentialProvider Provider for the credentials required to connect to Momento.
    * @return AuthClient
