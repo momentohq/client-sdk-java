@@ -5,6 +5,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.LongAdder;
+
+import com.google.common.util.concurrent.RateLimiter;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
@@ -98,7 +100,7 @@ public class BatchGetLoadTest {
       final String key = "key" + i;
       final SetResponse setResponse = cacheClient.set(cacheName, key, val).join();
       if (setResponse instanceof SetResponse.Error) {
-        System.err.println(((SetResponse.Error) setResponse).getMessage());
+        System.err.println("Error while writing" + ((SetResponse.Error) setResponse).getMessage());
       }
       keys.add(key);
     }
@@ -120,7 +122,7 @@ public class BatchGetLoadTest {
     StringBuilder builder = new StringBuilder();
     builder.append("\n--- BatchGet Operation Data ---\n");
     builder.append("BatchGet Latency (in millis):\n").append(formatHistogram(batchGetHistogram));
-    builder.append(String.format("BatchGet Total Requests: %d\n", batchGetSuccesses.sum()));
+    builder.append(String.format("BatchGet Total Requests: %d\n", batchGetSuccesses.sum() + batchGetErrors.sum()));
     builder.append(
         String.format("BatchGet Individual Hit Count: %d\n", batchGetIndividualHits.sum()));
     builder.append(
