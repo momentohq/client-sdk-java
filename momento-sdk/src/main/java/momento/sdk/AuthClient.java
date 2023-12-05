@@ -1,14 +1,10 @@
 package momento.sdk;
 
-import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
-import javax.annotation.Nullable;
-
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.accessControl.DisposableTokenScope;
 import momento.sdk.auth.accessControl.ExpiresIn;
-import momento.sdk.config.Configuration;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
 import org.slf4j.Logger;
@@ -48,8 +44,7 @@ public class AuthClient implements IAuthClient {
    * @param credentialProvider Provider for the credentials required to connect to Momento.
    * @return The builder.
    */
-  public static AuthClientBuilder builder(
-          CredentialProvider credentialProvider) {
+  public static AuthClientBuilder builder(CredentialProvider credentialProvider) {
     return new AuthClientBuilder(credentialProvider);
   }
 
