@@ -15,7 +15,7 @@ public class EnvVarCredentialProvider extends StringCredentialProvider {
    * @param envVarName the environment variable containing the Momento authentication token.
    */
   public EnvVarCredentialProvider(@Nonnull String envVarName) {
-    super(System.getenv(envVarName), null, null);
+    super(getApiKeyValueFromEnvVar(envVarName), null, null);
   }
 
   /**
@@ -28,6 +28,15 @@ public class EnvVarCredentialProvider extends StringCredentialProvider {
    */
   public EnvVarCredentialProvider(
       @Nonnull String envVarName, @Nullable String controlHost, @Nullable String cacheHost) {
-    super(System.getenv(envVarName), controlHost, cacheHost);
+    super(getApiKeyValueFromEnvVar(envVarName), controlHost, cacheHost);
+  }
+
+  private static String getApiKeyValueFromEnvVar(String envVarName) {
+    String authToken = System.getenv(envVarName);
+    if (authToken == null) {
+      throw new IllegalArgumentException(
+          "Missing required Momento API Key environment variable: " + envVarName);
+    }
+    return authToken;
   }
 }
