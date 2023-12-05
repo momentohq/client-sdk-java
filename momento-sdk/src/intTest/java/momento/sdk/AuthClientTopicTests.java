@@ -20,7 +20,7 @@ public class AuthClientTopicTests extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    authClient = new AuthClient(credentialProvider);
+    authClient = AuthClient.builder(credentialProvider).build();
     cacheName = System.getenv("TEST_CACHE_NAME");
   }
 

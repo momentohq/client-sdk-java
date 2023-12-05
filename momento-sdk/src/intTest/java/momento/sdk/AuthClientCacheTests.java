@@ -40,7 +40,7 @@ public class AuthClientCacheTests extends BaseTestClass {
 
   @BeforeEach
   void setup() {
-    authClient = new AuthClient(credentialProvider);
+    authClient = AuthClient.builder(credentialProvider).build();
     cacheClient =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();
