@@ -23,7 +23,7 @@ import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
 import momento.token._GenerateDisposableTokenRequest;
 import momento.token._GenerateDisposableTokenResponse;
 
-public class ScsTokenClient {
+final class ScsTokenClient {
   private final CredentialProvider credentialProvider;
   private final ScsTokenGrpcStubsManager tokenGrpcStubsManager;
 
