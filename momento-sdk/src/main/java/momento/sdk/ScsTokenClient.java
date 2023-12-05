@@ -163,7 +163,7 @@ final class ScsTokenClient {
       _GenerateDisposableTokenRequest request =
           _GenerateDisposableTokenRequest.newBuilder()
               .setPermissions(permissions)
-              .setTokenId(tokenId)
+              .setTokenId(tokenId == null ? "" : tokenId)
               .setAuthToken(credentialProvider.getAuthToken())
               .setExpires(
                   _GenerateDisposableTokenRequest.Expires.newBuilder()
@@ -182,33 +182,7 @@ final class ScsTokenClient {
 
   CompletableFuture<GenerateDisposableTokenResponse> generateDisposableToken(
       DisposableTokenScope scope, ExpiresIn expiresIn) {
-    Permissions permissions;
-    try {
-      permissions = permissionsFromDisposableTokenScope(scope);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new GenerateDisposableTokenResponse.Error(new InvalidArgumentException(e.getMessage())));
-    }
-
-    try {
-      _GenerateDisposableTokenRequest request =
-          _GenerateDisposableTokenRequest.newBuilder()
-              .setPermissions(permissions)
-              .setTokenId("")
-              .setAuthToken(credentialProvider.getAuthToken())
-              .setExpires(
-                  _GenerateDisposableTokenRequest.Expires.newBuilder()
-                      .setValidForSeconds(expiresIn.getSeconds())
-                      .build())
-              .build();
-      _GenerateDisposableTokenResponse response =
-          tokenGrpcStubsManager.getStub().generateDisposableToken(request).get();
-      return CompletableFuture.completedFuture(
-          new GenerateDisposableTokenResponse.Success(response));
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new GenerateDisposableTokenResponse.Error(new InvalidArgumentException(e.getMessage())));
-    }
+    return generateDisposableToken(scope, expiresIn, null);
   }
 
   public void close() {

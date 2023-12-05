@@ -3,7 +3,6 @@ package momento.sdk;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -19,7 +18,7 @@ import momento.token.TokenGrpc;
  * independent and any future pooling of channels can happen exclusively in the manager without
  * impacting the API business logic.
  */
-final class ScsTokenGrpcStubsManager implements Closeable {
+final class ScsTokenGrpcStubsManager implements AutoCloseable {
 
   private static final Duration DEADLINE = Duration.ofMinutes(1);
 
