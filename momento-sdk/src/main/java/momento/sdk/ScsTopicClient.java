@@ -10,17 +10,8 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.responses.topic.SubscriptionState;
-import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
-
-interface ISubscribeCallOptions {
-  void onItem(TopicMessage message);
-
-  void onCompleted();
-
-  void onError(Throwable t);
-}
 
 public class ScsTopicClient extends ScsClient {
 
@@ -95,13 +86,18 @@ public class ScsTopicClient extends ScsClient {
 
   private CompletableFuture<TopicSubscribeResponse> sendSubscribe(
       String cacheName, String topicName, ISubscribeCallOptions options) {
-    // TODO validate cache name
-    // TODO validate topic name
+    try {
+      ValidationUtils.checkCacheNameValid(cacheName);
+      ValidationUtils.checkTopicNameValid(topicName);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
 
     SubscriptionWrapper subscriptionWrapper;
     SubscriptionState subState = new SubscriptionState();
     subscriptionWrapper =
-        new SubscriptionWrapper(topicGrpcStubsManager, cacheName, topicName, options);
+        new SubscriptionWrapper(topicGrpcStubsManager, cacheName, topicName, subState, options);
     final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribe();
     return subscribeFuture.handle(
         (v, ex) -> {

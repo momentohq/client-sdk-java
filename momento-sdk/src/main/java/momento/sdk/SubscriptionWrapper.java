@@ -9,6 +9,7 @@ import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
+import momento.sdk.responses.topic.SubscriptionState;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ public class SubscriptionWrapper implements Closeable {
   private final ScsTopicGrpcStubsManager grpcManager;
   private final String cacheName;
   private final String topicName;
+  private final SubscriptionState subscriptionState;
   private final ISubscribeCallOptions options;
   private StreamObserver<_SubscriptionItem> subscription;
   private boolean subscribed = false;
@@ -27,10 +29,12 @@ public class SubscriptionWrapper implements Closeable {
       ScsTopicGrpcStubsManager grpcManager,
       String cacheName,
       String topicName,
+      SubscriptionState subscriptionState,
       ISubscribeCallOptions options) {
     this.grpcManager = grpcManager;
     this.cacheName = cacheName;
     this.topicName = topicName;
+    this.subscriptionState = subscriptionState;
     this.options = options;
   }
 
@@ -67,7 +71,11 @@ public class SubscriptionWrapper implements Closeable {
         };
 
     _SubscriptionRequest subscriptionRequest =
-        _SubscriptionRequest.newBuilder().setCacheName(cacheName).setTopic(topicName).build();
+        _SubscriptionRequest.newBuilder()
+            .setCacheName(cacheName)
+            .setTopic(topicName)
+            .setResumeAtTopicSequenceNumber(subscriptionState.getResumeAtTopicSequenceNumber())
+            .build();
 
     try {
       grpcManager.getStub().subscribe(subscriptionRequest, subscription);

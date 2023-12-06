@@ -96,19 +96,6 @@ public final class TopicClient implements Closeable {
     return scsTopicClient.subscribe(cacheName, topicName, options);
   }
 
-  //    /**
-  //     * Subscribe to a topic with provided topic name in a cache with provided cache name.
-  //     *
-  //     * @param cacheName The name of the cache where topic resides.
-  //     * @param topicName The name of the topic.
-  //     * @return A future containing the result of the topic subscribe: {@link
-  //     *     TopicSubscribeResponse.Subscription} or {@link TopicSubscribeResponse.Error}.
-  //     */
-  //    public CompletableFuture<TopicSubscribeResponse> subscribe(String cacheName, String
-  // topicName, ISubscribeCallOptions) {
-  //        return scsTopicClient.subscribe(cacheName, topicName);
-  //    }
-
   @Override
   public void close() {
     scsTopicClient.close();
