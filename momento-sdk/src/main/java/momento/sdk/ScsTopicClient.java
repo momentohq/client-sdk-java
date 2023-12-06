@@ -26,18 +26,43 @@ public class ScsTopicClient extends ScsClient {
 
   public CompletableFuture<TopicPublishResponse> publish(
       String cacheName, String topicName, byte[] value) {
+    try {
+      ValidationUtils.checkCacheNameValid(cacheName);
+      ValidationUtils.checkTopicNameValid(topicName);
+      ValidationUtils.ensureValidValue(value);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new TopicPublishResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+
     _TopicValue topicValue = _TopicValue.newBuilder().setBinary(ByteString.copyFrom(value)).build();
     return sendPublish(cacheName, topicName, topicValue);
   }
 
   public CompletableFuture<TopicPublishResponse> publish(
       String cacheName, String topicName, String value) {
+    try {
+      ValidationUtils.checkCacheNameValid(cacheName);
+      ValidationUtils.checkTopicNameValid(topicName);
+      ValidationUtils.ensureValidValue(value);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new TopicPublishResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+
     _TopicValue topicValue = _TopicValue.newBuilder().setText(value).build();
     return sendPublish(cacheName, topicName, topicValue);
   }
 
   public CompletableFuture<TopicSubscribeResponse> subscribe(
       String cacheName, String topicName, ISubscribeCallOptions options) {
+    try {
+      ValidationUtils.checkCacheNameValid(cacheName);
+      ValidationUtils.checkTopicNameValid(topicName);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
     return sendSubscribe(cacheName, topicName, options);
   }
 
@@ -86,14 +111,6 @@ public class ScsTopicClient extends ScsClient {
 
   private CompletableFuture<TopicSubscribeResponse> sendSubscribe(
       String cacheName, String topicName, ISubscribeCallOptions options) {
-    try {
-      ValidationUtils.checkCacheNameValid(cacheName);
-      ValidationUtils.checkTopicNameValid(topicName);
-    } catch (Exception e) {
-      return CompletableFuture.completedFuture(
-          new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
-
     SubscriptionWrapper subscriptionWrapper;
     SubscriptionState subState = new SubscriptionState();
     subscriptionWrapper =
