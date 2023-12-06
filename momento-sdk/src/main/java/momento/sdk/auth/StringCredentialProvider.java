@@ -19,10 +19,13 @@ public class StringCredentialProvider extends CredentialProvider {
     public final String controlEndpoint;
     public final String cacheEndpoint;
     public final String authToken;
+    public final String tokenEndpoint;
 
-    public TokenAndEndpoints(String controlEndpoint, String cacheEndpoint, String authToken) {
+    public TokenAndEndpoints(
+        String controlEndpoint, String cacheEndpoint, String tokenEndpoint, String authToken) {
       this.controlEndpoint = controlEndpoint;
       this.cacheEndpoint = cacheEndpoint;
+      this.tokenEndpoint = tokenEndpoint;
       this.authToken = authToken;
     }
   }
@@ -33,6 +36,7 @@ public class StringCredentialProvider extends CredentialProvider {
   private final String authToken;
   private final String controlEndpoint;
   private final String cacheEndpoint;
+  private final String tokenEndpoint;
 
   /**
    * Parses connection and authentication information from the given token.
@@ -40,7 +44,7 @@ public class StringCredentialProvider extends CredentialProvider {
    * @param authToken a Momento authentication token.
    */
   public StringCredentialProvider(@Nonnull String authToken) {
-    this(authToken, null, null);
+    this(authToken, null, null, null);
   }
 
   /**
@@ -49,9 +53,13 @@ public class StringCredentialProvider extends CredentialProvider {
    * @param authToken a Momento authentication token.
    * @param controlHost URI to use for control plane operations.
    * @param cacheHost URI to use for data plane operations.
+   * @param tokenHost URI for token service.
    */
   public StringCredentialProvider(
-      @Nonnull String authToken, @Nullable String controlHost, @Nullable String cacheHost) {
+      @Nonnull String authToken,
+      @Nullable String controlHost,
+      @Nullable String cacheHost,
+      @Nullable String tokenHost) {
     TokenAndEndpoints data;
     try {
       data = processV1Token(authToken);
@@ -68,6 +76,7 @@ public class StringCredentialProvider extends CredentialProvider {
     this.authToken = data.authToken;
     controlEndpoint = controlHost != null ? controlHost : data.controlEndpoint;
     cacheEndpoint = cacheHost != null ? cacheHost : data.cacheEndpoint;
+    tokenEndpoint = tokenHost != null ? tokenHost : data.tokenEndpoint;
   }
 
   private TokenAndEndpoints processLegacyToken(String authToken) {
@@ -89,7 +98,8 @@ public class StringCredentialProvider extends CredentialProvider {
     if (cacheEp == null) {
       throw new InvalidArgumentException("Unable to parse cache endpoint from auth token");
     }
-    return new TokenAndEndpoints(controlEp, cacheEp, authToken);
+
+    return new TokenAndEndpoints(controlEp, cacheEp, cacheEp, authToken);
   }
 
   private TokenAndEndpoints processV1Token(String authToken) {
@@ -102,7 +112,7 @@ public class StringCredentialProvider extends CredentialProvider {
     if (host == null || host.isEmpty() || apiKey == null || apiKey.isEmpty()) {
       throw new InvalidArgumentException("Unable to parse auth token");
     }
-    return new TokenAndEndpoints("control." + host, "cache." + host, apiKey);
+    return new TokenAndEndpoints("control." + host, "cache." + host, "token." + host, apiKey);
   }
 
   private String stripAuthTokenSignature(String authToken) {
@@ -131,5 +141,10 @@ public class StringCredentialProvider extends CredentialProvider {
   @Override
   public String getCacheEndpoint() {
     return cacheEndpoint;
+  }
+
+  @Override
+  public String getTokenEndpoint() {
+    return tokenEndpoint;
   }
 }

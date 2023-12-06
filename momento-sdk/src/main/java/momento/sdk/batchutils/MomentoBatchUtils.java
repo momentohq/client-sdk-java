@@ -1,6 +1,5 @@
 package momento.sdk.batchutils;
 
-import java.io.Closeable;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Utility class for handling batch operations in Momento SDK. */
-public class MomentoBatchUtils implements Closeable {
+public class MomentoBatchUtils implements AutoCloseable {
 
   private final Logger logger = LoggerFactory.getLogger(MomentoBatchUtils.class);
 

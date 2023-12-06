@@ -1,6 +1,7 @@
 package momento.sdk;
 
 import java.time.Duration;
+import momento.sdk.auth.accessControl.ExpiresIn;
 import momento.sdk.exceptions.InvalidArgumentException;
 
 /**
@@ -25,6 +26,13 @@ public final class ValidationUtils {
       "maxScore (inclusive) must be greater than or equal to minScore (inclusive).";
   static final String SIGNING_KEY_TTL_CANNOT_BE_NEGATIVE = "Signing key TTL cannot be negative.";
   static final String TRUNCATE_TO_SIZE_MUST_BE_POSITIVE = "Truncate-to-size must be positive";
+
+  static final String DISPOSABLE_TOKEN_EXPIRY_MUST_BE_POSITIVE =
+      "Disposable token expiry must be positive";
+  static final String DISPOSABLE_TOKEN_EXPIRY_EXCEEDS_ONE_HOUR =
+      "Disposable token must expire within 1 hour";
+  static final String DISPOSABLE_TOKEN_MUST_HAVE_AN_EXPIRY =
+      "Disposable tokens must have an expiry";
 
   ValidationUtils() {}
 
@@ -130,6 +138,16 @@ public final class ValidationUtils {
   static void ensureValidTruncateToSize(Integer truncateToSize) {
     if (truncateToSize != null && truncateToSize <= 0) {
       throw new InvalidArgumentException(TRUNCATE_TO_SIZE_MUST_BE_POSITIVE);
+    }
+  }
+
+  static void checkValidDisposableTokenExpiry(ExpiresIn expiresIn) {
+    if (!expiresIn.doesExpire()) {
+      throw new InvalidArgumentException(DISPOSABLE_TOKEN_MUST_HAVE_AN_EXPIRY);
+    } else if (expiresIn.getSeconds() > 60 * 60) {
+      throw new InvalidArgumentException(DISPOSABLE_TOKEN_EXPIRY_EXCEEDS_ONE_HOUR);
+    } else if (expiresIn.getSeconds() <= 0) {
+      throw new InvalidArgumentException(DISPOSABLE_TOKEN_EXPIRY_MUST_BE_POSITIVE);
     }
   }
 }

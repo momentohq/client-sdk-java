@@ -5,7 +5,6 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
-import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
@@ -31,7 +30,7 @@ import org.slf4j.LoggerFactory;
  * independent and any future pooling of channels can happen exclusively in the manager without
  * impacting the API business logic.
  */
-final class ScsDataGrpcStubsManager implements Closeable {
+final class ScsDataGrpcStubsManager implements AutoCloseable {
 
   private final ManagedChannel channel;
   private final ScsGrpc.ScsFutureStub futureStub;

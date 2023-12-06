@@ -1,6 +1,5 @@
 package momento.sdk;
 
-import java.io.Closeable;
 import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
@@ -62,7 +61,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /** Client to perform operations against the Momento Cache Service */
-public final class CacheClient implements Closeable {
+public final class CacheClient implements AutoCloseable {
 
   private final Logger logger = LoggerFactory.getLogger(CacheClient.class);
 

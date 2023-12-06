@@ -1,6 +1,5 @@
 package momento.sdk;
 
-import grpc.control_client.ScsControlGrpc;
 import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
@@ -10,30 +9,31 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
+import momento.token.TokenGrpc;
 
 /**
- * Manager responsible for GRPC channels and stubs for the Control Plane.
+ * Manager responsible for GRPC channels and stubs for the Disposable Token.
  *
  * <p>The business layer, will get request stubs from this layer. This keeps the two layers
  * independent and any future pooling of channels can happen exclusively in the manager without
  * impacting the API business logic.
  */
-final class ScsControlGrpcStubsManager implements AutoCloseable {
+final class ScsTokenGrpcStubsManager implements AutoCloseable {
 
   private static final Duration DEADLINE = Duration.ofMinutes(1);
 
   private final ManagedChannel channel;
 
-  private final ScsControlGrpc.ScsControlFutureStub futureStub;
+  private final TokenGrpc.TokenFutureStub futureStub;
 
-  ScsControlGrpcStubsManager(@Nonnull CredentialProvider credentialProvider) {
+  ScsTokenGrpcStubsManager(@Nonnull CredentialProvider credentialProvider) {
     this.channel = setupConnection(credentialProvider);
-    this.futureStub = ScsControlGrpc.newFutureStub(channel);
+    this.futureStub = TokenGrpc.newFutureStub(channel);
   }
 
   private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
     final NettyChannelBuilder channelBuilder =
-        NettyChannelBuilder.forAddress(credentialProvider.getControlEndpoint(), 443);
+        NettyChannelBuilder.forAddress(credentialProvider.getTokenEndpoint(), 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
@@ -52,7 +52,7 @@ final class ScsControlGrpcStubsManager implements AutoCloseable {
    *
    * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
    */
-  ScsControlGrpc.ScsControlFutureStub getStub() {
+  TokenGrpc.TokenFutureStub getStub() {
     return futureStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);
   }
 

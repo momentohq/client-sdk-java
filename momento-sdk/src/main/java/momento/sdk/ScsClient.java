@@ -9,13 +9,12 @@ import com.google.common.util.concurrent.MoreExecutors;
 import io.grpc.Metadata;
 import io.grpc.stub.AbstractFutureStub;
 import io.grpc.stub.MetadataUtils;
-import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 
-abstract class ScsClient implements Closeable {
+abstract class ScsClient implements AutoCloseable {
 
   private static final Metadata.Key<String> CACHE_NAME_KEY =
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
