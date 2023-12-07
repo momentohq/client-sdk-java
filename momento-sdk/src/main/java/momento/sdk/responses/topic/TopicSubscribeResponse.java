@@ -2,38 +2,49 @@ package momento.sdk.responses.topic;
 
 import momento.sdk.exceptions.SdkException;
 
-/** Response for a topic subscribe operation */
+/** Represents the response for a topic subscribe operation. */
 public interface TopicSubscribeResponse {
 
-  /** A successful topic publish operation. */
+  /** Represents a successful topic subscribe operation. */
   class Subscription implements TopicSubscribeResponse {
     private SubscriptionState subscriptionState;
 
+    /**
+     * Constructs a Subscription instance with the provided subscription state.
+     *
+     * @param subscriptionState The subscription state.
+     */
     public Subscription(SubscriptionState subscriptionState) {
       super();
       this.subscriptionState = subscriptionState;
     }
 
+    /**
+     * Checks if the subscription is successful.
+     *
+     * @return True if subscribed, false otherwise.
+     */
     public boolean isSubscribe() {
       return this.subscriptionState.isSubscribed();
     }
 
+    /** Unsubscribes from the topic. */
     public void unsubscribe() {
       this.subscriptionState.unsubscribe();
     }
   }
 
   /**
-   * A failed topic subscribe operation. The response itself is an exception, so it can be directly
-   * thrown, or the cause of the error can be retrieved with {@link #getCause()}. The message is a
-   * copy of the message of the cause.
+   * Represents a failed topic subscribe operation. The response itself is an exception, so it can
+   * be directly thrown, or the cause of the error can be retrieved with {@link #getCause()}. The
+   * message is a copy of the message of the cause.
    */
   class Error extends SdkException implements TopicSubscribeResponse {
 
     /**
      * Constructs a topic subscribe error with a cause.
      *
-     * @param cause the cause.
+     * @param cause The cause of the error.
      */
     public Error(SdkException cause) {
       super(cause);

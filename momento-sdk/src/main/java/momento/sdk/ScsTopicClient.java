@@ -86,18 +86,16 @@ public class ScsTopicClient extends ScsClient {
 
                 @Override
                 public void onNext(Object value) {
-                  // Success
+                  // Do nothing
                 }
 
                 @Override
                 public void onError(Throwable t) {
-                  // Error
                   future.completeExceptionally(CacheServiceExceptionMapper.convert(t));
                 }
 
                 @Override
                 public void onCompleted() {
-                  // Completed
                   future.complete(new TopicPublishResponse.Success());
                 }
               });

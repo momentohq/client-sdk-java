@@ -10,7 +10,7 @@ import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Client to perform operations against the Momento Cache Service */
+/** Client to perform operations against the Momento Topic Service */
 public final class TopicClient implements Closeable {
   private final ScsTopicClient scsTopicClient;
 
@@ -86,8 +86,9 @@ public final class TopicClient implements Closeable {
    * Subscribe to a topic with provided topic name in a cache with provided cache name.
    *
    * @param cacheName The name of the cache where topic resides.
-   * @param topicName The name of the topic. // * @param resumeAtSequenceNumber The sequence number
-   *     of the last message. // * The topic will resume from this sequence number.
+   * @param topicName The name of the topic.
+   * @param options The options for handling the subscription callbacks. See {@link
+   *     ISubscribeCallOptions}.
    * @return A future containing the result of the topic subscribe: {@link
    *     TopicSubscribeResponse.Subscription} or {@link TopicSubscribeResponse.Error}.
    */

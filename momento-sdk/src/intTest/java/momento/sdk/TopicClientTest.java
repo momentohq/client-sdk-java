@@ -1,9 +1,13 @@
 package momento.sdk;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.topic.TopicMessage;
@@ -25,12 +29,19 @@ public class TopicClientTest extends BaseTestClass {
   private final String topicName = "test-topic";
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
 
+  private final List<String> receivedStringValues = new ArrayList<>();
+  private final List<byte[]> receivedByteArrayValues = new ArrayList<>();
   ISubscribeCallOptions options =
       new ISubscribeCallOptions() {
         @Override
         public void onItem(TopicMessage message) {
           logger.info("onItem Invoked");
           logger.info(message.toString());
+          if (message instanceof TopicMessage.Text) {
+            receivedStringValues.add(((TopicMessage.Text) message).getValue());
+          } else if (message instanceof TopicMessage.Binary) {
+            receivedByteArrayValues.add(((TopicMessage.Binary) message).getValue());
+          }
         }
 
         @Override
@@ -139,7 +150,16 @@ public class TopicClientTest extends BaseTestClass {
     logger.info(publishResponse.toString());
     assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
 
-    Thread.sleep(1000);
+    TimeUnit.MILLISECONDS.sleep(1000);
+
+    List<byte[]> expectedReceivedValues = new ArrayList<>();
+    expectedReceivedValues.add(value);
+
+    assertArrayEquals(
+        expectedReceivedValues.toArray(new byte[0][]),
+        receivedByteArrayValues.toArray(new byte[0][]),
+        "Received values do not match the expected values");
+
     ((TopicSubscribeResponse.Subscription) response).unsubscribe();
   }
 
@@ -155,7 +175,13 @@ public class TopicClientTest extends BaseTestClass {
     logger.info(publishResponse.toString());
     assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
 
-    Thread.sleep(1000);
+    TimeUnit.MILLISECONDS.sleep(1000);
+
+    List<String> expectedReceivedValues = new ArrayList<>();
+    expectedReceivedValues.add(value);
+
+    assertEquals(expectedReceivedValues, receivedStringValues);
+
     ((TopicSubscribeResponse.Subscription) response).unsubscribe();
   }
 }

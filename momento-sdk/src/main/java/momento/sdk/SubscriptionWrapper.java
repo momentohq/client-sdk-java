@@ -23,7 +23,6 @@ public class SubscriptionWrapper implements Closeable {
   private final SubscriptionState subscriptionState;
   private final ISubscribeCallOptions options;
   private StreamObserver<_SubscriptionItem> subscription;
-  private boolean subscribed = false;
 
   public SubscriptionWrapper(
       ScsTopicGrpcStubsManager grpcManager,
@@ -46,12 +45,21 @@ public class SubscriptionWrapper implements Closeable {
           boolean firstMessage = true;
 
           @Override
-          public void onNext(_SubscriptionItem value) {
+          public void onNext(_SubscriptionItem item) {
             if (firstMessage) {
+              if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
+                throw new InternalServerException(
+                    "Expected heartbeat message for topic "
+                        + topicName
+                        + " on cache "
+                        + cacheName
+                        + ". Got: "
+                        + item.getKindCase());
+              }
               firstMessage = false;
               future.complete(null);
             }
-            handleSubscriptionItem(value);
+            handleSubscriptionItem(item);
           }
 
           @Override
@@ -79,6 +87,7 @@ public class SubscriptionWrapper implements Closeable {
 
     try {
       grpcManager.getStub().subscribe(subscriptionRequest, subscription);
+      subscriptionState.setSubscribed();
     } catch (Exception e) {
       future.completeExceptionally(
           new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -87,34 +96,16 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   private void handleSubscriptionError(Throwable t) {
-    // Handle the subscription error
-    logger.info("error " + cacheName + " " + topicName + " " + t.getMessage());
+    logger.trace("error " + cacheName + " " + topicName + " " + t.getMessage());
     this.options.onError(t);
   }
 
   private void handleSubscriptionCompleted() {
-    // Handle the subscription completion
-    logger.info("completed " + cacheName + " " + topicName);
+    logger.trace("completed " + cacheName + " " + topicName);
     this.options.onCompleted();
   }
 
   private void handleSubscriptionItem(_SubscriptionItem item) {
-    // Handle subscription item
-    if (!subscribed) {
-      // The first message to a new subscription will always be a heartbeat.
-      if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
-        throw new InternalServerException(
-            "Expected heartbeat message for topic "
-                + topicName
-                + " on cache "
-                + cacheName
-                + ". Got: "
-                + item.getKindCase());
-      }
-      subscribed = true;
-    }
-
-    // Handle different cases based on item
     switch (item.getKindCase()) {
       case ITEM:
         handleSubscriptionItemMessage(item);
@@ -132,8 +123,7 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   private void handleSubscriptionDiscontinuity(_SubscriptionItem discontinuityItem) {
-    // Handle subscription discontinuity
-    logger.info(
+    logger.debug(
         cacheName,
         topicName,
         discontinuityItem.getDiscontinuity().getLastTopicSequence(),
@@ -141,17 +131,14 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   private void handleSubscriptionHeartbeat() {
-    // Handle subscription heartbeat
-    logger.info("heartbeat " + " " + cacheName + " " + topicName);
+    logger.debug("heartbeat " + " " + cacheName + " " + topicName);
   }
 
   private void handleSubscriptionUnknown() {
-    // Handle subscription unknown
     logger.info("unknown " + cacheName + " " + topicName);
   }
 
   private void handleSubscriptionItemMessage(_SubscriptionItem item) {
-    // Handle subscription item message
     _TopicValue topicValue = item.getItem().getValue();
     TopicMessage message;
 
@@ -175,19 +162,16 @@ public class SubscriptionWrapper implements Closeable {
 
   private TopicMessage.Text handleSubscriptionTextMessage(String text, String publisherId) {
     _TopicValue topicValue = _TopicValue.newBuilder().setText(text).build();
-    // Handle subscription text message
     return new TopicMessage.Text(topicValue, publisherId.isEmpty() ? null : publisherId);
   }
 
   private TopicMessage.Binary handleSubscriptionBinaryMessage(byte[] binary, String publisherId) {
     _TopicValue topicValue =
         _TopicValue.newBuilder().setBinary(ByteString.copyFrom(binary)).build();
-    // Handle subscription binary message
     return new TopicMessage.Binary(topicValue, publisherId.isEmpty() ? null : publisherId);
   }
 
   private void handleSubscriptionUnknownMessage() {
-    // Handle subscription unknown message
     logger.info("unknown " + cacheName + " " + topicName);
   }
 
