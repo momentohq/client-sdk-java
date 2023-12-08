@@ -1,5 +1,6 @@
 package momento.sdk.responses.topic;
 
+import java.util.function.Supplier;
 import momento.sdk.exceptions.SdkException;
 
 /** Represents the response for a topic subscribe operation. */
@@ -39,6 +40,46 @@ public interface TopicSubscribeResponse {
      */
     public Error(SdkException cause) {
       super(cause);
+    }
+  }
+
+  /**
+   * Returns the Subscription if the response is a Subscription, otherwise returns the provided
+   * default value.
+   *
+   * @param other The default value to be returned if the response is not a Subscription.
+   * @return The Subscription if the response is a Subscription, otherwise the default value.
+   */
+  default Subscription orElse(Subscription other) {
+    return this instanceof Subscription ? (Subscription) this : other;
+  }
+
+  /**
+   * Returns the Subscription if the response is a Subscription, otherwise returns the result of
+   * invoking the specified Supplier.
+   *
+   * @param supplier The Supplier to be invoked if the response is not a Subscription.
+   * @return The Subscription if the response is a Subscription, otherwise the result of invoking
+   *     the specified Supplier.
+   */
+  default Subscription orElseGet(Supplier<? extends Subscription> supplier) {
+    return this instanceof Subscription ? (Subscription) this : supplier.get();
+  }
+
+  /**
+   * Returns the Subscription if the response is a Subscription, otherwise throws an exception
+   * produced by the specified Supplier.
+   *
+   * @param <X> The type of the exception to be thrown.
+   * @param exceptionSupplier The Supplier that produces the exception to be thrown.
+   * @return The Subscription if the response is a Subscription.
+   * @throws X if the response is not a Subscription.
+   */
+  default <X extends Throwable> Subscription orElseThrow(Error exceptionSupplier) throws X {
+    if (this instanceof Subscription) {
+      return (Subscription) this;
+    } else {
+      throw exceptionSupplier;
     }
   }
 }

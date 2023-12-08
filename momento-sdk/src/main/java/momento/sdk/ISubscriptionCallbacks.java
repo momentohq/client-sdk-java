@@ -3,7 +3,7 @@ package momento.sdk;
 import momento.sdk.responses.topic.TopicMessage;
 
 /** Represents options for a topic subscription callback. */
-public interface ISubscribeCallOptions {
+public interface ISubscriptionCallbacks {
   /**
    * Called when a new message is received on the subscribed topic.
    *

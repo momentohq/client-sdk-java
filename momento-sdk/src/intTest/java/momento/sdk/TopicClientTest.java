@@ -3,16 +3,17 @@ package momento.sdk;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
 import momento.sdk.config.Configurations;
 import momento.sdk.config.TopicConfigurations;
+import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.MomentoErrorCode;
+import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
@@ -30,13 +31,13 @@ public class TopicClientTest extends BaseTestClass {
   private TopicClient topicClient;
 
   private final String topicName = "test-topic";
-  CountDownLatch latch = new CountDownLatch(1);
+  CountDownLatch latch = new CountDownLatch(2);
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
 
   private final List<String> receivedStringValues = new ArrayList<>();
   private final List<byte[]> receivedByteArrayValues = new ArrayList<>();
-  ISubscribeCallOptions options =
-      new ISubscribeCallOptions() {
+  ISubscriptionCallbacks options =
+      new ISubscriptionCallbacks() {
         @Override
         public void onItem(TopicMessage message) {
           logger.info("onItem Invoked");
@@ -149,14 +150,13 @@ public class TopicClientTest extends BaseTestClass {
     byte[] value = new byte[] {0x00};
 
     TopicSubscribeResponse response = topicClient.subscribe(cacheName, topicName, options).join();
-    logger.info(response.toString());
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Subscription.class);
 
     TopicPublishResponse publishResponse = topicClient.publish(cacheName, topicName, value).join();
-    logger.info(publishResponse.toString());
     assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
 
-    assertTrue(latch.await(5, TimeUnit.SECONDS));
+    latch.countDown();
+    latch.await();
 
     List<byte[]> expectedReceivedValues = new ArrayList<>();
     expectedReceivedValues.add(value);
@@ -174,20 +174,95 @@ public class TopicClientTest extends BaseTestClass {
     String value = "test-value";
 
     TopicSubscribeResponse response = topicClient.subscribe(cacheName, topicName, options).join();
-    logger.info(response.toString());
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Subscription.class);
 
     TopicPublishResponse publishResponse = topicClient.publish(cacheName, topicName, value).join();
-    logger.info(publishResponse.toString());
     assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
 
-    assertTrue(latch.await(5, TimeUnit.SECONDS));
+    latch.countDown();
+    latch.await();
 
     List<String> expectedReceivedValues = new ArrayList<>();
     expectedReceivedValues.add(value);
 
+    logger.info("expectedReceivedValues: " + expectedReceivedValues);
+    logger.info("receivedStringValues: " + receivedStringValues);
+
     assertEquals(expectedReceivedValues, receivedStringValues);
 
     ((TopicSubscribeResponse.Subscription) response).unsubscribe();
+  }
+
+  @Test
+  public void topicPublishSubscribe_ByteArray_MultipleMessages_HappyPath()
+      throws InterruptedException {
+    byte[] value1 = new byte[] {0x01};
+    byte[] value2 = new byte[] {0x02};
+    byte[] value3 = new byte[] {0x03};
+
+    List<byte[]> values = Arrays.asList(value1, value2, value3);
+
+    TopicSubscribeResponse response = topicClient.subscribe(cacheName, topicName, options).join();
+    assertThat(response).isInstanceOf(TopicSubscribeResponse.Subscription.class);
+
+    for (byte[] value : values) {
+      TopicPublishResponse publishResponse =
+          topicClient.publish(cacheName, topicName, value).join();
+      assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
+    }
+
+    latch.countDown();
+    latch.await();
+
+    TopicSubscribeResponse.Subscription subscription =
+        response.orElseThrow(
+            new TopicSubscribeResponse.Error(
+                CacheServiceExceptionMapper.convert(new SdkException("Not a Subscription"))));
+
+    List<byte[]> expectedReceivedValues = new ArrayList<>(values);
+
+    assertArrayEquals(
+        expectedReceivedValues.toArray(new byte[0][]),
+        receivedByteArrayValues.toArray(new byte[0][]),
+        "Received values do not match the expected values");
+
+    if (subscription != null) {
+      subscription.unsubscribe();
+    } else {
+      throw new RuntimeException("Subscription is null");
+    }
+  }
+
+  @Test
+  public void topicPublishSubscribe_String_MultipleMessages_HappyPath()
+      throws InterruptedException {
+    List<String> values = Arrays.asList("hello", "topics", "world", "in", "java", "sdk");
+
+    TopicSubscribeResponse response = topicClient.subscribe(cacheName, topicName, options).join();
+
+    for (String value : values) {
+      TopicPublishResponse publishResponse =
+          topicClient.publish(cacheName, topicName, value).join();
+      assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
+    }
+
+    latch.countDown();
+    latch.await();
+
+    TopicSubscribeResponse.Subscription subscription =
+        response.orElseThrow(
+            new TopicSubscribeResponse.Error(
+                CacheServiceExceptionMapper.convert(new SdkException("Not a Subscription"))));
+    assertThat(subscription).isInstanceOf(TopicSubscribeResponse.Subscription.class);
+
+    List<String> expectedReceivedValues = new ArrayList<>(values);
+
+    assertEquals(expectedReceivedValues, receivedStringValues);
+
+    if (subscription != null) {
+      subscription.unsubscribe();
+    } else {
+      throw new RuntimeException("Subscription is null");
+    }
   }
 }

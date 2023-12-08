@@ -55,7 +55,7 @@ public class ScsTopicClient extends ScsClient {
   }
 
   public CompletableFuture<TopicSubscribeResponse> subscribe(
-      String cacheName, String topicName, ISubscribeCallOptions options) {
+      String cacheName, String topicName, ISubscriptionCallbacks options) {
     try {
       ValidationUtils.checkCacheNameValid(cacheName);
       ValidationUtils.checkTopicNameValid(topicName);
@@ -110,7 +110,7 @@ public class ScsTopicClient extends ScsClient {
   }
 
   private CompletableFuture<TopicSubscribeResponse> sendSubscribe(
-      String cacheName, String topicName, ISubscribeCallOptions options) {
+      String cacheName, String topicName, ISubscriptionCallbacks options) {
     SubscriptionWrapper subscriptionWrapper;
     SubscriptionState subState = new SubscriptionState();
     subscriptionWrapper =

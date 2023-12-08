@@ -21,7 +21,7 @@ public class SubscriptionWrapper implements Closeable {
   private final String cacheName;
   private final String topicName;
   private final SubscriptionState subscriptionState;
-  private final ISubscribeCallOptions options;
+  private final ISubscriptionCallbacks options;
   private StreamObserver<_SubscriptionItem> subscription;
 
   public SubscriptionWrapper(
@@ -29,7 +29,7 @@ public class SubscriptionWrapper implements Closeable {
       String cacheName,
       String topicName,
       SubscriptionState subscriptionState,
-      ISubscribeCallOptions options) {
+      ISubscriptionCallbacks options) {
     this.grpcManager = grpcManager;
     this.cacheName = cacheName;
     this.topicName = topicName;
