@@ -136,7 +136,7 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   private void handleSubscriptionUnknown() {
-    logger.info("unknown " + cacheName + " " + topicName);
+    logger.warn("unknown " + cacheName + " " + topicName);
   }
 
   private void handleSubscriptionItemMessage(_SubscriptionItem item) {
