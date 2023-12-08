@@ -4,7 +4,7 @@ import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.config.Configuration;
+import momento.sdk.config.TopicConfiguration;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
@@ -23,7 +23,7 @@ public final class TopicClient implements Closeable {
    * @param configuration Configuration object containing all tunable client settings.
    */
   public TopicClient(
-      @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
+      @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
     this.scsTopicClient = new ScsTopicClient(credentialProvider, configuration);
     logger.info("Creating Momento Topic Client");
     logger.debug("Cache endpoint: " + credentialProvider.getCacheEndpoint());
@@ -38,8 +38,8 @@ public final class TopicClient implements Closeable {
    * @return TopicClient
    */
   public static TopicClient create(
-      @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
-    return create(credentialProvider, configuration);
+      @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
+    return TopicClient.builder(credentialProvider, configuration).build();
   }
 
   /**
@@ -50,7 +50,7 @@ public final class TopicClient implements Closeable {
    * @return The builder.
    */
   public static TopicClientBuilder builder(
-      CredentialProvider credentialProvider, Configuration configuration) {
+      CredentialProvider credentialProvider, TopicConfiguration configuration) {
     return new TopicClientBuilder(credentialProvider, configuration);
   }
 

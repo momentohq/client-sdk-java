@@ -7,7 +7,7 @@ import io.grpc.stub.StreamObserver;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.config.Configuration;
+import momento.sdk.config.TopicConfiguration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.responses.topic.SubscriptionState;
 import momento.sdk.responses.topic.TopicPublishResponse;
@@ -19,7 +19,7 @@ public class ScsTopicClient extends ScsClient {
   private final CredentialProvider credentialProvider;
 
   public ScsTopicClient(
-      @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
+      @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
     this.credentialProvider = credentialProvider;
     this.topicGrpcStubsManager = new ScsTopicGrpcStubsManager(credentialProvider, configuration);
   }
@@ -91,7 +91,8 @@ public class ScsTopicClient extends ScsClient {
 
                 @Override
                 public void onError(Throwable t) {
-                  future.completeExceptionally(CacheServiceExceptionMapper.convert(t));
+                  future.completeExceptionally(
+                      new TopicPublishResponse.Error(CacheServiceExceptionMapper.convert(t)));
                 }
 
                 @Override
@@ -101,7 +102,8 @@ public class ScsTopicClient extends ScsClient {
               });
     } catch (Exception e) {
       // Exception during gRPC call setup
-      future.completeExceptionally(CacheServiceExceptionMapper.convert(e));
+      future.completeExceptionally(
+          new TopicPublishResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
 
     return future;

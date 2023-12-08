@@ -27,11 +27,6 @@ public class SubscriptionState {
     this.isSubscribed = true;
   }
 
-  /** Sets the subscription state to "unsubscribed." */
-  public void setUnsubscribed() {
-    this.isSubscribed = false;
-  }
-
   /**
    * Checks if the subscription is in a "subscribed" state.
    *
@@ -54,7 +49,7 @@ public class SubscriptionState {
   public void unsubscribe() {
     if (isSubscribed) {
       unsubscribeFn.run();
-      setUnsubscribed();
+      this.isSubscribed = false;
     }
   }
 }

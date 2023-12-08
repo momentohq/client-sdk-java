@@ -3,12 +3,15 @@ package momento.sdk;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import momento.sdk.config.Configurations;
+import momento.sdk.config.TopicConfigurations;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicPublishResponse;
@@ -27,6 +30,7 @@ public class TopicClientTest extends BaseTestClass {
   private TopicClient topicClient;
 
   private final String topicName = "test-topic";
+  CountDownLatch latch = new CountDownLatch(1);
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
 
   private final List<String> receivedStringValues = new ArrayList<>();
@@ -42,6 +46,7 @@ public class TopicClientTest extends BaseTestClass {
           } else if (message instanceof TopicMessage.Binary) {
             receivedByteArrayValues.add(((TopicMessage.Binary) message).getValue());
           }
+          latch.countDown();
         }
 
         @Override
@@ -61,7 +66,8 @@ public class TopicClientTest extends BaseTestClass {
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL)
             .build();
 
-    topicClient = TopicClient.builder(credentialProvider, Configurations.Laptop.latest()).build();
+    topicClient =
+        TopicClient.builder(credentialProvider, TopicConfigurations.Laptop.latest()).build();
     cacheClient.createCache(cacheName).join();
   }
 
@@ -150,7 +156,7 @@ public class TopicClientTest extends BaseTestClass {
     logger.info(publishResponse.toString());
     assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
 
-    TimeUnit.MILLISECONDS.sleep(1000);
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
 
     List<byte[]> expectedReceivedValues = new ArrayList<>();
     expectedReceivedValues.add(value);
@@ -175,7 +181,7 @@ public class TopicClientTest extends BaseTestClass {
     logger.info(publishResponse.toString());
     assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
 
-    TimeUnit.MILLISECONDS.sleep(1000);
+    assertTrue(latch.await(5, TimeUnit.SECONDS));
 
     List<String> expectedReceivedValues = new ArrayList<>();
     expectedReceivedValues.add(value);

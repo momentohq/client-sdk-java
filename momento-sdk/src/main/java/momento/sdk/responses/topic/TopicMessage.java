@@ -1,6 +1,7 @@
 package momento.sdk.responses.topic;
 
 import grpc.cache_client.pubsub._TopicValue;
+import java.util.Arrays;
 import momento.sdk.exceptions.SdkException;
 
 public interface TopicMessage {
@@ -21,6 +22,11 @@ public interface TopicMessage {
     public String getTokenId() {
       return tokenId;
     }
+
+    @Override
+    public String toString() {
+      return "Text{" + "value='" + value + '\'' + ", tokenId='" + tokenId + '\'' + '}';
+    }
   }
 
   class Binary implements TopicMessage {
@@ -38,6 +44,11 @@ public interface TopicMessage {
 
     public String getTokenId() {
       return tokenId;
+    }
+
+    @Override
+    public String toString() {
+      return "Binary{" + "value=" + Arrays.toString(value) + ", tokenId='" + tokenId + '\'' + '}';
     }
   }
 

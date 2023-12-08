@@ -48,13 +48,14 @@ public class SubscriptionWrapper implements Closeable {
           public void onNext(_SubscriptionItem item) {
             if (firstMessage) {
               if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
-                throw new InternalServerException(
-                    "Expected heartbeat message for topic "
-                        + topicName
-                        + " on cache "
-                        + cacheName
-                        + ". Got: "
-                        + item.getKindCase());
+                future.completeExceptionally(
+                    new InternalServerException(
+                        "Expected heartbeat message for topic "
+                            + topicName
+                            + " on cache "
+                            + cacheName
+                            + ". Got: "
+                            + item.getKindCase()));
               }
               firstMessage = false;
               future.complete(null);

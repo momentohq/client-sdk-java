@@ -19,15 +19,6 @@ public interface TopicSubscribeResponse {
       this.subscriptionState = subscriptionState;
     }
 
-    /**
-     * Checks if the subscription is successful.
-     *
-     * @return True if subscribed, false otherwise.
-     */
-    public boolean isSubscribe() {
-      return this.subscriptionState.isSubscribed();
-    }
-
     /** Unsubscribes from the topic. */
     public void unsubscribe() {
       this.subscriptionState.unsubscribe();

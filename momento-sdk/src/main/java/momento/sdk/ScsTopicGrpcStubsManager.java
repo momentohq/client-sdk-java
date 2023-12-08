@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.config.Configuration;
+import momento.sdk.config.TopicConfiguration;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Topics.
@@ -28,7 +28,7 @@ final class ScsTopicGrpcStubsManager implements Closeable {
   private final PubsubGrpc.PubsubStub stub;
 
   ScsTopicGrpcStubsManager(
-      @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
+      @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
     this.channel = setupConnection(credentialProvider);
     this.stub = PubsubGrpc.newStub(channel);
     this.deadline = configuration.getTransportStrategy().getGrpcConfiguration().getDeadline();

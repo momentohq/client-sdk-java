@@ -2,13 +2,13 @@ package momento.sdk;
 
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.config.Configuration;
+import momento.sdk.config.TopicConfiguration;
 
 /** Builder for {@link TopicClient} */
 public final class TopicClientBuilder {
 
   private final CredentialProvider credentialProvider;
-  private Configuration configuration;
+  private TopicConfiguration configuration;
 
   /**
    * Creates a TopicClient builder.
@@ -17,7 +17,7 @@ public final class TopicClientBuilder {
    * @param configuration Configuration object containing all tunable client settings.
    */
   TopicClientBuilder(
-      @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
+      @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
     this.credentialProvider = credentialProvider;
     this.configuration = configuration;
   }
