@@ -25,7 +25,7 @@ public final class TopicClient implements Closeable {
   public TopicClient(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
     this.scsTopicClient = new ScsTopicClient(credentialProvider, configuration);
-    logger.info("Creating Momento Topic Client");
+    logger.debug("Creating Momento Topic Client");
     logger.debug("Cache endpoint: " + credentialProvider.getCacheEndpoint());
     logger.debug("Control endpoint: " + credentialProvider.getControlEndpoint());
   }

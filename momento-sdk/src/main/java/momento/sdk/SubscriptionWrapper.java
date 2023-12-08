@@ -156,7 +156,7 @@ public class SubscriptionWrapper implements Closeable {
         this.options.onItem(message);
         break;
       default:
-        handleSubscriptionUnknownMessage();
+        handleSubscriptionUnknown();
         break;
     }
   }
@@ -170,10 +170,6 @@ public class SubscriptionWrapper implements Closeable {
     _TopicValue topicValue =
         _TopicValue.newBuilder().setBinary(ByteString.copyFrom(binary)).build();
     return new TopicMessage.Binary(topicValue, publisherId.isEmpty() ? null : publisherId);
-  }
-
-  private void handleSubscriptionUnknownMessage() {
-    logger.info("unknown " + cacheName + " " + topicName);
   }
 
   public void unsubscribe() {
