@@ -6,14 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.time.Duration;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import momento.sdk.config.Configurations;
 import momento.sdk.config.TopicConfigurations;
-import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.MomentoErrorCode;
-import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
