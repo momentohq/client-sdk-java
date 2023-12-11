@@ -3,6 +3,7 @@ package momento.sdk;
 import com.google.protobuf.ByteString;
 import grpc.cache_client.pubsub._SubscriptionItem;
 import grpc.cache_client.pubsub._SubscriptionRequest;
+import grpc.cache_client.pubsub._TopicItem;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.stub.StreamObserver;
 import java.io.Closeable;
@@ -140,7 +141,9 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   private void handleSubscriptionItemMessage(_SubscriptionItem item) {
-    _TopicValue topicValue = item.getItem().getValue();
+    _TopicItem topicItem = item.getItem();
+    _TopicValue topicValue = topicItem.getValue();
+    subscriptionState.setResumeAtTopicSequenceNumber((int) topicItem.getTopicSequenceNumber());
     TopicMessage message;
 
     switch (topicValue.getKindCase()) {

@@ -22,18 +22,16 @@ public class SubscriptionState {
     return (lastTopicSequenceNumber != null ? lastTopicSequenceNumber : -1) + 1;
   }
 
+  /**
+   * Sets the topic sequence number to resume the subscription from.
+   */
+  public void setResumeAtTopicSequenceNumber(int lastTopicSequenceNumber) {
+    this.lastTopicSequenceNumber = lastTopicSequenceNumber;
+  }
+
   /** Sets the subscription state to "subscribed." */
   public void setSubscribed() {
     this.isSubscribed = true;
-  }
-
-  /**
-   * Checks if the subscription is in a "subscribed" state.
-   *
-   * @return True if subscribed, false otherwise.
-   */
-  public boolean isSubscribed() {
-    return isSubscribed;
   }
 
   /**
