@@ -16,6 +16,7 @@ public final class ValidationUtils {
   static final String A_NON_NULL_KEY_IS_REQUIRED = "A non-null key is required.";
   static final String A_NON_NULL_VALUE_IS_REQUIRED = "A non-null value is required.";
   static final String CACHE_NAME_IS_REQUIRED = "Cache name is required.";
+  static final String TOPIC_NAME_IS_REQUIRED = "Topic name is required.";
   static final String DICTIONARY_NAME_IS_REQUIRED = "Dictionary name is required.";
   static final String SET_NAME_CANNOT_BE_NULL = "Set name cannot be null.";
   static final String SORTED_SET_NAME_CANNOT_BE_NULL = "Sorted set name cannot be null.";
@@ -50,6 +51,12 @@ public final class ValidationUtils {
   static void checkCacheNameValid(String cacheName) {
     if (cacheName == null) {
       throw new InvalidArgumentException(CACHE_NAME_IS_REQUIRED);
+    }
+  }
+
+  static void checkTopicNameValid(String topicName) {
+    if (topicName == null) {
+      throw new InvalidArgumentException(TOPIC_NAME_IS_REQUIRED);
     }
   }
 
