@@ -185,7 +185,6 @@ public class TopicClientTest extends BaseTestClass {
     String value = "test-value";
 
     CountDownLatch latch = new CountDownLatch(1);
-    latch.countDown();
     TopicSubscribeResponse response =
         topicClient.subscribe(cacheName, topicName, callbacks(latch)).join();
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Subscription.class);
