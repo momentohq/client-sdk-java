@@ -22,9 +22,7 @@ public class SubscriptionState {
     return (lastTopicSequenceNumber != null ? lastTopicSequenceNumber : -1) + 1;
   }
 
-  /**
-   * Sets the topic sequence number to resume the subscription from.
-   */
+  /** Sets the topic sequence number to resume the subscription from. */
   public void setResumeAtTopicSequenceNumber(int lastTopicSequenceNumber) {
     this.lastTopicSequenceNumber = lastTopicSequenceNumber;
   }
