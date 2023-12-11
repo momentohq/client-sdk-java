@@ -28,16 +28,6 @@ public class TopicConfigurations {
      * @return the latest Laptop configuration
      */
     public static TopicConfiguration latest() {
-      return Laptop.v1();
-    }
-
-    /**
-     * Provides v1 configuration for a laptop environment. This configuration is guaranteed not to
-     * change in future releases of the Momento Java SDK.
-     *
-     * @return the v1 laptop configuration
-     */
-    public static TopicConfiguration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);
@@ -64,16 +54,6 @@ public class TopicConfigurations {
      * @return the latest in-region configuration
      */
     public static TopicConfiguration latest() {
-      return InRegion.v1();
-    }
-
-    /**
-     * Provides v1 configuration for an in-region environment. This configuration is guaranteed not
-     * to change in future releases of the Momento Java SDK.
-     *
-     * @return the v1 in-region configuration
-     */
-    public static TopicConfiguration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(1100)));
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);
@@ -101,16 +81,6 @@ public class TopicConfigurations {
      * @return the latest low-latency configuration
      */
     public static TopicConfiguration latest() {
-      return LowLatency.v1();
-    }
-
-    /**
-     * Provides v1 configuration for a low-latency environment. This configuration is guaranteed not
-     * to change in future releases of the Momento Java SDK.
-     *
-     * @return the v1 low-latency configuration
-     */
-    public static TopicConfiguration v1() {
       final TransportStrategy transportStrategy =
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(500)));
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);

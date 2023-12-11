@@ -28,35 +28,36 @@ public class TopicClientTest extends BaseTestClass {
   private TopicClient topicClient;
 
   private final String topicName = "test-topic";
-  CountDownLatch latch = new CountDownLatch(2);
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
 
   private final List<String> receivedStringValues = new ArrayList<>();
   private final List<byte[]> receivedByteArrayValues = new ArrayList<>();
-  ISubscriptionCallbacks options =
-      new ISubscriptionCallbacks() {
-        @Override
-        public void onItem(TopicMessage message) {
-          logger.info("onItem Invoked");
-          logger.info(message.toString());
-          if (message instanceof TopicMessage.Text) {
-            receivedStringValues.add(((TopicMessage.Text) message).getValue());
-          } else if (message instanceof TopicMessage.Binary) {
-            receivedByteArrayValues.add(((TopicMessage.Binary) message).getValue());
-          }
-          latch.countDown();
-        }
 
-        @Override
-        public void onCompleted() {
-          logger.info("onCompleted Invoked");
+  private ISubscriptionCallbacks callbacks(CountDownLatch latch) {
+    return new ISubscriptionCallbacks() {
+      @Override
+      public void onItem(TopicMessage message) {
+        logger.info("onItem Invoked");
+        logger.info(message.toString());
+        if (message instanceof TopicMessage.Text) {
+          receivedStringValues.add(((TopicMessage.Text) message).getValue());
+        } else if (message instanceof TopicMessage.Binary) {
+          receivedByteArrayValues.add(((TopicMessage.Binary) message).getValue());
         }
+        latch.countDown();
+      }
 
-        @Override
-        public void onError(Throwable t) {
-          logger.info("onError Invoked");
-        }
-      };
+      @Override
+      public void onCompleted() {
+        logger.info("onCompleted Invoked");
+      }
+
+      @Override
+      public void onError(Throwable t) {
+        logger.info("onError Invoked");
+      }
+    };
+  }
 
   @BeforeEach
   void setup() {
@@ -125,16 +126,28 @@ public class TopicClientTest extends BaseTestClass {
   }
 
   @Test
+  public void topicPublishCacheDoesNotExistIsError() {
+    String stringValue = "test-value";
+    TopicPublishResponse response =
+        topicClient.publish("doesNotExist", topicName, stringValue).join();
+    assertThat(response).isInstanceOf(TopicPublishResponse.Error.class);
+    assertEquals(
+        MomentoErrorCode.NOT_FOUND_ERROR, ((TopicPublishResponse.Error) response).getErrorCode());
+  }
+
+  @Test
   public void topicSubscribeNullChecksIsError() {
     // badCacheName, validTopicName
-    TopicSubscribeResponse response = topicClient.subscribe(null, topicName, options).join();
+    CountDownLatch latch = new CountDownLatch(1);
+    TopicSubscribeResponse response =
+        topicClient.subscribe(null, topicName, callbacks(latch)).join();
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Error.class);
     assertEquals(
         MomentoErrorCode.INVALID_ARGUMENT_ERROR,
         ((TopicSubscribeResponse.Error) response).getErrorCode());
 
     // validCacheName, badTopicName
-    response = topicClient.subscribe(cacheName, null, options).join();
+    response = topicClient.subscribe(cacheName, null, callbacks(latch)).join();
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Error.class);
     assertEquals(
         MomentoErrorCode.INVALID_ARGUMENT_ERROR,
@@ -146,13 +159,14 @@ public class TopicClientTest extends BaseTestClass {
 
     byte[] value = new byte[] {0x00};
 
-    TopicSubscribeResponse response = topicClient.subscribe(cacheName, topicName, options).join();
+    CountDownLatch latch = new CountDownLatch(1);
+    TopicSubscribeResponse response =
+        topicClient.subscribe(cacheName, topicName, callbacks(latch)).join();
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Subscription.class);
 
     TopicPublishResponse publishResponse = topicClient.publish(cacheName, topicName, value).join();
     assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
 
-    latch.countDown();
     latch.await();
 
     List<byte[]> expectedReceivedValues = new ArrayList<>();
@@ -170,13 +184,15 @@ public class TopicClientTest extends BaseTestClass {
   public void topicPublishSubscribe_String_HappyPath() throws InterruptedException {
     String value = "test-value";
 
-    TopicSubscribeResponse response = topicClient.subscribe(cacheName, topicName, options).join();
+    CountDownLatch latch = new CountDownLatch(1);
+    latch.countDown();
+    TopicSubscribeResponse response =
+        topicClient.subscribe(cacheName, topicName, callbacks(latch)).join();
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Subscription.class);
 
     TopicPublishResponse publishResponse = topicClient.publish(cacheName, topicName, value).join();
     assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
 
-    latch.countDown();
     latch.await();
 
     List<String> expectedReceivedValues = new ArrayList<>();

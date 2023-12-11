@@ -91,7 +91,7 @@ public class ScsTopicClient extends ScsClient {
 
                 @Override
                 public void onError(Throwable t) {
-                  future.completeExceptionally(
+                  future.complete(
                       new TopicPublishResponse.Error(CacheServiceExceptionMapper.convert(t)));
                 }
 

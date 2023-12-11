@@ -69,6 +69,7 @@ public class SubscriptionWrapper implements Closeable {
             if (firstMessage) {
               firstMessage = false;
               future.completeExceptionally(t);
+
             } else {
               handleSubscriptionError(t);
             }
@@ -126,6 +127,7 @@ public class SubscriptionWrapper implements Closeable {
 
   private void handleSubscriptionDiscontinuity(_SubscriptionItem discontinuityItem) {
     logger.debug(
+        "{}, {}, {}, {}",
         cacheName,
         topicName,
         discontinuityItem.getDiscontinuity().getLastTopicSequence(),
@@ -133,11 +135,11 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   private void handleSubscriptionHeartbeat() {
-    logger.debug("heartbeat " + " " + cacheName + " " + topicName);
+    logger.debug("heartbeat {} {}", cacheName, topicName);
   }
 
   private void handleSubscriptionUnknown() {
-    logger.warn("unknown " + cacheName + " " + topicName);
+    logger.warn("unknown {} {}", cacheName, topicName);
   }
 
   private void handleSubscriptionItemMessage(_SubscriptionItem item) {

@@ -44,17 +44,6 @@ public interface TopicSubscribeResponse {
   }
 
   /**
-   * Returns the Subscription if the response is a Subscription, otherwise returns the provided
-   * default value.
-   *
-   * @param other The default value to be returned if the response is not a Subscription.
-   * @return The Subscription if the response is a Subscription, otherwise the default value.
-   */
-  default Subscription orElse(Subscription other) {
-    return this instanceof Subscription ? (Subscription) this : other;
-  }
-
-  /**
    * Returns the Subscription if the response is a Subscription, otherwise returns the result of
    * invoking the specified Supplier.
    *
@@ -75,11 +64,12 @@ public interface TopicSubscribeResponse {
    * @return The Subscription if the response is a Subscription.
    * @throws X if the response is not a Subscription.
    */
-  default <X extends Throwable> Subscription orElseThrow(Error exceptionSupplier) throws X {
+  default <X extends Throwable> Subscription orElseThrow(Supplier<? extends X> exceptionSupplier)
+      throws X {
     if (this instanceof Subscription) {
       return (Subscription) this;
     } else {
-      throw exceptionSupplier;
+      throw exceptionSupplier.get();
     }
   }
 }
