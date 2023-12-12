@@ -19,22 +19,13 @@ import org.slf4j.LoggerFactory;
 public class SubscriptionWrapper implements Closeable {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
   private final ScsTopicGrpcStubsManager grpcManager;
-  private final String cacheName;
-  private final String topicName;
-  private final SubscriptionState subscriptionState;
-  private final ISubscriptionCallbacks options;
+  private final SendSubscribeOptions options;
   private StreamObserver<_SubscriptionItem> subscription;
 
   public SubscriptionWrapper(
       ScsTopicGrpcStubsManager grpcManager,
-      String cacheName,
-      String topicName,
-      SubscriptionState subscriptionState,
-      ISubscriptionCallbacks options) {
+      SendSubscribeOptions options) {
     this.grpcManager = grpcManager;
-    this.cacheName = cacheName;
-    this.topicName = topicName;
-    this.subscriptionState = subscriptionState;
     this.options = options;
   }
 
@@ -52,9 +43,9 @@ public class SubscriptionWrapper implements Closeable {
                 future.completeExceptionally(
                     new InternalServerException(
                         "Expected heartbeat message for topic "
-                            + topicName
+                            + options.getTopicName()
                             + " on cache "
-                            + cacheName
+                            + options.getCacheName()
                             + ". Got: "
                             + item.getKindCase()));
               }
@@ -83,14 +74,14 @@ public class SubscriptionWrapper implements Closeable {
 
     _SubscriptionRequest subscriptionRequest =
         _SubscriptionRequest.newBuilder()
-            .setCacheName(cacheName)
-            .setTopic(topicName)
-            .setResumeAtTopicSequenceNumber(subscriptionState.getResumeAtTopicSequenceNumber())
+            .setCacheName(options.getCacheName())
+            .setTopic(options.getTopicName())
+            .setResumeAtTopicSequenceNumber(options.subscriptionState.getResumeAtTopicSequenceNumber())
             .build();
 
     try {
       grpcManager.getStub().subscribe(subscriptionRequest, subscription);
-      subscriptionState.setSubscribed();
+      options.subscriptionState.setSubscribed();
     } catch (Exception e) {
       future.completeExceptionally(
           new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -99,12 +90,12 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   private void handleSubscriptionError(Throwable t) {
-    logger.trace("error " + cacheName + " " + topicName + " " + t.getMessage());
+    logger.trace("error " + options.getCacheName() + " " + options.getTopicName() + " " + t.getMessage());
     this.options.onError(t);
   }
 
   private void handleSubscriptionCompleted() {
-    logger.trace("completed " + cacheName + " " + topicName);
+    logger.trace("completed " + options.getCacheName() + " " + options.getTopicName());
     this.options.onCompleted();
   }
 
@@ -127,25 +118,24 @@ public class SubscriptionWrapper implements Closeable {
 
   private void handleSubscriptionDiscontinuity(_SubscriptionItem discontinuityItem) {
     logger.debug(
-        "{}, {}, {}, {}",
-        cacheName,
-        topicName,
+        "{}, {}, {}, {}", options.getCacheName(),
+        options.getTopicName(),
         discontinuityItem.getDiscontinuity().getLastTopicSequence(),
         discontinuityItem.getDiscontinuity().getNewTopicSequence());
   }
 
   private void handleSubscriptionHeartbeat() {
-    logger.debug("heartbeat {} {}", cacheName, topicName);
+    logger.debug("heartbeat {} {}", options.getCacheName(), options.getTopicName());
   }
 
   private void handleSubscriptionUnknown() {
-    logger.warn("unknown {} {}", cacheName, topicName);
+    logger.warn("unknown {} {}", options.getCacheName(), options.getTopicName());
   }
 
   private void handleSubscriptionItemMessage(_SubscriptionItem item) {
     _TopicItem topicItem = item.getItem();
     _TopicValue topicValue = topicItem.getValue();
-    subscriptionState.setResumeAtTopicSequenceNumber((int) topicItem.getTopicSequenceNumber());
+    options.subscriptionState.setResumeAtTopicSequenceNumber((int) topicItem.getTopicSequenceNumber());
     TopicMessage message;
 
     switch (topicValue.getKindCase()) {

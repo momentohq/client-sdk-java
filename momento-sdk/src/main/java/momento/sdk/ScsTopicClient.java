@@ -63,7 +63,20 @@ public class ScsTopicClient extends ScsClient {
       return CompletableFuture.completedFuture(
           new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
-    return sendSubscribe(cacheName, topicName, options);
+
+    SubscriptionState subscriptionState = new SubscriptionState();
+    TopicSubscribeResponse.Subscription subscription = new TopicSubscribeResponse.Subscription(subscriptionState);
+    SendSubscribeOptions sendSubscribeOptions = new SendSubscribeOptions(
+            cacheName,
+            topicName,
+            options::onItem,
+            options::onCompleted,
+            options::onError,
+            subscriptionState,
+            subscription
+    );
+
+    return sendSubscribe(sendSubscribeOptions);
   }
 
   private CompletableFuture<TopicPublishResponse> sendPublish(
@@ -109,20 +122,18 @@ public class ScsTopicClient extends ScsClient {
     return future;
   }
 
-  private CompletableFuture<TopicSubscribeResponse> sendSubscribe(
-      String cacheName, String topicName, ISubscriptionCallbacks options) {
+  private CompletableFuture<TopicSubscribeResponse> sendSubscribe(SendSubscribeOptions sendSubscribeOptions) {
     SubscriptionWrapper subscriptionWrapper;
-    SubscriptionState subState = new SubscriptionState();
     subscriptionWrapper =
-        new SubscriptionWrapper(topicGrpcStubsManager, cacheName, topicName, subState, options);
+        new SubscriptionWrapper(topicGrpcStubsManager, sendSubscribeOptions);
     final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribe();
     return subscribeFuture.handle(
         (v, ex) -> {
           if (ex != null) {
             return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
           } else {
-            subState.setUnsubscribeFn(subscriptionWrapper::unsubscribe);
-            return new TopicSubscribeResponse.Subscription(subState);
+            sendSubscribeOptions.subscriptionState.setUnsubscribeFn(subscriptionWrapper::unsubscribe);
+            return new TopicSubscribeResponse.Subscription(sendSubscribeOptions.subscriptionState);
           }
         });
   }
