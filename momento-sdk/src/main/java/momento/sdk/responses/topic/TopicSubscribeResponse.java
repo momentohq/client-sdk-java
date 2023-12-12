@@ -1,6 +1,8 @@
 package momento.sdk.responses.topic;
 
 import java.util.function.Supplier;
+
+import io.grpc.StatusRuntimeException;
 import momento.sdk.exceptions.SdkException;
 
 /** Represents the response for a topic subscribe operation. */
@@ -23,6 +25,10 @@ public interface TopicSubscribeResponse {
     /** Unsubscribes from the topic. */
     public void unsubscribe() {
       this.subscriptionState.unsubscribe();
+    }
+
+    public void hackyOnError(StatusRuntimeException deadlineExceeded) {
+      this.subscriptionState.hackySubscriptionWrapper.subscription.onError(deadlineExceeded);
     }
   }
 

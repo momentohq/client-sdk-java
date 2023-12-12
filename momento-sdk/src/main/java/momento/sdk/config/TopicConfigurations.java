@@ -29,7 +29,7 @@ public class TopicConfigurations {
      */
     public static TopicConfiguration latest() {
       final TransportStrategy transportStrategy =
-          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
+          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(20_000)));
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);
       return new Laptop(transportStrategy, logger);
     }

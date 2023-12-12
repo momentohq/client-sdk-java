@@ -5,6 +5,7 @@ import grpc.cache_client.pubsub._SubscriptionItem;
 import grpc.cache_client.pubsub._SubscriptionRequest;
 import grpc.cache_client.pubsub._TopicItem;
 import grpc.cache_client.pubsub._TopicValue;
+import io.grpc.Status;
 import io.grpc.stub.StreamObserver;
 import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
@@ -20,7 +21,9 @@ public class SubscriptionWrapper implements Closeable {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
   private final ScsTopicGrpcStubsManager grpcManager;
   private final SendSubscribeOptions options;
-  private StreamObserver<_SubscriptionItem> subscription;
+
+  // TODO: make this private again
+  public StreamObserver<_SubscriptionItem> subscription;
 
   public SubscriptionWrapper(
       ScsTopicGrpcStubsManager grpcManager,
@@ -81,6 +84,7 @@ public class SubscriptionWrapper implements Closeable {
 
     try {
       grpcManager.getStub().subscribe(subscriptionRequest, subscription);
+
       options.subscriptionState.setSubscribed();
     } catch (Exception e) {
       future.completeExceptionally(
@@ -91,6 +95,14 @@ public class SubscriptionWrapper implements Closeable {
 
   private void handleSubscriptionError(Throwable t) {
     logger.trace("error " + options.getCacheName() + " " + options.getTopicName() + " " + t.getMessage());
+    if (t instanceof io.grpc.StatusRuntimeException) {
+      io.grpc.StatusRuntimeException statusRuntimeException = (io.grpc.StatusRuntimeException) t;
+      if (statusRuntimeException.getStatus().getCode() == Status.Code.UNAVAILABLE) {
+        logger.warn("WE GOT AN UNAVAILABLE ERROR");
+      }
+      call.cancel();
+      this.sendSubscribe(this.options);
+    }
     this.options.onError(t);
   }
 

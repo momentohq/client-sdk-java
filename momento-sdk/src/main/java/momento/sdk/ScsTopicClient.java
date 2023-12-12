@@ -93,6 +93,8 @@ public class ScsTopicClient extends ScsClient {
     try {
       topicGrpcStubsManager
           .getStub()
+              // TODO: need to add deadline
+//              .withDeadlineAfter(this. deadline.getSeconds(), TimeUnit.SECONDS)
           .publish(
               request,
               new StreamObserver() {
@@ -126,6 +128,7 @@ public class ScsTopicClient extends ScsClient {
     SubscriptionWrapper subscriptionWrapper;
     subscriptionWrapper =
         new SubscriptionWrapper(topicGrpcStubsManager, sendSubscribeOptions);
+    sendSubscribeOptions.subscriptionState.hackySubscriptionWrapper = subscriptionWrapper;
     final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribe();
     return subscribeFuture.handle(
         (v, ex) -> {

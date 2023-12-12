@@ -1,6 +1,8 @@
 package momento.client.example;
 
 import java.time.Duration;
+
+import io.grpc.Status;
 import momento.sdk.CacheClient;
 import momento.sdk.ISubscriptionCallbacks;
 import momento.sdk.TopicClient;
@@ -77,11 +79,17 @@ public class TopicExample {
                     }
                   })
               .join();
-//      TopicSub
+      TopicSubscribeResponse.Subscription subscription = subscribeResponse.orElseThrow(
+              () -> new RuntimeException("Unable to subscribe to topic"));
 
+      var unavailable = new io.grpc.StatusRuntimeException(Status.UNAVAILABLE, null);
 
       // Publish message to a topic
       for (int i = 0; i < 100; i++) {
+        if (i == 10) {
+          subscription.hackyOnError(unavailable);
+        }
+        System.out.println("Attempting to publish message #" + i);
         final TopicPublishResponse publishResponse =
             topicClient.publish(CACHE_NAME, TOPIC_NAME, "message " + i).join();
         if (publishResponse instanceof TopicPublishResponse.Error error) {
@@ -90,12 +98,11 @@ public class TopicExample {
         Thread.sleep(1000);
       }
 
-
-
-
+      subscription.unsubscribe();
 
     } catch (Exception e) {
       logger.error("An unexpected error occurred", e);
+      throw new RuntimeException(e);
     }
 
     logEndBanner();

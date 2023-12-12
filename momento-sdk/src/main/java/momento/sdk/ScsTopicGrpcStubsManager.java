@@ -56,8 +56,10 @@ final class ScsTopicGrpcStubsManager implements Closeable {
    * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
    */
   PubsubGrpc.PubsubStub getStub() {
-    return stub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
+    return stub;
   }
+//    .withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
+//  }
 
   @Override
   public void close() {
