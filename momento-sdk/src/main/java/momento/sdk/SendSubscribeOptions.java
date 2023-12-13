@@ -60,19 +60,16 @@ public class SendSubscribeOptions implements ISubscriptionCallbacks {
 
   @Override
   public void onItem(TopicMessage message) {
-    // Implementation of onItem in SendSubscribeOptions
     onItem.onItem(message);
   }
 
   @Override
   public void onCompleted() {
-    // Implementation of onCompleted in SendSubscribeOptions
     onCompleted.onCompleted();
   }
 
   @Override
   public void onError(Throwable t) {
-    // Implementation of onError in SendSubscribeOptions
     onError.onError(t);
   }
 
