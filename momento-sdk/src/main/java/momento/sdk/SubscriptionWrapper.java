@@ -6,12 +6,10 @@ import grpc.cache_client.pubsub._SubscriptionRequest;
 import grpc.cache_client.pubsub._TopicItem;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.Status;
-import io.grpc.stub.StreamObserver;
 import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
-import momento.sdk.responses.topic.SubscriptionState;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
@@ -23,24 +21,42 @@ public class SubscriptionWrapper implements Closeable {
   private final SendSubscribeOptions options;
 
   // TODO: make this private again
-  public StreamObserver<_SubscriptionItem> subscription;
 
-  public SubscriptionWrapper(
-      ScsTopicGrpcStubsManager grpcManager,
-      SendSubscribeOptions options) {
+  // public StreamObserver<_SubscriptionItem> subscription;
+  public CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
+
+  public SubscriptionWrapper(ScsTopicGrpcStubsManager grpcManager, SendSubscribeOptions options) {
     this.grpcManager = grpcManager;
     this.options = options;
   }
 
   public CompletableFuture<Void> subscribe() {
+    logger.info("Subscribing " + options.getCacheName() + " " + options.getTopicName());
     CompletableFuture<Void> future = new CompletableFuture<>();
-
     subscription =
-        new StreamObserver<_SubscriptionItem>() {
+        new CancelableClientCallStreamObserver<_SubscriptionItem>() {
           boolean firstMessage = true;
 
           @Override
+          public boolean isReady() {
+            return false;
+          }
+
+          @Override
+          public void setOnReadyHandler(Runnable onReadyHandler) {}
+
+          @Override
+          public void request(int count) {}
+
+          @Override
+          public void setMessageCompression(boolean enable) {}
+
+          @Override
+          public void disableAutoInboundFlowControl() {}
+
+          @Override
           public void onNext(_SubscriptionItem item) {
+            logger.info("onNext callback Invoked");
             if (firstMessage) {
               if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
                 future.completeExceptionally(
@@ -60,17 +76,21 @@ public class SubscriptionWrapper implements Closeable {
 
           @Override
           public void onError(Throwable t) {
+            logger.info("onError callback Invoked");
             if (firstMessage) {
+              logger.info("onError callback inside if block Invoked");
               firstMessage = false;
               future.completeExceptionally(t);
 
             } else {
+              logger.info("onError callback inside else block Invoked" + t.getMessage());
               handleSubscriptionError(t);
             }
           }
 
           @Override
           public void onCompleted() {
+            logger.info("onCompleted callback Invoked");
             handleSubscriptionCompleted();
           }
         };
@@ -79,12 +99,13 @@ public class SubscriptionWrapper implements Closeable {
         _SubscriptionRequest.newBuilder()
             .setCacheName(options.getCacheName())
             .setTopic(options.getTopicName())
-            .setResumeAtTopicSequenceNumber(options.subscriptionState.getResumeAtTopicSequenceNumber())
+            .setResumeAtTopicSequenceNumber(
+                options.subscriptionState.getResumeAtTopicSequenceNumber())
             .build();
 
     try {
       grpcManager.getStub().subscribe(subscriptionRequest, subscription);
-
+      logger.info("subscribed " + options.getCacheName() + " " + options.getTopicName());
       options.subscriptionState.setSubscribed();
     } catch (Exception e) {
       future.completeExceptionally(
@@ -94,16 +115,19 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   private void handleSubscriptionError(Throwable t) {
-    logger.trace("error " + options.getCacheName() + " " + options.getTopicName() + " " + t.getMessage());
+    logger.info(
+        "error " + options.getCacheName() + " " + options.getTopicName() + " " + t.getMessage());
     if (t instanceof io.grpc.StatusRuntimeException) {
       io.grpc.StatusRuntimeException statusRuntimeException = (io.grpc.StatusRuntimeException) t;
       if (statusRuntimeException.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-        logger.warn("WE GOT AN UNAVAILABLE ERROR");
+        logger.info("WE GOT AN UNAVAILABLE ERROR");
+        unsubscribe();
+        this.subscribe();
       }
-      call.cancel();
-      this.sendSubscribe(this.options);
+    } else {
+      logger.info("WE GOT AN ERROR" + t.getMessage());
+      this.options.onError(t);
     }
-    this.options.onError(t);
   }
 
   private void handleSubscriptionCompleted() {
@@ -130,7 +154,8 @@ public class SubscriptionWrapper implements Closeable {
 
   private void handleSubscriptionDiscontinuity(_SubscriptionItem discontinuityItem) {
     logger.debug(
-        "{}, {}, {}, {}", options.getCacheName(),
+        "{}, {}, {}, {}",
+        options.getCacheName(),
         options.getTopicName(),
         discontinuityItem.getDiscontinuity().getLastTopicSequence(),
         discontinuityItem.getDiscontinuity().getNewTopicSequence());
@@ -147,7 +172,8 @@ public class SubscriptionWrapper implements Closeable {
   private void handleSubscriptionItemMessage(_SubscriptionItem item) {
     _TopicItem topicItem = item.getItem();
     _TopicValue topicValue = topicItem.getValue();
-    options.subscriptionState.setResumeAtTopicSequenceNumber((int) topicItem.getTopicSequenceNumber());
+    options.subscriptionState.setResumeAtTopicSequenceNumber(
+        (int) topicItem.getTopicSequenceNumber());
     TopicMessage message;
 
     switch (topicValue.getKindCase()) {
@@ -180,7 +206,9 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   public void unsubscribe() {
-    this.close();
+    //    this.close();
+    logger.info("Unsubscribing " + options.getCacheName() + " " + options.getTopicName());
+    subscription.cancel(null, null);
   }
 
   @Override

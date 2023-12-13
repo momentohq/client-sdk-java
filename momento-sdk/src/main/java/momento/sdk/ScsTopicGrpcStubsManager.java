@@ -8,7 +8,6 @@ import java.io.Closeable;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
@@ -58,8 +57,8 @@ final class ScsTopicGrpcStubsManager implements Closeable {
   PubsubGrpc.PubsubStub getStub() {
     return stub;
   }
-//    .withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
-//  }
+  //    .withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
+  //  }
 
   @Override
   public void close() {

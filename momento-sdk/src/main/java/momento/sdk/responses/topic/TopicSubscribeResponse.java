@@ -1,8 +1,7 @@
 package momento.sdk.responses.topic;
 
-import java.util.function.Supplier;
-
 import io.grpc.StatusRuntimeException;
+import java.util.function.Supplier;
 import momento.sdk.exceptions.SdkException;
 
 /** Represents the response for a topic subscribe operation. */

@@ -65,16 +65,17 @@ public class ScsTopicClient extends ScsClient {
     }
 
     SubscriptionState subscriptionState = new SubscriptionState();
-    TopicSubscribeResponse.Subscription subscription = new TopicSubscribeResponse.Subscription(subscriptionState);
-    SendSubscribeOptions sendSubscribeOptions = new SendSubscribeOptions(
+    TopicSubscribeResponse.Subscription subscription =
+        new TopicSubscribeResponse.Subscription(subscriptionState);
+    SendSubscribeOptions sendSubscribeOptions =
+        new SendSubscribeOptions(
             cacheName,
             topicName,
             options::onItem,
             options::onCompleted,
             options::onError,
             subscriptionState,
-            subscription
-    );
+            subscription);
 
     return sendSubscribe(sendSubscribeOptions);
   }
@@ -93,8 +94,8 @@ public class ScsTopicClient extends ScsClient {
     try {
       topicGrpcStubsManager
           .getStub()
-              // TODO: need to add deadline
-//              .withDeadlineAfter(this. deadline.getSeconds(), TimeUnit.SECONDS)
+          // TODO: need to add deadline
+          //              .withDeadlineAfter(this. deadline.getSeconds(), TimeUnit.SECONDS)
           .publish(
               request,
               new StreamObserver() {
@@ -124,10 +125,10 @@ public class ScsTopicClient extends ScsClient {
     return future;
   }
 
-  private CompletableFuture<TopicSubscribeResponse> sendSubscribe(SendSubscribeOptions sendSubscribeOptions) {
+  private CompletableFuture<TopicSubscribeResponse> sendSubscribe(
+      SendSubscribeOptions sendSubscribeOptions) {
     SubscriptionWrapper subscriptionWrapper;
-    subscriptionWrapper =
-        new SubscriptionWrapper(topicGrpcStubsManager, sendSubscribeOptions);
+    subscriptionWrapper = new SubscriptionWrapper(topicGrpcStubsManager, sendSubscribeOptions);
     sendSubscribeOptions.subscriptionState.hackySubscriptionWrapper = subscriptionWrapper;
     final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribe();
     return subscribeFuture.handle(
@@ -135,7 +136,8 @@ public class ScsTopicClient extends ScsClient {
           if (ex != null) {
             return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
           } else {
-            sendSubscribeOptions.subscriptionState.setUnsubscribeFn(subscriptionWrapper::unsubscribe);
+            sendSubscribeOptions.subscriptionState.setUnsubscribeFn(
+                subscriptionWrapper::unsubscribe);
             return new TopicSubscribeResponse.Subscription(sendSubscribeOptions.subscriptionState);
           }
         });
