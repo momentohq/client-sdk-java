@@ -4,8 +4,6 @@ import com.google.protobuf.ByteString;
 import grpc.cache_client.pubsub._PublishRequest;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.stub.StreamObserver;
-
-import java.sql.Time;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
@@ -96,7 +94,15 @@ public class ScsTopicClient extends ScsClient {
 
     try {
       topicGrpcStubsManager
-          .getStub().withDeadlineAfter(topicGrpcStubsManager.getConfiguration().getTransportStrategy().getGrpcConfiguration().getDeadline().getSeconds(), TimeUnit.SECONDS)
+          .getStub()
+          .withDeadlineAfter(
+              topicGrpcStubsManager
+                  .getConfiguration()
+                  .getTransportStrategy()
+                  .getGrpcConfiguration()
+                  .getDeadline()
+                  .getSeconds(),
+              TimeUnit.SECONDS)
           .publish(
               request,
               new StreamObserver() {

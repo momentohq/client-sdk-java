@@ -1,6 +1,5 @@
 package momento.sdk.responses.topic;
 
-import io.grpc.StatusRuntimeException;
 import java.util.function.Supplier;
 import momento.sdk.exceptions.SdkException;
 

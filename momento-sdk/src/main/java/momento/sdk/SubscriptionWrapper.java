@@ -11,7 +11,6 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.responses.topic.TopicMessage;
@@ -40,74 +39,71 @@ public class SubscriptionWrapper implements Closeable {
 
   public void subscribeWithRetryInternal(CompletableFuture<Void> future) {
     subscription =
-            new CancelableClientCallStreamObserver<_SubscriptionItem>() {
-                boolean firstMessage = true;
+        new CancelableClientCallStreamObserver<_SubscriptionItem>() {
+          boolean firstMessage = true;
 
-                @Override
-                public boolean isReady() {
-                    return false;
+          @Override
+          public boolean isReady() {
+            return false;
+          }
+
+          @Override
+          public void setOnReadyHandler(Runnable onReadyHandler) {}
+
+          @Override
+          public void request(int count) {}
+
+          @Override
+          public void setMessageCompression(boolean enable) {}
+
+          @Override
+          public void disableAutoInboundFlowControl() {}
+
+          @Override
+          public void onNext(_SubscriptionItem item) {
+            if (firstMessage) {
+              if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
+                future.completeExceptionally(
+                    new InternalServerException(
+                        "Expected heartbeat message for topic "
+                            + options.getTopicName()
+                            + " on cache "
+                            + options.getCacheName()
+                            + ". Got: "
+                            + item.getKindCase()));
+              }
+              firstMessage = false;
+              future.complete(null);
+            }
+            handleSubscriptionItem(item);
+          }
+
+          @Override
+          public void onError(Throwable t) {
+            if (firstMessage) {
+              firstMessage = false;
+              future.completeExceptionally(t);
+
+              // Retry logic for UNAVAILABLE errors
+              if (t instanceof io.grpc.StatusRuntimeException) {
+                io.grpc.StatusRuntimeException statusRuntimeException =
+                    (io.grpc.StatusRuntimeException) t;
+                if (statusRuntimeException.getStatus().getCode() == Status.Code.UNAVAILABLE) {
+                  logger.info("Retrying subscription after a delay...");
+                  // Adding a delay before retrying the subscription
+                  scheduleRetry(() -> subscribeWithRetryInternal(future));
                 }
+              }
+            } else {
+              handleSubscriptionError(t);
+            }
+          }
 
-                @Override
-                public void setOnReadyHandler(Runnable onReadyHandler) {
-                }
-
-                @Override
-                public void request(int count) {
-                }
-
-                @Override
-                public void setMessageCompression(boolean enable) {
-                }
-
-                @Override
-                public void disableAutoInboundFlowControl() {
-                }
-
-                @Override
-                public void onNext(_SubscriptionItem item) {
-                    if (firstMessage) {
-                        if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
-                            future.completeExceptionally(
-                                    new InternalServerException(
-                                            "Expected heartbeat message for topic "
-                                                    + options.getTopicName()
-                                                    + " on cache "
-                                                    + options.getCacheName()
-                                                    + ". Got: "
-                                                    + item.getKindCase()));
-                        }
-                        firstMessage = false;
-                        future.complete(null);
-                    }
-                    handleSubscriptionItem(item);
-                }
-
-                @Override
-                public void onError(Throwable t) {
-                    if (firstMessage) {
-                        firstMessage = false;
-                        future.completeExceptionally(t);
-
-                        // Retry logic for UNAVAILABLE errors
-                        if (t instanceof io.grpc.StatusRuntimeException) {
-                            io.grpc.StatusRuntimeException statusRuntimeException = (io.grpc.StatusRuntimeException) t;
-                            if (statusRuntimeException.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-                                logger.info("Retrying subscription after a delay...");
-                                // Adding a delay before retrying the subscription
-                                scheduleRetry(() -> subscribeWithRetryInternal(future));
-                            }
-                        }
-                    } else {
-                        handleSubscriptionError(t);
-                    }
-                }
-
-                @Override
-                public void onCompleted() {
-                    handleSubscriptionCompleted();
-                }
-            };
+          @Override
+          public void onCompleted() {
+            handleSubscriptionCompleted();
+          }
+        };
 
     _SubscriptionRequest subscriptionRequest =
         _SubscriptionRequest.newBuilder()
@@ -130,7 +126,6 @@ public class SubscriptionWrapper implements Closeable {
     scheduler = Executors.newSingleThreadScheduledExecutor();
     scheduler.schedule(retryAction, 5, TimeUnit.SECONDS);
   }
-
 
   private void handleSubscriptionError(Throwable t) {
     if (t instanceof io.grpc.StatusRuntimeException) {
@@ -219,8 +214,12 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   public void unsubscribe() {
-    subscription.cancel
-            ("Unsubscribing from topic: " + options.getTopicName() + " in cache: " + options.getCacheName(), null);
+    subscription.cancel(
+        "Unsubscribing from topic: "
+            + options.getTopicName()
+            + " in cache: "
+            + options.getCacheName(),
+        null);
   }
 
   @Override
