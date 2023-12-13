@@ -8,6 +8,10 @@ import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.Status;
 import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.responses.topic.TopicMessage;
@@ -19,81 +23,91 @@ public class SubscriptionWrapper implements Closeable {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
   private final ScsTopicGrpcStubsManager grpcManager;
   private final SendSubscribeOptions options;
+  private ScheduledExecutorService scheduler;
 
-  // TODO: make this private again
-
-  // public StreamObserver<_SubscriptionItem> subscription;
-  public CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
+  private CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
 
   public SubscriptionWrapper(ScsTopicGrpcStubsManager grpcManager, SendSubscribeOptions options) {
     this.grpcManager = grpcManager;
     this.options = options;
   }
 
-  public CompletableFuture<Void> subscribe() {
-    logger.info("Subscribing " + options.getCacheName() + " " + options.getTopicName());
+  public CompletableFuture<Void> subscribeWithRetry() {
     CompletableFuture<Void> future = new CompletableFuture<>();
+    subscribeWithRetryInternal(future);
+    return future;
+  }
+
+  public void subscribeWithRetryInternal(CompletableFuture<Void> future) {
     subscription =
-        new CancelableClientCallStreamObserver<_SubscriptionItem>() {
-          boolean firstMessage = true;
+            new CancelableClientCallStreamObserver<_SubscriptionItem>() {
+                boolean firstMessage = true;
 
-          @Override
-          public boolean isReady() {
-            return false;
-          }
+                @Override
+                public boolean isReady() {
+                    return false;
+                }
 
-          @Override
-          public void setOnReadyHandler(Runnable onReadyHandler) {}
+                @Override
+                public void setOnReadyHandler(Runnable onReadyHandler) {
+                }
 
-          @Override
-          public void request(int count) {}
+                @Override
+                public void request(int count) {
+                }
 
-          @Override
-          public void setMessageCompression(boolean enable) {}
+                @Override
+                public void setMessageCompression(boolean enable) {
+                }
 
-          @Override
-          public void disableAutoInboundFlowControl() {}
+                @Override
+                public void disableAutoInboundFlowControl() {
+                }
 
-          @Override
-          public void onNext(_SubscriptionItem item) {
-            logger.info("onNext callback Invoked");
-            if (firstMessage) {
-              if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
-                future.completeExceptionally(
-                    new InternalServerException(
-                        "Expected heartbeat message for topic "
-                            + options.getTopicName()
-                            + " on cache "
-                            + options.getCacheName()
-                            + ". Got: "
-                            + item.getKindCase()));
-              }
-              firstMessage = false;
-              future.complete(null);
-            }
-            handleSubscriptionItem(item);
-          }
+                @Override
+                public void onNext(_SubscriptionItem item) {
+                    if (firstMessage) {
+                        if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
+                            future.completeExceptionally(
+                                    new InternalServerException(
+                                            "Expected heartbeat message for topic "
+                                                    + options.getTopicName()
+                                                    + " on cache "
+                                                    + options.getCacheName()
+                                                    + ". Got: "
+                                                    + item.getKindCase()));
+                        }
+                        firstMessage = false;
+                        future.complete(null);
+                    }
+                    handleSubscriptionItem(item);
+                }
 
-          @Override
-          public void onError(Throwable t) {
-            logger.info("onError callback Invoked");
-            if (firstMessage) {
-              logger.info("onError callback inside if block Invoked");
-              firstMessage = false;
-              future.completeExceptionally(t);
+                @Override
+                public void onError(Throwable t) {
+                    if (firstMessage) {
+                        firstMessage = false;
+                        future.completeExceptionally(t);
 
-            } else {
-              logger.info("onError callback inside else block Invoked" + t.getMessage());
-              handleSubscriptionError(t);
-            }
-          }
+                        // Retry logic for UNAVAILABLE errors
+                        if (t instanceof io.grpc.StatusRuntimeException) {
+                            io.grpc.StatusRuntimeException statusRuntimeException = (io.grpc.StatusRuntimeException) t;
+                            if (statusRuntimeException.getStatus().getCode() == Status.Code.UNAVAILABLE) {
+                                logger.info("Retrying subscription after a delay...");
+                                // Adding a delay before retrying the subscription
+                                scheduleRetry(() -> subscribeWithRetryInternal(future));
+                            }
+                        }
+                    } else {
+                        handleSubscriptionError(t);
+                    }
+                }
 
-          @Override
-          public void onCompleted() {
-            logger.info("onCompleted callback Invoked");
-            handleSubscriptionCompleted();
-          }
-        };
+                @Override
+                public void onCompleted() {
+                    handleSubscriptionCompleted();
+                }
+            };
 
     _SubscriptionRequest subscriptionRequest =
         _SubscriptionRequest.newBuilder()
@@ -105,33 +119,32 @@ public class SubscriptionWrapper implements Closeable {
 
     try {
       grpcManager.getStub().subscribe(subscriptionRequest, subscription);
-      logger.info("subscribed " + options.getCacheName() + " " + options.getTopicName());
       options.subscriptionState.setSubscribed();
     } catch (Exception e) {
       future.completeExceptionally(
           new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
-    return future;
   }
 
+  private void scheduleRetry(Runnable retryAction) {
+    scheduler = Executors.newSingleThreadScheduledExecutor();
+    scheduler.schedule(retryAction, 5, TimeUnit.SECONDS);
+  }
+
+
   private void handleSubscriptionError(Throwable t) {
-    logger.info(
-        "error " + options.getCacheName() + " " + options.getTopicName() + " " + t.getMessage());
     if (t instanceof io.grpc.StatusRuntimeException) {
       io.grpc.StatusRuntimeException statusRuntimeException = (io.grpc.StatusRuntimeException) t;
       if (statusRuntimeException.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-        logger.info("WE GOT AN UNAVAILABLE ERROR");
         unsubscribe();
-        this.subscribe();
+        this.subscribeWithRetry();
       }
     } else {
-      logger.info("WE GOT AN ERROR" + t.getMessage());
       this.options.onError(t);
     }
   }
 
   private void handleSubscriptionCompleted() {
-    logger.trace("completed " + options.getCacheName() + " " + options.getTopicName());
     this.options.onCompleted();
   }
 
@@ -206,15 +219,17 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   public void unsubscribe() {
-    //    this.close();
-    logger.info("Unsubscribing " + options.getCacheName() + " " + options.getTopicName());
-    subscription.cancel(null, null);
+    subscription.cancel
+            ("Unsubscribing from topic: " + options.getTopicName() + " in cache: " + options.getCacheName(), null);
   }
 
   @Override
   public void close() {
     if (subscription != null) {
       subscription.onCompleted();
+    }
+    if (scheduler != null) {
+      scheduler.shutdown();
     }
     if (grpcManager != null) {
       grpcManager.close();

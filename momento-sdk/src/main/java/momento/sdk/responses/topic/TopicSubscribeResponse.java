@@ -25,10 +25,6 @@ public interface TopicSubscribeResponse {
     public void unsubscribe() {
       this.subscriptionState.unsubscribe();
     }
-
-    public void hackyOnError(StatusRuntimeException deadlineExceeded) {
-      this.subscriptionState.hackySubscriptionWrapper.subscription.onError(deadlineExceeded);
-    }
   }
 
   /**

@@ -4,7 +4,10 @@ import com.google.protobuf.ByteString;
 import grpc.cache_client.pubsub._PublishRequest;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.stub.StreamObserver;
+
+import java.sql.Time;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
@@ -93,9 +96,7 @@ public class ScsTopicClient extends ScsClient {
 
     try {
       topicGrpcStubsManager
-          .getStub()
-          // TODO: need to add deadline
-          //              .withDeadlineAfter(this. deadline.getSeconds(), TimeUnit.SECONDS)
+          .getStub().withDeadlineAfter(topicGrpcStubsManager.getConfiguration().getTransportStrategy().getGrpcConfiguration().getDeadline().getSeconds(), TimeUnit.SECONDS)
           .publish(
               request,
               new StreamObserver() {
@@ -130,7 +131,7 @@ public class ScsTopicClient extends ScsClient {
     SubscriptionWrapper subscriptionWrapper;
     subscriptionWrapper = new SubscriptionWrapper(topicGrpcStubsManager, sendSubscribeOptions);
     sendSubscribeOptions.subscriptionState.hackySubscriptionWrapper = subscriptionWrapper;
-    final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribe();
+    final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
     return subscribeFuture.handle(
         (v, ex) -> {
           if (ex != null) {

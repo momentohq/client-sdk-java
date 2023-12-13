@@ -85,12 +85,6 @@ task("sortedSet", JavaExec::class) {
     mainClass.set("momento.client.example.SortedSetExample")
 }
 
-task("topic", JavaExec::class) {
-    description = "Run the topic example"
-    classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("momento.client.example.TopicExample")
-}
-
 task("batchUtil", JavaExec::class) {
     description = "Run the batch util example"
     classpath = sourceSets.main.get().runtimeClasspath
