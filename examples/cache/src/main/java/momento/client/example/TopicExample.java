@@ -82,13 +82,13 @@ public class TopicExample {
       TopicSubscribeResponse.Subscription subscription = subscribeResponse.orElseThrow(
               () -> new RuntimeException("Unable to subscribe to topic"));
 
-      var unavailable = new io.grpc.StatusRuntimeException(Status.UNAVAILABLE, null);
+//      var unavailable = new io.grpc.StatusRuntimeException(Status.UNAVAILABLE, null);
 
-      // Publish message to a topic
-      for (int i = 0; i < 100; i++) {
-        if (i == 10) {
-          subscription.hackyOnError(unavailable);
-        }
+//       Publish message to a topic
+      for (int i = 0; i <= 100; i++) {
+//        if (i == 10) {
+//          subscription.hackyOnError(unavailable);
+//        }
         System.out.println("Attempting to publish message #" + i);
         final TopicPublishResponse publishResponse =
             topicClient.publish(CACHE_NAME, TOPIC_NAME, "message " + i).join();
