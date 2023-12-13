@@ -39,8 +39,6 @@ final class ScsTopicGrpcStubsManager implements Closeable {
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
 
-    System.out.println("\n\n\n\nSETTING KEEPALIVES\n\n\n\n");
-
     channelBuilder.keepAliveTime(10, TimeUnit.SECONDS);
     channelBuilder.keepAliveTimeout(5, TimeUnit.SECONDS);
     channelBuilder.keepAliveWithoutCalls(true);

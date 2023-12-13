@@ -1,14 +1,11 @@
 package momento.sdk.responses.topic;
 
-import momento.sdk.SubscriptionWrapper;
-
 /** Represents the state of a subscription to a topic. */
 public class SubscriptionState {
 
   private Runnable unsubscribeFn;
   private Integer lastTopicSequenceNumber;
   private boolean isSubscribed;
-  public SubscriptionWrapper hackySubscriptionWrapper;
 
   /** Constructs a new SubscriptionState instance with default values. */
   public SubscriptionState() {
