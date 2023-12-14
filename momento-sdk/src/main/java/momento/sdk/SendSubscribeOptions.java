@@ -1,6 +1,6 @@
 package momento.sdk;
 
-import momento.sdk.responses.topic.SubscriptionState;
+import momento.sdk.internal.SubscriptionState;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 

@@ -1,4 +1,4 @@
-package momento.sdk.responses.topic;
+package momento.sdk.internal;
 
 /** Represents the state of a subscription to a topic. */
 public class SubscriptionState {

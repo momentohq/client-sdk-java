@@ -2,13 +2,14 @@ package momento.sdk.responses.topic;
 
 import java.util.function.Supplier;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.internal.SubscriptionState;
 
 /** Represents the response for a topic subscribe operation. */
 public interface TopicSubscribeResponse {
 
   /** Represents a successful topic subscribe operation. */
   class Subscription implements TopicSubscribeResponse {
-    private SubscriptionState subscriptionState;
+    private final SubscriptionState subscriptionState;
 
     /**
      * Constructs a Subscription instance with the provided subscription state.
