@@ -18,9 +18,9 @@ public class ScsTopicClient extends ScsClient {
 
   private final ScsTopicGrpcStubsManager topicGrpcStubsManager;
 
-    public ScsTopicClient(
+  public ScsTopicClient(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
-        this.topicGrpcStubsManager = new ScsTopicGrpcStubsManager(credentialProvider, configuration);
+    this.topicGrpcStubsManager = new ScsTopicGrpcStubsManager(credentialProvider, configuration);
   }
 
   public CompletableFuture<TopicPublishResponse> publish(
