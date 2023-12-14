@@ -18,46 +18,29 @@ import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class SubscriptionWrapper implements Closeable {
+class SubscriptionWrapper implements Closeable {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
   private final ScsTopicGrpcStubsManager grpcManager;
   private final SendSubscribeOptions options;
-  private ScheduledExecutorService scheduler;
+  private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
   private CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
 
-  public SubscriptionWrapper(ScsTopicGrpcStubsManager grpcManager, SendSubscribeOptions options) {
+  SubscriptionWrapper(ScsTopicGrpcStubsManager grpcManager, SendSubscribeOptions options) {
     this.grpcManager = grpcManager;
     this.options = options;
   }
 
-  public CompletableFuture<Void> subscribeWithRetry() {
+  CompletableFuture<Void> subscribeWithRetry() {
     CompletableFuture<Void> future = new CompletableFuture<>();
     subscribeWithRetryInternal(future);
     return future;
   }
 
-  public void subscribeWithRetryInternal(CompletableFuture<Void> future) {
+  private void subscribeWithRetryInternal(CompletableFuture<Void> future) {
     subscription =
         new CancelableClientCallStreamObserver<_SubscriptionItem>() {
           boolean firstMessage = true;
-
-          @Override
-          public boolean isReady() {
-            return false;
-          }
-
-          @Override
-          public void setOnReadyHandler(Runnable onReadyHandler) {}
-
-          @Override
-          public void request(int count) {}
-
-          @Override
-          public void setMessageCompression(boolean enable) {}
-
-          @Override
-          public void disableAutoInboundFlowControl() {}
 
           @Override
           public void onNext(_SubscriptionItem item) {
@@ -84,17 +67,24 @@ public class SubscriptionWrapper implements Closeable {
               firstMessage = false;
               future.completeExceptionally(t);
 
-              // Retry logic for UNAVAILABLE errors
+              logger.debug("First message failed, retrying subscription...");
               if (t instanceof io.grpc.StatusRuntimeException) {
+                logger.debug(
+                    "Throwable is an instance of StatusRuntimeException, checking status code...");
                 io.grpc.StatusRuntimeException statusRuntimeException =
                     (io.grpc.StatusRuntimeException) t;
                 if (statusRuntimeException.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-                  logger.info("Retrying subscription after a delay...");
-                  // Adding a delay before retrying the subscription
+                  logger.info("Status code is UNAVAILABLE, retrying subscription after a delay...");
                   scheduleRetry(() -> subscribeWithRetryInternal(future));
+                } else {
+                  logger.debug("Status code is not UNAVAILABLE, not retrying subscription.");
                 }
+              } else {
+                logger.debug(
+                    "Throwable is not an instance of StatusRuntimeException, not retrying subscription.");
               }
             } else {
+              logger.debug("Subscription failed...");
               handleSubscriptionError(t);
             }
           }
@@ -123,7 +113,6 @@ public class SubscriptionWrapper implements Closeable {
   }
 
   private void scheduleRetry(Runnable retryAction) {
-    scheduler = Executors.newSingleThreadScheduledExecutor();
     scheduler.schedule(retryAction, 5, TimeUnit.SECONDS);
   }
 

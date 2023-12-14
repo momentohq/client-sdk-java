@@ -4,16 +4,16 @@ import momento.sdk.responses.topic.SubscriptionState;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 
-public class SendSubscribeOptions implements ISubscriptionCallbacks {
-  public String cacheName;
-  public String topicName;
-  public ItemCallback onItem;
-  public CompletedCallback onCompleted;
-  public ErrorCallback onError;
-  public SubscriptionState subscriptionState;
-  public TopicSubscribeResponse.Subscription subscription;
+class SendSubscribeOptions implements ISubscriptionCallbacks {
+  String cacheName;
+  String topicName;
+  ItemCallback onItem;
+  CompletedCallback onCompleted;
+  ErrorCallback onError;
+  SubscriptionState subscriptionState;
+  TopicSubscribeResponse.Subscription subscription;
 
-  public SendSubscribeOptions(
+  SendSubscribeOptions(
       String cacheName,
       String topicName,
       ItemCallback onItem,
