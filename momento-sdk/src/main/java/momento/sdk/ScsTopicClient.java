@@ -10,18 +10,16 @@ import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
-import momento.sdk.responses.topic.SubscriptionState;
+import momento.sdk.internal.SubscriptionState;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 
 public class ScsTopicClient extends ScsClient {
 
   private final ScsTopicGrpcStubsManager topicGrpcStubsManager;
-  private final CredentialProvider credentialProvider;
 
   public ScsTopicClient(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
-    this.credentialProvider = credentialProvider;
     this.topicGrpcStubsManager = new ScsTopicGrpcStubsManager(credentialProvider, configuration);
   }
 
