@@ -5,7 +5,6 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -22,16 +21,16 @@ import momento.sdk.config.TopicConfiguration;
  */
 final class ScsTopicGrpcStubsManager implements Closeable {
 
-  private final Duration deadline;
-
   private final ManagedChannel channel;
   private final PubsubGrpc.PubsubStub stub;
+
+  private final TopicConfiguration configuration;
 
   ScsTopicGrpcStubsManager(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
     this.channel = setupConnection(credentialProvider);
     this.stub = PubsubGrpc.newStub(channel);
-    this.deadline = configuration.getTransportStrategy().getGrpcConfiguration().getDeadline();
+    this.configuration = configuration;
   }
 
   private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
@@ -39,6 +38,11 @@ final class ScsTopicGrpcStubsManager implements Closeable {
         NettyChannelBuilder.forAddress(credentialProvider.getCacheEndpoint(), 443);
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
+
+    channelBuilder.keepAliveTime(10, TimeUnit.SECONDS);
+    channelBuilder.keepAliveTimeout(5, TimeUnit.SECONDS);
+    channelBuilder.keepAliveWithoutCalls(true);
+
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
     channelBuilder.intercept(clientInterceptors);
@@ -56,7 +60,11 @@ final class ScsTopicGrpcStubsManager implements Closeable {
    * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
    */
   PubsubGrpc.PubsubStub getStub() {
-    return stub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
+    return stub;
+  }
+
+  TopicConfiguration getConfiguration() {
+    return configuration;
   }
 
   @Override

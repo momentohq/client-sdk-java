@@ -5,6 +5,7 @@ import grpc.cache_client.pubsub._PublishRequest;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.stub.StreamObserver;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
@@ -63,7 +64,21 @@ public class ScsTopicClient extends ScsClient {
       return CompletableFuture.completedFuture(
           new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
-    return sendSubscribe(cacheName, topicName, options);
+
+    SubscriptionState subscriptionState = new SubscriptionState();
+    TopicSubscribeResponse.Subscription subscription =
+        new TopicSubscribeResponse.Subscription(subscriptionState);
+    SendSubscribeOptions sendSubscribeOptions =
+        new SendSubscribeOptions(
+            cacheName,
+            topicName,
+            options::onItem,
+            options::onCompleted,
+            options::onError,
+            subscriptionState,
+            subscription);
+
+    return sendSubscribe(sendSubscribeOptions);
   }
 
   private CompletableFuture<TopicPublishResponse> sendPublish(
@@ -80,6 +95,14 @@ public class ScsTopicClient extends ScsClient {
     try {
       topicGrpcStubsManager
           .getStub()
+          .withDeadlineAfter(
+              topicGrpcStubsManager
+                  .getConfiguration()
+                  .getTransportStrategy()
+                  .getGrpcConfiguration()
+                  .getDeadline()
+                  .getSeconds(),
+              TimeUnit.SECONDS)
           .publish(
               request,
               new StreamObserver() {
@@ -110,19 +133,18 @@ public class ScsTopicClient extends ScsClient {
   }
 
   private CompletableFuture<TopicSubscribeResponse> sendSubscribe(
-      String cacheName, String topicName, ISubscriptionCallbacks options) {
+      SendSubscribeOptions sendSubscribeOptions) {
     SubscriptionWrapper subscriptionWrapper;
-    SubscriptionState subState = new SubscriptionState();
-    subscriptionWrapper =
-        new SubscriptionWrapper(topicGrpcStubsManager, cacheName, topicName, subState, options);
-    final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribe();
+    subscriptionWrapper = new SubscriptionWrapper(topicGrpcStubsManager, sendSubscribeOptions);
+    final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
     return subscribeFuture.handle(
         (v, ex) -> {
           if (ex != null) {
             return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
           } else {
-            subState.setUnsubscribeFn(subscriptionWrapper::unsubscribe);
-            return new TopicSubscribeResponse.Subscription(subState);
+            sendSubscribeOptions.subscriptionState.setUnsubscribeFn(
+                subscriptionWrapper::unsubscribe);
+            return new TopicSubscribeResponse.Subscription(sendSubscribeOptions.subscriptionState);
           }
         });
   }
