@@ -23,4 +23,3 @@ rootProject.name = "java-gradle"
 include("cache")
 include("cache-with-aws")
 include("lambda:docker")
-include("topic")
