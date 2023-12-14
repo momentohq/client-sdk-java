@@ -157,10 +157,10 @@ public class TopicClientTest extends BaseTestClass {
   @Test
   public void topicSubscribeCacheDoesNotExistIsError() {
     TopicSubscribeResponse response =
-            topicClient.subscribe("doesNotExist", topicName, callbacks(new CountDownLatch(1))).join();
+        topicClient.subscribe("doesNotExist", topicName, callbacks(new CountDownLatch(1))).join();
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Error.class);
     assertEquals(
-            MomentoErrorCode.NOT_FOUND_ERROR, ((TopicSubscribeResponse.Error) response).getErrorCode());
+        MomentoErrorCode.NOT_FOUND_ERROR, ((TopicSubscribeResponse.Error) response).getErrorCode());
   }
 
   @Test
