@@ -136,7 +136,6 @@ public class ScsTopicClient extends ScsClient {
       SendSubscribeOptions sendSubscribeOptions) {
     SubscriptionWrapper subscriptionWrapper;
     subscriptionWrapper = new SubscriptionWrapper(topicGrpcStubsManager, sendSubscribeOptions);
-    sendSubscribeOptions.subscriptionState.hackySubscriptionWrapper = subscriptionWrapper;
     final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
     return subscribeFuture.handle(
         (v, ex) -> {
