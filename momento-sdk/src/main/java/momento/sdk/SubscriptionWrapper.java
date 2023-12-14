@@ -22,6 +22,7 @@ class SubscriptionWrapper implements Closeable {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
   private final ScsTopicGrpcStubsManager grpcManager;
   private final SendSubscribeOptions options;
+  private boolean firstMessage = true;
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
   private CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
@@ -40,8 +41,6 @@ class SubscriptionWrapper implements Closeable {
   private void subscribeWithRetryInternal(CompletableFuture<Void> future) {
     subscription =
         new CancelableClientCallStreamObserver<_SubscriptionItem>() {
-          boolean firstMessage = true;
-
           @Override
           public void onNext(_SubscriptionItem item) {
             if (firstMessage) {
@@ -66,8 +65,8 @@ class SubscriptionWrapper implements Closeable {
             if (firstMessage) {
               firstMessage = false;
               future.completeExceptionally(t);
-
-              logger.debug("First message failed, retrying subscription...");
+            } else {
+              logger.debug("Subscription failed, retrying...");
               if (t instanceof io.grpc.StatusRuntimeException) {
                 logger.debug(
                     "Throwable is an instance of StatusRuntimeException, checking status code...");
@@ -82,10 +81,8 @@ class SubscriptionWrapper implements Closeable {
               } else {
                 logger.debug(
                     "Throwable is not an instance of StatusRuntimeException, not retrying subscription.");
+                options.onError(t);
               }
-            } else {
-              logger.debug("Subscription failed...");
-              handleSubscriptionError(t);
             }
           }
 
@@ -114,18 +111,6 @@ class SubscriptionWrapper implements Closeable {
 
   private void scheduleRetry(Runnable retryAction) {
     scheduler.schedule(retryAction, 5, TimeUnit.SECONDS);
-  }
-
-  private void handleSubscriptionError(Throwable t) {
-    if (t instanceof io.grpc.StatusRuntimeException) {
-      io.grpc.StatusRuntimeException statusRuntimeException = (io.grpc.StatusRuntimeException) t;
-      if (statusRuntimeException.getStatus().getCode() == Status.Code.UNAVAILABLE) {
-        unsubscribe();
-        this.subscribeWithRetry();
-      }
-    } else {
-      this.options.onError(t);
-    }
   }
 
   private void handleSubscriptionCompleted() {
