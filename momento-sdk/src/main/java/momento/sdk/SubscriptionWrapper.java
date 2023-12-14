@@ -23,6 +23,8 @@ class SubscriptionWrapper implements Closeable {
   private final ScsTopicGrpcStubsManager grpcManager;
   private final SendSubscribeOptions options;
   private boolean firstMessage = true;
+  private boolean isConnectionLost = false;
+
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
   private CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
@@ -57,6 +59,10 @@ class SubscriptionWrapper implements Closeable {
               firstMessage = false;
               future.complete(null);
             }
+            if (isConnectionLost) {
+              isConnectionLost = false;
+              options.onConnectionRestored();
+            }
             handleSubscriptionItem(item);
           }
 
@@ -67,6 +73,10 @@ class SubscriptionWrapper implements Closeable {
               future.completeExceptionally(t);
             } else {
               logger.debug("Subscription failed, retrying...");
+              if (!isConnectionLost) {
+                isConnectionLost = true;
+                options.onConnectionLost();
+              }
               if (t instanceof io.grpc.StatusRuntimeException) {
                 logger.debug(
                     "Throwable is an instance of StatusRuntimeException, checking status code...");

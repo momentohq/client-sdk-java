@@ -10,6 +10,8 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
   ItemCallback onItem;
   CompletedCallback onCompleted;
   ErrorCallback onError;
+  ConnectionLostCallback onConnectionLost;
+  ConnectionRestoredCallback onConnectionRestored;
   SubscriptionState subscriptionState;
   TopicSubscribeResponse.Subscription subscription;
 
@@ -19,6 +21,8 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
       ItemCallback onItem,
       CompletedCallback onCompleted,
       ErrorCallback onError,
+      ConnectionLostCallback onConnectionLost,
+      ConnectionRestoredCallback onConnectionRestored,
       SubscriptionState subscriptionState,
       TopicSubscribeResponse.Subscription subscription) {
     this.cacheName = cacheName;
@@ -26,6 +30,8 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
     this.onItem = onItem;
     this.onCompleted = onCompleted;
     this.onError = onError;
+    this.onConnectionLost = onConnectionLost;
+    this.onConnectionRestored = onConnectionRestored;
     this.subscriptionState = subscriptionState;
     this.subscription = subscription;
   }
@@ -73,6 +79,16 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
     onError.onError(t);
   }
 
+  @Override
+  public void onConnectionLost() {
+    onConnectionLost.onConnectionLost();
+  }
+
+  @Override
+  public void onConnectionRestored() {
+    onConnectionRestored.onConnectionRestored();
+  }
+
   @FunctionalInterface
   public interface ItemCallback {
     void onItem(TopicMessage message);
@@ -86,5 +102,15 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
   @FunctionalInterface
   public interface ErrorCallback {
     void onError(Throwable t);
+  }
+
+  @FunctionalInterface
+  public interface ConnectionLostCallback {
+    void onConnectionLost();
+  }
+
+  @FunctionalInterface
+  public interface ConnectionRestoredCallback {
+    void onConnectionRestored();
   }
 }
