@@ -155,6 +155,15 @@ public class TopicClientTest extends BaseTestClass {
   }
 
   @Test
+  public void topicSubscribeCacheDoesNotExistIsError() {
+    TopicSubscribeResponse response =
+            topicClient.subscribe("doesNotExist", topicName, callbacks(new CountDownLatch(1))).join();
+    assertThat(response).isInstanceOf(TopicSubscribeResponse.Error.class);
+    assertEquals(
+            MomentoErrorCode.NOT_FOUND_ERROR, ((TopicSubscribeResponse.Error) response).getErrorCode());
+  }
+
+  @Test
   public void topicPublishSubscribe_ByteArray_HappyPath() throws InterruptedException {
 
     byte[] value = new byte[] {0x00};
