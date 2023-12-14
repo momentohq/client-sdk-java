@@ -201,11 +201,6 @@ class SubscriptionWrapper implements Closeable {
     if (subscription != null) {
       subscription.onCompleted();
     }
-    if (scheduler != null) {
-      scheduler.shutdown();
-    }
-    if (grpcManager != null) {
-      grpcManager.close();
-    }
+    scheduler.shutdown();
   }
 }
