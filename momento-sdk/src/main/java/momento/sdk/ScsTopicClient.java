@@ -2,6 +2,8 @@ package momento.sdk;
 
 import com.google.protobuf.ByteString;
 import grpc.cache_client.pubsub._PublishRequest;
+import grpc.cache_client.pubsub._SubscriptionItem;
+import grpc.cache_client.pubsub._SubscriptionRequest;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.stub.StreamObserver;
 import java.util.concurrent.CompletableFuture;
@@ -13,9 +15,12 @@ import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.internal.SubscriptionState;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class ScsTopicClient extends ScsClient {
 
+  private final Logger logger = LoggerFactory.getLogger(ScsTopicClient.class);
   private final ScsTopicGrpcStubsManager topicGrpcStubsManager;
 
   public ScsTopicClient(
@@ -135,7 +140,28 @@ public class ScsTopicClient extends ScsClient {
   private CompletableFuture<TopicSubscribeResponse> sendSubscribe(
       SendSubscribeOptions sendSubscribeOptions) {
     SubscriptionWrapper subscriptionWrapper;
-    subscriptionWrapper = new SubscriptionWrapper(topicGrpcStubsManager, sendSubscribeOptions);
+
+    IScsTopicConnection connection =
+        new IScsTopicConnection() {
+          @Override
+          public void close() {
+            logger.warn("Closing the connection (for testing purposes only)");
+          }
+
+          @Override
+          public void open() {
+            logger.warn("Opening the connection (for testing purposes only)");
+          }
+
+          @Override
+          public void subscribe(
+              _SubscriptionRequest subscriptionRequest,
+              CancelableClientCallStreamObserver<_SubscriptionItem> subscription) {
+            topicGrpcStubsManager.getStub().subscribe(subscriptionRequest, subscription);
+          }
+        };
+
+    subscriptionWrapper = new SubscriptionWrapper(connection, sendSubscribeOptions);
     final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
     return subscribeFuture.handle(
         (v, ex) -> {

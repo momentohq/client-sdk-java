@@ -6,7 +6,6 @@ import grpc.cache_client.pubsub._SubscriptionRequest;
 import grpc.cache_client.pubsub._TopicItem;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.Status;
-import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,9 +17,9 @@ import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class SubscriptionWrapper implements Closeable {
+class SubscriptionWrapper implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
-  private final ScsTopicGrpcStubsManager grpcManager;
+  private final IScsTopicConnection connection;
   private final SendSubscribeOptions options;
   private boolean firstMessage = true;
   private boolean isConnectionLost = false;
@@ -29,12 +28,12 @@ class SubscriptionWrapper implements Closeable {
 
   private CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
 
-  SubscriptionWrapper(ScsTopicGrpcStubsManager grpcManager, SendSubscribeOptions options) {
-    this.grpcManager = grpcManager;
+  SubscriptionWrapper(IScsTopicConnection connection, SendSubscribeOptions options) {
+    this.connection = connection;
     this.options = options;
   }
 
-  CompletableFuture<Void> subscribeWithRetry() {
+  public CompletableFuture<Void> subscribeWithRetry() {
     CompletableFuture<Void> future = new CompletableFuture<>();
     subscribeWithRetryInternal(future);
     return future;
@@ -111,7 +110,7 @@ class SubscriptionWrapper implements Closeable {
             .build();
 
     try {
-      grpcManager.getStub().subscribe(subscriptionRequest, subscription);
+      connection.subscribe(subscriptionRequest, subscription);
       options.subscriptionState.setSubscribed();
     } catch (Exception e) {
       future.completeExceptionally(
