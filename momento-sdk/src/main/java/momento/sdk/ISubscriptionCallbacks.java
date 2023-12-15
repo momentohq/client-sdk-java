@@ -1,9 +1,12 @@
 package momento.sdk;
 
 import momento.sdk.responses.topic.TopicMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Represents options for a topic subscription callback. */
 public interface ISubscriptionCallbacks {
+  Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
   /**
    * Called when a new message is received on the subscribed topic.
    *
@@ -20,4 +23,14 @@ public interface ISubscriptionCallbacks {
    * @param t The throwable representing the error.
    */
   void onError(Throwable t);
+
+  /** Called when the connection to the topic is lost. */
+  default void onConnectionLost() {
+    logger.info("Connection to topic lost");
+  }
+
+  /** Called when the connection to the topic is restored. */
+  default void onConnectionRestored() {
+    logger.info("Connection to topic restored");
+  }
 }

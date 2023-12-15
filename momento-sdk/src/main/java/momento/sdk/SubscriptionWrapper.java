@@ -6,7 +6,6 @@ import grpc.cache_client.pubsub._SubscriptionRequest;
 import grpc.cache_client.pubsub._TopicItem;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.Status;
-import java.io.Closeable;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -18,21 +17,33 @@ import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-class SubscriptionWrapper implements Closeable {
+class SubscriptionWrapper implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
-  private final ScsTopicGrpcStubsManager grpcManager;
+  private final IScsTopicConnection connection;
   private final SendSubscribeOptions options;
   private boolean firstMessage = true;
+  private boolean isConnectionLost = false;
+
   private final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
   private CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
 
-  SubscriptionWrapper(ScsTopicGrpcStubsManager grpcManager, SendSubscribeOptions options) {
-    this.grpcManager = grpcManager;
+  SubscriptionWrapper(IScsTopicConnection connection, SendSubscribeOptions options) {
+    this.connection = connection;
     this.options = options;
   }
 
-  CompletableFuture<Void> subscribeWithRetry() {
+  /**
+   * Public method for testing purposes only. Do not call this method in production code or any
+   * context other than testing the topic client.
+   *
+   * <p>This method returns a CompletableFuture that represents the asynchronous execution of the
+   * internal subscription logic with retry mechanism.
+   *
+   * @return A CompletableFuture representing the asynchronous execution of the internal
+   *     subscription logic with retry mechanism.
+   */
+  public CompletableFuture<Void> subscribeWithRetry() {
     CompletableFuture<Void> future = new CompletableFuture<>();
     subscribeWithRetryInternal(future);
     return future;
@@ -57,6 +68,10 @@ class SubscriptionWrapper implements Closeable {
               firstMessage = false;
               future.complete(null);
             }
+            if (isConnectionLost) {
+              isConnectionLost = false;
+              options.onConnectionRestored();
+            }
             handleSubscriptionItem(item);
           }
 
@@ -67,6 +82,10 @@ class SubscriptionWrapper implements Closeable {
               future.completeExceptionally(t);
             } else {
               logger.debug("Subscription failed, retrying...");
+              if (!isConnectionLost) {
+                isConnectionLost = true;
+                options.onConnectionLost();
+              }
               if (t instanceof io.grpc.StatusRuntimeException) {
                 logger.debug(
                     "Throwable is an instance of StatusRuntimeException, checking status code...");
@@ -101,7 +120,7 @@ class SubscriptionWrapper implements Closeable {
             .build();
 
     try {
-      grpcManager.getStub().subscribe(subscriptionRequest, subscription);
+      connection.subscribe(subscriptionRequest, subscription);
       options.subscriptionState.setSubscribed();
     } catch (Exception e) {
       future.completeExceptionally(
