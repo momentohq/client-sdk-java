@@ -34,14 +34,14 @@ class SubscriptionWrapper implements AutoCloseable {
   }
 
   /**
-   * Public method for testing purposes only. Do not call this method
-   * in production code or any context other than testing the topic client.
-   * <p>
-   * This method returns a CompletableFuture that represents the asynchronous
-   * execution of the internal subscription logic with retry mechanism.
+   * Public method for testing purposes only. Do not call this method in production code or any
+   * context other than testing the topic client.
    *
-   * @return A CompletableFuture representing the asynchronous execution
-   *         of the internal subscription logic with retry mechanism.
+   * <p>This method returns a CompletableFuture that represents the asynchronous execution of the
+   * internal subscription logic with retry mechanism.
+   *
+   * @return A CompletableFuture representing the asynchronous execution of the internal
+   *     subscription logic with retry mechanism.
    */
   public CompletableFuture<Void> subscribeWithRetry() {
     CompletableFuture<Void> future = new CompletableFuture<>();
