@@ -1,10 +1,16 @@
 package momento.sdk;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import grpc.cache_client.pubsub._Heartbeat;
 import grpc.cache_client.pubsub._SubscriptionItem;
 import grpc.cache_client.pubsub._SubscriptionRequest;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicBoolean;
 import momento.sdk.internal.SubscriptionState;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.junit.jupiter.api.BeforeEach;
@@ -12,13 +18,6 @@ import org.junit.jupiter.api.Test;
 import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.atomic.AtomicBoolean;
-
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class SubscriptionWrapperTest {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapperTest.class);
