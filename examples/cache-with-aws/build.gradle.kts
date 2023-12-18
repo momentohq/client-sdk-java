@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("software.momento.java:sdk:1.3.1")
+    implementation("software.momento.java:sdk:1.8.0")
 
     // For examples to store secrets in AWS Secrets Manager
     implementation("software.amazon.awssdk:secretsmanager:2.20.93")
