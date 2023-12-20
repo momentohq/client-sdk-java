@@ -44,7 +44,7 @@ tasks.test {
 }
 
 task("topic", JavaExec::class) {
-    description = "Run the disposable token example"
+    description = "Run the topic example"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.TopicExample")
 }
