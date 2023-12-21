@@ -49,14 +49,4 @@ task("disposableToken", JavaExec::class) {
     mainClass.set("momento.client.example.DisposableTokenExample")
 }
 
-task("docExamples", JavaExec::class) {
-    description = "Validate that the API doc examples run"
-    classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("momento.client.example.doc_examples.DocExamplesJavaAPIs")
-}
-
-task("docsTasks") {
-    dependsOn("docExamples")
-}
-
 task("prepareKotlinBuildScriptModel") {}
