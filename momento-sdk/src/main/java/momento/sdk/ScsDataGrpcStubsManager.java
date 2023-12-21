@@ -17,6 +17,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
@@ -32,8 +35,11 @@ import org.slf4j.LoggerFactory;
  */
 final class ScsDataGrpcStubsManager implements AutoCloseable {
 
-  private final ManagedChannel channel;
-  private final ScsGrpc.ScsFutureStub futureStub;
+  private final List<ManagedChannel> channels;
+  private final List<ScsGrpc.ScsFutureStub> futureStubs;
+  private final AtomicInteger nextStubIndex = new AtomicInteger(0);
+
+  private final int numGrpcChannels;
   private final Duration deadline;
   private final ScheduledExecutorService retryScheduler;
   private final ExecutorService retryExecutor;
@@ -48,6 +54,8 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
   ScsDataGrpcStubsManager(
       @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
     this.deadline = configuration.getTransportStrategy().getGrpcConfiguration().getDeadline();
+    this.numGrpcChannels =
+        configuration.getTransportStrategy().getGrpcConfiguration().getMinNumGrpcChannels();
 
     /**
      * These two executors are used by {@link RetryClientInterceptor} to schedule and execute
@@ -80,8 +88,11 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
             TimeUnit.SECONDS,
             new LinkedBlockingQueue<>());
 
-    this.channel = setupChannel(credentialProvider, configuration);
-    this.futureStub = ScsGrpc.newFutureStub(channel);
+    this.channels =
+        IntStream.range(0, this.numGrpcChannels)
+            .mapToObj(i -> setupChannel(credentialProvider, configuration))
+            .collect(Collectors.toList());
+    this.futureStubs = channels.stream().map(ScsGrpc::newFutureStub).collect(Collectors.toList());
   }
 
   /**
@@ -91,36 +102,43 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
    *     attempt.
    */
   public void connect(final long timeoutSeconds) {
-    final ConnectivityState currentState = this.channel.getState(true /* tryToConnect */);
-    if (ConnectivityState.READY.equals(currentState)) {
-      LOGGER.debug("Connected to Momento's server! Happy Caching!");
-      return;
-    }
+    // TODO: client initialization time could be optimized, in the case where a user configures more
+    // than one gRPC
+    //  channel, by attempting to connect these channels asynchronously rather than serially.
+    for (ManagedChannel channel : channels) {
+      final ConnectivityState currentState = channel.getState(true /* tryToConnect */);
+      if (ConnectivityState.READY.equals(currentState)) {
+        LOGGER.debug("Connected to Momento's server! Happy Caching!");
+        return;
+      }
 
-    // this future is our signalling mechanism to exit after the eager connection is successfully
-    // established or fails
-    final CompletableFuture<Void> connectionFuture = new CompletableFuture<>();
-    eagerlyConnect(currentState, connectionFuture);
+      // this future is our signalling mechanism to exit after the eager connection is successfully
+      // established or fails
+      final CompletableFuture<Void> connectionFuture = new CompletableFuture<>();
+      eagerlyConnect(currentState, connectionFuture, channel);
 
-    try {
-      connectionFuture.get(timeoutSeconds, TimeUnit.SECONDS);
-    } catch (TimeoutException e) {
-      connectionFuture.cancel(true);
-      LOGGER.debug("Failed to connect within the allotted time of {} seconds.", 1);
-    } catch (InterruptedException | ExecutionException e) {
-      connectionFuture.cancel(true);
-      LOGGER.debug("Error while waiting for eager connection to establish.", e);
+      try {
+        connectionFuture.get(timeoutSeconds, TimeUnit.SECONDS);
+      } catch (TimeoutException e) {
+        connectionFuture.cancel(true);
+        LOGGER.debug("Failed to connect within the allotted time of {} seconds.", 1);
+      } catch (InterruptedException | ExecutionException e) {
+        connectionFuture.cancel(true);
+        LOGGER.debug("Error while waiting for eager connection to establish.", e);
+      }
     }
   }
 
-  private void eagerlyConnect(
-      final ConnectivityState lastObservedState, final CompletableFuture<Void> connectionFuture) {
+  private static void eagerlyConnect(
+      final ConnectivityState lastObservedState,
+      final CompletableFuture<Void> connectionFuture,
+      final ManagedChannel channel) {
 
     // the callback is triggerd only when a state change happens
-    this.channel.notifyWhenStateChanged(
+    channel.notifyWhenStateChanged(
         lastObservedState,
         () -> {
-          final ConnectivityState currentState = this.channel.getState(false /* tryToConnect */);
+          final ConnectivityState currentState = channel.getState(false /* tryToConnect */);
           switch (currentState) {
             case READY:
               LOGGER.debug("Connected to Momento's server! Happy Caching!");
@@ -133,11 +151,11 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
               // we deliberately give up connecting eagerly if it fails or has intermittent issues
               // to not
               // blow up the call stack on frequent state changes.
-              eagerlyConnect(currentState, connectionFuture);
+              eagerlyConnect(currentState, connectionFuture, channel);
               break;
             case CONNECTING:
               LOGGER.debug("State transitioned to CONNECTING; waiting to get READY");
-              eagerlyConnect(currentState, connectionFuture);
+              eagerlyConnect(currentState, connectionFuture, channel);
               break;
             default:
               LOGGER.debug(
@@ -176,13 +194,18 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
    * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
    */
   ScsGrpc.ScsFutureStub getStub() {
-    return futureStub.withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
+    int nextStubIndex = this.nextStubIndex.getAndIncrement();
+    return futureStubs
+        .get(nextStubIndex % this.numGrpcChannels)
+        .withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
   }
 
   @Override
   public void close() {
     retryScheduler.shutdown();
     retryExecutor.shutdown();
-    channel.shutdown();
+    for (ManagedChannel channel : channels) {
+      channel.shutdown();
+    }
   }
 }
