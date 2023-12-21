@@ -32,6 +32,16 @@ public class Configuration {
   }
 
   /**
+   * Copy constructor that modifies the transport strategy.
+   *
+   * @param transportStrategy
+   * @return a new Configuration with the updated transport strategy
+   */
+  public Configuration withTransportStrategy(final TransportStrategy transportStrategy) {
+    return new Configuration(transportStrategy, this.retryStrategy);
+  }
+
+  /**
    * Configuration for retry tunables. By default, {@link momento.sdk.retry.FixedCountRetryStrategy}
    * gets used.
    *
