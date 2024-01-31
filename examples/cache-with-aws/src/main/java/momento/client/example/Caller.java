@@ -1,5 +1,7 @@
 package momento.client.example;
 
+import com.amazonaws.ClientConfiguration;
+import com.amazonaws.PredefinedClientConfigurations;
 import com.amazonaws.auth.AWSCredentialsProvider;
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.services.sqs.AmazonSQS;
@@ -20,6 +22,7 @@ public class Caller {
     private static final AmazonSQS sqsClient = AmazonSQSClientBuilder.standard()
             .withRegion("us-west-2")
             .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
+            .withClientConfiguration(PredefinedClientConfigurations.defaultConfig().withMaxConnections(500))
             .build();
     private static final String QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/616729109836/momento-cdt";
 
