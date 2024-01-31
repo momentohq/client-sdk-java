@@ -24,26 +24,21 @@ public class Caller {
     private static final AmazonSQS sqsClient = AmazonSQSClientBuilder.standard()
             .withRegion("us-west-2")
             .withCredentials(DefaultAWSCredentialsProviderChain.getInstance())
-            .withClientConfiguration(PredefinedClientConfigurations.defaultConfig().withMaxConnections(200))
+            .withClientConfiguration(PredefinedClientConfigurations.defaultConfig().withMaxConnections(300))
             .build();
     private static final String QUEUE_URL = "https://sqs.us-west-2.amazonaws.com/616729109836/momento-cdt";
 
     public static void main(String[] args) {
-        ExecutorService executor = Executors.newFixedThreadPool(200); // Thread pool of 500
+        ExecutorService executor = Executors.newFixedThreadPool(300); // Thread pool of 500
 
         String[] users = IntStream.range(1, 21).mapToObj(i -> "user" + i).toArray(String[]::new);
         String[] metrics = IntStream.range(1, 101).mapToObj(i -> "metric" + i).toArray(String[]::new);
 
         AtomicInteger messagesSent = new AtomicInteger(0);
 
-        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
-        scheduledExecutorService.scheduleWithFixedDelay(() -> System.out.println("Messages sent " + messagesSent.get()),
-                1, 1, java.util.concurrent.TimeUnit.SECONDS);
-
         while (true) {
 
             executor.submit(() -> {
-                messagesSent.getAndIncrement();
                 String tntid = getRandomElement(users);
                 String metricId = getRandomElement(metrics); // Now sending one metric per message
                 sendMessageToSQS(tntid, metricId);
