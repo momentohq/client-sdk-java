@@ -20,6 +20,7 @@ dependencies {
     implementation("software.momento.java:sdk:1.3.1")
     implementation("com.amazonaws:aws-java-sdk-lambda:1.12.647")
     implementation("com.amazonaws:aws-java-sdk-sqs:1.12.646")
+    implementation("com.google.guava:guava:33.0.0-jre")
     // For examples to store secrets in AWS Secrets Manager
     implementation("software.amazon.awssdk:secretsmanager:2.20.93")
 

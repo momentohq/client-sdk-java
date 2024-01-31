@@ -8,7 +8,9 @@ import com.amazonaws.services.sqs.AmazonSQS;
 import com.amazonaws.services.sqs.AmazonSQSClientBuilder;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.util.concurrent.RateLimiter;
 import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsProvider;
+import software.amazon.awssdk.core.internal.retry.RateLimitingTokenBucket;
 
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
@@ -34,10 +36,10 @@ public class Caller {
         String[] users = IntStream.range(1, 21).mapToObj(i -> "user" + i).toArray(String[]::new);
         String[] metrics = IntStream.range(1, 101).mapToObj(i -> "metric" + i).toArray(String[]::new);
 
-        AtomicInteger messagesSent = new AtomicInteger(0);
-
+        RateLimiter rateLimiter = RateLimiter.create(1000);
         while (true) {
 
+            rateLimiter.acquire();
             executor.submit(() -> {
                 String tntid = getRandomElement(users);
                 String metricId = getRandomElement(metrics); // Now sending one metric per message
