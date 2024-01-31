@@ -13,6 +13,8 @@ import software.amazon.awssdk.auth.credentials.EnvironmentVariableCredentialsPro
 import java.util.Random;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.IntStream;
 
 public class Caller {
@@ -32,8 +34,16 @@ public class Caller {
         String[] users = IntStream.range(1, 21).mapToObj(i -> "user" + i).toArray(String[]::new);
         String[] metrics = IntStream.range(1, 101).mapToObj(i -> "metric" + i).toArray(String[]::new);
 
+        AtomicInteger messagesSent = new AtomicInteger(0);
+
+        ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor();
+        scheduledExecutorService.scheduleWithFixedDelay(() -> System.out.println("Messages sent " + messagesSent.get()),
+                1, 1, java.util.concurrent.TimeUnit.SECONDS);
+
         while (true) {
+
             executor.submit(() -> {
+                messagesSent.getAndIncrement();
                 String tntid = getRandomElement(users);
                 String metricId = getRandomElement(metrics); // Now sending one metric per message
                 sendMessageToSQS(tntid, metricId);
@@ -49,7 +59,7 @@ public class Caller {
                     .withQueueUrl(QUEUE_URL)
                     .withMessageBody(messageBody);
             sqsClient.sendMessage(send_msg_request);
-            System.out.println("Message sent to SQS with tntid: " + tntid + " and metricId: " + metricId);
+            //System.out.println("Message sent to SQS with tntid: " + tntid + " and metricId: " + metricId);
         } catch (Exception e) {
             System.err.println("Error sending message to SQS: " + e.getMessage());
         }
