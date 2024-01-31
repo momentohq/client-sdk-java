@@ -117,6 +117,7 @@ final class ScsDataGrpcStubsManager implements Closeable {
   private void eagerlyConnect(
       final ConnectivityState lastObservedState, final CompletableFuture<Void> connectionFuture) {
 
+    
     // the callback is triggerd only when a state change happens
     this.channel.notifyWhenStateChanged(
         lastObservedState,

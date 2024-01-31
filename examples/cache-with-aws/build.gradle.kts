@@ -18,7 +18,8 @@ repositories {
 
 dependencies {
     implementation("software.momento.java:sdk:1.3.1")
-
+    implementation("com.amazonaws:aws-java-sdk-lambda:1.12.647")
+    implementation("com.amazonaws:aws-java-sdk-sqs:1.12.646")
     // For examples to store secrets in AWS Secrets Manager
     implementation("software.amazon.awssdk:secretsmanager:2.20.93")
 
@@ -45,6 +46,12 @@ task("basic-aws", JavaExec::class) {
     description = "Run the basic example"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.BasicExample")
+}
+
+task("lambda", JavaExec::class) {
+    description = "Run the basic example"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.Caller")
 }
 
 task("prepareKotlinBuildScriptModel") {}
