@@ -10,6 +10,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.Configuration;
+import momento.sdk.config.transport.GrpcConfiguration;
+import momento.sdk.internal.GrpcChannelOptions;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Control Plane.
@@ -26,16 +29,29 @@ final class ScsControlGrpcStubsManager implements AutoCloseable {
 
   private final ScsControlGrpc.ScsControlFutureStub futureStub;
 
-  ScsControlGrpcStubsManager(@Nonnull CredentialProvider credentialProvider) {
-    this.channel = setupConnection(credentialProvider);
+  ScsControlGrpcStubsManager(
+      @Nonnull CredentialProvider credentialProvider, Configuration configuration) {
+    this.channel = setupConnection(credentialProvider, configuration);
     this.futureStub = ScsControlGrpc.newFutureStub(channel);
   }
 
-  private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
+  private static ManagedChannel setupConnection(
+      CredentialProvider credentialProvider, Configuration configuration) {
     final NettyChannelBuilder channelBuilder =
         NettyChannelBuilder.forAddress(credentialProvider.getControlEndpoint(), 443);
-    channelBuilder.useTransportSecurity();
-    channelBuilder.disableRetry();
+
+    // Override grpc config to disable keepalive for control clients
+    final GrpcConfiguration controlConfig =
+        configuration
+            .getTransportStrategy()
+            .getGrpcConfiguration()
+            .withKeepAliveTime(0)
+            .withKeepAliveTimeout(0)
+            .withKeepAliveWithoutCalls(false);
+
+    // set additional channel options (message size, keepalive, auth, etc)
+    GrpcChannelOptions.GrpcOptionsFromGrpcConfig(controlConfig, channelBuilder);
+
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
     channelBuilder.intercept(clientInterceptors);

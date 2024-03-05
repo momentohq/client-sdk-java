@@ -81,7 +81,7 @@ public final class CacheClient implements AutoCloseable {
       @Nonnull CredentialProvider credentialProvider,
       @Nonnull Configuration configuration,
       @Nonnull Duration itemDefaultTtl) {
-    this.scsControlClient = new ScsControlClient(credentialProvider);
+    this.scsControlClient = new ScsControlClient(credentialProvider, configuration);
     this.scsDataClient = new ScsDataClient(credentialProvider, configuration, itemDefaultTtl);
 
     logger.info("Creating Momento Cache Client");

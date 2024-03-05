@@ -28,8 +28,11 @@ public class TopicConfigurations {
      * @return the latest Laptop configuration
      */
     public static TopicConfiguration latest() {
-      final TransportStrategy transportStrategy =
-          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
+      final GrpcConfiguration grpcConfig =
+          new GrpcConfiguration(Duration.ofMillis(15000))
+              .withKeepAliveTime(10000)
+              .withKeepAliveTimeout(5000);
+      final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);
       return new Laptop(transportStrategy, logger);
     }
@@ -54,8 +57,11 @@ public class TopicConfigurations {
      * @return the latest in-region configuration
      */
     public static TopicConfiguration latest() {
-      final TransportStrategy transportStrategy =
-          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(1100)));
+      final GrpcConfiguration grpcConfig =
+          new GrpcConfiguration(Duration.ofMillis(1100))
+              .withKeepAliveTime(10000)
+              .withKeepAliveTimeout(5000);
+      final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);
       return new InRegion(transportStrategy, logger);
     }
@@ -81,8 +87,11 @@ public class TopicConfigurations {
      * @return the latest low-latency configuration
      */
     public static TopicConfiguration latest() {
-      final TransportStrategy transportStrategy =
-          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(500)));
+      final GrpcConfiguration grpcConfig =
+          new GrpcConfiguration(Duration.ofMillis(500))
+              .withKeepAliveTime(10000)
+              .withKeepAliveTimeout(5000);
+      final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);
       return new LowLatency(transportStrategy, logger);
     }

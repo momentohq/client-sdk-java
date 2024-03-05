@@ -4,12 +4,17 @@ import static momento.sdk.ValidationUtils.ensureRequestDeadlineValid;
 
 import java.time.Duration;
 import javax.annotation.Nonnull;
+import momento.sdk.internal.GrpcChannelOptions;
 
 /** Abstracts away the gRPC configuration tunables. */
 public class GrpcConfiguration {
 
   private final Duration deadline;
   private final int minNumGrpcChannels;
+  private final int maxMessageSize;
+  private final boolean keepAliveWithoutCalls;
+  private final int keepAliveTimeoutMs;
+  private final int keepAliveTimeMs;
 
   /**
    * Constructs a GrpcConfiguration.
@@ -17,7 +22,13 @@ public class GrpcConfiguration {
    * @param deadline The maximum duration of a gRPC call.
    */
   public GrpcConfiguration(@Nonnull Duration deadline) {
-    this(deadline, 1);
+    this(
+        deadline,
+        1,
+        GrpcChannelOptions.DEFAULT_MAX_MESSAGE_SIZE,
+        GrpcChannelOptions.DEFAULT_KEEPALIVE_WITHOUT_STREAM,
+        GrpcChannelOptions.DEFAULT_KEEPALIVE_TIMEOUT_MS,
+        GrpcChannelOptions.DEFAULT_KEEPALIVE_TIME_MS);
   }
 
   /**
@@ -25,11 +36,27 @@ public class GrpcConfiguration {
    *
    * @param deadline The maximum duration of a gRPC call.
    * @param minNumGrpcChannels The minimum number of gRPC channels to keep open at any given time.
+   * @param maxMessageSize The maximum size of a message (in bytes) that can be received by the
+   *     client.
+   * @param keepAliveWithoutCalls Whether to send keepalive pings without any active calls.
+   * @param keepAliveTimeout The time to wait for a keepalive ping response before considering the
+   *     connection dead.
+   * @param keepAliveTime The time to wait between keepalive pings.
    */
-  public GrpcConfiguration(@Nonnull Duration deadline, int minNumGrpcChannels) {
+  public GrpcConfiguration(
+      @Nonnull Duration deadline,
+      int minNumGrpcChannels,
+      int maxMessageSize,
+      boolean keepAliveWithoutCalls,
+      int keepAliveTimeout,
+      int keepAliveTime) {
     ensureRequestDeadlineValid(deadline);
     this.deadline = deadline;
     this.minNumGrpcChannels = minNumGrpcChannels;
+    this.maxMessageSize = maxMessageSize;
+    this.keepAliveWithoutCalls = keepAliveWithoutCalls;
+    this.keepAliveTimeoutMs = keepAliveTimeout;
+    this.keepAliveTimeMs = keepAliveTime;
   }
 
   /**
@@ -49,7 +76,13 @@ public class GrpcConfiguration {
    * @return The updated GrpcConfiguration.
    */
   public GrpcConfiguration withDeadline(Duration deadline) {
-    return new GrpcConfiguration(deadline);
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        maxMessageSize,
+        keepAliveWithoutCalls,
+        keepAliveTimeoutMs,
+        keepAliveTimeMs);
   }
 
   /**
@@ -68,6 +101,136 @@ public class GrpcConfiguration {
    * @return The updated GrpcConfiguration.
    */
   public GrpcConfiguration withMinNumGrpcChannels(int minNumGrpcChannels) {
-    return new GrpcConfiguration(deadline, minNumGrpcChannels);
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        maxMessageSize,
+        keepAliveWithoutCalls,
+        keepAliveTimeoutMs,
+        keepAliveTimeMs);
+  }
+
+  /**
+   * The maximum size of a message (in bytes) that can be received by the client.
+   *
+   * @return the maximum message size.
+   */
+  public int getMaxMessageSize() {
+    return maxMessageSize;
+  }
+
+  /**
+   * Copy constructor that updates the maximum message size.
+   *
+   * @param maxMessageSize The new maximum message size.
+   * @return The updated GrpcConfiguration.
+   */
+  public GrpcConfiguration withMaxMessageSize(int maxMessageSize) {
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        maxMessageSize,
+        keepAliveWithoutCalls,
+        keepAliveTimeoutMs,
+        keepAliveTimeMs);
+  }
+
+  /**
+   * Whether keepalive will be performed when there are no outstanding requests on a connection.
+   *
+   * @return the boolean indicating whether to send keepalive pings without any active calls.
+   */
+  public boolean getKeepAliveWithoutCalls() {
+    return keepAliveWithoutCalls;
+  }
+
+  /**
+   * Copy constructor that updates whether keepalive will be performed when there are no outstanding
+   * requests on a connection.
+   *
+   * <p>NOTE: keep-alives are very important for long-lived server environments where there may be
+   * periods of time when the connection is idle. However, they are very problematic for lambda
+   * environments where the lambda runtime is continuously frozen and unfrozen, because the lambda
+   * may be frozen before the "ACK" is received from the server. This can cause the keep-alive to
+   * timeout even though the connection is completely healthy. Therefore, keep-alives should be
+   * disabled in lambda and similar environments.
+   *
+   * @param keepAliveWithoutCalls The new boolean indicating whether to send keepalive pings without
+   *     any active calls.
+   * @return The updated GrpcConfiguration.
+   */
+  public GrpcConfiguration withKeepAliveWithoutCalls(boolean keepAliveWithoutCalls) {
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        maxMessageSize,
+        keepAliveWithoutCalls,
+        keepAliveTimeoutMs,
+        keepAliveTimeMs);
+  }
+
+  /**
+   * The time to wait for a keepalive ping response before considering the connection dead.
+   *
+   * @return the time to wait for a keepalive ping response before considering the connection dead.
+   */
+  public int getKeepAliveTimeoutMs() {
+    return keepAliveTimeoutMs;
+  }
+
+  /**
+   * Copy constructor that updates the time to wait for a keepalive ping response before considering
+   * the connection dead.
+   *
+   * <p>NOTE: keep-alives are very important for long-lived server environments where there may be
+   * periods of time when the connection is idle. However, they are very problematic for lambda
+   * environments where the lambda runtime is continuously frozen and unfrozen, because the lambda
+   * may be frozen before the "ACK" is received from the server. This can cause the keep-alive to
+   * timeout even though the connection is completely healthy. Therefore, keep-alives should be
+   * disabled in lambda and similar environments.
+   *
+   * @param keepAliveTimeoutMs The new time to wait for a keepalive ping response.
+   * @return The updated GrpcConfiguration.
+   */
+  public GrpcConfiguration withKeepAliveTimeout(int keepAliveTimeoutMs) {
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        maxMessageSize,
+        keepAliveWithoutCalls,
+        keepAliveTimeoutMs,
+        keepAliveTimeMs);
+  }
+
+  /**
+   * The time to wait between keepalive pings.
+   *
+   * @return the time to wait between keepalive pings.
+   */
+  public int getKeepAliveTimeMs() {
+    return keepAliveTimeMs;
+  }
+
+  /**
+   * Copy constructor that updates the time to wait between keepalive pings.
+   *
+   * <p>NOTE: keep-alives are very important for long-lived server environments where there may be
+   * periods of time when the connection is idle. However, they are very problematic for lambda
+   * environments where the lambda runtime is continuously frozen and unfrozen, because the lambda
+   * may be frozen before the "ACK" is received from the server. This can cause the keep-alive to
+   * timeout even though the connection is completely healthy. Therefore, keep-alives should be
+   * disabled in lambda and similar environments.
+   *
+   * @param keepAliveTimeMs The new time to wait between keepalive pings.
+   * @return The updated GrpcConfiguration.
+   */
+  public GrpcConfiguration withKeepAliveTime(int keepAliveTimeMs) {
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        maxMessageSize,
+        keepAliveWithoutCalls,
+        keepAliveTimeoutMs,
+        keepAliveTimeMs);
   }
 }

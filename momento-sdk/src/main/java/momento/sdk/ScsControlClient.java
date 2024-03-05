@@ -30,6 +30,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.Configuration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
@@ -48,9 +49,10 @@ final class ScsControlClient extends ScsClient {
   private final CredentialProvider credentialProvider;
   private final ScsControlGrpcStubsManager controlGrpcStubsManager;
 
-  ScsControlClient(@Nonnull CredentialProvider credentialProvider) {
+  ScsControlClient(@Nonnull CredentialProvider credentialProvider, Configuration configuration) {
     this.credentialProvider = credentialProvider;
-    this.controlGrpcStubsManager = new ScsControlGrpcStubsManager(credentialProvider);
+    this.controlGrpcStubsManager =
+        new ScsControlGrpcStubsManager(credentialProvider, configuration);
   }
 
   CompletableFuture<CacheCreateResponse> createCache(String cacheName) {
