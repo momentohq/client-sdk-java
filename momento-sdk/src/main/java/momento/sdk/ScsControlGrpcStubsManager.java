@@ -42,12 +42,7 @@ final class ScsControlGrpcStubsManager implements AutoCloseable {
 
     // Override grpc config to disable keepalive for control clients
     final GrpcConfiguration controlConfig =
-        configuration
-            .getTransportStrategy()
-            .getGrpcConfiguration()
-            .withKeepAliveTime(0)
-            .withKeepAliveTimeout(0)
-            .withKeepAliveWithoutCalls(false);
+        configuration.getTransportStrategy().getGrpcConfiguration().withKeepAliveDisabled();
 
     // set additional channel options (message size, keepalive, auth, etc)
     GrpcChannelOptions.GrpcOptionsFromGrpcConfig(controlConfig, channelBuilder);

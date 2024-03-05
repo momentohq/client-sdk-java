@@ -233,4 +233,20 @@ public class GrpcConfiguration {
         keepAliveTimeoutMs,
         keepAliveTimeMs);
   }
+
+  /**
+   * Copy constructor that disables all client-side keepalive settings.
+   *
+   * <p>NOTE: keep-alives are very important for long-lived server environments where there may be
+   * periods of time when the connection is idle. However, they are very problematic for lambda
+   * environments where the lambda runtime is continuously frozen and unfrozen, because the lambda
+   * may be frozen before the "ACK" is received from the server. This can cause the keep-alive to
+   * timeout even though the connection is completely healthy. Therefore, keep-alives should be
+   * disabled in lambda and similar environments.
+   *
+   * @return The updated GrpcConfiguration.
+   */
+  public GrpcConfiguration withKeepAliveDisabled() {
+    return new GrpcConfiguration(deadline, minNumGrpcChannels, maxMessageSize, false, 0, 0);
+  }
 }

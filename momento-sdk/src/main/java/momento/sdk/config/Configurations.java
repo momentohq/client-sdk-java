@@ -148,10 +148,7 @@ public class Configurations {
      */
     public static Configuration latest() {
       final GrpcConfiguration grpcConfig =
-          new GrpcConfiguration(Duration.ofMillis(1100))
-              .withKeepAliveTime(0)
-              .withKeepAliveTimeout(0)
-              .withKeepAliveWithoutCalls(false);
+          new GrpcConfiguration(Duration.ofMillis(1100)).withKeepAliveDisabled();
       final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
       final RetryStrategy retryStrategy =
           new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
