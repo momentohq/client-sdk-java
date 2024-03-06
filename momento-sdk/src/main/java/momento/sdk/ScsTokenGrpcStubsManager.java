@@ -34,7 +34,7 @@ final class ScsTokenGrpcStubsManager implements AutoCloseable {
   }
 
   private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
-    final NettyChannelBuilder channelBuilder =
+    NettyChannelBuilder channelBuilder =
         NettyChannelBuilder.forAddress(credentialProvider.getTokenEndpoint(), 443);
 
     // Note: This is hard-coded for now but we may want to expose it via configuration object
@@ -42,7 +42,7 @@ final class ScsTokenGrpcStubsManager implements AutoCloseable {
     final GrpcConfiguration grpcConfig = new GrpcConfiguration(Duration.ofMillis(15000));
 
     // set additional channel options (message size, keepalive, auth, etc)
-    GrpcChannelOptions.GrpcOptionsFromGrpcConfig(grpcConfig, channelBuilder);
+    channelBuilder = GrpcChannelOptions.GrpcOptionsFromGrpcConfig(grpcConfig, channelBuilder);
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
