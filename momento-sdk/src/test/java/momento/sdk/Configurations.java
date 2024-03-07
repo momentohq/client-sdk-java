@@ -1,7 +1,6 @@
 package momento.sdk;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import momento.sdk.config.Configuration;
@@ -14,7 +13,7 @@ public class Configurations {
   public void testCacheLambdaConfigurationDisablesKeepalive() {
     final Configuration config = momento.sdk.config.Configurations.Lambda.latest();
     final GrpcConfiguration grpcConfig = config.getTransportStrategy().getGrpcConfiguration();
-    assertFalse(grpcConfig.getKeepAliveWithoutCalls());
+    assertThat(grpcConfig.getKeepAliveWithoutCalls().isEmpty());
     assertTrue(grpcConfig.getKeepAliveTimeMs().isEmpty());
     assertTrue(grpcConfig.getKeepAliveTimeoutMs().isEmpty());
   }
@@ -23,17 +22,17 @@ public class Configurations {
   public void testCacheLaptopConfigurationEnablesKeepalive() {
     final Configuration config = momento.sdk.config.Configurations.Laptop.latest();
     final GrpcConfiguration grpcConfig = config.getTransportStrategy().getGrpcConfiguration();
-    assertTrue(grpcConfig.getKeepAliveWithoutCalls());
-    assertThat(grpcConfig.getKeepAliveTimeMs().getAsInt()).isEqualTo(5000);
-    assertThat(grpcConfig.getKeepAliveTimeoutMs().getAsInt()).isEqualTo(1000);
+    assertTrue(grpcConfig.getKeepAliveWithoutCalls().get());
+    assertThat(grpcConfig.getKeepAliveTimeMs().get()).isEqualTo(5000);
+    assertThat(grpcConfig.getKeepAliveTimeoutMs().get()).isEqualTo(1000);
   }
 
   @Test
   public void testTopicsLaptopConfigurationEnablesKeepalive() {
     final TopicConfiguration config = momento.sdk.config.TopicConfigurations.Laptop.latest();
     final GrpcConfiguration grpcConfig = config.getTransportStrategy().getGrpcConfiguration();
-    assertTrue(grpcConfig.getKeepAliveWithoutCalls());
-    assertThat(grpcConfig.getKeepAliveTimeMs().getAsInt()).isEqualTo(10000);
-    assertThat(grpcConfig.getKeepAliveTimeoutMs().getAsInt()).isEqualTo(5000);
+    assertTrue(grpcConfig.getKeepAliveWithoutCalls().get());
+    assertThat(grpcConfig.getKeepAliveTimeMs().get()).isEqualTo(10000);
+    assertThat(grpcConfig.getKeepAliveTimeoutMs().get()).isEqualTo(5000);
   }
 }
