@@ -3,6 +3,7 @@ package momento.sdk.config.transport;
 import static momento.sdk.ValidationUtils.ensureRequestDeadlineValid;
 
 import java.time.Duration;
+import java.util.OptionalInt;
 import javax.annotation.Nonnull;
 import momento.sdk.internal.GrpcChannelOptions;
 
@@ -11,10 +12,10 @@ public class GrpcConfiguration {
 
   private final Duration deadline;
   private final int minNumGrpcChannels;
-  private final int maxMessageSize;
+  private final OptionalInt maxMessageSize;
   private final boolean keepAliveWithoutCalls;
-  private final int keepAliveTimeoutMs;
-  private final int keepAliveTimeMs;
+  private final OptionalInt keepAliveTimeoutMs;
+  private final OptionalInt keepAliveTimeMs;
 
   /**
    * Constructs a GrpcConfiguration.
@@ -25,10 +26,10 @@ public class GrpcConfiguration {
     this(
         deadline,
         1,
-        GrpcChannelOptions.DEFAULT_MAX_MESSAGE_SIZE,
+        OptionalInt.of(GrpcChannelOptions.DEFAULT_MAX_MESSAGE_SIZE),
         GrpcChannelOptions.DEFAULT_KEEPALIVE_WITHOUT_STREAM,
-        GrpcChannelOptions.DEFAULT_KEEPALIVE_TIMEOUT_MS,
-        GrpcChannelOptions.DEFAULT_KEEPALIVE_TIME_MS);
+        OptionalInt.of(GrpcChannelOptions.DEFAULT_KEEPALIVE_TIMEOUT_MS),
+        OptionalInt.of(GrpcChannelOptions.DEFAULT_KEEPALIVE_TIME_MS));
   }
 
   /**
@@ -46,10 +47,10 @@ public class GrpcConfiguration {
   public GrpcConfiguration(
       @Nonnull Duration deadline,
       int minNumGrpcChannels,
-      int maxMessageSize,
+      OptionalInt maxMessageSize,
       boolean keepAliveWithoutCalls,
-      int keepAliveTimeout,
-      int keepAliveTime) {
+      OptionalInt keepAliveTimeout,
+      OptionalInt keepAliveTime) {
     ensureRequestDeadlineValid(deadline);
     this.deadline = deadline;
     this.minNumGrpcChannels = minNumGrpcChannels;
@@ -115,7 +116,7 @@ public class GrpcConfiguration {
    *
    * @return the maximum message size.
    */
-  public int getMaxMessageSize() {
+  public OptionalInt getMaxMessageSize() {
     return maxMessageSize;
   }
 
@@ -129,7 +130,7 @@ public class GrpcConfiguration {
     return new GrpcConfiguration(
         deadline,
         minNumGrpcChannels,
-        maxMessageSize,
+        OptionalInt.of(maxMessageSize),
         keepAliveWithoutCalls,
         keepAliveTimeoutMs,
         keepAliveTimeMs);
@@ -174,7 +175,7 @@ public class GrpcConfiguration {
    *
    * @return the time to wait for a keepalive ping response before considering the connection dead.
    */
-  public int getKeepAliveTimeoutMs() {
+  public OptionalInt getKeepAliveTimeoutMs() {
     return keepAliveTimeoutMs;
   }
 
@@ -198,7 +199,7 @@ public class GrpcConfiguration {
         minNumGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
-        keepAliveTimeoutMs,
+        OptionalInt.of(keepAliveTimeoutMs),
         keepAliveTimeMs);
   }
 
@@ -207,7 +208,7 @@ public class GrpcConfiguration {
    *
    * @return the time to wait between keepalive pings.
    */
-  public int getKeepAliveTimeMs() {
+  public OptionalInt getKeepAliveTimeMs() {
     return keepAliveTimeMs;
   }
 
@@ -231,7 +232,7 @@ public class GrpcConfiguration {
         maxMessageSize,
         keepAliveWithoutCalls,
         keepAliveTimeoutMs,
-        keepAliveTimeMs);
+        OptionalInt.of(keepAliveTimeMs));
   }
 
   /**
@@ -247,6 +248,12 @@ public class GrpcConfiguration {
    * @return The updated GrpcConfiguration.
    */
   public GrpcConfiguration withKeepAliveDisabled() {
-    return new GrpcConfiguration(deadline, minNumGrpcChannels, maxMessageSize, false, 0, 0);
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        maxMessageSize,
+        false,
+        OptionalInt.empty(),
+        OptionalInt.empty());
   }
 }

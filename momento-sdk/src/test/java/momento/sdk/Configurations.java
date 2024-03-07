@@ -15,8 +15,8 @@ public class Configurations {
     final Configuration config = momento.sdk.config.Configurations.Lambda.latest();
     final GrpcConfiguration grpcConfig = config.getTransportStrategy().getGrpcConfiguration();
     assertFalse(grpcConfig.getKeepAliveWithoutCalls());
-    assertThat(grpcConfig.getKeepAliveTimeMs()).isEqualTo(0);
-    assertThat(grpcConfig.getKeepAliveTimeoutMs()).isEqualTo(0);
+    assertTrue(grpcConfig.getKeepAliveTimeMs().isEmpty());
+    assertTrue(grpcConfig.getKeepAliveTimeoutMs().isEmpty());
   }
 
   @Test
@@ -24,8 +24,8 @@ public class Configurations {
     final Configuration config = momento.sdk.config.Configurations.Laptop.latest();
     final GrpcConfiguration grpcConfig = config.getTransportStrategy().getGrpcConfiguration();
     assertTrue(grpcConfig.getKeepAliveWithoutCalls());
-    assertThat(grpcConfig.getKeepAliveTimeMs()).isEqualTo(5000);
-    assertThat(grpcConfig.getKeepAliveTimeoutMs()).isEqualTo(1000);
+    assertThat(grpcConfig.getKeepAliveTimeMs().getAsInt()).isEqualTo(5000);
+    assertThat(grpcConfig.getKeepAliveTimeoutMs().getAsInt()).isEqualTo(1000);
   }
 
   @Test
@@ -33,7 +33,7 @@ public class Configurations {
     final TopicConfiguration config = momento.sdk.config.TopicConfigurations.Laptop.latest();
     final GrpcConfiguration grpcConfig = config.getTransportStrategy().getGrpcConfiguration();
     assertTrue(grpcConfig.getKeepAliveWithoutCalls());
-    assertThat(grpcConfig.getKeepAliveTimeMs()).isEqualTo(10000);
-    assertThat(grpcConfig.getKeepAliveTimeoutMs()).isEqualTo(5000);
+    assertThat(grpcConfig.getKeepAliveTimeMs().getAsInt()).isEqualTo(10000);
+    assertThat(grpcConfig.getKeepAliveTimeoutMs().getAsInt()).isEqualTo(5000);
   }
 }
