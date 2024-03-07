@@ -14,7 +14,7 @@ public class GrpcChannelOptions {
   public static final int DEFAULT_KEEPALIVE_TIME_MS = 5000; // milliseconds
   public static final int DEFAULT_KEEPALIVE_TIMEOUT_MS = 1000; // milliseconds
 
-  public static NettyChannelBuilder GrpcOptionsFromGrpcConfig(
+  public static void applyGrpcConfigurationToChannelBuilder(
       GrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder) {
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
@@ -32,7 +32,5 @@ public class GrpcChannelOptions {
     if (!grpcConfig.getKeepAliveWithoutCalls()) {
       channelBuilder.keepAliveWithoutCalls(false);
     }
-
-    return channelBuilder;
   }
 }

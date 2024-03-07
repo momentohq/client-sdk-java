@@ -35,13 +35,12 @@ final class ScsTopicGrpcStubsManager implements Closeable {
 
   private static ManagedChannel setupConnection(
       CredentialProvider credentialProvider, TopicConfiguration configuration) {
-    NettyChannelBuilder channelBuilder =
+    final NettyChannelBuilder channelBuilder =
         NettyChannelBuilder.forAddress(credentialProvider.getCacheEndpoint(), 443);
 
     // set additional channel options (message size, keepalive, auth, etc)
-    channelBuilder =
-        GrpcChannelOptions.GrpcOptionsFromGrpcConfig(
-            configuration.getTransportStrategy().getGrpcConfiguration(), channelBuilder);
+    GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(
+        configuration.getTransportStrategy().getGrpcConfiguration(), channelBuilder);
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
