@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.transport.GrpcConfiguration;
+import momento.sdk.internal.GrpcChannelOptions;
 import momento.token.TokenGrpc;
 
 /**
@@ -34,8 +36,14 @@ final class ScsTokenGrpcStubsManager implements AutoCloseable {
   private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
     final NettyChannelBuilder channelBuilder =
         NettyChannelBuilder.forAddress(credentialProvider.getTokenEndpoint(), 443);
-    channelBuilder.useTransportSecurity();
-    channelBuilder.disableRetry();
+
+    // Note: This is hard-coded for now but we may want to expose it via configuration object
+    // in the future, as we do with some of the other clients.
+    final GrpcConfiguration grpcConfig = new GrpcConfiguration(Duration.ofMillis(15000));
+
+    // set additional channel options (message size, keepalive, auth, etc)
+    GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(grpcConfig, channelBuilder);
+
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
     channelBuilder.intercept(clientInterceptors);

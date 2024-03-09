@@ -7,10 +7,10 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
+import momento.sdk.internal.GrpcChannelOptions;
 
 /**
  * Manager responsible for GRPC channels and stubs for the Topics.
@@ -28,20 +28,19 @@ final class ScsTopicGrpcStubsManager implements Closeable {
 
   ScsTopicGrpcStubsManager(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
-    this.channel = setupConnection(credentialProvider);
+    this.channel = setupConnection(credentialProvider, configuration);
     this.stub = PubsubGrpc.newStub(channel);
     this.configuration = configuration;
   }
 
-  private static ManagedChannel setupConnection(CredentialProvider credentialProvider) {
+  private static ManagedChannel setupConnection(
+      CredentialProvider credentialProvider, TopicConfiguration configuration) {
     final NettyChannelBuilder channelBuilder =
         NettyChannelBuilder.forAddress(credentialProvider.getCacheEndpoint(), 443);
-    channelBuilder.useTransportSecurity();
-    channelBuilder.disableRetry();
 
-    channelBuilder.keepAliveTime(10, TimeUnit.SECONDS);
-    channelBuilder.keepAliveTimeout(5, TimeUnit.SECONDS);
-    channelBuilder.keepAliveWithoutCalls(true);
+    // set additional channel options (message size, keepalive, auth, etc)
+    GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(
+        configuration.getTransportStrategy().getGrpcConfiguration(), channelBuilder);
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
