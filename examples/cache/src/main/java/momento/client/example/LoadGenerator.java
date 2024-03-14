@@ -42,6 +42,7 @@ public class LoadGenerator {
   private final LongAdder globalUnavailableCount = new LongAdder();
   private final LongAdder globalTimeoutCount = new LongAdder();
   private final LongAdder globalLimitExceededCount = new LongAdder();
+  private final LongAdder globalCancelledErrorCount = new LongAdder();
 
   private final String cacheValue;
   private final CacheClient client;
@@ -100,6 +101,7 @@ public class LoadGenerator {
           if (response instanceof SetResponse.Success) {
             globalSuccessCount.increment();
           } else if (response instanceof SetResponse.Error error) {
+            System.err.println("Error: " + ((SetResponse.Error) response).getMessage());
             handleErrorResponse(error.getErrorCode());
           }
           scheduleGet(workerId, operationNumValue);
@@ -117,6 +119,7 @@ public class LoadGenerator {
           if (response instanceof GetResponse.Hit || response instanceof GetResponse.Miss) {
             globalSuccessCount.increment();
           } else if (response instanceof GetResponse.Error error) {
+            System.err.println("Error: " + ((GetResponse.Error) response).getMessage());
             handleErrorResponse(error.getErrorCode());
           }
           scheduleSet(workerId, nextOperationNum);
@@ -151,6 +154,7 @@ public class LoadGenerator {
     switch (errorCode) {
       case TIMEOUT_ERROR -> globalTimeoutCount.increment();
       case LIMIT_EXCEEDED_ERROR -> globalLimitExceededCount.increment();
+      case CANCELLED_ERROR -> globalCancelledErrorCount.increment();
     }
   }
 
@@ -176,6 +180,9 @@ public class LoadGenerator {
 
     final long limitExceededCount = globalLimitExceededCount.sum();
     builder.append(formatStat("limit exceeded", requestCount, limitExceededCount)).append('\n');
+
+    final long cancelledCount = globalCancelledErrorCount.sum();
+    builder.append(formatStat("cancelled", requestCount, cancelledCount)).append('\n');
 
     builder.append("\nCumulative write latencies:\n");
     builder.append(formatHistogram(setHistogram));
@@ -244,7 +251,7 @@ public class LoadGenerator {
     // may increase.
     // Note: You are likely to see degraded performance if you increase this above 50
     // and observe elevated client-side latencies.
-    final int numberOfConcurrentRequests = 50;
+    final int numberOfConcurrentRequests = 10;
     //
     // Sets an upper bound on how many requests per second will be sent to the server.
     // Momento caches have a default throttling limit of 100 requests per second,
