@@ -116,51 +116,61 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
       }
 
       final CompletableFuture<Void> connectionFuture = new CompletableFuture<>();
-      eagerlyConnect(currentState, connectionFuture, channel, Instant.now().plusSeconds(timeoutSeconds));
+      eagerlyConnect(
+          currentState, connectionFuture, channel, Instant.now().plusSeconds(timeoutSeconds));
 
       try {
         connectionFuture.get(timeoutSeconds, TimeUnit.SECONDS);
       } catch (TimeoutException e) {
         connectionFuture.cancel(true);
-        throw new ConnectionFailedException("Failed to connect within the allotted time of " + timeoutSeconds + " seconds.", e);
+        throw new ConnectionFailedException(
+            "Failed to connect within the allotted time of " + timeoutSeconds + " seconds.", e);
       } catch (InterruptedException | ExecutionException e) {
         connectionFuture.cancel(true);
-        throw new ConnectionFailedException("Error while waiting for eager connection to establish.", e);
+        throw new ConnectionFailedException(
+            "Error while waiting for eager connection to establish.", e);
       }
     }
   }
 
   private static void eagerlyConnect(
-          final ConnectivityState lastObservedState,
-          final CompletableFuture<Void> connectionFuture,
-          final ManagedChannel channel,
-          final Instant timeout) {
+      final ConnectivityState lastObservedState,
+      final CompletableFuture<Void> connectionFuture,
+      final ManagedChannel channel,
+      final Instant timeout) {
 
     if (Instant.now().toEpochMilli() > timeout.toEpochMilli()) {
-      connectionFuture.completeExceptionally(new ConnectionFailedException("Connection failed: Deadline exceeded"));
+      connectionFuture.completeExceptionally(
+          new ConnectionFailedException("Connection failed: Deadline exceeded"));
       return;
     }
-    channel.notifyWhenStateChanged(lastObservedState, () -> {
-      final ConnectivityState currentState = channel.getState(false /* tryToConnect */);
-      switch (currentState) {
-        case READY:
-          LOGGER.debug("Connected to Momento's server! Happy Caching!");
-          connectionFuture.complete(null);
-          return;
-        case IDLE:
-          LOGGER.debug("State is idle; waiting to transition to CONNECTING");
-          eagerlyConnect(currentState, connectionFuture, channel, timeout);
-          break;
-        case CONNECTING:
-          LOGGER.debug("State transitioned to CONNECTING; waiting to get READY");
-          eagerlyConnect(currentState, connectionFuture, channel, timeout);
-          break;
-        default:
-          LOGGER.debug("Unexpected state encountered {}. Contact Momento if this persists.", currentState.name());
-          connectionFuture.completeExceptionally(new ConnectionFailedException("Connection failed due to unexpected state: " + currentState));
-          break;
-      }
-    });
+    channel.notifyWhenStateChanged(
+        lastObservedState,
+        () -> {
+          final ConnectivityState currentState = channel.getState(false /* tryToConnect */);
+          switch (currentState) {
+            case READY:
+              LOGGER.debug("Connected to Momento's server! Happy Caching!");
+              connectionFuture.complete(null);
+              return;
+            case IDLE:
+              LOGGER.debug("State is idle; waiting to transition to CONNECTING");
+              eagerlyConnect(currentState, connectionFuture, channel, timeout);
+              break;
+            case CONNECTING:
+              LOGGER.debug("State transitioned to CONNECTING; waiting to get READY");
+              eagerlyConnect(currentState, connectionFuture, channel, timeout);
+              break;
+            default:
+              LOGGER.debug(
+                  "Unexpected state encountered {}. Contact Momento if this persists.",
+                  currentState.name());
+              connectionFuture.completeExceptionally(
+                  new ConnectionFailedException(
+                      "Connection failed due to unexpected state: " + currentState));
+              break;
+          }
+        });
   }
 
   private ManagedChannel setupChannel(

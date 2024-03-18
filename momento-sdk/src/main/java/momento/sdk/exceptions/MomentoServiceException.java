@@ -22,10 +22,7 @@ public class MomentoServiceException extends SdkException {
    * @param message the detail message.
    * @param cause the exception cause/details
    */
-  public MomentoServiceException(
-          MomentoErrorCode errorCode,
-          String message,
-          Throwable cause) {
+  public MomentoServiceException(MomentoErrorCode errorCode, String message, Throwable cause) {
     super(errorCode, message, cause);
   }
 
