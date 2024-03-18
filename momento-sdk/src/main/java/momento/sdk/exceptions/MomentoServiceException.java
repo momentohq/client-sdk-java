@@ -20,6 +20,20 @@ public class MomentoServiceException extends SdkException {
    *
    * @param errorCode the error code, or {@link MomentoErrorCode#UNKNOWN} if none exists.
    * @param message the detail message.
+   * @param cause the exception cause/details
+   */
+  public MomentoServiceException(
+          MomentoErrorCode errorCode,
+          String message,
+          Throwable cause) {
+    super(errorCode, message, cause);
+  }
+
+  /**
+   * Constructs a MomentoServiceException with an error code, a detail message, and error details.
+   *
+   * @param errorCode the error code, or {@link MomentoErrorCode#UNKNOWN} if none exists.
+   * @param message the detail message.
    * @param transportErrorDetails details about the request and error.
    */
   public MomentoServiceException(
