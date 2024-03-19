@@ -9,7 +9,7 @@ public class UnknownException extends MomentoServiceException {
    * @param message the detail message.
    */
   public UnknownException(String message) {
-    super(MomentoErrorCode.UNKNOWN, message, null);
+    super(MomentoErrorCode.UNKNOWN, message);
   }
 
   /**

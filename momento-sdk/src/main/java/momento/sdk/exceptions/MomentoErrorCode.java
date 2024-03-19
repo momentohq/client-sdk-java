@@ -5,6 +5,9 @@ package momento.sdk.exceptions;
  * errors on a failure response.
  */
 public enum MomentoErrorCode {
+  /** The client was unable to connect to the server. */
+  CONNECTION,
+
   /** An invalid argument was passed to Momento client. */
   INVALID_ARGUMENT_ERROR,
 

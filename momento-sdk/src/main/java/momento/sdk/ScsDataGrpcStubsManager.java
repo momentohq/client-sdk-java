@@ -6,6 +6,7 @@ import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -23,6 +24,7 @@ import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
+import momento.sdk.exceptions.ConnectionFailedException;
 import momento.sdk.internal.GrpcChannelOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,22 +112,23 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
       final ConnectivityState currentState = channel.getState(true /* tryToConnect */);
       if (ConnectivityState.READY.equals(currentState)) {
         LOGGER.debug("Connected to Momento's server! Happy Caching!");
-        return;
+        continue;
       }
 
-      // this future is our signalling mechanism to exit after the eager connection is successfully
-      // established or fails
       final CompletableFuture<Void> connectionFuture = new CompletableFuture<>();
-      eagerlyConnect(currentState, connectionFuture, channel);
+      eagerlyConnect(
+          currentState, connectionFuture, channel, Instant.now().plusSeconds(timeoutSeconds));
 
       try {
         connectionFuture.get(timeoutSeconds, TimeUnit.SECONDS);
       } catch (TimeoutException e) {
         connectionFuture.cancel(true);
-        LOGGER.debug("Failed to connect within the allotted time of {} seconds.", 1);
+        throw new ConnectionFailedException(
+            "Failed to connect within the allotted time of " + timeoutSeconds + " seconds.", e);
       } catch (InterruptedException | ExecutionException e) {
         connectionFuture.cancel(true);
-        LOGGER.debug("Error while waiting for eager connection to establish.", e);
+        throw new ConnectionFailedException(
+            "Error while waiting for eager connection to establish.", e);
       }
     }
   }
@@ -133,9 +136,14 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
   private static void eagerlyConnect(
       final ConnectivityState lastObservedState,
       final CompletableFuture<Void> connectionFuture,
-      final ManagedChannel channel) {
+      final ManagedChannel channel,
+      final Instant timeout) {
 
-    // the callback is triggerd only when a state change happens
+    if (Instant.now().toEpochMilli() > timeout.toEpochMilli()) {
+      connectionFuture.completeExceptionally(
+          new ConnectionFailedException("Connection failed: Deadline exceeded"));
+      return;
+    }
     channel.notifyWhenStateChanged(
         lastObservedState,
         () -> {
@@ -144,25 +152,22 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
             case READY:
               LOGGER.debug("Connected to Momento's server! Happy Caching!");
               connectionFuture.complete(null);
-              break;
+              return;
             case IDLE:
               LOGGER.debug("State is idle; waiting to transition to CONNECTING");
-              // we will recursively call this atmost twice (IDLE -> CONNECTING and CONNECTING ->
-              // READY) in a happy case.
-              // we deliberately give up connecting eagerly if it fails or has intermittent issues
-              // to not
-              // blow up the call stack on frequent state changes.
-              eagerlyConnect(currentState, connectionFuture, channel);
+              eagerlyConnect(currentState, connectionFuture, channel, timeout);
               break;
             case CONNECTING:
               LOGGER.debug("State transitioned to CONNECTING; waiting to get READY");
-              eagerlyConnect(currentState, connectionFuture, channel);
+              eagerlyConnect(currentState, connectionFuture, channel, timeout);
               break;
             default:
               LOGGER.debug(
                   "Unexpected state encountered {}. Contact Momento if this persists.",
                   currentState.name());
-              connectionFuture.complete(null);
+              connectionFuture.completeExceptionally(
+                  new ConnectionFailedException(
+                      "Connection failed due to unexpected state: " + currentState));
               break;
           }
         });
