@@ -94,10 +94,10 @@ public class SSPerf {
             redisExecutor.shutdown(); // Initiate shutdown
             try {
                 // Wait a certain time for the termination of previously submitted tasks
-                if (!redisExecutor.awaitTermination(200, TimeUnit.MINUTES)) { // Adjust time as needed
+                if (!redisExecutor.awaitTermination(2000, TimeUnit.MINUTES)) { // Adjust time as needed
                     redisExecutor.shutdownNow(); // Cancel currently executing tasks
                     // Wait again, if necessary
-                    if (!redisExecutor.awaitTermination(200, TimeUnit.MINUTES))
+                    if (!redisExecutor.awaitTermination(2000, TimeUnit.MINUTES))
                         System.err.println("Redis executor did not terminate.");
                 }
             } catch (InterruptedException ie) {
