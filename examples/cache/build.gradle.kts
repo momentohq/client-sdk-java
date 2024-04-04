@@ -55,6 +55,7 @@ task("perf", JavaExec::class) {
     description = "Run the perf example"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.SSPerf")
+    jvmArgs("-Xmx100g", "-Xms100g", "-XX:+AlwaysPreTouch")
 }
 
 task("withDatabase", JavaExec::class) {
