@@ -23,12 +23,14 @@ dependencies {
 
     // Logging framework to log and enable logging in the Momento client.
     implementation("ch.qos.logback:logback-classic:1.4.7")
-
+    implementation("redis.clients:jedis:4.0.1")
+    implementation("com.fasterxml.jackson.core:jackson-databind:2.13.1")
     // Histogram for collecting stats in the load generator
     implementation("org.hdrhistogram:HdrHistogram:2.1.12")
 
     // Use JUnit Jupiter for testing.
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
+
 }
 
 spotless {
@@ -47,6 +49,12 @@ task("basic", JavaExec::class) {
     description = "Run the basic example"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.BasicExample")
+}
+
+task("perf", JavaExec::class) {
+    description = "Run the perf example"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.SSPerf")
 }
 
 task("withDatabase", JavaExec::class) {
