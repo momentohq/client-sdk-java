@@ -94,6 +94,7 @@ public class Ingester {
         logger.info("Loaded all JSON lines in memory");
         Ingester ingester = new Ingester(new JedisPool("localhost", 6666),
                 50, 100000);
+        logger.info("Preprocessing JSONs in memory to not hamper with ingestion; this may take a while...");
         final List<RedisSortedSetEntry> entries = jsonLines.stream().map(SortedSetLineProcessor::processLine).toList();
         logger.info("Preprocessed all JSONs in memory; ingesting!");
         entries.forEach(sortedSetEntry -> {
