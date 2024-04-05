@@ -38,11 +38,11 @@ public class Ingester {
         CompletableFuture<Void> allDoneFuture = CompletableFuture.completedFuture(null);
         final IngestedMembers ingestedMembers = new IngestedMembers();
         Reader reader = null;
-        if (sortedSetEntry.getMemberScores().size() > 1000) {
-            final JedisPool readerPool = new JedisPool("localhost", 6666);
-            reader = new Reader(readerPool, ingestedMembers, key);
-            reader.start();
-        }
+//        if (sortedSetEntry.getMemberScores().size() > 1000) {
+//            final JedisPool readerPool = new JedisPool("localhost", 6666);
+//            reader = new Reader(readerPool, ingestedMembers, key);
+//            reader.start();
+//        }
 
         for (int i = 0; i < entries.size(); i += batchSize) {
             final int batchStart = i;
@@ -86,12 +86,21 @@ public class Ingester {
 
         final String filePath = args[0];
         final List<String> jsonLines = LeaderboardJSONLReader.parseFile(filePath);
-        final RedisSortedSetEntry sortedSetEntry = SortedSetLineProcessor.processLine(
-                jsonLines.get(0)
-        );
-        Ingester ingester = new Ingester(new JedisPool("localhost", 6666),
-                50, 100000);
-        ingester.ingestAsync(sortedSetEntry).get();
+        jsonLines.forEach(jsonLine -> {
+            final RedisSortedSetEntry sortedSetEntry = SortedSetLineProcessor.processLine(
+                    jsonLine
+            );
+            Ingester ingester = new Ingester(new JedisPool("localhost", 6666),
+                    50, 100000);
+            try {
+                ingester.ingestAsync(sortedSetEntry).get();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        });
+
     }
 
 }
