@@ -23,7 +23,7 @@ public class SortedSetLineProcessor {
                             entry -> memberScores.put(entry.getKey(), entry.getValue().asDouble()));
            return new RedisSortedSetEntry(key, memberScores);
         } catch (Exception e) {
-            System.err.println("Failed to parse line as JSON: " + line);
+            System.err.println("Failed to parse line as JSON: ");
             return null;
         }
 
