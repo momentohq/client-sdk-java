@@ -69,6 +69,7 @@ public class Reader {
 
         Thread thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
+                if (membersToRead.isEmpty()) continue;
 //                CompletableFuture<?> done = CompletableFuture.completedFuture(null);
                 rateLimiter.acquire();
                 fetchRandomRank(key, totalLeaderboradEntries);
