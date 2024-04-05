@@ -17,7 +17,6 @@ public class Ingester {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
     private final AtomicLong totalElements = new AtomicLong(0);
     private final AtomicLong currentSecondWrites = new AtomicLong(0);
-
     public Ingester(final JedisPool jedisPool, int poolSize, int batchSize) {
         this.jedisPool = jedisPool;
         this.redisExecutor = Executors.newFixedThreadPool(poolSize);
@@ -27,7 +26,7 @@ public class Ingester {
 
     private void scheduleThroughputMeasurement() {
         scheduledExecutorService.scheduleAtFixedRate(() -> {
-            System.out.println(String.format("{\"Throughput\": %d, \"TotalElements\": %d}", currentSecondWrites.getAndSet(0), totalElements.get()));
+            System.out.println(String.format("{\"Throughput-Write\": %d, \"TotalElementsWrote\": %d}", currentSecondWrites.getAndSet(0), totalElements.get()));
         }, 1, 1, TimeUnit.SECONDS);
     }
 
@@ -37,6 +36,13 @@ public class Ingester {
         List<Map.Entry<String, Double>> entries = new ArrayList<>(memberScores.entrySet());
 
         CompletableFuture<Void> allDoneFuture = CompletableFuture.completedFuture(null);
+        final IngestedMembers ingestedMembers = new IngestedMembers();
+        Reader reader = null;
+        if (sortedSetEntry.getMemberScores().size() > 1000) {
+            final JedisPool readerPool = new JedisPool("localhost", 6666);
+            reader = new Reader(readerPool, ingestedMembers, key);
+            reader.start();
+        }
 
         for (int i = 0; i < entries.size(); i += batchSize) {
             final int batchStart = i;
@@ -47,6 +53,7 @@ public class Ingester {
                 try (Jedis jedis = jedisPool.getResource()) {
                     for (Map.Entry<String, Double> entry : batch) {
                         jedis.zadd(key, entry.getValue(), entry.getKey());
+                        ingestedMembers.add(entry.getKey());
                         incrementMetrics();
                     }
                 }
@@ -55,6 +62,7 @@ public class Ingester {
             allDoneFuture = allDoneFuture.thenCombine(batchFuture, (aVoid, aVoid2) -> null);
         }
 
+        if (reader != null) reader.shutdown();
         return allDoneFuture;
     }
 
@@ -67,4 +75,23 @@ public class Ingester {
         redisExecutor.shutdown();
         scheduledExecutorService.shutdown();
     }
+
+    // to ingest ad-hoc leaderboard
+    public static void main(String... args) throws Exception {
+        // Check if an argument (file path) is provided
+        if (args.length < 1) {
+            System.out.println("Usage: java ingester <filePath>");
+            System.exit(1);
+        }
+
+        final String filePath = args[0];
+        final List<String> jsonLines = LeaderboardJSONLReader.parseFile(filePath);
+        final RedisSortedSetEntry sortedSetEntry = SortedSetLineProcessor.processLine(
+                jsonLines.get(0)
+        );
+        Ingester ingester = new Ingester(new JedisPool("localhost", 6666),
+                50, 100000);
+        ingester.ingestAsync(sortedSetEntry).get();
+    }
+
 }

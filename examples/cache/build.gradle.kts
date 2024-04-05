@@ -58,6 +58,22 @@ task("perf", JavaExec::class) {
     jvmArgs("-Xmx20g", "-Xms20g", "-XX:+AlwaysPreTouch")
 }
 
+task("ingester", JavaExec::class) {
+    description = "Run the ingester example"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.perf.Ingester")
+    jvmArgs("-Xmx5g", "-Xms5g", "-XX:+AlwaysPreTouch")
+
+    // Modify this part to accept arguments from the command line
+    doFirst {
+        // Using project property 'appArgs' with a safe call in Kotlin
+        val argsString = project.findProperty("args")?.toString() ?: ""
+        if (argsString.isNotEmpty()) {
+            args(*argsString.split("\\s+").toTypedArray())
+        }
+    }
+}
+
 task("withDatabase", JavaExec::class) {
     description = "Run the with-database example"
     classpath = sourceSets.main.get().runtimeClasspath

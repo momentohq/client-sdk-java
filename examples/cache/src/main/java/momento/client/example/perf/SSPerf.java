@@ -29,7 +29,7 @@ public class SSPerf {
     start = System.currentTimeMillis();
     final List<RedisSortedSetEntry> sortedSetEntries =
             jsonLines.stream().map(SortedSetLineProcessor::processLine).toList();
-    System.out.println("Loaded entries in " + (System.currentTimeMillis() - start) + " millis");
+    System.out.println("Loaded entries " + sortedSetEntries.size() + " in " + (System.currentTimeMillis() - start) + " millis");
 
     sortedSetEntries.forEach(this.ingester::ingestAsync);
   }
