@@ -92,6 +92,9 @@ public class Reader {
                 String json = String.format("{\"key\": %s, \"duration\": %d, \"timestampEpoch\": %d}\n", key,
                         duration, timestampEpoch);
                 logger.info(json);
+            } else {
+                System.out.println("No more data");
+                this.shutdown();
             }
         }
     }
