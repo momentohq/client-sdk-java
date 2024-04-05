@@ -102,10 +102,10 @@ public class Reader {
                             duration, timestampEpoch);
                     logger.info(json);
                 }
-//            else {
-//                System.out.println("No more data");
-//                this.shutdown();
-//            }
+            else {
+                System.out.println("No more data");
+                this.shutdown();
+            }
             }
         } catch (Exception e) {
             logger.error("Caught exception: " + e);
