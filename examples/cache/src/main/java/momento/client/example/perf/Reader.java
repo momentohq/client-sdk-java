@@ -67,6 +67,7 @@ public class Reader {
         fetchRandomRank(key, totalLeaderboradEntries);
         Thread thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
+                if (membersToRead.isEmpty()) continue;
                 CompletableFuture<?> done = CompletableFuture.completedFuture(null);
                 rateLimiter.acquire();
                 CompletableFuture<?> batch = CompletableFuture.runAsync(() -> {
@@ -83,7 +84,7 @@ public class Reader {
 
     public void fetchRandomRank(final String key, final Optional<Integer> totalLeaderboardEntries) {
         try (Jedis jedis = jedisPool.getResource()) {
-            int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(() -> membersToRead.size()));
+            int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(membersToRead::size));
             int stop = totalLeaderboardEntries.orElseGet(() -> start + Math.min(100, membersToRead.size()));
             long startTime = System.nanoTime();
             List<String> members = jedis.zrange(key, start, stop);
