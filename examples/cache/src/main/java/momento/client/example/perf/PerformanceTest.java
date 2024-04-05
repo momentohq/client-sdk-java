@@ -30,19 +30,6 @@ public class PerformanceTest {
     final List<String> jsonLines = LeaderboardJSONLReader.parseFile(filePath);
     logger.info("Loaded " + filePath + " in " + (System.currentTimeMillis() - start) + " millis");
 
-//    final ExecutorService executorService = Executors.newFixedThreadPool(50);
-//    final List<List<String>> jsonLineBatches = Lists.partition(jsonLines, 10000);
-//    jsonLineBatches.forEach(jsonLineBatch -> {
-//      CompletableFuture<?> completed = CompletableFuture.completedFuture(null);
-//      jsonLineBatch.forEach(jsonLine -> {
-//        CompletableFuture<?> future = CompletableFuture.runAsync(
-//                () -> SortedSetLineProcessor.processLine(jsonLine), executorService
-//        );
-//
-//      });
-//    });
-//    executorService.shutdown();
-
     start = System.currentTimeMillis();
     final List<RedisSortedSetEntry> sortedSetEntries =
             jsonLines.stream().map(SortedSetLineProcessor::processLine).toList();

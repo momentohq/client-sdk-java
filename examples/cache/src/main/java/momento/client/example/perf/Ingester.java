@@ -26,7 +26,6 @@ public class Ingester {
         this.jedisPool = jedisPool;
         this.redisExecutor = Executors.newFixedThreadPool(poolSize);
         this.batchSize = batchSize;
-        scheduleThroughputMeasurement();
     }
 
     private void scheduleThroughputMeasurement() {
@@ -49,6 +48,7 @@ public class Ingester {
             reader = new Reader(readerPool, ingestedMembers, key);
             reader.start(Optional.empty());
         }
+        scheduleThroughputMeasurement();
 
         for (int i = 0; i < entries.size(); i += batchSize) {
             final int batchEnd = Math.min(i + batchSize, entries.size());
