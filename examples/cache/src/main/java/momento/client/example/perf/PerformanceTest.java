@@ -29,6 +29,7 @@ public class PerformanceTest {
     long start = System.currentTimeMillis();
     final List<String> jsonLines = LeaderboardJSONLReader.parseFile(filePath);
     logger.info("Loaded " + filePath + " in " + (System.currentTimeMillis() - start) + " millis");
+    logger.info("Preprocessing JSONs in memory to not hamper with ingestion; this may take a while...");
 
     start = System.currentTimeMillis();
     final List<RedisSortedSetEntry> sortedSetEntries =
