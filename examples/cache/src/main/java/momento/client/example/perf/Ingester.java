@@ -86,12 +86,13 @@ public class Ingester {
 
         final String filePath = args[0];
         final List<String> jsonLines = LeaderboardJSONLReader.parseFile(filePath);
+
+        Ingester ingester = new Ingester(new JedisPool("localhost", 6666),
+                50, 100000);
         jsonLines.forEach(jsonLine -> {
             final RedisSortedSetEntry sortedSetEntry = SortedSetLineProcessor.processLine(
                     jsonLine
             );
-            Ingester ingester = new Ingester(new JedisPool("localhost", 6666),
-                    50, 100000);
             try {
                 ingester.ingestAsync(sortedSetEntry).get();
             } catch (InterruptedException e) {
