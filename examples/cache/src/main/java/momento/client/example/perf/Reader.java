@@ -71,14 +71,14 @@ public class Reader {
         Thread thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 if (membersToRead.isEmpty()) continue;
-//                CompletableFuture<?> done = CompletableFuture.completedFuture(null);
+                CompletableFuture<?> done = CompletableFuture.completedFuture(null);
                 rateLimiter.acquire();
-                fetchRandomRank(key, totalLeaderboradEntries);
-//                CompletableFuture<?> batch = CompletableFuture.runAsync(() -> {
-//                            fetchRandomRank(key, totalLeaderboradEntries);
-//                        }
-//                        , executorService);
-//                done.thenCombine(batch, (aVoid, aVoid2) -> null);
+//                fetchRandomRank(key, totalLeaderboradEntries);
+                CompletableFuture<?> batch = CompletableFuture.runAsync(() -> {
+                            fetchRandomRank(key, totalLeaderboradEntries);
+                        }
+                        , executorService);
+                done.thenCombine(batch, (aVoid, aVoid2) -> null);
             }
         });
         this.threads[1] = thread;
