@@ -36,7 +36,13 @@ public class SSPerf {
 
   public static void main(String[] args) throws IOException{
     final SSPerf ssPerf = new SSPerf();
-    ssPerf.startIngestion("/Users/pratik/sandbox/leaderboard_analysis/leaderboard_500.jsonl");
+    if (args.length < 1) {
+      System.out.println("Usage: java ingester <filePath>");
+      System.exit(1);
+    }
+
+    final String filePath = args[0];
+    ssPerf.startIngestion(filePath);
 
   }
 }

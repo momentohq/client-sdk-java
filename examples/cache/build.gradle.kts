@@ -55,7 +55,15 @@ task("perf", JavaExec::class) {
     description = "Run the perf example"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.perf.SSPerf")
-    jvmArgs("-Xmx20g", "-Xms20g", "-XX:+AlwaysPreTouch")
+    jvmArgs("-Xmx50g", "-Xms50g", "-XX:+AlwaysPreTouch")
+
+    doFirst {
+        // Using project property 'appArgs' with a safe call in Kotlin
+        val argsString = project.findProperty("args")?.toString() ?: ""
+        if (argsString.isNotEmpty()) {
+            args(*argsString.split("\\s+").toTypedArray())
+        }
+    }
 }
 
 task("ingester", JavaExec::class) {
