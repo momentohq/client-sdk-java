@@ -55,7 +55,7 @@ public class Reader {
             }
         });
         threads[0] = thread;
-        thread.stop();
+        thread.start();
     }
 
     private void scheduleThroughputMeasurement() {
