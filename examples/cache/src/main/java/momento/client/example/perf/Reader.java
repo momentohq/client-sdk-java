@@ -42,6 +42,7 @@ public class Reader {
         this.executorService = Executors.newFixedThreadPool(50); // Pool size can be adjusted as needed
         this.ingestedMembers = ingestedMembers;
         this.key = sortedSetKey;
+        scheduleFillingMembersList();
         //scheduleThroughputMeasurement();
 
     }
