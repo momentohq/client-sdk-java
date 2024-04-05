@@ -88,6 +88,8 @@ public class Reader {
     public void fetchRandomRank(final String key, final Optional<Integer> totalLeaderboardEntries) {
         try {
             try (Jedis jedis = jedisPool.getResource()) {
+                int randEnd = totalLeaderboardEntries.orElseGet(membersToRead::size);
+                logger.info("randEnd " + randEnd);
                 int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(membersToRead::size));
                 int stop = totalLeaderboardEntries.orElseGet(() -> start + Math.min(100, membersToRead.size()));
                 long startTime = System.nanoTime();
