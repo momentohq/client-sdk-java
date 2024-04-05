@@ -73,6 +73,7 @@ public class PerformanceTest {
       readEnabled = Boolean.parseBoolean(args[1]);
     }
 
+    logger.info("Starting ingestion for " + filePath + " , readEnabled :" + readEnabled);
     peformanceTest.startIngestion(filePath, readEnabled);
 
   }
