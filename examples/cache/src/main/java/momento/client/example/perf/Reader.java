@@ -64,17 +64,18 @@ public class Reader {
     }
 
     public void start(Optional<Integer> totalLeaderboradEntries) {
-        fetchRandomRank(key, totalLeaderboradEntries);
+
         Thread thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
                 if (membersToRead.isEmpty()) continue;
-                CompletableFuture<?> done = CompletableFuture.completedFuture(null);
+//                CompletableFuture<?> done = CompletableFuture.completedFuture(null);
                 rateLimiter.acquire();
-                CompletableFuture<?> batch = CompletableFuture.runAsync(() -> {
-                            fetchRandomRank(key, totalLeaderboradEntries);
-                        }
-                        , executorService);
-                done.thenCombine(batch, (aVoid, aVoid2) -> null);
+                fetchRandomRank(key, totalLeaderboradEntries);
+//                CompletableFuture<?> batch = CompletableFuture.runAsync(() -> {
+//                            fetchRandomRank(key, totalLeaderboradEntries);
+//                        }
+//                        , executorService);
+//                done.thenCombine(batch, (aVoid, aVoid2) -> null);
             }
         });
         this.threads[1] = thread;
@@ -83,23 +84,27 @@ public class Reader {
 
 
     public void fetchRandomRank(final String key, final Optional<Integer> totalLeaderboardEntries) {
-        try (Jedis jedis = jedisPool.getResource()) {
-            int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(membersToRead::size));
-            int stop = totalLeaderboardEntries.orElseGet(() -> start + Math.min(100, membersToRead.size()));
-            long startTime = System.nanoTime();
-            List<String> members = jedis.zrange(key, start, stop);
-            long duration = System.nanoTime() - startTime;
+        try {
+            try (Jedis jedis = jedisPool.getResource()) {
+                int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(membersToRead::size));
+                int stop = totalLeaderboardEntries.orElseGet(() -> start + Math.min(100, membersToRead.size()));
+                long startTime = System.nanoTime();
+                List<String> members = jedis.zrange(key, start, stop);
+                long duration = System.nanoTime() - startTime;
 
-            if (!members.isEmpty()) {
-                long timestampEpoch = System.currentTimeMillis();
-                String json = String.format("{\"key\": %s, \"duration\": %d, \"timestampEpoch\": %d}\n", key,
-                        duration, timestampEpoch);
-                logger.info(json);
-            }
+                if (!members.isEmpty()) {
+                    long timestampEpoch = System.currentTimeMillis();
+                    String json = String.format("{\"key\": %s, \"duration\": %d, \"timestampEpoch\": %d}\n", key,
+                            duration, timestampEpoch);
+                    logger.info(json);
+                }
 //            else {
 //                System.out.println("No more data");
 //                this.shutdown();
 //            }
+            }
+        } catch (Exception e) {
+            logger.error("Caught exception: " + e);
         }
     }
 
