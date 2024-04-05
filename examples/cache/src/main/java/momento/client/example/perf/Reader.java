@@ -1,6 +1,7 @@
 package momento.client.example.perf;
 
 import com.google.common.util.concurrent.RateLimiter;
+import org.checkerframework.checker.units.qual.A;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
@@ -13,6 +14,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -41,7 +43,7 @@ public class Reader {
         this.ingestedMembers = ingestedMembers;
         this.key = sortedSetKey;
         //scheduleThroughputMeasurement();
-        scheduleFillingMembersList();
+
     }
 
     private void scheduleFillingMembersList() {
@@ -67,7 +69,6 @@ public class Reader {
 
         Thread thread = new Thread(() -> {
             while (!Thread.currentThread().isInterrupted()) {
-                if (membersToRead.isEmpty()) continue;
 //                CompletableFuture<?> done = CompletableFuture.completedFuture(null);
                 rateLimiter.acquire();
                 fetchRandomRank(key, totalLeaderboradEntries);

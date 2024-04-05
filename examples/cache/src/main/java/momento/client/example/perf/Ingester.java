@@ -43,6 +43,7 @@ public class Ingester {
         CompletableFuture<Void> allDoneFuture = CompletableFuture.completedFuture(null);
         final IngestedMembers ingestedMembers = new IngestedMembers();
         Reader reader = null;
+
         if (readEnabled && sortedSetEntry.getMemberScores().size() > 1000) {
             final JedisPool readerPool = new JedisPool("localhost", 6666);
             reader = new Reader(readerPool, ingestedMembers, key);
@@ -67,7 +68,6 @@ public class Ingester {
             allDoneFuture = allDoneFuture.thenCombine(batchFuture, (aVoid, aVoid2) -> null);
         }
 
-        if (readEnabled && reader != null) reader.shutdown();
         return allDoneFuture;
     }
 
