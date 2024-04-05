@@ -1,11 +1,14 @@
 package momento.client.example.perf;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
 
@@ -17,6 +20,8 @@ public class Ingester {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
     private final AtomicLong totalElements = new AtomicLong(0);
     private final AtomicLong currentSecondWrites = new AtomicLong(0);
+
+    private static final Logger logger = LoggerFactory.getLogger(Ingester.class);
     public Ingester(final JedisPool jedisPool, int poolSize, int batchSize) {
         this.jedisPool = jedisPool;
         this.redisExecutor = Executors.newFixedThreadPool(poolSize);
@@ -26,11 +31,12 @@ public class Ingester {
 
     private void scheduleThroughputMeasurement() {
         scheduledExecutorService.scheduleAtFixedRate(() -> {
-            System.out.println(String.format("{\"Throughput-Write\": %d, \"TotalElementsWrote\": %d}", currentSecondWrites.getAndSet(0), totalElements.get()));
+            logger.info(String.format("{\"Throughput-Write\": %d, \"TotalElementsWrote\": %d}", currentSecondWrites.getAndSet(0), totalElements.get()));
         }, 1, 1, TimeUnit.SECONDS);
     }
 
-    public CompletableFuture<Void> ingestAsync(final RedisSortedSetEntry sortedSetEntry) {
+    public CompletableFuture<Void> ingestAsync(final RedisSortedSetEntry sortedSetEntry,
+                                               boolean readEnabled) {
         String key = sortedSetEntry.getKey();
         Map<String, Double> memberScores = sortedSetEntry.getMemberScores();
         List<Map.Entry<String, Double>> entries = new ArrayList<>(memberScores.entrySet());
@@ -38,16 +44,15 @@ public class Ingester {
         CompletableFuture<Void> allDoneFuture = CompletableFuture.completedFuture(null);
         final IngestedMembers ingestedMembers = new IngestedMembers();
         Reader reader = null;
-//        if (sortedSetEntry.getMemberScores().size() > 1000) {
-//            final JedisPool readerPool = new JedisPool("localhost", 6666);
-//            reader = new Reader(readerPool, ingestedMembers, key);
-//            reader.start();
-//        }
+        if (readEnabled && sortedSetEntry.getMemberScores().size() > 1000) {
+            final JedisPool readerPool = new JedisPool("localhost", 6666);
+            reader = new Reader(readerPool, ingestedMembers, key);
+            reader.start(Optional.empty());
+        }
 
         for (int i = 0; i < entries.size(); i += batchSize) {
-            final int batchStart = i;
-            final int batchEnd = Math.min(batchStart + batchSize, entries.size());
-            List<Map.Entry<String, Double>> batch = entries.subList(batchStart, batchEnd);
+            final int batchEnd = Math.min(i + batchSize, entries.size());
+            List<Map.Entry<String, Double>> batch = entries.subList(i, batchEnd);
 
             CompletableFuture<Void> batchFuture = CompletableFuture.runAsync(() -> {
                 try (Jedis jedis = jedisPool.getResource()) {
@@ -62,7 +67,7 @@ public class Ingester {
             allDoneFuture = allDoneFuture.thenCombine(batchFuture, (aVoid, aVoid2) -> null);
         }
 
-        if (reader != null) reader.shutdown();
+        if (readEnabled && reader != null) reader.shutdown();
         return allDoneFuture;
     }
 
@@ -80,28 +85,25 @@ public class Ingester {
     public static void main(String... args) throws Exception {
         // Check if an argument (file path) is provided
         if (args.length < 1) {
-            System.out.println("Usage: java ingester <filePath>");
+            logger.info("Usage: ./gradlew ingester --args <filePath>");
             System.exit(1);
         }
 
         final String filePath = args[0];
         final List<String> jsonLines = LeaderboardJSONLReader.parseFile(filePath);
-
+        logger.info("Loaded all JSON lines in memory");
         Ingester ingester = new Ingester(new JedisPool("localhost", 6666),
                 50, 100000);
-        jsonLines.forEach(jsonLine -> {
-            final RedisSortedSetEntry sortedSetEntry = SortedSetLineProcessor.processLine(
-                    jsonLine
-            );
+        final List<RedisSortedSetEntry> entries = jsonLines.stream().map(SortedSetLineProcessor::processLine).toList();
+        logger.info("Preprocessed all JSONs in memory; ingesting!");
+        entries.forEach(sortedSetEntry -> {
             try {
-                ingester.ingestAsync(sortedSetEntry).get();
+                ingester.ingestAsync(sortedSetEntry, false).get();
             } catch (InterruptedException e) {
                 throw new RuntimeException(e);
             } catch (ExecutionException e) {
                 throw new RuntimeException(e);
             }
         });
-
     }
-
 }

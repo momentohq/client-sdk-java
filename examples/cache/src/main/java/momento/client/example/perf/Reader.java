@@ -3,11 +3,10 @@ package momento.client.example.perf;
 import com.google.common.util.concurrent.RateLimiter;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.JedisPoolConfig;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
+import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -15,8 +14,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.stream.IntStream;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 public class Reader {
 
     private final IngestedMembers ingestedMembers;
@@ -31,15 +30,17 @@ public class Reader {
     private final String key;
 
     private Thread[] threads = new Thread[2];
+    private static final Logger logger = LoggerFactory.getLogger(Reader.class);
+
     public Reader(final JedisPool jedisPool,
                   final IngestedMembers ingestedMembers,
                   final String sortedSetKey) {
-        System.out.println("Reading for sorted set key " + sortedSetKey);
+        logger.info("Reading for sorted set key " + sortedSetKey);
         this.jedisPool = jedisPool;
         this.executorService = Executors.newFixedThreadPool(50); // Pool size can be adjusted as needed
         this.ingestedMembers = ingestedMembers;
         this.key = sortedSetKey;
-        scheduleThroughputMeasurement();
+        //scheduleThroughputMeasurement();
         scheduleFillingMembersList();
     }
 
@@ -58,19 +59,18 @@ public class Reader {
     }
 
     private void scheduleThroughputMeasurement() {
-        scheduledExecutorService.scheduleAtFixedRate(() -> System.out.println(String.format("{\"Throughput-Read\": %d, \"TotalElementsRead\": %d}", currentSecondReads.getAndSet(0), totalElements.get())),
+        scheduledExecutorService.scheduleAtFixedRate(() -> logger.info(String.format("{\"Throughput-Read\": %d, \"TotalElementsRead\": %d}", currentSecondReads.getAndSet(0), totalElements.get())),
                 1, 1, TimeUnit.SECONDS);
     }
 
-    public void start() {
+    public void start(Optional<Integer> totalLeaderboradEntries) {
         Thread thread = new Thread(() -> {
             while (true) {
                 CompletableFuture<?> done = CompletableFuture.completedFuture(null);
+                rateLimiter.acquire();
                 CompletableFuture<?> batch = CompletableFuture.runAsync(() -> {
-                    IntStream.range(0, 10000).forEach(i -> {
-                        rateLimiter.acquire();
-                        fetchRandomRank(key);
-                    });}
+                        fetchRandomRank(key, totalLeaderboradEntries);
+                    }
                 , executorService);
                 done.thenCombine(batch, (aVoid, aVoid2) -> null);
             }
@@ -79,14 +79,19 @@ public class Reader {
         threads[1] = thread;
     }
 
-    public void fetchRandomRank(final String key) {
+    public void fetchRandomRank(final String key, final Optional<Integer> totalLeaderboardEntries) {
         try (Jedis jedis = jedisPool.getResource()) {
-            int start = ThreadLocalRandom.current().nextInt(0, 200000);
-            List<String> members = jedis.zrange(key, start, start + 200);
+            int start = ThreadLocalRandom.current().nextInt(0, membersToRead.size());
+            int stop = totalLeaderboardEntries.orElseGet(() -> start + Math.min(100, membersToRead.size()));
+            long startTime = System.nanoTime();
+            List<String> members = jedis.zrange(key, start, stop);
+            long duration = System.nanoTime() - startTime;
 
             if (!members.isEmpty()) {
-                currentSecondReads.getAndIncrement();
-                totalElements.getAndAdd(members.size());
+                long timestampEpoch = System.currentTimeMillis();
+                String json = String.format("{\"key\": %s, \"duration\": %d, \"timestampEpoch\": %d}\n", key,
+                        duration, timestampEpoch);
+                logger.info(json);
             }
         }
     }
@@ -104,9 +109,16 @@ public class Reader {
 
     // to read from ad-hoc leaderboards
     public static void main(String... args) {
+        // Check if an argument (file path) is provided
+        if (args.length < 1) {
+            logger.info("Usage: ./gradlew reader --args <key>");
+            System.exit(1);
+        }
+
         final JedisPool readerPool = new JedisPool("localhost", 6666);
-        final Reader reader = new Reader(readerPool, new IngestedMembers(),
-                "fqquafa5c|_lb|lb:keystone:region-3:faction-horde:strict:season-sl-1:faction-horde");
-        reader.start();
+        final Reader reader = new Reader(readerPool, new IngestedMembers(), args[0]);
+        // have to know approx total entries in case of an ad-hoc run to read a leaderboard to perform
+        // random rank range reads.
+        reader.start(Optional.empty());
     }
 }

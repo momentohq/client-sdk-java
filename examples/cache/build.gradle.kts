@@ -54,7 +54,7 @@ task("basic", JavaExec::class) {
 task("perf", JavaExec::class) {
     description = "Run the perf example"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("momento.client.example.perf.SSPerf")
+    mainClass.set("momento.client.example.perf.PerformanceTest")
     jvmArgs("-Xmx50g", "-Xms50g", "-XX:+AlwaysPreTouch")
 
     doFirst {
@@ -70,6 +70,22 @@ task("ingester", JavaExec::class) {
     description = "Run the ingester example"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.perf.Ingester")
+    jvmArgs("-Xmx5g", "-Xms5g", "-XX:+AlwaysPreTouch")
+
+    // Modify this part to accept arguments from the command line
+    doFirst {
+        // Using project property 'appArgs' with a safe call in Kotlin
+        val argsString = project.findProperty("args")?.toString() ?: ""
+        if (argsString.isNotEmpty()) {
+            args(*argsString.split("\\s+").toTypedArray())
+        }
+    }
+}
+
+task("reader", JavaExec::class) {
+    description = "Run the ingester example"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.perf.Reader")
     jvmArgs("-Xmx5g", "-Xms5g", "-XX:+AlwaysPreTouch")
 
     // Modify this part to accept arguments from the command line
