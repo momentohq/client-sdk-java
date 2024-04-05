@@ -46,7 +46,7 @@ public class Reader {
 
     private void scheduleFillingMembersList() {
         Thread thread = new Thread(() -> {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 try {
                     membersToRead.add(ingestedMembers.remove());
                 } catch (InterruptedException e) {
@@ -54,8 +54,8 @@ public class Reader {
                 }
             }
         });
-        thread.start();
         threads[0] = thread;
+        thread.stop();
     }
 
     private void scheduleThroughputMeasurement() {
@@ -64,24 +64,26 @@ public class Reader {
     }
 
     public void start(Optional<Integer> totalLeaderboradEntries) {
+        fetchRandomRank(key, totalLeaderboradEntries);
         Thread thread = new Thread(() -> {
-            while (true) {
+            while (!Thread.currentThread().isInterrupted()) {
                 CompletableFuture<?> done = CompletableFuture.completedFuture(null);
                 rateLimiter.acquire();
                 CompletableFuture<?> batch = CompletableFuture.runAsync(() -> {
-                        fetchRandomRank(key, totalLeaderboradEntries);
-                    }
-                , executorService);
+                            fetchRandomRank(key, totalLeaderboradEntries);
+                        }
+                        , executorService);
                 done.thenCombine(batch, (aVoid, aVoid2) -> null);
             }
         });
+        this.threads[1] = thread;
         thread.start();
-        threads[1] = thread;
     }
+
 
     public void fetchRandomRank(final String key, final Optional<Integer> totalLeaderboardEntries) {
         try (Jedis jedis = jedisPool.getResource()) {
-            int start = ThreadLocalRandom.current().nextInt(0, membersToRead.size());
+            int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(() -> membersToRead.size()));
             int stop = totalLeaderboardEntries.orElseGet(() -> start + Math.min(100, membersToRead.size()));
             long startTime = System.nanoTime();
             List<String> members = jedis.zrange(key, start, stop);
@@ -92,22 +94,19 @@ public class Reader {
                 String json = String.format("{\"key\": %s, \"duration\": %d, \"timestampEpoch\": %d}\n", key,
                         duration, timestampEpoch);
                 logger.info(json);
-            } else {
-                System.out.println("No more data");
-                this.shutdown();
             }
+//            else {
+//                System.out.println("No more data");
+//                this.shutdown();
+//            }
         }
     }
 
     public void shutdown() {
-        try {
-            threads[0].join();
-            threads[1].join();
-            scheduledExecutorService.shutdownNow();
-            executorService.shutdownNow();
-        } catch (InterruptedException e) {
-
-        }
+        threads[0].interrupt();
+        threads[1].interrupt();
+        scheduledExecutorService.shutdownNow();
+        executorService.shutdownNow();
     }
 
     // to read from ad-hoc leaderboards
@@ -122,9 +121,11 @@ public class Reader {
         final Reader reader = new Reader(readerPool, new IngestedMembers(), args[0]);
 
         int totalEntries = 1_000_000;
-        if (args[1] != null) {
+        if (args.length > 1) {
             totalEntries = Integer.parseInt(args[1]);
         }
+
+        System.out.println("Starting to read...!");
         // have to know approx total entries in case of an ad-hoc run to read a leaderboard to perform
         // random rank range reads.
         reader.start(Optional.of(totalEntries));
