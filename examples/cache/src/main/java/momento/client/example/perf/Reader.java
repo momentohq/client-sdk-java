@@ -117,8 +117,13 @@ public class Reader {
 
         final JedisPool readerPool = new JedisPool("localhost", 6666);
         final Reader reader = new Reader(readerPool, new IngestedMembers(), args[0]);
+
+        int totalEntries = 1_000_000;
+        if (args[1] != null) {
+            totalEntries = Integer.parseInt(args[1]);
+        }
         // have to know approx total entries in case of an ad-hoc run to read a leaderboard to perform
         // random rank range reads.
-        reader.start(Optional.empty());
+        reader.start(Optional.of(totalEntries));
     }
 }
