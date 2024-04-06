@@ -18,6 +18,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import redis.clients.jedis.JedisPoolConfig;
+
 public class Reader {
 
     private final IngestedMembers ingestedMembers;
@@ -43,8 +45,7 @@ public class Reader {
         this.ingestedMembers = ingestedMembers;
         this.key = sortedSetKey;
         scheduleFillingMembersList();
-        //scheduleThroughputMeasurement();
-
+        scheduleThroughputMeasurement();
     }
 
     private void scheduleFillingMembersList() {
@@ -126,7 +127,9 @@ public class Reader {
             System.exit(1);
         }
 
-        final JedisPool readerPool = new JedisPool("localhost", 6666);
+        final JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
+        jedisPoolConfig.setMaxTotal(100);
+        final JedisPool readerPool = new JedisPool(new JedisPoolConfig(), "localhost", 6666);
         final Reader reader = new Reader(readerPool, new IngestedMembers(), args[0]);
 
         int totalEntries = 1_000_000;
