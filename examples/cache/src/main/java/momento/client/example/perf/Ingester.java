@@ -8,6 +8,7 @@ import redis.clients.jedis.JedisPool;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.*;
 import java.util.concurrent.atomic.AtomicLong;
@@ -40,7 +41,7 @@ public class Ingester {
         Map<String, Double> memberScores = sortedSetEntry.getMemberScores();
         List<Map.Entry<String, Double>> entries = new ArrayList<>(memberScores.entrySet());
 
-        CompletableFuture<Void> allDoneFuture = CompletableFuture.completedFuture(null);
+        scheduleThroughputMeasurement();
         final IngestedMembers ingestedMembers = new IngestedMembers();
         Reader reader = null;
 
@@ -49,8 +50,8 @@ public class Ingester {
             reader = new Reader(readerPool, ingestedMembers, key);
             reader.start(Optional.empty());
         }
-        scheduleThroughputMeasurement();
 
+        List<CompletableFuture<Void>> activeFutures = new ArrayList<>();
         for (int i = 0; i < entries.size(); i += batchSize) {
             final int batchEnd = Math.min(i + batchSize, entries.size());
             List<Map.Entry<String, Double>> batch = entries.subList(i, batchEnd);
@@ -65,11 +66,22 @@ public class Ingester {
                 }
             }, redisExecutor);
 
-            allDoneFuture = allDoneFuture.thenCombine(batchFuture, (aVoid, aVoid2) -> null);
+            activeFutures.add(batchFuture);
+
+            // Limit the number of concurrent batches
+            if (activeFutures.size() >= 100) {
+                CompletableFuture<Object> anyOf = CompletableFuture.anyOf(activeFutures.toArray(new CompletableFuture[0]));
+                // Wait for at least one future to complete before continuing
+                anyOf.join();
+                // Remove completed futures
+                activeFutures.removeIf(CompletableFuture::isDone);
+            }
         }
 
-        return allDoneFuture;
+        // Wait for all batches to complete
+        return CompletableFuture.allOf(activeFutures.toArray(new CompletableFuture[0]));
     }
+
 
     private void incrementMetrics() {
         totalElements.incrementAndGet();
