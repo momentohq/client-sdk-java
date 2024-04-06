@@ -97,6 +97,8 @@ public class Reader {
                 long duration = System.nanoTime() - startTime;
 
                 if (!members.isEmpty()) {
+                    currentSecondReads.getAndIncrement();
+                    totalElements.getAndIncrement();
                     long timestampEpoch = System.currentTimeMillis();
                     String json = String.format("{\"key\": \"%s\", \"duration\": %d, \"timestampEpoch\": %d,\"totalMembers\": %d}\n", key, duration, timestampEpoch, members.size());
 
