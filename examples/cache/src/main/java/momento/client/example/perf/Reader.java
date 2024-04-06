@@ -92,7 +92,6 @@ public class Reader {
                 int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(membersToRead::size));
                 int stop = totalLeaderboardEntries.orElseGet(() -> start + Math.min(100, membersToRead.size()));
                 long startTime = System.nanoTime();
-                System.out.println(start + " " + stop);
                 List<String> members = jedis.zrange(key, start, stop);
                 long duration = System.nanoTime() - startTime;
 
