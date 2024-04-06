@@ -97,9 +97,8 @@ public class Reader {
 
                 if (!members.isEmpty()) {
                     long timestampEpoch = System.currentTimeMillis();
-                    String json = String.format("{\"key\": %s, \"duration\": %d, \"timestampEpoch\": %d," +
-                                    "\"totalMembers\": %d}\n", key,
-                            duration, timestampEpoch, members.size());
+                    String json = String.format("{\"key\": \"%s\", \"duration\": %d, \"timestampEpoch\": %d,\"totalMembers\": %d}\n", key, duration, timestampEpoch, members.size());
+
                     logger.info(json);
                 }
             else {
