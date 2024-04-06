@@ -89,18 +89,18 @@ public class Reader {
     public void fetchRandomRank(final String key, final Optional<Integer> totalLeaderboardEntries) {
         try {
             try (Jedis jedis = jedisPool.getResource()) {
-                int randEnd = totalLeaderboardEntries.orElseGet(membersToRead::size);
-                logger.info("randEnd " + randEnd);
                 int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(membersToRead::size));
                 int stop = totalLeaderboardEntries.orElseGet(() -> start + Math.min(100, membersToRead.size()));
                 long startTime = System.nanoTime();
+                System.out.println(start + " " + stop);
                 List<String> members = jedis.zrange(key, start, stop);
                 long duration = System.nanoTime() - startTime;
 
                 if (!members.isEmpty()) {
                     long timestampEpoch = System.currentTimeMillis();
-                    String json = String.format("{\"key\": %s, \"duration\": %d, \"timestampEpoch\": %d}\n", key,
-                            duration, timestampEpoch);
+                    String json = String.format("{\"key\": %s, \"duration\": %d, \"timestampEpoch\": %d," +
+                                    "\"totalMembers\": %d}\n", key,
+                            duration, timestampEpoch, members.size());
                     logger.info(json);
                 }
             else {
