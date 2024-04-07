@@ -35,6 +35,8 @@ public class IngesterV2 {
 
     public void ingestSync(final RedisSortedSetEntry sortedSetEntry,
                            boolean readEnabled) {
+        totalElements.set(0);
+        currentSecondWrites.set(0);
         String key = sortedSetEntry.getKey();
         final List<RedisSortedSetEntry.MemberScore> memberScores = sortedSetEntry.getMemberScores();
         final List<List<RedisSortedSetEntry.MemberScore>> memberScoresSublists =
@@ -47,7 +49,7 @@ public class IngesterV2 {
         }
         final ScheduledExecutorService scheduledExecutorService = Executors.newScheduledThreadPool(1);
         scheduledExecutorService.scheduleAtFixedRate(() -> {
-            logger.info(String.format("{\"key\": \"%s\", \"Throughput-Write\": %d, \"TotalElementsWrote\": %d}",
+            logger.info(String.format("{\"key\": \"%s\", \"q-Write\": %d, \"TotalElementsWrote\": %d}",
                     sortedSetEntry.getKey(), currentSecondWrites.getAndSet(0), totalElements.get()));
         }, 1, 1, TimeUnit.SECONDS);
 
