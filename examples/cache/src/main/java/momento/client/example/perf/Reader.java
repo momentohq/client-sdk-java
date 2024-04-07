@@ -45,7 +45,7 @@ public class Reader {
         this.ingestedMembers = ingestedMembers;
         this.key = sortedSetKey;
         //scheduleFillingMembersList();
-        scheduleThroughputMeasurement();
+        //scheduleThroughputMeasurement();
     }
 
     private void scheduleFillingMembersList() {
@@ -68,6 +68,7 @@ public class Reader {
     }
 
     public void start(Optional<Integer> totalLeaderboradEntries) {
+        fetchRandomRank(key, totalLeaderboradEntries);
         Thread thread = new Thread(() -> {
             fetchRandomRank(key, totalLeaderboradEntries);
         });
