@@ -70,7 +70,9 @@ public class Reader {
     public void start(Optional<Integer> totalLeaderboradEntries) {
         fetchRandomRank(key, totalLeaderboradEntries);
         Thread thread = new Thread(() -> {
-            fetchRandomRank(key, totalLeaderboradEntries);
+            while (true) {
+                fetchRandomRank(key, totalLeaderboradEntries);
+            }
         });
         this.threads[1] = thread;
         thread.start();
