@@ -44,7 +44,7 @@ public class Reader {
         this.executorService = Executors.newFixedThreadPool(50); // Pool size can be adjusted as needed
         this.ingestedMembers = ingestedMembers;
         this.key = sortedSetKey;
-        scheduleFillingMembersList();
+        //scheduleFillingMembersList();
         scheduleThroughputMeasurement();
     }
 
@@ -68,13 +68,8 @@ public class Reader {
     }
 
     public void start(Optional<Integer> totalLeaderboradEntries) {
-
         Thread thread = new Thread(() -> {
-            while (!Thread.currentThread().isInterrupted()) {
-                if (membersToRead.isEmpty()) continue;
-                rateLimiter.acquire();
-                fetchRandomRank(key, totalLeaderboradEntries);
-            }
+            fetchRandomRank(key, totalLeaderboradEntries);
         });
         this.threads[1] = thread;
         thread.start();
@@ -104,21 +99,10 @@ public class Reader {
 
                     logger.info(json);
                 }
-            else {
-                System.out.println("No more data");
-                this.shutdown();
-            }
             }
         } catch (Exception e) {
             logger.error("Caught exception: " + e);
         }
-    }
-
-    public void shutdown() {
-        threads[0].interrupt();
-        threads[1].interrupt();
-        scheduledExecutorService.shutdownNow();
-        executorService.shutdownNow();
     }
 
     // to read from ad-hoc leaderboards
@@ -134,7 +118,7 @@ public class Reader {
         final JedisPool readerPool = new JedisPool(new JedisPoolConfig(), "localhost", 6666);
         final Reader reader = new Reader(readerPool, new IngestedMembers(), args[0]);
 
-        int totalEntries = 1_000_000;
+        int totalEntries = 10_000_000;
         if (args.length > 1) {
             totalEntries = Integer.parseInt(args[1]);
         }
