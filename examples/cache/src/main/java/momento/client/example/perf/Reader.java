@@ -80,7 +80,7 @@ public class Reader {
         try {
             try (Jedis jedis = jedisPool.getResource()) {
                 int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(membersToRead::size));
-                int stop = totalLeaderboardEntries.orElseGet(() -> start + Math.min(100, membersToRead.size()));
+                int stop = totalLeaderboardEntries.orElseGet(() -> Math.min(start + 100, membersToRead.size()));
                 long startTime = System.nanoTime();
                 List<String> members;
                 try {
@@ -115,7 +115,7 @@ public class Reader {
 
         final JedisPoolConfig jedisPoolConfig = new JedisPoolConfig();
         jedisPoolConfig.setMaxTotal(100);
-        final JedisPool readerPool = new JedisPool(new JedisPoolConfig(), "localhost", 6666);
+        final JedisPool readerPool = new JedisPool(jedisPoolConfig, "localhost", 6666);
         final Reader reader = new Reader(readerPool, new IngestedMembers(), args[0]);
 
         int totalEntries = 10_000_000;
