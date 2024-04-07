@@ -55,7 +55,7 @@ task("perf", JavaExec::class) {
     description = "Run the perf example"
     classpath = sourceSets.main.get().runtimeClasspath
     mainClass.set("momento.client.example.perf.PerformanceTest")
-    jvmArgs("-Xmx50g", "-Xms50g", "-XX:+AlwaysPreTouch")
+    jvmArgs("-Xmx80g", "-Xms80g", "-XX:+AlwaysPreTouch")
 
     doFirst {
         // Using project property 'appArgs' with a safe call in Kotlin

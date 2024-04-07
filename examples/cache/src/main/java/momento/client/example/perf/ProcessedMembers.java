@@ -17,7 +17,7 @@ public class ProcessedMembers {
         }
     }
 
-    private final Queue<MemberBatch> queue = new ArrayDeque<>();
+    private final Queue<MemberBatch> queue = new LinkedBlockingQueue<>();
 
     public void add(MemberBatch member) {
         this.queue.add(member);
