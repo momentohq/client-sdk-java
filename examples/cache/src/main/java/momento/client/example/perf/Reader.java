@@ -83,7 +83,7 @@ public class Reader {
         try {
             try (Jedis jedis = jedisPool.getResource()) {
                 int start = ThreadLocalRandom.current().nextInt(0, totalLeaderboardEntries.orElseGet(membersToRead::size));
-                int stop = Math.min(start + 100, membersToRead.size());
+                int stop = Math.min(start + 100, totalLeaderboardEntries.orElseGet(membersToRead::size));
                 long startTime = System.nanoTime();
                 System.out.println(start + " " + stop);
                 List<String> members;
