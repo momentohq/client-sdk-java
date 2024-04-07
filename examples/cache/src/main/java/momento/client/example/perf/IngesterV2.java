@@ -39,7 +39,7 @@ public class IngesterV2 {
         final List<RedisSortedSetEntry.MemberScore> memberScores = sortedSetEntry.getMemberScores();
         final List<List<RedisSortedSetEntry.MemberScore>> memberScoresSublists =
                 Lists.partition(memberScores, batchSize);
-        logger.info(String.format("Total subLists created %d", memberScoresSublists.size()));
+        logger.debug(String.format("Total subLists created %d", memberScoresSublists.size()));
         final ProcessedMembers processedMembers = new ProcessedMembers();
 
         for (List<RedisSortedSetEntry.MemberScore> memberScoreSublist : memberScoresSublists) {
@@ -60,7 +60,7 @@ public class IngesterV2 {
                         final ProcessedMembers.MemberBatch memberBatch =
                                 processedMembers.remove();
                         if (memberBatch == null) {
-                            logger.info("Thread " + Thread.currentThread().getId() + " done! exiting...");
+                            logger.debug("Thread " + Thread.currentThread().getId() + " done! exiting...");
                             break;
                         };
                         memberBatch.getMemberScoresBatch().forEach(memberScore -> {
@@ -81,7 +81,7 @@ public class IngesterV2 {
                 throw new RuntimeException(e);
             }
         }
-        logger.info(String.format("Total batches processed %d", batchesProcessed.get()));
+        logger.debug(String.format("Total batches processed %d", batchesProcessed.get()));
 
         scheduledExecutorService.shutdownNow();
     }
