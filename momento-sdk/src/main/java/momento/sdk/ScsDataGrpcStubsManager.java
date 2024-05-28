@@ -40,6 +40,7 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
 
   private final List<ManagedChannel> channels;
   private final List<ScsGrpc.ScsFutureStub> futureStubs;
+  private final List<ScsGrpc.ScsBlockingStub> blockingStubs;
   private final AtomicInteger nextStubIndex = new AtomicInteger(0);
 
   private final int numGrpcChannels;
@@ -96,6 +97,8 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
             .mapToObj(i -> setupChannel(credentialProvider, configuration))
             .collect(Collectors.toList());
     this.futureStubs = channels.stream().map(ScsGrpc::newFutureStub).collect(Collectors.toList());
+    this.blockingStubs =
+        channels.stream().map(ScsGrpc::newBlockingStub).collect(Collectors.toList());
   }
 
   /**
@@ -205,6 +208,23 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
   ScsGrpc.ScsFutureStub getStub() {
     int nextStubIndex = this.nextStubIndex.getAndIncrement();
     return futureStubs
+        .get(nextStubIndex % this.numGrpcChannels)
+        .withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
+  }
+
+  /**
+   * Returns a blocking stub with appropriate deadlines.
+   *
+   * <p>Each stub is deliberately decorated with Deadline. Deadlines work differently than timeouts.
+   * When a deadline is set on a stub, it simply means that once the stub is created it must be used
+   * before the deadline expires. Hence, the stub returned from here should never be cached and the
+   * safest behavior is for clients to request a new stub each time.
+   *
+   * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
+   */
+  ScsGrpc.ScsBlockingStub getBlockingStub() {
+    int nextStubIndex = this.nextStubIndex.getAndIncrement();
+    return blockingStubs
         .get(nextStubIndex % this.numGrpcChannels)
         .withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
   }
