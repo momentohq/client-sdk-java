@@ -30,9 +30,9 @@ public interface SetBatchResponse {
   }
 
   /**
-   * A failed set batch operation. The response itself is an exception, so it can be directly thrown, or
-   * the cause of the error can be retrieved with {@link #getCause()}. The message is a copy of the
-   * message of the cause.
+   * A failed set batch operation. The response itself is an exception, so it can be directly
+   * thrown, or the cause of the error can be retrieved with {@link #getCause()}. The message is a
+   * copy of the message of the cause.
    */
   class Error extends SdkException implements SetBatchResponse {
 

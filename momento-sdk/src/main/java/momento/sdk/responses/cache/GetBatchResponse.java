@@ -32,8 +32,8 @@ public interface GetBatchResponse {
     }
 
     /**
-     * Gets a map of the retrieved keys to their values encoded as UTF-8 {@link String}s. Keys that don't have values
-     * aren't included.
+     * Gets a map of the retrieved keys to their values encoded as UTF-8 {@link String}s. Keys that
+     * don't have values aren't included.
      *
      * @return the keys to value strings map.
      */
@@ -42,8 +42,8 @@ public interface GetBatchResponse {
     }
 
     /**
-     * Gets a map of the retrieved keys to their values encoded as UTF-8 {@link String}s. Keys that don't have values
-     * aren't included.
+     * Gets a map of the retrieved keys to their values encoded as UTF-8 {@link String}s. Keys that
+     * don't have values aren't included.
      *
      * @return the keys to value strings map.
      */
@@ -56,7 +56,8 @@ public interface GetBatchResponse {
     }
 
     /**
-     * Gets a map of the retrieved keys to their values as byte arrays. Keys that don't have values aren't included.
+     * Gets a map of the retrieved keys to their values as byte arrays. Keys that don't have values
+     * aren't included.
      *
      * @return the keys to value bytes map.
      */
@@ -93,9 +94,9 @@ public interface GetBatchResponse {
   }
 
   /**
-   * A failed get batch operation. The response itself is an exception, so it can be directly thrown, or
-   * the cause of the error can be retrieved with {@link #getCause()}. The message is a copy of the
-   * message of the cause.
+   * A failed get batch operation. The response itself is an exception, so it can be directly
+   * thrown, or the cause of the error can be retrieved with {@link #getCause()}. The message is a
+   * copy of the message of the cause.
    */
   class Error extends SdkException implements GetBatchResponse {
 

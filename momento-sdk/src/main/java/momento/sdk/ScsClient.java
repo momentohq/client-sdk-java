@@ -31,7 +31,8 @@ abstract class ScsClient implements AutoCloseable {
     return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
 
-  protected <S extends AbstractBlockingStub<S>> S attachMetadataBlocking(S stub, Metadata metadata) {
+  protected <S extends AbstractBlockingStub<S>> S attachMetadataBlocking(
+      S stub, Metadata metadata) {
     return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
 

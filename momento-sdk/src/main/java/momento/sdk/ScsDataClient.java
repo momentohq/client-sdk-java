@@ -107,7 +107,6 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
-import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.exceptions.UnknownException;
