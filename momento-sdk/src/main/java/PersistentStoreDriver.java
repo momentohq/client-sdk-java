@@ -1,9 +1,9 @@
 import momento.sdk.IPersistentStoreClient;
 import momento.sdk.PersistentStoreClient;
 import momento.sdk.exceptions.ClientSdkException;
-import momento.sdk.responses.persistentstore.control.CreatePersistentStoreResponse;
-import momento.sdk.responses.persistentstore.control.ListPersistentStoresResponse;
-import momento.sdk.responses.persistentstore.data.GetResponse;
+import momento.sdk.responses.storage.control.CreatePersistentStoreResponse;
+import momento.sdk.responses.storage.control.ListPersistentStoresResponse;
+import momento.sdk.responses.storage.data.GetResponse;
 
 public class PersistentStoreDriver {
   public static void main(String[] args) {

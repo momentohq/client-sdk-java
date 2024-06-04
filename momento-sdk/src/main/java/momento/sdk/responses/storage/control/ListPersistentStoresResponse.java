@@ -1,4 +1,4 @@
-package momento.sdk.responses.persistentstore.control;
+package momento.sdk.responses.storage.control;
 
 import java.util.Arrays;
 import java.util.List;

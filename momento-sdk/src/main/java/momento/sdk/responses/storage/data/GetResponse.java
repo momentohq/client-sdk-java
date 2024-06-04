@@ -1,4 +1,4 @@
-package momento.sdk.responses.persistentstore.data;
+package momento.sdk.responses.storage.data;
 
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.SdkException;

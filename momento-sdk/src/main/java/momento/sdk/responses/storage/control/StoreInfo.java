@@ -1,4 +1,4 @@
-package momento.sdk.responses.persistentstore.control;
+package momento.sdk.responses.storage.control;
 
 public class StoreInfo {
   private final String name;
