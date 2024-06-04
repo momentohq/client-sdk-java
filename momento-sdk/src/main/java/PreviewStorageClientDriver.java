@@ -1,8 +1,8 @@
 import momento.sdk.IPreviewStorageClient;
 import momento.sdk.PreviewStorageClient;
 import momento.sdk.exceptions.ClientSdkException;
-import momento.sdk.responses.storage.control.CreatePersistentStoreResponse;
-import momento.sdk.responses.storage.control.ListPersistentStoresResponse;
+import momento.sdk.responses.storage.control.CreateStoreResponse;
+import momento.sdk.responses.storage.control.ListStoreResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 
 public class PreviewStorageClientDriver {
@@ -11,8 +11,8 @@ public class PreviewStorageClientDriver {
     IPreviewStorageClient client = new PreviewStorageClient();
 
     // Create a store
-    CreatePersistentStoreResponse createResponse = client.createStore("myStore").join();
-    if (createResponse instanceof CreatePersistentStoreResponse.Success) {
+    CreateStoreResponse createResponse = client.createStore("myStore").join();
+    if (createResponse instanceof CreateStoreResponse.Success) {
       System.out.println("Store created successfully");
     } else {
       // Would inspect for Already exists, etc.
@@ -20,16 +20,14 @@ public class PreviewStorageClientDriver {
     }
 
     // List all stores
-    final ListPersistentStoresResponse listResponse = client.listStores().join();
-    if (listResponse instanceof ListPersistentStoresResponse.Success) {
-      ListPersistentStoresResponse.Success success =
-          (ListPersistentStoresResponse.Success) listResponse;
+    final ListStoreResponse listResponse = client.listStores().join();
+    if (listResponse instanceof ListStoreResponse.Success) {
+      ListStoreResponse.Success success = (ListStoreResponse.Success) listResponse;
       System.out.println("Stores:");
       success.getStores().forEach(store -> System.out.println("- Store: " + store.getName()));
-    } else if (listResponse instanceof ListPersistentStoresResponse.Error) {
+    } else if (listResponse instanceof ListStoreResponse.Error) {
       System.out.println(
-          "Error listing stores: "
-              + ((ListPersistentStoresResponse.Error) listResponse).getMessage());
+          "Error listing stores: " + ((ListStoreResponse.Error) listResponse).getMessage());
     } else {
       System.out.println("Unknown response type");
     }

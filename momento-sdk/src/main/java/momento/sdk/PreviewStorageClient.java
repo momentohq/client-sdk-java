@@ -2,26 +2,26 @@ package momento.sdk;
 
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.responses.storage.control.CreatePersistentStoreResponse;
-import momento.sdk.responses.storage.control.DeletePersistentStoreResponse;
-import momento.sdk.responses.storage.control.ListPersistentStoresResponse;
+import momento.sdk.responses.storage.control.CreateStoreResponse;
+import momento.sdk.responses.storage.control.DeleteStoreResponse;
+import momento.sdk.responses.storage.control.ListStoreResponse;
 import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 import momento.sdk.responses.storage.data.SetResponse;
 
 public class PreviewStorageClient implements IPreviewStorageClient {
   /** Control operations */
-  public CompletableFuture<CreatePersistentStoreResponse> createStore(String storeName) {
-    return CompletableFuture.completedFuture(new CreatePersistentStoreResponse.Success());
+  public CompletableFuture<CreateStoreResponse> createStore(String storeName) {
+    return CompletableFuture.completedFuture(new CreateStoreResponse.Success());
   }
 
-  public CompletableFuture<DeletePersistentStoreResponse> deleteStore(String storeName) {
-    return CompletableFuture.completedFuture(new DeletePersistentStoreResponse.Success());
+  public CompletableFuture<DeleteStoreResponse> deleteStore(String storeName) {
+    return CompletableFuture.completedFuture(new DeleteStoreResponse.Success());
   }
 
-  public CompletableFuture<ListPersistentStoresResponse> listStores() {
+  public CompletableFuture<ListStoreResponse> listStores() {
 
-    return CompletableFuture.completedFuture(new ListPersistentStoresResponse.Success());
+    return CompletableFuture.completedFuture(new ListStoreResponse.Success());
   }
 
   /** Data operations */

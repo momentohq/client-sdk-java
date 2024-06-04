@@ -1,20 +1,20 @@
 package momento.sdk;
 
 import java.util.concurrent.CompletableFuture;
-import momento.sdk.responses.storage.control.CreatePersistentStoreResponse;
-import momento.sdk.responses.storage.control.DeletePersistentStoreResponse;
-import momento.sdk.responses.storage.control.ListPersistentStoresResponse;
+import momento.sdk.responses.storage.control.CreateStoreResponse;
+import momento.sdk.responses.storage.control.DeleteStoreResponse;
+import momento.sdk.responses.storage.control.ListStoreResponse;
 import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 import momento.sdk.responses.storage.data.SetResponse;
 
 public interface IPreviewStorageClient {
   /** Control operations */
-  CompletableFuture<CreatePersistentStoreResponse> createStore(String storeName);
+  CompletableFuture<CreateStoreResponse> createStore(String storeName);
 
-  CompletableFuture<DeletePersistentStoreResponse> deleteStore(String storeName);
+  CompletableFuture<DeleteStoreResponse> deleteStore(String storeName);
 
-  CompletableFuture<ListPersistentStoresResponse> listStores();
+  CompletableFuture<ListStoreResponse> listStores();
 
   /** Data operations */
   CompletableFuture<GetResponse> get(String storeName, String key);
