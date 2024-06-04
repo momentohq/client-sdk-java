@@ -1,14 +1,14 @@
-import momento.sdk.IPersistentStoreClient;
-import momento.sdk.PersistentStoreClient;
+import momento.sdk.IPreviewStorageClient;
+import momento.sdk.PreviewStorageClient;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.responses.storage.control.CreatePersistentStoreResponse;
 import momento.sdk.responses.storage.control.ListPersistentStoresResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 
-public class PersistentStoreDriver {
+public class PreviewStorageClientDriver {
   public static void main(String[] args) {
     // Instantiating the client will be largely the same as compared to cache/topics.
-    IPersistentStoreClient client = new PersistentStoreClient();
+    IPreviewStorageClient client = new PreviewStorageClient();
 
     // Create a store
     CreatePersistentStoreResponse createResponse = client.createStore("myStore").join();

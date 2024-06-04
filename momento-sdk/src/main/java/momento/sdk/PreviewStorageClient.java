@@ -9,7 +9,7 @@ import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 import momento.sdk.responses.storage.data.SetResponse;
 
-public class PersistentStoreClient implements IPersistentStoreClient {
+public class PreviewStorageClient implements IPreviewStorageClient {
   /** Control operations */
   public CompletableFuture<CreatePersistentStoreResponse> createStore(String storeName) {
     return CompletableFuture.completedFuture(new CreatePersistentStoreResponse.Success());

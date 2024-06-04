@@ -8,7 +8,7 @@ import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 import momento.sdk.responses.storage.data.SetResponse;
 
-public interface IPersistentStoreClient {
+public interface IPreviewStorageClient {
   /** Control operations */
   CompletableFuture<CreatePersistentStoreResponse> createStore(String storeName);
 
