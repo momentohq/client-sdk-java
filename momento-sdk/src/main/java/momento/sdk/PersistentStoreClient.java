@@ -2,12 +2,12 @@ package momento.sdk;
 
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.responses.persistent_store.control.CreatePersistentStoreResponse;
-import momento.sdk.responses.persistent_store.control.DeletePersistentStoreResponse;
-import momento.sdk.responses.persistent_store.control.ListPersistentStoresResponse;
-import momento.sdk.responses.persistent_store.data.DeleteResponse;
-import momento.sdk.responses.persistent_store.data.GetResponse;
-import momento.sdk.responses.persistent_store.data.SetResponse;
+import momento.sdk.responses.persistentstore.control.CreatePersistentStoreResponse;
+import momento.sdk.responses.persistentstore.control.DeletePersistentStoreResponse;
+import momento.sdk.responses.persistentstore.control.ListPersistentStoresResponse;
+import momento.sdk.responses.persistentstore.data.DeleteResponse;
+import momento.sdk.responses.persistentstore.data.GetResponse;
+import momento.sdk.responses.persistentstore.data.SetResponse;
 
 public class PersistentStoreClient implements IPersistentStoreClient {
   /** Control operations */
