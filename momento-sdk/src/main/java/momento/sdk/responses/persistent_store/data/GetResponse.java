@@ -58,7 +58,8 @@ public interface GetResponse {
 
     private void ensureCorrectTypeOrThrowException(ValueType requested, ValueType actual) {
       if (requested != actual) {
-        // In a regular Java context, ClassCastException or IllegalStateException could be appropriate here
+        // In a regular Java context, ClassCastException or IllegalStateException could be
+        // appropriate here
         throw new ClientSdkException(
             String.format(
                 "Value is not a %s but was: %s".format(requested.toString(), actual.toString())));

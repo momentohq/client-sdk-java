@@ -53,7 +53,8 @@ public class PersistentStoreDriver {
       try {
         System.out.println("Value: " + success.getValueAsString());
       } catch (ClientSdkException e) {
-        System.out.println("Error trying to access the value of \"double\" as a string: " + e.getMessage());
+        System.out.println(
+            "Error trying to access the value of \"double\" as a string: " + e.getMessage());
       }
     } else if (stringResponse instanceof GetResponse.Error) {
       GetResponse.Error error = (GetResponse.Error) doubleResponse;
