@@ -7,6 +7,7 @@ import momento.sdk.BaseTestClass;
 import momento.sdk.IPreviewStorageClient;
 import momento.sdk.PreviewStorageClient;
 import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.StorageConfigurations;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.BadRequestException;
@@ -28,7 +29,10 @@ public class ControlTests extends BaseTestClass {
     /*target =
     CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();*/
-    client = new PreviewStorageClient();
+    client =
+        new PreviewStorageClient(
+            CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+            StorageConfigurations.Laptop.latest());
   }
 
   @AfterEach
@@ -133,7 +137,10 @@ public class ControlTests extends BaseTestClass {
             + "s76573jnajhjjjhjdhnndy";
     final CredentialProvider badTokenProvider = CredentialProvider.fromString(badToken);
 
-    try (final PreviewStorageClient client = new PreviewStorageClient() /*CacheClient.builder(
+    try (final PreviewStorageClient client =
+        new PreviewStorageClient(
+            CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+            StorageConfigurations.Laptop.v1()) /*CacheClient.builder(
                                  badTokenProvider, Configurations.Laptop.latest(), Duration.ofSeconds(10))
                          .build()*/) {
       assertThat(client.createStore(storeName))

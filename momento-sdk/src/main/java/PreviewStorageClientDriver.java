@@ -1,5 +1,7 @@
 import momento.sdk.IPreviewStorageClient;
 import momento.sdk.PreviewStorageClient;
+import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.StorageConfigurations;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.responses.storage.control.CreateStoreResponse;
 import momento.sdk.responses.storage.control.ListStoresResponse;
@@ -8,7 +10,10 @@ import momento.sdk.responses.storage.data.GetResponse;
 public class PreviewStorageClientDriver {
   public static void main(String[] args) {
     // Instantiating the client will be largely the same as compared to cache/topics.
-    IPreviewStorageClient client = new PreviewStorageClient();
+    IPreviewStorageClient client =
+        new PreviewStorageClient(
+            CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+            StorageConfigurations.Laptop.latest());
 
     // Create a store
     CreateStoreResponse createResponse = client.createStore("myStore").join();

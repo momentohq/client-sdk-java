@@ -1,6 +1,9 @@
 package momento.sdk;
 
 import java.util.concurrent.CompletableFuture;
+import javax.annotation.Nonnull;
+import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.StorageConfiguration;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.responses.storage.control.CreateStoreResponse;
 import momento.sdk.responses.storage.control.DeleteStoreResponse;
@@ -10,6 +13,10 @@ import momento.sdk.responses.storage.data.GetResponse;
 import momento.sdk.responses.storage.data.SetResponse;
 
 public class PreviewStorageClient implements IPreviewStorageClient, AutoCloseable {
+  public PreviewStorageClient(
+      @Nonnull CredentialProvider credentialProvider, @Nonnull StorageConfiguration configuration)
+        // @Nonnull Duration itemDefaultTtl) {){
+      {}
   /** Control operations */
   public CompletableFuture<CreateStoreResponse> createStore(String storeName) {
     return CompletableFuture.completedFuture(new CreateStoreResponse.Success());

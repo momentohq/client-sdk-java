@@ -6,6 +6,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import momento.sdk.BaseTestClass;
 import momento.sdk.IPreviewStorageClient;
 import momento.sdk.PreviewStorageClient;
+import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.StorageConfigurations;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
@@ -26,7 +28,10 @@ public class DataTests extends BaseTestClass {
     /*target =
     CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();*/
-    client = new PreviewStorageClient();
+    client =
+        new PreviewStorageClient(
+            CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+            StorageConfigurations.Laptop.latest());
   }
 
   @AfterEach
