@@ -83,7 +83,6 @@ import grpc.cache_client._SortedSetPutRequest;
 import grpc.cache_client._SortedSetPutResponse;
 import grpc.cache_client._SortedSetRemoveRequest;
 import grpc.cache_client._SortedSetRemoveResponse;
-import grpc.cache_client._Unbounded;
 import grpc.cache_client._UpdateTtlRequest;
 import grpc.cache_client._UpdateTtlResponse;
 import io.grpc.Metadata;
@@ -3212,12 +3211,12 @@ final class ScsDataClient extends ScsClient {
     if (startRank != null) {
       indexBuilder.setInclusiveStartIndex(startRank);
     } else {
-      indexBuilder.setUnboundedStart(_Unbounded.newBuilder());
+      indexBuilder.setUnboundedStart(indexBuilder.getUnboundedStart());
     }
     if (endRank != null) {
       indexBuilder.setExclusiveEndIndex(endRank);
     } else {
-      indexBuilder.setUnboundedEnd(_Unbounded.newBuilder());
+      indexBuilder.setUnboundedEnd(indexBuilder.getUnboundedEnd());
     }
 
     final _SortedSetFetchRequest.Builder requestBuilder =
@@ -3249,13 +3248,13 @@ final class ScsDataClient extends ScsClient {
       scoreBuilder.setMinScore(
           _SortedSetFetchRequest._ByScore._Score.newBuilder().setScore(minScore));
     } else {
-      scoreBuilder.setUnboundedMin(_Unbounded.newBuilder());
+      scoreBuilder.setUnboundedMin(scoreBuilder.getUnboundedMin());
     }
     if (maxScore != null) {
       scoreBuilder.setMaxScore(
           _SortedSetFetchRequest._ByScore._Score.newBuilder().setScore(maxScore));
     } else {
-      scoreBuilder.setUnboundedMax(_Unbounded.newBuilder());
+      scoreBuilder.setUnboundedMax(scoreBuilder.getUnboundedMax());
     }
     if (offset != null) {
       scoreBuilder.setOffset(offset);
@@ -3369,13 +3368,13 @@ final class ScsDataClient extends ScsClient {
     if (startIndex != null) {
       builder.setInclusiveStart(startIndex);
     } else {
-      builder.setUnboundedStart(_Unbounded.newBuilder().build());
+      builder.setUnboundedStart(builder.getUnboundedStart());
     }
 
     if (endIndex != null) {
       builder.setExclusiveEnd(endIndex);
     } else {
-      builder.setUnboundedEnd(_Unbounded.newBuilder().build());
+      builder.setUnboundedEnd(builder.getUnboundedEnd());
     }
 
     return builder.build();
@@ -3447,13 +3446,13 @@ final class ScsDataClient extends ScsClient {
     if (startIndex != null) {
       builder.setInclusiveStart(startIndex);
     } else {
-      builder.setUnboundedStart(_Unbounded.newBuilder().build());
+      builder.setUnboundedStart(builder.getUnboundedStart());
     }
 
     if (endIndex != null) {
       builder.setExclusiveEnd(endIndex);
     } else {
-      builder.setUnboundedEnd(_Unbounded.newBuilder().build());
+      builder.setUnboundedEnd(builder.getUnboundedEnd());
     }
 
     return builder.build();
