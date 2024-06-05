@@ -42,7 +42,7 @@ public class PreviewStorageClientDriver {
     final GetResponse doubleResponse = client.get("myStore", "double").join();
     printGenericGetResponse(doubleResponse);
 
-    if (stringResponse instanceof GetResponse.Success) {
+    if (doubleResponse instanceof GetResponse.Success) {
       GetResponse.Success success = (GetResponse.Success) doubleResponse;
       System.out.println("Value type for \"double\" was: " + success.getType());
       System.out.println("Value: " + success.getValueAsDouble());
@@ -54,7 +54,7 @@ public class PreviewStorageClientDriver {
         System.out.println(
             "Error trying to access the value of \"double\" as a string: " + e.getMessage());
       }
-    } else if (stringResponse instanceof GetResponse.Error) {
+    } else if (doubleResponse instanceof GetResponse.Error) {
       GetResponse.Error error = (GetResponse.Error) doubleResponse;
       System.out.println("Error: " + error.getMessage());
     } else {
