@@ -5,10 +5,10 @@ import java.util.List;
 import momento.sdk.exceptions.SdkException;
 
 /** Response for a list stores operation */
-public interface ListStoreResponse {
+public interface ListStoresResponse {
 
   /** A successful list stores operation. */
-  class Success implements ListStoreResponse {
+  class Success implements ListStoresResponse {
     private final List<StoreInfo> stores;
 
     public Success() {
@@ -25,7 +25,7 @@ public interface ListStoreResponse {
    * thrown, or the cause of the error can be retrieved with {@link #getCause()}. The message is a
    * copy of the message of the cause.
    */
-  class Error extends SdkException implements ListStoreResponse {
+  class Error extends SdkException implements ListStoresResponse {
 
     /**
      * Constructs a list store error with a cause.

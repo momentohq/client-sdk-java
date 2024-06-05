@@ -2,7 +2,7 @@ import momento.sdk.IPreviewStorageClient;
 import momento.sdk.PreviewStorageClient;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.responses.storage.control.CreateStoreResponse;
-import momento.sdk.responses.storage.control.ListStoreResponse;
+import momento.sdk.responses.storage.control.ListStoresResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 
 public class PreviewStorageClientDriver {
@@ -20,14 +20,14 @@ public class PreviewStorageClientDriver {
     }
 
     // List all stores
-    final ListStoreResponse listResponse = client.listStores().join();
-    if (listResponse instanceof ListStoreResponse.Success) {
-      ListStoreResponse.Success success = (ListStoreResponse.Success) listResponse;
+    final ListStoresResponse listResponse = client.listStores().join();
+    if (listResponse instanceof ListStoresResponse.Success) {
+      ListStoresResponse.Success success = (ListStoresResponse.Success) listResponse;
       System.out.println("Stores:");
       success.getStores().forEach(store -> System.out.println("- Store: " + store.getName()));
-    } else if (listResponse instanceof ListStoreResponse.Error) {
+    } else if (listResponse instanceof ListStoresResponse.Error) {
       System.out.println(
-          "Error listing stores: " + ((ListStoreResponse.Error) listResponse).getMessage());
+          "Error listing stores: " + ((ListStoresResponse.Error) listResponse).getMessage());
     } else {
       System.out.println("Unknown response type");
     }

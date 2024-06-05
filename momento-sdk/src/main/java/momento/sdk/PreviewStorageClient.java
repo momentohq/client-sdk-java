@@ -4,12 +4,12 @@ import java.util.concurrent.CompletableFuture;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.responses.storage.control.CreateStoreResponse;
 import momento.sdk.responses.storage.control.DeleteStoreResponse;
-import momento.sdk.responses.storage.control.ListStoreResponse;
+import momento.sdk.responses.storage.control.ListStoresResponse;
 import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 import momento.sdk.responses.storage.data.SetResponse;
 
-public class PreviewStorageClient implements IPreviewStorageClient {
+public class PreviewStorageClient implements IPreviewStorageClient, AutoCloseable {
   /** Control operations */
   public CompletableFuture<CreateStoreResponse> createStore(String storeName) {
     return CompletableFuture.completedFuture(new CreateStoreResponse.Success());
@@ -19,9 +19,9 @@ public class PreviewStorageClient implements IPreviewStorageClient {
     return CompletableFuture.completedFuture(new DeleteStoreResponse.Success());
   }
 
-  public CompletableFuture<ListStoreResponse> listStores() {
+  public CompletableFuture<ListStoresResponse> listStores() {
 
-    return CompletableFuture.completedFuture(new ListStoreResponse.Success());
+    return CompletableFuture.completedFuture(new ListStoresResponse.Success());
   }
 
   /** Data operations */
@@ -58,5 +58,11 @@ public class PreviewStorageClient implements IPreviewStorageClient {
 
   public CompletableFuture<DeleteResponse> delete(String storeName, String key) {
     return CompletableFuture.completedFuture(new DeleteResponse.Success());
+  }
+
+  @Override
+  public void close() {
+    /*scsControlClient.close();
+    scsDataClient.close();*/
   }
 }

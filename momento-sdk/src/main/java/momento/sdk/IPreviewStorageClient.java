@@ -3,7 +3,7 @@ package momento.sdk;
 import java.util.concurrent.CompletableFuture;
 import momento.sdk.responses.storage.control.CreateStoreResponse;
 import momento.sdk.responses.storage.control.DeleteStoreResponse;
-import momento.sdk.responses.storage.control.ListStoreResponse;
+import momento.sdk.responses.storage.control.ListStoresResponse;
 import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 import momento.sdk.responses.storage.data.SetResponse;
@@ -14,7 +14,7 @@ public interface IPreviewStorageClient {
 
   CompletableFuture<DeleteStoreResponse> deleteStore(String storeName);
 
-  CompletableFuture<ListStoreResponse> listStores();
+  CompletableFuture<ListStoresResponse> listStores();
 
   /** Data operations */
   CompletableFuture<GetResponse> get(String storeName, String key);
