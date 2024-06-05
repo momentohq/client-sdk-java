@@ -38,7 +38,9 @@ public class ControlTests extends BaseTestClass {
 
   @Test
   public void throwsAlreadyExistsWhenCreatingExistingStore() {
-    final String existingStore = System.getenv("TEST_STORE_NAME");
+    // TODO externalize this
+    // TODO rename env var to something broader like TEST_RESOURCE_NAME
+    final String existingStore = System.getenv("TEST_CACHE_NAME");
 
     assertThat(client.createStore(existingStore))
         .succeedsWithin(FIVE_SECONDS)
