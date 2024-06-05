@@ -11,6 +11,11 @@ public interface ListStoresResponse {
   class Success implements ListStoresResponse {
     private final List<StoreInfo> stores;
 
+    public Success(List<StoreInfo> stores) {
+      this.stores = stores;
+    }
+
+    // TODO delete stub constructor
     public Success() {
       this.stores = Arrays.asList(new StoreInfo("myStore"), new StoreInfo("testStore"));
     }
