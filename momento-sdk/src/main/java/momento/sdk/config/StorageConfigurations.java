@@ -32,16 +32,6 @@ public class StorageConfigurations {
      * @return the latest Laptop configuration
      */
     public static StorageConfiguration latest() {
-      return Laptop.v1();
-    }
-
-    /**
-     * Provides v1 configuration for a laptop environment. This configuration is guaranteed not to
-     * change in future releases of the Momento Java SDK.
-     *
-     * @return the v1 laptop configuration
-     */
-    public static StorageConfiguration v1() {
       final TransportStrategy transportStrategy =
           // TODO
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
@@ -71,16 +61,6 @@ public class StorageConfigurations {
      * @return the latest in-region configuration
      */
     public static StorageConfiguration latest() {
-      return InRegion.v1();
-    }
-
-    /**
-     * Provides v1 configuration for an in-region environment. This configuration is guaranteed not
-     * to change in future releases of the Momento Java SDK.
-     *
-     * @return the v1 in-region configuration
-     */
-    public static StorageConfiguration v1() {
       final TransportStrategy transportStrategy =
           // TODO
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
@@ -89,35 +69,35 @@ public class StorageConfigurations {
       return new InRegion(transportStrategy, retryStrategy);
     }
   }
+}
 
-  public static class Lambda extends StorageConfiguration {
-    private Lambda(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
-      super(transportStrategy, retryStrategy);
-    }
+public static class Lambda extends StorageConfiguration {
+  private Lambda(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
+    super(transportStrategy, retryStrategy);
+  }
 
-    /**
-     * Provides the latest recommended configuration for a Lambda environment.
-     *
-     * <p>This configuration may change in future releases to take advantage of improvements we
-     * identify for default configurations.
-     *
-     * <p>NOTE: keep-alives are very important for long-lived server environments where there may be
-     * periods of time when the connection is idle. However, they are very problematic for lambda
-     * environments where the lambda runtime is continuously frozen and unfrozen, because the lambda
-     * may be frozen before the "ACK" is received from the server. This can cause the keep-alive to
-     * timeout even though the connection is completely healthy. Therefore, keep-alives should be
-     * disabled in lambda and similar environments.
-     *
-     * @return the latest Lambda configuration
-     */
-    public static StorageConfiguration latest() {
-      final GrpcConfiguration grpcConfig =
-          // TODO
-          new GrpcConfiguration(Duration.ofMillis(15000)).withKeepAliveDisabled();
-      final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
-      final RetryStrategy retryStrategy =
-          new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
-      return new Lambda(transportStrategy, retryStrategy);
-    }
+  /**
+   * Provides the latest recommended configuration for a Lambda environment.
+   *
+   * <p>This configuration may change in future releases to take advantage of improvements we
+   * identify for default configurations.
+   *
+   * <p>NOTE: keep-alives are very important for long-lived server environments where there may be
+   * periods of time when the connection is idle. However, they are very problematic for lambda
+   * environments where the lambda runtime is continuously frozen and unfrozen, because the lambda
+   * may be frozen before the "ACK" is received from the server. This can cause the keep-alive to
+   * timeout even though the connection is completely healthy. Therefore, keep-alives should be
+   * disabled in lambda and similar environments.
+   *
+   * @return the latest Lambda configuration
+   */
+  public static StorageConfiguration latest() {
+    final GrpcConfiguration grpcConfig =
+        // TODO
+        new GrpcConfiguration(Duration.ofMillis(15000)).withKeepAliveDisabled();
+    final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
+    final RetryStrategy retryStrategy =
+        new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
+    return new Lambda(transportStrategy, retryStrategy);
   }
 }
