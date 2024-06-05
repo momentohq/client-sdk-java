@@ -10,17 +10,14 @@ import momento.sdk.retry.RetryStrategy;
 
 /** Prebuilt {@link StorageConfiguration}s for different environments. */
 public class StorageConfigurations {
-
-  public static final int DEFAULT_MAX_RETRIES = 3;
-
   /**
    * Provides defaults suitable for a medium-to-high-latency dev environment. Permissive timeouts,
    * retries, and relaxed latency and throughput targets.
    */
   public static class Laptop extends StorageConfiguration {
 
-    private Laptop(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
-      super(transportStrategy, retryStrategy);
+    private Laptop(TransportStrategy transportStrategy) {
+      super(transportStrategy);
     }
 
     /**
@@ -35,9 +32,7 @@ public class StorageConfigurations {
       final TransportStrategy transportStrategy =
           // TODO
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
-      final RetryStrategy retryStrategy =
-          new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
-      return new Laptop(transportStrategy, retryStrategy);
+      return new Laptop(transportStrategy);
     }
   }
 
@@ -48,8 +43,8 @@ public class StorageConfigurations {
    */
   public static class InRegion extends StorageConfiguration {
 
-    private InRegion(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
-      super(transportStrategy, retryStrategy);
+    private InRegion(TransportStrategy transportStrategy) {
+      super(transportStrategy);
     }
 
     /**
@@ -64,15 +59,13 @@ public class StorageConfigurations {
       final TransportStrategy transportStrategy =
           // TODO
           new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
-      final RetryStrategy retryStrategy =
-          new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
-      return new InRegion(transportStrategy, retryStrategy);
+      return new InRegion(transportStrategy);
     }
   }
 
   public static class Lambda extends StorageConfiguration {
-    private Lambda(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
-      super(transportStrategy, retryStrategy);
+    private Lambda(TransportStrategy transportStrategy) {
+      super(transportStrategy);
     }
 
     /**
@@ -95,9 +88,7 @@ public class StorageConfigurations {
           // TODO
           new GrpcConfiguration(Duration.ofMillis(15000)).withKeepAliveDisabled();
       final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
-      final RetryStrategy retryStrategy =
-          new FixedCountRetryStrategy(DEFAULT_MAX_RETRIES, new DefaultRetryEligibilityStrategy());
-      return new Lambda(transportStrategy, retryStrategy);
+      return new Lambda(transportStrategy);
     }
   }
 }
