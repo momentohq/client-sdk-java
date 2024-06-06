@@ -47,28 +47,28 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
   private final Duration deadline;
 
   /**
-   * These two executors are used by {@link RetryClientInterceptor} to schedule and execute
-   * retries on failed gRPC requests. One is a single threaded scheduling executor {@link
+   * These two executors are used by {@link RetryClientInterceptor} to schedule and execute retries
+   * on failed gRPC requests. One is a single threaded scheduling executor {@link
    * ScheduledExecutorService} that's only responsible to schedule retries with a given delay. The
    * other executor {@link ThreadPoolExecutor} is a dynamic executor that spawns threads as
    * necessary and executes the retries (essentially doing the I/O work).
    *
    * <p>{@link ScheduledExecutorService} creates idle threads and hence the choice of using two
-   * executors. The small overhead of a single thread doing the scheduling negates the
-   * implications of creating potentially hundreds of idle threads with the
-   * ScheduledExecutorService. This executor is chosen to avoid a Thread.sleep() while doing
-   * retries. There are no available configurations to ScheduledExecutorService such that it grows
-   * dynamically.
+   * executors. The small overhead of a single thread doing the scheduling negates the implications
+   * of creating potentially hundreds of idle threads with the ScheduledExecutorService. This
+   * executor is chosen to avoid a Thread.sleep() while doing retries. There are no available
+   * configurations to ScheduledExecutorService such that it grows dynamically.
    *
    * <p>The {@link ThreadPoolExecutor} has a size of 0 and grows onDemand. The maximumPoolSize is
    * present to cap the number of threads we create for retries; where the {@link
-   * LinkedBlockingQueue} essentially stores any pending retries. Note that the keep alive time
-   * for each thread is 60 seconds, beyond which the JVM will destroy the thread. This is the
-   * default value of {@link Executors#newCachedThreadPool()} and also applies in our situation as
-   * even with backoffs, one retry should be below 60 seconds. We aren't directly using a cached
-   * thread pool because it grows unbounded.
+   * LinkedBlockingQueue} essentially stores any pending retries. Note that the keep alive time for
+   * each thread is 60 seconds, beyond which the JVM will destroy the thread. This is the default
+   * value of {@link Executors#newCachedThreadPool()} and also applies in our situation as even with
+   * backoffs, one retry should be below 60 seconds. We aren't directly using a cached thread pool
+   * because it grows unbounded.
    */
   private final ScheduledExecutorService retryScheduler;
+
   private final ExecutorService retryExecutor;
 
   // An arbitary selection of twice the number of available processors.
