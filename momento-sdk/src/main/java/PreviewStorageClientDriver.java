@@ -50,11 +50,11 @@ public class PreviewStorageClientDriver {
     if (doubleResponse instanceof GetResponse.Success) {
       GetResponse.Success success = (GetResponse.Success) doubleResponse;
       System.out.println("Value type for \"double\" was: " + success.getType());
-      System.out.println("Value: " + success.getValueAsDouble());
+      System.out.println("Value: " + success.valueDouble());
 
       // Exception
       try {
-        System.out.println("Value: " + success.getValueAsString());
+        System.out.println("Value: " + success.valueString());
       } catch (ClientSdkException e) {
         System.out.println(
             "Error trying to access the value of \"double\" as a string: " + e.getMessage());
@@ -74,16 +74,16 @@ public class PreviewStorageClientDriver {
       // IntelliJ has an option to enforce enum switch completeness
       switch (success.getType()) {
         case STRING:
-          System.out.println("Value: " + success.getValueAsString());
+          System.out.println("Value: " + success.valueString());
           break;
         case BYTE_ARRAY:
-          System.out.println("Value: " + new String(success.getValueAsByteArray()));
+          System.out.println("Value: " + new String(success.valueByteArray()));
           break;
         case LONG:
-          System.out.println("Value: " + success.getValueAsLong());
+          System.out.println("Value: " + success.valueLong());
           break;
         case DOUBLE:
-          System.out.println("Value: " + success.getValueAsDouble());
+          System.out.println("Value: " + success.valueDouble());
           break;
       }
     } else if (response instanceof GetResponse.Error) {

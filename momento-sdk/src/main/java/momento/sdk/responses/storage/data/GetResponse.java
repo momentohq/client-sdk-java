@@ -36,22 +36,22 @@ public interface GetResponse {
       return valueType;
     }
 
-    public byte[] getValueAsByteArray() {
+    public byte[] valueByteArray() {
       ensureCorrectTypeOrThrowException(ValueType.BYTE_ARRAY, valueType);
       return (byte[]) value;
     }
 
-    public String getValueAsString() {
+    public String valueString() {
       ensureCorrectTypeOrThrowException(ValueType.STRING, valueType);
       return (String) value;
     }
 
-    public long getValueAsLong() {
+    public long valueLong() {
       ensureCorrectTypeOrThrowException(ValueType.LONG, valueType);
       return (long) value;
     }
 
-    public double getValueAsDouble() {
+    public double valueDouble() {
       ensureCorrectTypeOrThrowException(ValueType.DOUBLE, valueType);
       return (double) value;
     }

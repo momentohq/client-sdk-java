@@ -10,30 +10,30 @@ public class GetResponseTest {
   @Test
   public void testGetResponseSuccessWorksOnTheRightType() {
     GetResponse.Success response = GetResponse.Success.of(new byte[] {0, 1, 2, 3});
-    assert response.getValueAsByteArray().length == 4;
+    assert response.valueByteArray().length == 4;
 
     response = GetResponse.Success.of("string");
-    assert response.getValueAsString().equals("string");
+    assert response.valueString().equals("string");
 
     response = GetResponse.Success.of(42L);
-    assert response.getValueAsLong() == 42L;
+    assert response.valueLong() == 42L;
 
     response = GetResponse.Success.of(3.14);
-    assert response.getValueAsDouble() == 3.14;
+    assert response.valueDouble() == 3.14;
   }
 
   @Test
   public void testGetResponseSuccessThrowsExceptionOnWrongType() {
     GetResponse.Success response = GetResponse.Success.of(new byte[] {0, 1, 2, 3});
-    assertThrows(ClientSdkException.class, response::getValueAsString);
+    assertThrows(ClientSdkException.class, response::valueString);
 
     response = GetResponse.Success.of("string");
-    assertThrows(ClientSdkException.class, response::getValueAsLong);
+    assertThrows(ClientSdkException.class, response::valueLong);
 
     response = GetResponse.Success.of(42L);
-    assertThrows(ClientSdkException.class, response::getValueAsDouble);
+    assertThrows(ClientSdkException.class, response::valueDouble);
 
     response = GetResponse.Success.of(3.14);
-    assertThrows(ClientSdkException.class, response::getValueAsByteArray);
+    assertThrows(ClientSdkException.class, response::valueByteArray);
   }
 }

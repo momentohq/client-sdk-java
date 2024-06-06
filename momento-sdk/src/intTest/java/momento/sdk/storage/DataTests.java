@@ -51,7 +51,7 @@ public class DataTests extends BaseTestClass {
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
     assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(((GetResponse.Success) getResponse).getValueAsString()).isEqualTo(value);
+    assertThat(((GetResponse.Success) getResponse).valueString()).isEqualTo(value);
   }
 
   @Test
@@ -66,8 +66,7 @@ public class DataTests extends BaseTestClass {
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
     assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(((GetResponse.Success) getResponse).getValueAsByteArray())
-        .isEqualTo(value.getBytes());
+    assertThat(((GetResponse.Success) getResponse).valueByteArray()).isEqualTo(value.getBytes());
   }
 
   @Test
@@ -82,7 +81,7 @@ public class DataTests extends BaseTestClass {
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
     assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(((GetResponse.Success) getResponse).getValueAsLong()).isEqualTo(value);
+    assertThat(((GetResponse.Success) getResponse).valueLong()).isEqualTo(value);
   }
 
   @Test
@@ -97,7 +96,7 @@ public class DataTests extends BaseTestClass {
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
     assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(((GetResponse.Success) getResponse).getValueAsDouble()).isEqualTo(value);
+    assertThat(((GetResponse.Success) getResponse).valueDouble()).isEqualTo(value);
   }
 
   @Test
@@ -128,7 +127,7 @@ public class DataTests extends BaseTestClass {
     client.set(storeName, emptyKey, emptyValue).get();
     final GetResponse response = client.get(storeName, emptyKey).get();
     assertThat(response).isInstanceOf(GetResponse.Success.class);
-    assertThat(((GetResponse.Success) response).getValueAsString()).isEqualTo(emptyValue);
+    assertThat(((GetResponse.Success) response).valueString()).isEqualTo(emptyValue);
   }
 
   @Test
@@ -139,7 +138,7 @@ public class DataTests extends BaseTestClass {
     client.set(storeName, key, value).get();
     final GetResponse getResponse = client.get(storeName, key).get();
     assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(((GetResponse.Success) getResponse).getValueAsString()).isEqualTo(value);
+    assertThat(((GetResponse.Success) getResponse).valueString()).isEqualTo(value);
 
     final DeleteResponse deleteResponse = client.delete(storeName, key).get();
     assertThat(deleteResponse).isInstanceOf(DeleteResponse.Success.class);
