@@ -23,7 +23,7 @@ import momento.sdk.responses.storage.control.ListStoresResponse;
 import momento.sdk.responses.storage.control.StoreInfo;
 
 /** Client for interacting with Scs Control Plane. */
-final class StorageControlClient extends ScsClient {
+final class StorageControlClient extends ScsClientBase {
 
   private final CredentialProvider credentialProvider;
   private final StorageControlGrpcStubsManager controlGrpcStubsManager;
@@ -42,7 +42,7 @@ final class StorageControlClient extends ScsClient {
       return sendCreateStore(storeName);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-              // TODO need to generalize exception mapper
+          // TODO need to generalize exception mapper
           new CreateStoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }

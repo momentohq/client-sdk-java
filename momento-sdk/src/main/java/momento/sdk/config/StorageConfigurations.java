@@ -4,9 +4,6 @@ import java.time.Duration;
 import momento.sdk.config.transport.GrpcConfiguration;
 import momento.sdk.config.transport.StaticTransportStrategy;
 import momento.sdk.config.transport.TransportStrategy;
-import momento.sdk.retry.DefaultRetryEligibilityStrategy;
-import momento.sdk.retry.FixedCountRetryStrategy;
-import momento.sdk.retry.RetryStrategy;
 
 /** Prebuilt {@link StorageConfiguration}s for different environments. */
 public class StorageConfigurations {

@@ -44,7 +44,7 @@ import momento.sdk.responses.cache.signing.SigningKeyListResponse;
 import momento.sdk.responses.cache.signing.SigningKeyRevokeResponse;
 
 /** Client for interacting with Scs Control Plane. */
-final class ScsControlClient extends ScsClient {
+final class ScsControlClient extends ScsClientBase {
 
   private final CredentialProvider credentialProvider;
   private final ScsControlGrpcStubsManager controlGrpcStubsManager;

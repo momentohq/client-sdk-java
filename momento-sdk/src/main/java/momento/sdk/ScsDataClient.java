@@ -149,7 +149,7 @@ import momento.sdk.responses.cache.ttl.ItemGetTtlResponse;
 import momento.sdk.responses.cache.ttl.UpdateTtlResponse;
 
 /** Client for interacting with Scs Data plane. */
-final class ScsDataClient extends ScsClient {
+final class ScsDataClient extends ScsClientBase {
 
   private final Duration itemDefaultTtl;
   private final ScsDataGrpcStubsManager scsDataGrpcStubsManager;

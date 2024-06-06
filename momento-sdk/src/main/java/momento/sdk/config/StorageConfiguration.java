@@ -1,7 +1,6 @@
 package momento.sdk.config;
 
 import momento.sdk.config.transport.TransportStrategy;
-import momento.sdk.retry.RetryStrategy;
 
 /** The contract for SDK configurables. A configuration must have a transport strategy. */
 public class StorageConfiguration {

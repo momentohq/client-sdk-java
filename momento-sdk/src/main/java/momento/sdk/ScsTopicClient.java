@@ -18,7 +18,7 @@ import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class ScsTopicClient extends ScsClient {
+public class ScsTopicClient extends ScsClientBase {
 
   private final Logger logger = LoggerFactory.getLogger(ScsTopicClient.class);
   private final ScsTopicGrpcStubsManager topicGrpcStubsManager;

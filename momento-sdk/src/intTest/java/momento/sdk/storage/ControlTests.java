@@ -140,7 +140,7 @@ public class ControlTests extends BaseTestClass {
     try (final PreviewStorageClient client =
         new PreviewStorageClient(
             CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
-            StorageConfigurations.Laptop.v1()) /*CacheClient.builder(
+            StorageConfigurations.Laptop.latest()) /*CacheClient.builder(
                                  badTokenProvider, Configurations.Laptop.latest(), Duration.ofSeconds(10))
                          .build()*/) {
       assertThat(client.createStore(storeName))
