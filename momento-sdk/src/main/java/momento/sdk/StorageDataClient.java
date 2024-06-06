@@ -50,12 +50,12 @@ final class StorageDataClient extends StorageClientBase {
     }
   }
 
-  CompletableFuture<SetResponse> set(String key, byte[] value) {
+  CompletableFuture<SetResponse> set(String storeName, String key, byte[] value) {
     try {
       ensureValidKey(key);
       _StoreValue storeValue =
           _StoreValue.newBuilder().setBytesValue(ByteString.copyFrom(value)).build();
-      return sendSet(key, storeValue);
+      return sendSet(storeName, key, storeValue);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -66,7 +66,7 @@ final class StorageDataClient extends StorageClientBase {
     try {
       ensureValidKey(key);
       _StoreValue storeValue = _StoreValue.newBuilder().setStringValue(value).build();
-      return sendSet(key, storeValue);
+      return sendSet(storeName, key, storeValue);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -77,7 +77,7 @@ final class StorageDataClient extends StorageClientBase {
     try {
       ensureValidKey(key);
       _StoreValue storeValue = _StoreValue.newBuilder().setIntegerValue(value).build();
-      return sendSet(key, storeValue);
+      return sendSet(storeName, key, storeValue);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -88,7 +88,7 @@ final class StorageDataClient extends StorageClientBase {
     try {
       ensureValidKey(key);
       _StoreValue storeValue = _StoreValue.newBuilder().setDoubleValue(value).build();
-      return sendSet(key, storeValue);
+      return sendSet(storeName, key, storeValue);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -166,10 +166,13 @@ final class StorageDataClient extends StorageClientBase {
     return returnFuture;
   }
 
-  private CompletableFuture<SetResponse> sendSet(String key, _StoreValue value) {
+  private CompletableFuture<SetResponse> sendSet(String storeName, String key, _StoreValue value) {
+    checkCacheNameValid(storeName);
+    final Metadata metadata = metadataWithStore(storeName);
+
     // Submit request to non-blocking stub
     final ListenableFuture<_StoreSetResponse> rspFuture =
-        attachMetadata(storageDataGrpcStubsManager.getStub(), new Metadata())
+        attachMetadata(storageDataGrpcStubsManager.getStub(), metadata)
             .set(_StoreSetRequest.newBuilder().setKey(key).setValue(value).build());
 
     // Build a CompletableFuture to return to caller
