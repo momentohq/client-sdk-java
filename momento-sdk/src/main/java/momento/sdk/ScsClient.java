@@ -8,6 +8,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.grpc.Metadata;
 import io.grpc.stub.AbstractFutureStub;
+import io.grpc.stub.AbstractStub;
 import io.grpc.stub.MetadataUtils;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -27,6 +28,10 @@ abstract class ScsClient implements AutoCloseable {
   }
 
   protected <S extends AbstractFutureStub<S>> S attachMetadata(S stub, Metadata metadata) {
+    return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+  }
+
+  protected <S extends AbstractStub<S>> S attachObservableMetadata(S stub, Metadata metadata) {
     return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
 

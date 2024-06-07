@@ -34,6 +34,7 @@ import grpc.cache_client._DictionaryIncrementRequest;
 import grpc.cache_client._DictionaryIncrementResponse;
 import grpc.cache_client._DictionarySetRequest;
 import grpc.cache_client._DictionarySetResponse;
+import grpc.cache_client._GetBatchRequest;
 import grpc.cache_client._GetRequest;
 import grpc.cache_client._GetResponse;
 import grpc.cache_client._IncrementRequest;
@@ -60,6 +61,7 @@ import grpc.cache_client._ListRemoveRequest;
 import grpc.cache_client._ListRemoveResponse;
 import grpc.cache_client._ListRetainRequest;
 import grpc.cache_client._ListRetainResponse;
+import grpc.cache_client._SetBatchRequest;
 import grpc.cache_client._SetDifferenceRequest;
 import grpc.cache_client._SetDifferenceResponse;
 import grpc.cache_client._SetFetchRequest;
@@ -83,14 +85,17 @@ import grpc.cache_client._SortedSetPutRequest;
 import grpc.cache_client._SortedSetPutResponse;
 import grpc.cache_client._SortedSetRemoveRequest;
 import grpc.cache_client._SortedSetRemoveResponse;
-import grpc.cache_client._Unbounded;
 import grpc.cache_client._UpdateTtlRequest;
 import grpc.cache_client._UpdateTtlResponse;
+import grpc.common._Unbounded;
 import io.grpc.Metadata;
+import io.grpc.stub.StreamObserver;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -109,8 +114,10 @@ import momento.sdk.exceptions.UnknownException;
 import momento.sdk.requests.CollectionTtl;
 import momento.sdk.responses.SortOrder;
 import momento.sdk.responses.cache.DeleteResponse;
+import momento.sdk.responses.cache.GetBatchResponse;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.IncrementResponse;
+import momento.sdk.responses.cache.SetBatchResponse;
 import momento.sdk.responses.cache.SetIfNotExistsResponse;
 import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.dictionary.DictionaryFetchResponse;
@@ -187,6 +194,16 @@ final class ScsDataClient extends ScsClient {
     }
   }
 
+  CompletableFuture<GetBatchResponse> getBatch(String cacheName, Iterable<String> keys) {
+    try {
+      keys.forEach(ValidationUtils::ensureValidKey);
+      return sendGetBatch(cacheName, convertStringIterable(keys));
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new GetBatchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
   CompletableFuture<DeleteResponse> delete(String cacheName, byte[] key) {
     try {
       ensureValidKey(key);
@@ -232,6 +249,34 @@ final class ScsDataClient extends ScsClient {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<SetBatchResponse> setBatch(
+      String cacheName, Map<String, String> items, @Nullable Duration ttl) {
+    try {
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
+      items.forEach((k, v) -> ensureValidKey(k));
+      return sendSetBatch(cacheName, convertStringStringEntryList(items), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new SetBatchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<SetBatchResponse> setBatchStringBytes(
+      String cacheName, Map<String, byte[]> items, @Nullable Duration ttl) {
+    try {
+      if (ttl == null) {
+        ttl = itemDefaultTtl;
+      }
+      items.forEach((k, v) -> ensureValidKey(k));
+      return sendSetBatch(cacheName, convertStringBytesEntryList(items), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new SetBatchResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1393,19 +1438,7 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_GetResponse>() {
           @Override
           public void onSuccess(_GetResponse rsp) {
-            final ECacheResult result = rsp.getResult();
-
-            final GetResponse response;
-            if (result == ECacheResult.Hit) {
-              response = new GetResponse.Hit(rsp.getCacheBody());
-            } else if (result == ECacheResult.Miss) {
-              response = new GetResponse.Miss();
-            } else {
-              response =
-                  new GetResponse.Error(
-                      new InternalServerException("Unsupported cache Get result: " + result));
-            }
-            returnFuture.complete(response);
+            returnFuture.complete(convertGetResponse(rsp));
           }
 
           @Override
@@ -1418,6 +1451,71 @@ final class ScsDataClient extends ScsClient {
         MoreExecutors.directExecutor());
 
     return returnFuture;
+  }
+
+  private CompletableFuture<GetBatchResponse> sendGetBatch(
+      String cacheName, List<ByteString> keys) {
+    checkCacheNameValid(cacheName);
+
+    final CompletableFuture<GetBatchResponse> future = new CompletableFuture<>();
+    final Metadata metadata = metadataWithCache(cacheName);
+    final _GetBatchRequest request = buildGetBatchRequest(keys);
+    try {
+      attachObservableMetadata(scsDataGrpcStubsManager.getObservableStub(), metadata)
+          .getBatch(
+              request,
+              new StreamObserver<_GetResponse>() {
+                final List<_GetResponse> responses = new ArrayList<>();
+
+                @Override
+                public void onNext(_GetResponse response) {
+                  responses.add(response);
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                  future.complete(
+                      new GetBatchResponse.Error(CacheServiceExceptionMapper.convert(t)));
+                }
+
+                @Override
+                public void onCompleted() {
+                  final Iterator<ByteString> keysIt = keys.iterator();
+                  final Iterator<_GetResponse> responsesIt = responses.iterator();
+
+                  final Map<String, GetResponse> responseMap = new HashMap<>();
+                  while (keysIt.hasNext() && responsesIt.hasNext()) {
+                    final String key = keysIt.next().toStringUtf8();
+                    final _GetResponse value = responsesIt.next();
+                    responseMap.put(key, convertGetResponse(value));
+                  }
+                  future.complete(new GetBatchResponse.Success(responseMap));
+                }
+              });
+    } catch (Exception e) {
+      // Exception during gRPC call setup
+      future.completeExceptionally(
+          new GetBatchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+
+    return future;
+  }
+
+  private GetResponse convertGetResponse(_GetResponse response) {
+    final ECacheResult result = response.getResult();
+
+    final GetResponse getResponse;
+    if (result == ECacheResult.Hit) {
+      getResponse = new GetResponse.Hit(response.getCacheBody());
+    } else if (result == ECacheResult.Miss) {
+      getResponse = new GetResponse.Miss();
+    } else {
+      getResponse =
+          new GetResponse.Error(
+              new InternalServerException("Unsupported cache Get result: " + result));
+    }
+
+    return getResponse;
   }
 
   private CompletableFuture<DeleteResponse> sendDelete(String cacheName, ByteString key) {
@@ -1488,7 +1586,7 @@ final class ScsDataClient extends ScsClient {
         new FutureCallback<_SetResponse>() {
           @Override
           public void onSuccess(_SetResponse rsp) {
-            returnFuture.complete(new SetResponse.Success(value));
+            returnFuture.complete(convertSetResponse(value, rsp));
           }
 
           @Override
@@ -1501,6 +1599,71 @@ final class ScsDataClient extends ScsClient {
         MoreExecutors.directExecutor());
 
     return returnFuture;
+  }
+
+  private CompletableFuture<SetBatchResponse> sendSetBatch(
+      String cacheName, Map<ByteString, ByteString> keysToValues, Duration ttl) {
+    checkCacheNameValid(cacheName);
+
+    final CompletableFuture<SetBatchResponse> future = new CompletableFuture<>();
+    final Metadata metadata = metadataWithCache(cacheName);
+    final _SetBatchRequest request = buildSetBatchRequest(keysToValues, ttl);
+    try {
+      attachObservableMetadata(scsDataGrpcStubsManager.getObservableStub(), metadata)
+          .setBatch(
+              request,
+              new StreamObserver<_SetResponse>() {
+                final List<_SetResponse> responses = new ArrayList<>();
+
+                @Override
+                public void onNext(_SetResponse response) {
+                  responses.add(response);
+                }
+
+                @Override
+                public void onError(Throwable t) {
+                  future.complete(
+                      new SetBatchResponse.Error(CacheServiceExceptionMapper.convert(t)));
+                }
+
+                @Override
+                public void onCompleted() {
+                  final Iterator<_SetRequest> requestsIt = request.getItemsList().iterator();
+                  final Iterator<_SetResponse> responsesIt = responses.iterator();
+
+                  final Map<String, SetResponse> responseMap = new HashMap<>();
+                  while (requestsIt.hasNext() && responsesIt.hasNext()) {
+                    final _SetRequest setRequest = requestsIt.next();
+                    final String key = setRequest.getCacheKey().toStringUtf8();
+                    final SetResponse setResponse =
+                        convertSetResponse(setRequest.getCacheBody(), responsesIt.next());
+                    responseMap.put(key, setResponse);
+                  }
+                  future.complete(new SetBatchResponse.Success(responseMap));
+                }
+              });
+    } catch (Exception e) {
+      // Exception during gRPC call setup
+      future.completeExceptionally(
+          new GetBatchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+
+    return future;
+  }
+
+  private SetResponse convertSetResponse(ByteString value, _SetResponse response) {
+    final ECacheResult result = response.getResult();
+
+    final SetResponse setResponse;
+    if (result == ECacheResult.Ok) {
+      setResponse = new SetResponse.Success(value);
+    } else {
+      setResponse =
+          new SetResponse.Error(
+              new InternalServerException("Unsupported cache Set result: " + result));
+    }
+
+    return setResponse;
   }
 
   private CompletableFuture<IncrementResponse> sendIncrement(
@@ -2873,7 +3036,7 @@ final class ScsDataClient extends ScsClient {
             if (rsp.hasMissing()) {
               returnFuture.complete(new DictionaryGetFieldResponse.Miss(field));
             } else if (rsp.hasFound()) {
-              if (rsp.getFound().getItemsList().size() == 0) {
+              if (rsp.getFound().getItemsList().isEmpty()) {
                 returnFuture.complete(
                     new DictionaryGetFieldResponse.Error(
                         CacheServiceExceptionMapper.convert(
@@ -3115,6 +3278,12 @@ final class ScsDataClient extends ScsClient {
     return _GetRequest.newBuilder().setCacheKey(key).build();
   }
 
+  private _GetBatchRequest buildGetBatchRequest(List<ByteString> keys) {
+    final List<_GetRequest> getRequests =
+        keys.stream().map(this::buildGetRequest).collect(Collectors.toList());
+    return _GetBatchRequest.newBuilder().addAllItems(getRequests).build();
+  }
+
   private _DeleteRequest buildDeleteRequest(ByteString key) {
     return _DeleteRequest.newBuilder().setCacheKey(key).build();
   }
@@ -3125,6 +3294,15 @@ final class ScsDataClient extends ScsClient {
         .setCacheBody(value)
         .setTtlMilliseconds(ttl.toMillis())
         .build();
+  }
+
+  private _SetBatchRequest buildSetBatchRequest(
+      Map<ByteString, ByteString> keysToValues, Duration ttl) {
+    final List<_SetRequest> setRequests =
+        keysToValues.entrySet().stream()
+            .map((entry) -> buildSetRequest(entry.getKey(), entry.getValue(), ttl))
+            .collect(Collectors.toList());
+    return _SetBatchRequest.newBuilder().addAllItems(setRequests).build();
   }
 
   private _IncrementRequest buildIncrementRequest(ByteString field, long amount, Duration ttl) {
