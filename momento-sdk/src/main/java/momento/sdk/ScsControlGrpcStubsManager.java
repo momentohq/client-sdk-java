@@ -48,7 +48,7 @@ final class ScsControlGrpcStubsManager implements AutoCloseable {
     GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(controlConfig, channelBuilder);
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
+    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken(), "cache"));
     channelBuilder.intercept(clientInterceptors);
     return channelBuilder.build();
   }
