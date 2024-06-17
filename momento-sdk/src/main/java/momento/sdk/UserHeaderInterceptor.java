@@ -25,7 +25,9 @@ final class UserHeaderInterceptor implements ClientInterceptor {
 
   UserHeaderInterceptor(String token, String clientType) {
     tokenValue = token;
-    sdkVersion = String.format("java:%s:%s", clientType, this.getClass().getPackage().getImplementationVersion());
+    sdkVersion =
+        String.format(
+            "java:%s:%s", clientType, this.getClass().getPackage().getImplementationVersion());
   }
 
   @Override
