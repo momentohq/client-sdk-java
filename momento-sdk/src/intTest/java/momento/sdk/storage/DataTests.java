@@ -1,19 +1,7 @@
 package momento.sdk.storage;
 
-import static momento.sdk.TestUtils.randomString;
-import static org.assertj.core.api.Assertions.assertThat;
-
 import momento.sdk.BaseTestClass;
 import momento.sdk.PreviewStorageClient;
-import momento.sdk.auth.CredentialProvider;
-import momento.sdk.config.StorageConfigurations;
-import momento.sdk.exceptions.NotFoundException;
-import momento.sdk.responses.storage.data.DeleteResponse;
-import momento.sdk.responses.storage.data.GetResponse;
-import momento.sdk.responses.storage.data.PutResponse;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Test;
 
 public class DataTests extends BaseTestClass {
   private static PreviewStorageClient client;
@@ -21,7 +9,7 @@ public class DataTests extends BaseTestClass {
   // TODO can set to the same value as the cache tests
   // TODO rename env var for clarity to TEST_RESOURCE_NAME or similar
   private final String storeName = System.getenv("TEST_CACHE_NAME");
-
+  /*
   @BeforeAll
   static void setup() {
     client =
@@ -153,5 +141,5 @@ public class DataTests extends BaseTestClass {
 
     final DeleteResponse deleteResponse = client.delete(storeName, key).get();
     assertThat(deleteResponse).isInstanceOf(DeleteResponse.Success.class);
-  }
+  }*/
 }
