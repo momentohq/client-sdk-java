@@ -11,8 +11,10 @@ import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.requests.CollectionTtl;
 import momento.sdk.responses.SortOrder;
 import momento.sdk.responses.cache.DeleteResponse;
+import momento.sdk.responses.cache.GetBatchResponse;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.IncrementResponse;
+import momento.sdk.responses.cache.SetBatchResponse;
 import momento.sdk.responses.cache.SetIfNotExistsResponse;
 import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
@@ -263,6 +265,18 @@ public final class CacheClient implements AutoCloseable {
   }
 
   /**
+   * Get the cache values stored for the given keys.
+   *
+   * @param cacheName Name of the cache to get the item from.
+   * @param keys The keys to get.
+   * @return Future with {@link GetBatchResponse} containing the status of the get batch operation
+   *     and the associated value data.
+   */
+  public CompletableFuture<GetBatchResponse> getBatch(String cacheName, Iterable<String> keys) {
+    return scsDataClient.getBatch(cacheName, keys);
+  }
+
+  /**
    * Delete the value stored in Momento cache.
    *
    * @param cacheName Name of the cache to delete the item from.
@@ -486,6 +500,69 @@ public final class CacheClient implements AutoCloseable {
   public CompletableFuture<SetIfNotExistsResponse> setIfNotExists(
       String cacheName, byte[] key, byte[] value) {
     return scsDataClient.setIfNotExists(cacheName, key, value, null);
+  }
+
+  /**
+   * Sets a batch of values in the cache. If a value for a key is already present it will be
+   * replaced by the new value.
+   *
+   * @param cacheName Name of the cache to store the item in.
+   * @param items The keys and values to be stored.
+   * @param ttl Time to Live for the items in the cache. This TTL takes precedence over the TTL used
+   *     when building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
+   *     Duration)}.
+   * @return Future containing the result of the set batch operation.
+   */
+  public CompletableFuture<SetBatchResponse> setBatch(
+      String cacheName, Map<String, String> items, Duration ttl) {
+    return scsDataClient.setBatch(cacheName, items, ttl);
+  }
+
+  /**
+   * Sets a batch of values in the cache. If a value for a key is already present it will be
+   * replaced by the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
+   *
+   * @param cacheName Name of the cache to store the item in.
+   * @param items The keys and values to be stored.
+   * @return Future containing the result of the set batch operation.
+   */
+  public CompletableFuture<SetBatchResponse> setBatch(String cacheName, Map<String, String> items) {
+    return scsDataClient.setBatch(cacheName, items, null);
+  }
+
+  /**
+   * Sets a batch of values in the cache. If a value for a key is already present it will be
+   * replaced by the new value.
+   *
+   * @param cacheName Name of the cache to store the item in.
+   * @param items The keys and values to be stored.
+   * @param ttl Time to Live for the items in the cache. This TTL takes precedence over the TTL used
+   *     when building a cache client {@link CacheClient#builder(CredentialProvider, Configuration,
+   *     Duration)}.
+   * @return Future containing the result of the set batch operation.
+   */
+  public CompletableFuture<SetBatchResponse> setBatchStringBytes(
+      String cacheName, Map<String, byte[]> items, Duration ttl) {
+    return scsDataClient.setBatchStringBytes(cacheName, items, ttl);
+  }
+
+  /**
+   * Sets a batch of values in the cache. If a value for a key is already present it will be
+   * replaced by the new value.
+   *
+   * <p>The Time to Live (TTL) seconds defaults to the parameter used when building this Cache
+   * client - {@link CacheClient#builder(CredentialProvider, Configuration, Duration)}
+   *
+   * @param cacheName Name of the cache to store the item in.
+   * @param items The keys and values to be stored.
+   * @return Future containing the result of the set batch operation.
+   */
+  public CompletableFuture<SetBatchResponse> setBatchStringBytes(
+      String cacheName, Map<String, byte[]> items) {
+    return scsDataClient.setBatchStringBytes(cacheName, items, null);
   }
 
   /**

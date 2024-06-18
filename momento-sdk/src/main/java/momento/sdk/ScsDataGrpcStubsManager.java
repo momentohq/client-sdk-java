@@ -40,11 +40,35 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
 
   private final List<ManagedChannel> channels;
   private final List<ScsGrpc.ScsFutureStub> futureStubs;
+  private final List<ScsGrpc.ScsStub> observableStubs;
   private final AtomicInteger nextStubIndex = new AtomicInteger(0);
 
   private final int numGrpcChannels;
   private final Duration deadline;
+
+  /**
+   * These two executors are used by {@link RetryClientInterceptor} to schedule and execute retries
+   * on failed gRPC requests. One is a single threaded scheduling executor {@link
+   * ScheduledExecutorService} that's only responsible to schedule retries with a given delay. The
+   * other executor {@link ThreadPoolExecutor} is a dynamic executor that spawns threads as
+   * necessary and executes the retries (essentially doing the I/O work).
+   *
+   * <p>{@link ScheduledExecutorService} creates idle threads and hence the choice of using two
+   * executors. The small overhead of a single thread doing the scheduling negates the implications
+   * of creating potentially hundreds of idle threads with the ScheduledExecutorService. This
+   * executor is chosen to avoid a Thread.sleep() while doing retries. There are no available
+   * configurations to ScheduledExecutorService such that it grows dynamically.
+   *
+   * <p>The {@link ThreadPoolExecutor} has a size of 0 and grows onDemand. The maximumPoolSize is
+   * present to cap the number of threads we create for retries; where the {@link
+   * LinkedBlockingQueue} essentially stores any pending retries. Note that the keep alive time for
+   * each thread is 60 seconds, beyond which the JVM will destroy the thread. This is the default
+   * value of {@link Executors#newCachedThreadPool()} and also applies in our situation as even with
+   * backoffs, one retry should be below 60 seconds. We aren't directly using a cached thread pool
+   * because it grows unbounded.
+   */
   private final ScheduledExecutorService retryScheduler;
+
   private final ExecutorService retryExecutor;
 
   // An arbitary selection of twice the number of available processors.
@@ -60,28 +84,6 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
     this.numGrpcChannels =
         configuration.getTransportStrategy().getGrpcConfiguration().getMinNumGrpcChannels();
 
-    /**
-     * These two executors are used by {@link RetryClientInterceptor} to schedule and execute
-     * retries on failed gRPC requests. One is a single threaded scheduling executor {@link
-     * ScheduledExecutorService} that's only responsible to schedule retries with a given delay. The
-     * other executor {@link ThreadPoolExecutor} is a dynamic executor that spawns threads as
-     * necessary and executes the retries (essentially doing the I/O work).
-     *
-     * <p>{@link ScheduledExecutorService} creates idle threads and hence the choice of using two
-     * executors. The small overhead of a single thread doing the scheduling negates the
-     * implications of creating potentially hundreds of idle threads with the
-     * ScheduledExecutorService. This executor is chosen to avoid a Thread.sleep() while doing
-     * retries. There are no available configurations to ScheduledExecutorService such that it grows
-     * dynamically.
-     *
-     * <p>The {@link ThreadPoolExecutor} has a size of 0 and grows onDemand. The maximumPoolSize is
-     * present to cap the number of threads we create for retries; where the {@link
-     * LinkedBlockingQueue} essentially stores any pending retries. Note that the keep alive time
-     * for each thread is 60 seconds, beyond which the JVM will destroy the thread. This is the
-     * default value of {@link Executors.newCachedThreadPool()} and also applies in our situation as
-     * even with backoffs, one retry should be below 60 seconds. We aren't directly using a cached
-     * thread pool because it grows unbounded.
-     */
     this.retryScheduler = Executors.newSingleThreadScheduledExecutor();
     this.retryExecutor =
         new ThreadPoolExecutor(
@@ -96,6 +98,7 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
             .mapToObj(i -> setupChannel(credentialProvider, configuration))
             .collect(Collectors.toList());
     this.futureStubs = channels.stream().map(ScsGrpc::newFutureStub).collect(Collectors.toList());
+    this.observableStubs = channels.stream().map(ScsGrpc::newStub).collect(Collectors.toList());
   }
 
   /**
@@ -205,6 +208,23 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
   ScsGrpc.ScsFutureStub getStub() {
     int nextStubIndex = this.nextStubIndex.getAndIncrement();
     return futureStubs
+        .get(nextStubIndex % this.numGrpcChannels)
+        .withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
+  }
+
+  /**
+   * Returns a stream observable stub with appropriate deadlines.
+   *
+   * <p>Each stub is deliberately decorated with Deadline. Deadlines work differently than timeouts.
+   * When a deadline is set on a stub, it simply means that once the stub is created it must be used
+   * before the deadline expires. Hence, the stub returned from here should never be cached and the
+   * safest behavior is for clients to request a new stub each time.
+   *
+   * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
+   */
+  ScsGrpc.ScsStub getObservableStub() {
+    int nextStubIndex = this.nextStubIndex.getAndIncrement();
+    return observableStubs
         .get(nextStubIndex % this.numGrpcChannels)
         .withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
   }

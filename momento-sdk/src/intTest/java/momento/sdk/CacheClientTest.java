@@ -6,6 +6,10 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.config.Configurations;
@@ -14,8 +18,10 @@ import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.ServerUnavailableException;
 import momento.sdk.responses.cache.DeleteResponse;
+import momento.sdk.responses.cache.GetBatchResponse;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.IncrementResponse;
+import momento.sdk.responses.cache.SetBatchResponse;
 import momento.sdk.responses.cache.SetIfNotExistsResponse;
 import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
@@ -598,5 +604,104 @@ final class CacheClientTest extends BaseTestClass {
     setIfNotExistsResponse = target.setIfNotExists(null, key, value).join();
 
     assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Error.class);
+  }
+
+  @Test
+  public void getBatchSetBatchHappyPath() {
+    final Map<String, String> items = new HashMap<>();
+    items.put("key1", "val1");
+    items.put("key2", "val2");
+    items.put("key3", "val3");
+    final SetBatchResponse setBatchResponse =
+        target.setBatch(cacheName, items, Duration.ofMinutes(1)).join();
+    assertThat(setBatchResponse).isInstanceOf(SetBatchResponse.Success.class);
+    for (SetResponse setResponse :
+        ((SetBatchResponse.Success) setBatchResponse).results().values()) {
+      assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+    }
+
+    final GetBatchResponse getBatchResponse = target.getBatch(cacheName, items.keySet()).join();
+
+    assertThat(getBatchResponse).isInstanceOf(GetBatchResponse.Success.class);
+    assertThat(((GetBatchResponse.Success) getBatchResponse).valueMapStringString())
+        .containsExactlyEntriesOf(items);
+  }
+
+  @Test
+  public void getBatchFailsWithNullCacheName() {
+    assertThat(target.getBatch(null, new ArrayList<>()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(GetBatchResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void getBatchFailsWithNonExistentCache() {
+    final List<String> items = new ArrayList<>();
+    items.add("key1");
+
+    assertThat(target.getBatch(randomString("cache"), items))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(GetBatchResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+  }
+
+  @Test
+  public void setBatchFailsWithNullCacheName() {
+    assertThat(target.setBatch(null, new HashMap<>()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(SetBatchResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void setBatchFailsWithNonExistentCache() {
+    final Map<String, String> items = new HashMap<>();
+    items.put("key1", "val1");
+
+    assertThat(target.setBatch(randomString("cache"), items))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(SetBatchResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+  }
+
+  @Test
+  public void getBatchSetBatchStringBytesHappyPath() {
+    final Map<String, byte[]> items = new HashMap<>();
+    items.put("key1", "val1".getBytes());
+    items.put("key2", "val2".getBytes());
+    items.put("key3", "val3".getBytes());
+    final SetBatchResponse setBatchResponse =
+        target.setBatchStringBytes(cacheName, items, Duration.ofMinutes(1)).join();
+    assertThat(setBatchResponse).isInstanceOf(SetBatchResponse.Success.class);
+    for (SetResponse setResponse :
+        ((SetBatchResponse.Success) setBatchResponse).results().values()) {
+      assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+    }
+
+    final GetBatchResponse getBatchResponse = target.getBatch(cacheName, items.keySet()).join();
+
+    assertThat(getBatchResponse).isInstanceOf(GetBatchResponse.Success.class);
+    assertThat(((GetBatchResponse.Success) getBatchResponse).valueMapStringByteArray())
+        .containsExactlyEntriesOf(items);
+  }
+
+  @Test
+  public void setBatchStringBytesFailsWithNullCacheName() {
+    assertThat(target.setBatchStringBytes(null, new HashMap<>()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(SetBatchResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
+  }
+
+  @Test
+  public void setBatchStringBytessFailsWithNonExistentCache() {
+    final Map<String, byte[]> items = new HashMap<>();
+    items.put("key1", "val1".getBytes());
+
+    assertThat(target.setBatchStringBytes(randomString("cache"), items))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(SetBatchResponse.Error.class))
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
 }
