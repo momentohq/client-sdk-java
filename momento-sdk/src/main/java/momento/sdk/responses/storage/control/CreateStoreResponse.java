@@ -7,6 +7,9 @@ public interface CreateStoreResponse {
   /** A successful create store operation. */
   class Success implements CreateStoreResponse {}
 
+  /** Indicates that the store already exists, so there was no need to create it. */
+  class AlreadyExists implements CreateStoreResponse {}
+
   /**
    * A failed create store operation. The response itself is an exception, so it can be directly
    * thrown, or the cause of the error can be retrieved with {@link #getCause()}. The message is a

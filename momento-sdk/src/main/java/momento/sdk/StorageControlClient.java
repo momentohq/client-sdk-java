@@ -9,6 +9,7 @@ import grpc.control_client._DeleteStoreRequest;
 import grpc.control_client._DeleteStoreResponse;
 import grpc.control_client._ListStoresRequest;
 import grpc.control_client._ListStoresResponse;
+import io.grpc.Status;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -78,7 +79,16 @@ final class StorageControlClient extends ScsClientBase {
         rsp -> new CreateStoreResponse.Success();
 
     final Function<Throwable, CreateStoreResponse> failure =
-        e -> new CreateStoreResponse.Error(CacheServiceExceptionMapper.convert(e));
+        e -> {
+          if (e instanceof io.grpc.StatusRuntimeException) {
+            io.grpc.StatusRuntimeException statusRuntimeException =
+                (io.grpc.StatusRuntimeException) e;
+            if (statusRuntimeException.getStatus().getCode() == Status.Code.ALREADY_EXISTS) {
+              return new CreateStoreResponse.AlreadyExists();
+            }
+          }
+          return new CreateStoreResponse.Error(CacheServiceExceptionMapper.convert(e));
+        };
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }

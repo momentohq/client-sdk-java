@@ -28,14 +28,12 @@ public class ControlTests extends BaseTestClass {
 
   @BeforeAll
   static void setup() {
-    /*target =
-    CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
-            .build();*/
     client =
         new PreviewStorageClient(
             CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
             StorageConfigurations.Laptop.latest());
 
+    // TODO re-using this name
     client.createStore(System.getenv("TEST_CACHE_NAME")).join();
   }
 
@@ -45,15 +43,14 @@ public class ControlTests extends BaseTestClass {
   }
 
   @Test
-  public void throwsAlreadyExistsWhenCreatingExistingStore() {
+  public void returnsAlreadyExistsWhenCreatingExistingStore() {
     // TODO externalize this
     // TODO rename env var to something broader like TEST_RESOURCE_NAME
     final String existingStore = System.getenv("TEST_CACHE_NAME");
 
     assertThat(client.createStore(existingStore))
         .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(AlreadyExistsException.class));
+        .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.AlreadyExists.class));
   }
 
   @Test
