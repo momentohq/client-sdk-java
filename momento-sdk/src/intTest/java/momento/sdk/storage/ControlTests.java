@@ -24,7 +24,7 @@ import org.junit.jupiter.api.Test;
 public class ControlTests extends BaseTestClass {
   private static PreviewStorageClient client;
 
-  public static final Duration FIVE_SECONDS = Duration.ofSeconds(10);
+  public static final Duration TEN_SECONDS = Duration.ofSeconds(10);
 
   @BeforeAll
   static void setup() {
@@ -49,14 +49,14 @@ public class ControlTests extends BaseTestClass {
     final String existingStore = System.getenv("TEST_CACHE_NAME");
 
     assertThat(client.createStore(existingStore))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.AlreadyExists.class));
   }
 
   @Test
   public void returnsNotFoundWhenDeletingUnknownStore() {
     assertThat(client.deleteStore(randomString("name")))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DeleteStoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
@@ -66,12 +66,12 @@ public class ControlTests extends BaseTestClass {
     final String storeName = randomString("name");
 
     assertThat(client.createStore(storeName))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .isInstanceOf(CreateStoreResponse.Success.class);
 
     try {
       assertThat(client.listStores())
-          .succeedsWithin(FIVE_SECONDS)
+          .succeedsWithin(TEN_SECONDS)
           .asInstanceOf(InstanceOfAssertFactories.type(ListStoresResponse.Success.class))
           .satisfies(
               success ->
@@ -80,7 +80,7 @@ public class ControlTests extends BaseTestClass {
     } finally {
       // cleanup
       assertThat(client.deleteStore(storeName))
-          .succeedsWithin(FIVE_SECONDS)
+          .succeedsWithin(TEN_SECONDS)
           .isInstanceOf(DeleteStoreResponse.Success.class);
     }
   }
@@ -88,7 +88,7 @@ public class ControlTests extends BaseTestClass {
   @Test
   public void returnsBadRequestForEmptyStoreName() {
     assertThat(client.createStore("      "))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(BadRequestException.class));
   }
@@ -96,12 +96,12 @@ public class ControlTests extends BaseTestClass {
   @Test
   public void throwsValidationExceptionForNullStoreName() {
     assertThat(client.createStore(null))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
 
     assertThat(client.deleteStore(null))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DeleteStoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
@@ -111,20 +111,20 @@ public class ControlTests extends BaseTestClass {
     final String storeName = randomString("name");
 
     assertThat(client.createStore(storeName))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .isInstanceOf(CreateStoreResponse.Success.class);
 
     assertThat(client.createStore(storeName))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(AlreadyExistsException.class));
 
     assertThat(client.deleteStore(storeName))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .isInstanceOf(DeleteStoreResponse.Success.class);
 
     assertThat(client.deleteStore(storeName))
-        .succeedsWithin(FIVE_SECONDS)
+        .succeedsWithin(TEN_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DeleteStoreResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
   }
@@ -145,17 +145,17 @@ public class ControlTests extends BaseTestClass {
                                  badTokenProvider, Configurations.Laptop.latest(), Duration.ofSeconds(10))
                          .build()*/) {
       assertThat(client.createStore(storeName))
-          .succeedsWithin(FIVE_SECONDS)
+          .succeedsWithin(TEN_SECONDS)
           .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.Error.class))
           .satisfies(error -> assertThat(error).hasCauseInstanceOf(AuthenticationException.class));
 
       assertThat(client.deleteStore(storeName))
-          .succeedsWithin(FIVE_SECONDS)
+          .succeedsWithin(TEN_SECONDS)
           .asInstanceOf(InstanceOfAssertFactories.type(DeleteStoreResponse.Error.class))
           .satisfies(error -> assertThat(error).hasCauseInstanceOf(AuthenticationException.class));
 
       assertThat(client.listStores())
-          .succeedsWithin(FIVE_SECONDS)
+          .succeedsWithin(TEN_SECONDS)
           .asInstanceOf(InstanceOfAssertFactories.type(ListStoresResponse.Error.class))
           .satisfies(error -> assertThat(error).hasCauseInstanceOf(AuthenticationException.class));
     }
