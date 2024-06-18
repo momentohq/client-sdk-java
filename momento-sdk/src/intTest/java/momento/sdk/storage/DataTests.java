@@ -24,9 +24,6 @@ public class DataTests extends BaseTestClass {
 
   @BeforeAll
   static void setup() {
-    /*target =
-    CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
-            .build();*/
     client =
         new PreviewStorageClient(
             CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
