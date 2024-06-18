@@ -122,8 +122,7 @@ public class ControlTests extends BaseTestClass {
 
     assertThat(client.createStore(storeName))
         .succeedsWithin(TEN_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(AlreadyExistsException.class));
+        .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.AlreadyExists.class));
 
     assertThat(client.deleteStore(storeName))
         .succeedsWithin(TEN_SECONDS)
