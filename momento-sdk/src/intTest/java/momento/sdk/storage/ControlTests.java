@@ -3,8 +3,8 @@ package momento.sdk.storage;
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import java.time.Duration;
 import momento.sdk.BaseTestClass;
-import momento.sdk.IPreviewStorageClient;
 import momento.sdk.PreviewStorageClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfigurations;
@@ -17,15 +17,17 @@ import momento.sdk.responses.storage.control.CreateStoreResponse;
 import momento.sdk.responses.storage.control.DeleteStoreResponse;
 import momento.sdk.responses.storage.control.ListStoresResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class ControlTests extends BaseTestClass {
-  private IPreviewStorageClient client;
+  private static PreviewStorageClient client;
 
-  @BeforeEach
-  void setup() {
+  public static final Duration FIVE_SECONDS = Duration.ofSeconds(10);
+
+  @BeforeAll
+  static void setup() {
     /*target =
     CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();*/
@@ -33,11 +35,13 @@ public class ControlTests extends BaseTestClass {
         new PreviewStorageClient(
             CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
             StorageConfigurations.Laptop.latest());
+
+    client.createStore(System.getenv("TEST_CACHE_NAME")).join();
   }
 
-  @AfterEach
-  void tearDown() {
-    /*target.close();*/
+  @AfterAll
+  static void tearDown() {
+    client.close();
   }
 
   @Test
@@ -139,7 +143,7 @@ public class ControlTests extends BaseTestClass {
 
     try (final PreviewStorageClient client =
         new PreviewStorageClient(
-            CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+            CredentialProvider.fromString(badToken),
             StorageConfigurations.Laptop.latest()) /*CacheClient.builder(
                                  badTokenProvider, Configurations.Laptop.latest(), Duration.ofSeconds(10))
                          .build()*/) {

@@ -35,7 +35,7 @@ final class StorageControlClient extends ScsClientBase {
         new StorageControlGrpcStubsManager(credentialProvider, configuration);
   }
 
-  CompletableFuture<CreateStoreResponse> createCache(String storeName) {
+  CompletableFuture<CreateStoreResponse> createStore(String storeName) {
     try {
       checkStoreNameValid(storeName);
 
@@ -47,20 +47,20 @@ final class StorageControlClient extends ScsClientBase {
     }
   }
 
-  CompletableFuture<DeleteStoreResponse> deleteCache(String cacheName) {
+  CompletableFuture<DeleteStoreResponse> deleteStore(String cacheName) {
     try {
       checkStoreNameValid(cacheName);
 
-      return sendDeleteCache(cacheName);
+      return sendDeleteStore(cacheName);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new DeleteStoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<ListStoresResponse> listCaches() {
+  CompletableFuture<ListStoresResponse> listStores() {
     try {
-      return sendListCaches();
+      return sendListStores();
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new ListStoresResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -83,7 +83,7 @@ final class StorageControlClient extends ScsClientBase {
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<DeleteStoreResponse> sendDeleteCache(String storeName) {
+  private CompletableFuture<DeleteStoreResponse> sendDeleteStore(String storeName) {
     final Supplier<ListenableFuture<_DeleteStoreResponse>> stubSupplier =
         () ->
             controlGrpcStubsManager
@@ -99,7 +99,7 @@ final class StorageControlClient extends ScsClientBase {
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  private CompletableFuture<ListStoresResponse> sendListCaches() {
+  private CompletableFuture<ListStoresResponse> sendListStores() {
 
     final Supplier<ListenableFuture<_ListStoresResponse>> stubSupplier =
         () ->

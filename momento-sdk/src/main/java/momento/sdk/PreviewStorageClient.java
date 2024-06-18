@@ -4,7 +4,6 @@ import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfiguration;
-import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.responses.storage.control.CreateStoreResponse;
 import momento.sdk.responses.storage.control.DeleteStoreResponse;
 import momento.sdk.responses.storage.control.ListStoresResponse;
@@ -13,63 +12,56 @@ import momento.sdk.responses.storage.data.GetResponse;
 import momento.sdk.responses.storage.data.PutResponse;
 
 public class PreviewStorageClient implements IPreviewStorageClient, AutoCloseable {
+  private final StorageControlClient controlClient;
+  private final StorageDataClient dataClient;
+
   public PreviewStorageClient(
-      @Nonnull CredentialProvider credentialProvider, @Nonnull StorageConfiguration configuration)
-        // @Nonnull Duration itemDefaultTtl) {){
-      {}
+      @Nonnull CredentialProvider credentialProvider, @Nonnull StorageConfiguration configuration) {
+    this.controlClient = new StorageControlClient(credentialProvider, configuration);
+    this.dataClient = new StorageDataClient(credentialProvider, configuration);
+  }
+
   /** Control operations */
   public CompletableFuture<CreateStoreResponse> createStore(String storeName) {
-    return CompletableFuture.completedFuture(new CreateStoreResponse.Success());
+    return this.controlClient.createStore(storeName);
   }
 
   public CompletableFuture<DeleteStoreResponse> deleteStore(String storeName) {
-    return CompletableFuture.completedFuture(new DeleteStoreResponse.Success());
+    return this.controlClient.deleteStore(storeName);
   }
 
   public CompletableFuture<ListStoresResponse> listStores() {
-
-    return CompletableFuture.completedFuture(new ListStoresResponse.Success());
+    return this.controlClient.listStores();
   }
 
   /** Data operations */
   public CompletableFuture<GetResponse> get(String storeName, String key) {
-    if (key.equalsIgnoreCase("byte array")) {
-      return CompletableFuture.completedFuture(GetResponse.Success.of(new byte[0]));
-    } else if (key.equalsIgnoreCase("string")) {
-      return CompletableFuture.completedFuture(GetResponse.Success.of("string"));
-    } else if (key.equalsIgnoreCase("long")) {
-      return CompletableFuture.completedFuture(GetResponse.Success.of(42L));
-    } else if (key.equalsIgnoreCase("double")) {
-      return CompletableFuture.completedFuture(GetResponse.Success.of(3.14));
-    } else {
-      return CompletableFuture.completedFuture(
-          new GetResponse.Error(new NotFoundException(new Exception("Key not found"), null)));
-    }
+    return this.dataClient.get(storeName, key);
   }
 
   public CompletableFuture<PutResponse> put(String storeName, String key, byte[] value) {
-    return CompletableFuture.completedFuture(new PutResponse.Success());
+    return this.dataClient.put(storeName, key, value);
   }
 
   public CompletableFuture<PutResponse> put(String storeName, String key, String value) {
-    return CompletableFuture.completedFuture(new PutResponse.Success());
+    return this.dataClient.put(storeName, key, value);
   }
 
   public CompletableFuture<PutResponse> put(String storeName, String key, long value) {
-    return CompletableFuture.completedFuture(new PutResponse.Success());
+    return this.dataClient.put(storeName, key, value);
   }
 
   public CompletableFuture<PutResponse> put(String storeName, String key, double value) {
-    return CompletableFuture.completedFuture(new PutResponse.Success());
+    return this.dataClient.put(storeName, key, value);
   }
 
   public CompletableFuture<DeleteResponse> delete(String storeName, String key) {
-    return CompletableFuture.completedFuture(new DeleteResponse.Success());
+    return this.dataClient.delete(storeName, key);
   }
 
   @Override
   public void close() {
-    /*scsControlClient.close();
-    scsDataClient.close();*/
+    this.controlClient.close();
+    this.dataClient.close();
   }
 }
