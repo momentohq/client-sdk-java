@@ -1,6 +1,5 @@
 package momento.sdk.responses.storage.control;
 
-import java.util.Arrays;
 import java.util.List;
 import momento.sdk.exceptions.SdkException;
 
@@ -13,11 +12,6 @@ public interface ListStoresResponse {
 
     public Success(List<StoreInfo> stores) {
       this.stores = stores;
-    }
-
-    // TODO delete stub constructor
-    public Success() {
-      this.stores = Arrays.asList(new StoreInfo("myStore"), new StoreInfo("testStore"));
     }
 
     public List<StoreInfo> getStores() {

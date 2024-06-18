@@ -11,6 +11,11 @@ import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
 import momento.sdk.responses.storage.data.PutResponse;
 
+/**
+ * Client for interacting with the preview storage service.
+ *
+ * <p>Note: This is a preview service and the API is subject to change.
+ */
 public class PreviewStorageClient implements IPreviewStorageClient, AutoCloseable {
   private final StorageControlClient controlClient;
   private final StorageDataClient dataClient;

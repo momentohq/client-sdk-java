@@ -7,12 +7,36 @@ import momento.sdk.exceptions.SdkException;
 
 /** Response for a get operation */
 public interface GetResponse {
+  /**
+   * Get the value as a byte array. If the value is not a byte array, an exception will be thrown.
+   * If the value is not present, an empty optional will be returned.
+   *
+   * @return the value as a byte array.
+   */
   Optional<byte[]> tryValueByteArray();
 
+  /**
+   * Get the value as a string. If the value is not a string, an exception will be thrown. If the
+   * value is not present, an empty optional will be returned.
+   *
+   * @return the value as a string.
+   */
   Optional<String> tryValueString();
 
+  /**
+   * Get the value as a long. If the value is not a long, an exception will be thrown. If the value
+   * is not present, an empty optional will be returned.
+   *
+   * @return the value as a long.
+   */
   Optional<Long> tryValueLong();
 
+  /**
+   * Get the value as a double. If the value is not a double, an exception will be thrown. If the
+   * value is not present, an empty optional will be returned.
+   *
+   * @return the value as a double.
+   */
   Optional<Double> tryValueDouble();
 
   /** A successful get operation. */
