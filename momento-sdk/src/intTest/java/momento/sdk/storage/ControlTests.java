@@ -109,22 +109,27 @@ public class ControlTests extends BaseTestClass {
   public void deleteSucceeds() {
     final String storeName = randomString("name");
 
-    assertThat(client.createStore(storeName))
-        .succeedsWithin(TEN_SECONDS)
-        .isInstanceOf(CreateStoreResponse.Success.class);
+    try {
+      assertThat(client.createStore(storeName))
+          .succeedsWithin(TEN_SECONDS)
+          .isInstanceOf(CreateStoreResponse.Success.class);
 
-    assertThat(client.createStore(storeName))
-        .succeedsWithin(TEN_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.AlreadyExists.class));
+      assertThat(client.createStore(storeName))
+          .succeedsWithin(TEN_SECONDS)
+          .asInstanceOf(InstanceOfAssertFactories.type(CreateStoreResponse.AlreadyExists.class));
 
-    assertThat(client.deleteStore(storeName))
-        .succeedsWithin(TEN_SECONDS)
-        .isInstanceOf(DeleteStoreResponse.Success.class);
+      assertThat(client.deleteStore(storeName))
+          .succeedsWithin(TEN_SECONDS)
+          .isInstanceOf(DeleteStoreResponse.Success.class);
 
-    assertThat(client.deleteStore(storeName))
-        .succeedsWithin(TEN_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(DeleteStoreResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+      assertThat(client.deleteStore(storeName))
+          .succeedsWithin(TEN_SECONDS)
+          .asInstanceOf(InstanceOfAssertFactories.type(DeleteStoreResponse.Error.class))
+          .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+    } finally {
+      // Just in case the second create or delete fails
+      client.deleteStore(storeName).join();
+    }
   }
 
   @Test
