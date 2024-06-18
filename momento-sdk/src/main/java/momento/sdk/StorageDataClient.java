@@ -12,8 +12,8 @@ import grpc.store._StoreDeleteRequest;
 import grpc.store._StoreDeleteResponse;
 import grpc.store._StoreGetRequest;
 import grpc.store._StoreGetResponse;
-import grpc.store._StoreSetRequest;
-import grpc.store._StoreSetResponse;
+import grpc.store._StorePutRequest;
+import grpc.store._StorePutResponse;
 import grpc.store._StoreValue;
 import io.grpc.Metadata;
 import java.util.concurrent.CompletableFuture;
@@ -24,7 +24,7 @@ import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
 import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
-import momento.sdk.responses.storage.data.SetResponse;
+import momento.sdk.responses.storage.data.PutResponse;
 
 /** Client for interacting with Scs Data plane. */
 final class StorageDataClient extends StorageClientBase {
@@ -50,48 +50,48 @@ final class StorageDataClient extends StorageClientBase {
     }
   }
 
-  CompletableFuture<SetResponse> set(String storeName, String key, byte[] value) {
+  CompletableFuture<PutResponse> put(String storeName, String key, byte[] value) {
     try {
       ensureValidKey(key);
       _StoreValue storeValue =
           _StoreValue.newBuilder().setBytesValue(ByteString.copyFrom(value)).build();
-      return sendSet(storeName, key, storeValue);
+      return sendPut(storeName, key, storeValue);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new PutResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<SetResponse> set(String storeName, String key, String value) {
+  CompletableFuture<PutResponse> put(String storeName, String key, String value) {
     try {
       ensureValidKey(key);
       _StoreValue storeValue = _StoreValue.newBuilder().setStringValue(value).build();
-      return sendSet(storeName, key, storeValue);
+      return sendPut(storeName, key, storeValue);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new PutResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<SetResponse> set(String storeName, String key, long value) {
+  CompletableFuture<PutResponse> put(String storeName, String key, long value) {
     try {
       ensureValidKey(key);
       _StoreValue storeValue = _StoreValue.newBuilder().setIntegerValue(value).build();
-      return sendSet(storeName, key, storeValue);
+      return sendPut(storeName, key, storeValue);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new PutResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
-  CompletableFuture<SetResponse> set(String storeName, String key, double value) {
+  CompletableFuture<PutResponse> put(String storeName, String key, double value) {
     try {
       ensureValidKey(key);
       _StoreValue storeValue = _StoreValue.newBuilder().setDoubleValue(value).build();
-      return sendSet(storeName, key, storeValue);
+      return sendPut(storeName, key, storeValue);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new PutResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -166,18 +166,18 @@ final class StorageDataClient extends StorageClientBase {
     return returnFuture;
   }
 
-  private CompletableFuture<SetResponse> sendSet(String storeName, String key, _StoreValue value) {
+  private CompletableFuture<PutResponse> sendPut(String storeName, String key, _StoreValue value) {
     checkCacheNameValid(storeName);
     final Metadata metadata = metadataWithStore(storeName);
 
     // Submit request to non-blocking stub
-    final ListenableFuture<_StoreSetResponse> rspFuture =
+    final ListenableFuture<_StorePutResponse> rspFuture =
         attachMetadata(storageDataGrpcStubsManager.getStub(), metadata)
-            .set(_StoreSetRequest.newBuilder().setKey(key).setValue(value).build());
+            .put(_StorePutRequest.newBuilder().setKey(key).setValue(value).build());
 
     // Build a CompletableFuture to return to caller
-    final CompletableFuture<SetResponse> returnFuture =
-        new CompletableFuture<SetResponse>() {
+    final CompletableFuture<PutResponse> returnFuture =
+        new CompletableFuture<PutResponse>() {
           @Override
           public boolean cancel(boolean mayInterruptIfRunning) {
             // propagate cancel to the listenable future if called on returned completable future
@@ -190,16 +190,16 @@ final class StorageDataClient extends StorageClientBase {
     // Convert returned ListenableFuture to CompletableFuture
     Futures.addCallback(
         rspFuture,
-        new FutureCallback<_StoreSetResponse>() {
+        new FutureCallback<_StorePutResponse>() {
           @Override
-          public void onSuccess(_StoreSetResponse rsp) {
-            returnFuture.complete(new SetResponse.Success());
+          public void onSuccess(_StorePutResponse rsp) {
+            returnFuture.complete(new PutResponse.Success());
           }
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SetResponse.Error(CacheServiceExceptionMapper.convert(e, new Metadata())));
+                new PutResponse.Error(CacheServiceExceptionMapper.convert(e, new Metadata())));
           }
         },
         // Execute on same thread that called execute on CompletionStage

@@ -10,7 +10,7 @@ import momento.sdk.responses.storage.control.DeleteStoreResponse;
 import momento.sdk.responses.storage.control.ListStoresResponse;
 import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
-import momento.sdk.responses.storage.data.SetResponse;
+import momento.sdk.responses.storage.data.PutResponse;
 
 public class PreviewStorageClient implements IPreviewStorageClient, AutoCloseable {
   public PreviewStorageClient(
@@ -47,20 +47,20 @@ public class PreviewStorageClient implements IPreviewStorageClient, AutoCloseabl
     }
   }
 
-  public CompletableFuture<SetResponse> set(String storeName, String key, byte[] value) {
-    return CompletableFuture.completedFuture(new SetResponse.Success());
+  public CompletableFuture<PutResponse> put(String storeName, String key, byte[] value) {
+    return CompletableFuture.completedFuture(new PutResponse.Success());
   }
 
-  public CompletableFuture<SetResponse> set(String storeName, String key, String value) {
-    return CompletableFuture.completedFuture(new SetResponse.Success());
+  public CompletableFuture<PutResponse> put(String storeName, String key, String value) {
+    return CompletableFuture.completedFuture(new PutResponse.Success());
   }
 
-  public CompletableFuture<SetResponse> set(String storeName, String key, long value) {
-    return CompletableFuture.completedFuture(new SetResponse.Success());
+  public CompletableFuture<PutResponse> put(String storeName, String key, long value) {
+    return CompletableFuture.completedFuture(new PutResponse.Success());
   }
 
-  public CompletableFuture<SetResponse> set(String storeName, String key, double value) {
-    return CompletableFuture.completedFuture(new SetResponse.Success());
+  public CompletableFuture<PutResponse> put(String storeName, String key, double value) {
+    return CompletableFuture.completedFuture(new PutResponse.Success());
   }
 
   public CompletableFuture<DeleteResponse> delete(String storeName, String key) {

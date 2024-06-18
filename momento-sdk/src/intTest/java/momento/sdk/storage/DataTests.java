@@ -11,7 +11,7 @@ import momento.sdk.config.StorageConfigurations;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.responses.storage.data.DeleteResponse;
 import momento.sdk.responses.storage.data.GetResponse;
-import momento.sdk.responses.storage.data.SetResponse;
+import momento.sdk.responses.storage.data.PutResponse;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,13 +40,13 @@ public class DataTests extends BaseTestClass {
   }
 
   @Test
-  void getReturnsValueAsStringAfterSet() {
+  void getReturnsValueAsStringAfterPut() {
     final String key = randomString("key");
     final String value = randomString("value");
 
     // Successful Set
-    final SetResponse setResponse = client.set(storeName, key, value).join();
-    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+    final PutResponse putResponse = client.put(storeName, key, value).join();
+    assertThat(putResponse).isInstanceOf(PutResponse.Success.class);
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
@@ -55,13 +55,13 @@ public class DataTests extends BaseTestClass {
   }
 
   @Test
-  void getReturnsValueAsByteArrayAfterSet() {
+  void getReturnsValueAsByteArrayAfterPut() {
     final String key = randomString("key");
     final String value = randomString("value");
 
     // Successful Set
-    final SetResponse setResponse = client.set(storeName, key, value.getBytes()).join();
-    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+    final PutResponse putResponse = client.put(storeName, key, value.getBytes()).join();
+    assertThat(putResponse).isInstanceOf(PutResponse.Success.class);
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
@@ -70,13 +70,13 @@ public class DataTests extends BaseTestClass {
   }
 
   @Test
-  void getReturnsValueAsLongAfterSet() {
+  void getReturnsValueAsLongAfterPut() {
     final String key = randomString("key");
     final long value = 42L;
 
     // Successful Set
-    final SetResponse setResponse = client.set(storeName, key, value).join();
-    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+    final PutResponse putResponse = client.put(storeName, key, value).join();
+    assertThat(putResponse).isInstanceOf(PutResponse.Success.class);
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
@@ -85,13 +85,13 @@ public class DataTests extends BaseTestClass {
   }
 
   @Test
-  void getReturnsValueAsDoubleAfterSet() {
+  void getReturnsValueAsDoubleAfterPut() {
     final String key = randomString("key");
     final double value = 3.14;
 
     // Successful Set
-    final SetResponse setResponse = client.set(storeName, key, value).join();
-    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+    final PutResponse putResponse = client.put(storeName, key, value).join();
+    assertThat(putResponse).isInstanceOf(PutResponse.Success.class);
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
@@ -115,16 +115,16 @@ public class DataTests extends BaseTestClass {
     assertThat(getResponse).isInstanceOf(GetResponse.Error.class);
     assertThat(((GetResponse.Error) getResponse)).hasCauseInstanceOf(NotFoundException.class);
 
-    final SetResponse setResponse = client.set(storeName, "", "").join();
-    assertThat(setResponse).isInstanceOf(SetResponse.Error.class);
-    assertThat(((SetResponse.Error) setResponse)).hasCauseInstanceOf(NotFoundException.class);
+    final PutResponse putResponse = client.put(storeName, "", "").join();
+    assertThat(putResponse).isInstanceOf(PutResponse.Error.class);
+    assertThat(((PutResponse.Error) putResponse)).hasCauseInstanceOf(NotFoundException.class);
   }
 
   @Test
   public void allowEmptyKeyValuesOnGet() throws Exception {
     final String emptyKey = "";
     final String emptyValue = "";
-    client.set(storeName, emptyKey, emptyValue).get();
+    client.put(storeName, emptyKey, emptyValue).get();
     final GetResponse response = client.get(storeName, emptyKey).get();
     assertThat(response).isInstanceOf(GetResponse.Success.class);
     assertThat(((GetResponse.Success) response).valueString()).isEqualTo(emptyValue);
@@ -135,7 +135,7 @@ public class DataTests extends BaseTestClass {
     final String key = "key";
     final String value = "value";
 
-    client.set(storeName, key, value).get();
+    client.put(storeName, key, value).get();
     final GetResponse getResponse = client.get(storeName, key).get();
     assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
     assertThat(((GetResponse.Success) getResponse).valueString()).isEqualTo(value);

@@ -38,7 +38,7 @@ public class PreviewStorageClientDriver {
     }
 
     // Set a value in the store
-    client.set("myStore", "myKey", "myValue").join();
+    client.put("myStore", "myKey", "myValue").join();
 
     // Get the value from the store
     final GetResponse stringResponse = client.get("myStore", "string").join();

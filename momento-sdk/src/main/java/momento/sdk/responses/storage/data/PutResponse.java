@@ -3,17 +3,17 @@ package momento.sdk.responses.storage.data;
 import momento.sdk.exceptions.SdkException;
 
 /** Response for a set operation */
-public interface SetResponse {
+public interface PutResponse {
 
   /** A successful set operation. */
-  class Success implements SetResponse {}
+  class Success implements PutResponse {}
 
   /**
    * A failed set operation. The response itself is an exception, so it can be directly thrown, or
    * the cause of the error can be retrieved with {@link #getCause()}. The message is a copy of the
    * message of the cause.
    */
-  class Error extends SdkException implements SetResponse {
+  class Error extends SdkException implements PutResponse {
 
     /**
      * Constructs a persistent store set error with a cause.
