@@ -1,10 +1,19 @@
 package momento.sdk.responses.storage.data;
 
+import java.util.Optional;
 import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.SdkException;
 
 /** Response for a get operation */
 public interface GetResponse {
+  Optional<byte[]> tryValueByteArray();
+
+  Optional<String> tryValueString();
+
+  Optional<Long> tryValueLong();
+
+  Optional<Double> tryValueDouble();
 
   /** A successful get operation. */
   class Success implements GetResponse {
@@ -65,6 +74,26 @@ public interface GetResponse {
                 "Value is not a %s but was: %s".format(requested.toString(), actual.toString())));
       }
     }
+
+    @Override
+    public Optional<byte[]> tryValueByteArray() {
+      return Optional.of(valueByteArray());
+    }
+
+    @Override
+    public Optional<String> tryValueString() {
+      return Optional.of(valueString());
+    }
+
+    @Override
+    public Optional<Long> tryValueLong() {
+      return Optional.of(valueLong());
+    }
+
+    @Override
+    public Optional<Double> tryValueDouble() {
+      return Optional.of(valueDouble());
+    }
   }
 
   /**
@@ -81,6 +110,35 @@ public interface GetResponse {
      */
     public Error(SdkException cause) {
       super(cause);
+    }
+
+    private <T> Optional<T> tryValue() {
+      // TODO distinguish store not found vs key not found
+      if (getCause() instanceof NotFoundException) {
+        return Optional.empty();
+      } else {
+        throw this;
+      }
+    }
+
+    @Override
+    public Optional<byte[]> tryValueByteArray() {
+      return tryValue();
+    }
+
+    @Override
+    public Optional<String> tryValueString() {
+      return tryValue();
+    }
+
+    @Override
+    public Optional<Long> tryValueLong() {
+      return tryValue();
+    }
+
+    @Override
+    public Optional<Double> tryValueDouble() {
+      return tryValue();
     }
   }
 }
