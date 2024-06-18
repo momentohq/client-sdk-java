@@ -32,12 +32,6 @@ public class ControlTests extends BaseTestClass {
             CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
             StorageConfigurations.Laptop.latest());
 
-    // delete all stores
-    ListStoresResponse response = client.listStores().join();
-    ((ListStoresResponse.Success) response)
-        .getStores()
-        .forEach(store -> client.deleteStore(store.getName()).join());
-
     // TODO re-using this name
     client.createStore(System.getenv("TEST_CACHE_NAME")).join();
   }
