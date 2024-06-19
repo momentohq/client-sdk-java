@@ -1,9 +1,6 @@
 package momento.sdk.responses.storage;
 
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
 import io.grpc.Status;
-import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.internal.MomentoGrpcErrorDetails;
 import momento.sdk.internal.MomentoTransportErrorDetails;
@@ -14,58 +11,47 @@ public class GetResponseTest {
   @Test
   public void testGetResponseSuccessWorksOnTheRightType() {
     GetResponse.Success response = GetResponse.Success.of(new byte[] {0, 1, 2, 3});
-    assert response.valueByteArray().length == 4;
+    assert response.value().get().getByteArray().get().length == 4;
+    assert !response.value().get().getString().isPresent();
+    assert !response.value().get().getLong().isPresent();
+    assert !response.value().get().getDouble().isPresent();
 
     response = GetResponse.Success.of("string");
-    assert response.valueString().equals("string");
+    assert !response.value().get().getByteArray().isPresent();
+    assert response.value().get().getString().get().equals("string");
+    assert !response.value().get().getLong().isPresent();
+    assert !response.value().get().getDouble().isPresent();
 
     response = GetResponse.Success.of(42L);
-    assert response.valueLong() == 42L;
+    assert !response.value().get().getByteArray().isPresent();
+    assert !response.value().get().getString().isPresent();
+    assert response.value().get().getLong().get() == 42L;
+    assert !response.value().get().getDouble().isPresent();
 
     response = GetResponse.Success.of(3.14);
-    assert response.valueDouble() == 3.14;
-  }
-
-  @Test
-  public void testGetResponseSuccessThrowsExceptionOnWrongType() {
-    GetResponse.Success response = GetResponse.Success.of(new byte[] {0, 1, 2, 3});
-    assertThrows(ClientSdkException.class, response::valueString);
-
-    response = GetResponse.Success.of("string");
-    assertThrows(ClientSdkException.class, response::valueLong);
-
-    response = GetResponse.Success.of(42L);
-    assertThrows(ClientSdkException.class, response::valueDouble);
-
-    response = GetResponse.Success.of(3.14);
-    assertThrows(ClientSdkException.class, response::valueByteArray);
+    assert !response.value().get().getByteArray().isPresent();
+    assert !response.value().get().getString().isPresent();
+    assert !response.value().get().getLong().isPresent();
+    assert response.value().get().getDouble().get() == 3.14;
   }
 
   @Test
   public void testConvenienceMethodsOnGetResponse() {
     GetResponse.Success response = GetResponse.Success.of(new byte[] {0, 1, 2, 3});
-    assert response.tryValueByteArray().isPresent();
-    assertThrows(ClientSdkException.class, response::tryValueString);
-    assertThrows(ClientSdkException.class, response::tryValueLong);
-    assertThrows(ClientSdkException.class, response::tryValueDouble);
+    assert response.success().isPresent();
+    assert response.success().get().value().get().getByteArray().get().length == 4;
 
     response = GetResponse.Success.of("string");
-    assertThrows(ClientSdkException.class, response::tryValueByteArray);
-    assert response.tryValueString().isPresent();
-    assertThrows(ClientSdkException.class, response::tryValueLong);
-    assertThrows(ClientSdkException.class, response::tryValueDouble);
+    assert response.success().isPresent();
+    assert response.success().get().value().get().getString().get() == "string";
 
     response = GetResponse.Success.of(42L);
-    assertThrows(ClientSdkException.class, response::tryValueByteArray);
-    assertThrows(ClientSdkException.class, response::tryValueString);
-    assert response.tryValueLong().isPresent();
-    assertThrows(ClientSdkException.class, response::tryValueDouble);
+    assert response.success().isPresent();
+    assert response.success().get().value().get().getLong().get() == 42L;
 
     response = GetResponse.Success.of(3.14);
-    assertThrows(ClientSdkException.class, response::tryValueByteArray);
-    assertThrows(ClientSdkException.class, response::tryValueString);
-    assertThrows(ClientSdkException.class, response::tryValueLong);
-    assert response.tryValueDouble().isPresent();
+    assert response.success().isPresent();
+    assert response.success().get().value().get().getDouble().get() == 3.14;
 
     // TODO distinguish store not found from key not found
     GetResponse.Error error =
@@ -74,9 +60,6 @@ public class GetResponseTest {
                 new Exception(),
                 new MomentoTransportErrorDetails(
                     new MomentoGrpcErrorDetails(Status.Code.NOT_FOUND, "not found"))));
-    assert !error.tryValueDouble().isPresent();
-    assert !error.tryValueLong().isPresent();
-    assert !error.tryValueString().isPresent();
-    assert !error.tryValueByteArray().isPresent();
+    assert !error.success().isPresent();
   }
 }
