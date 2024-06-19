@@ -18,13 +18,19 @@ public class StringCredentialProvider extends CredentialProvider {
   private static class TokenAndEndpoints {
     public final String controlEndpoint;
     public final String cacheEndpoint;
+    public final String storageEndpoint;
     public final String authToken;
     public final String tokenEndpoint;
 
     public TokenAndEndpoints(
-        String controlEndpoint, String cacheEndpoint, String tokenEndpoint, String authToken) {
+        String controlEndpoint,
+        String cacheEndpoint,
+        String storageEndpoint,
+        String tokenEndpoint,
+        String authToken) {
       this.controlEndpoint = controlEndpoint;
       this.cacheEndpoint = cacheEndpoint;
+      this.storageEndpoint = storageEndpoint;
       this.tokenEndpoint = tokenEndpoint;
       this.authToken = authToken;
     }
@@ -36,6 +42,7 @@ public class StringCredentialProvider extends CredentialProvider {
   private final String authToken;
   private final String controlEndpoint;
   private final String cacheEndpoint;
+  private final String storageEndpoint;
   private final String tokenEndpoint;
 
   /**
@@ -44,7 +51,7 @@ public class StringCredentialProvider extends CredentialProvider {
    * @param authToken a Momento authentication token.
    */
   public StringCredentialProvider(@Nonnull String authToken) {
-    this(authToken, null, null, null);
+    this(authToken, null, null, null, null);
   }
 
   /**
@@ -59,6 +66,7 @@ public class StringCredentialProvider extends CredentialProvider {
       @Nonnull String authToken,
       @Nullable String controlHost,
       @Nullable String cacheHost,
+      @Nullable String storageHost,
       @Nullable String tokenHost) {
     TokenAndEndpoints data;
     try {
@@ -76,6 +84,7 @@ public class StringCredentialProvider extends CredentialProvider {
     this.authToken = data.authToken;
     controlEndpoint = controlHost != null ? controlHost : data.controlEndpoint;
     cacheEndpoint = cacheHost != null ? cacheHost : data.cacheEndpoint;
+    storageEndpoint = storageHost != null ? storageHost : data.storageEndpoint;
     tokenEndpoint = tokenHost != null ? tokenHost : data.tokenEndpoint;
   }
 
@@ -99,7 +108,9 @@ public class StringCredentialProvider extends CredentialProvider {
       throw new InvalidArgumentException("Unable to parse cache endpoint from auth token");
     }
 
-    return new TokenAndEndpoints(controlEp, cacheEp, cacheEp, authToken);
+    // Note: Storage endpoint is not present in legacy tokens
+
+    return new TokenAndEndpoints(controlEp, cacheEp, null, cacheEp, authToken);
   }
 
   private TokenAndEndpoints processV1Token(String authToken) {
@@ -112,7 +123,13 @@ public class StringCredentialProvider extends CredentialProvider {
     if (host == null || host.isEmpty() || apiKey == null || apiKey.isEmpty()) {
       throw new InvalidArgumentException("Unable to parse auth token");
     }
-    return new TokenAndEndpoints("control." + host, "cache." + host, "token." + host, apiKey);
+
+    String controlEndpoint = String.format("control.%s", host);
+    String cacheEndpoint = String.format("cache.%s", host);
+    String storageEndpoint = String.format("storage.%s", host);
+    String tokenEndpoint = String.format("token.%s", host);
+    return new TokenAndEndpoints(
+        controlEndpoint, cacheEndpoint, storageEndpoint, tokenEndpoint, apiKey);
   }
 
   private String stripAuthTokenSignature(String authToken) {
@@ -141,6 +158,11 @@ public class StringCredentialProvider extends CredentialProvider {
   @Override
   public String getCacheEndpoint() {
     return cacheEndpoint;
+  }
+
+  @Override
+  public String getStorageEndpoint() {
+    return storageEndpoint;
   }
 
   @Override

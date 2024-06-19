@@ -15,7 +15,7 @@ public class EnvVarCredentialProvider extends StringCredentialProvider {
    * @param envVarName the environment variable containing the Momento authentication token.
    */
   public EnvVarCredentialProvider(@Nonnull String envVarName) {
-    super(getApiKeyValueFromEnvVar(envVarName), null, null, null);
+    super(getApiKeyValueFromEnvVar(envVarName), null, null, null, null);
   }
 
   /**
@@ -25,10 +25,14 @@ public class EnvVarCredentialProvider extends StringCredentialProvider {
    * @param envVarName the environment variable containing the Momento authentication token.
    * @param controlHost URI to use for control plane operations.
    * @param cacheHost URI to use for data plane operations.
+   * @param storageHost URI to use for storage operations.
    */
   public EnvVarCredentialProvider(
-      @Nonnull String envVarName, @Nullable String controlHost, @Nullable String cacheHost) {
-    super(getApiKeyValueFromEnvVar(envVarName), controlHost, cacheHost, null);
+      @Nonnull String envVarName,
+      @Nullable String controlHost,
+      @Nullable String cacheHost,
+      @Nullable String storageHost) {
+    super(getApiKeyValueFromEnvVar(envVarName), controlHost, cacheHost, storageHost, null);
   }
 
   private static String getApiKeyValueFromEnvVar(String envVarName) {

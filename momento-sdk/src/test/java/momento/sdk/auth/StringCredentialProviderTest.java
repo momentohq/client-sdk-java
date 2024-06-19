@@ -89,12 +89,17 @@ class StringCredentialProviderTest {
   public void testCredentialProviderLegacyTokenOverrideEndpointsHappyPath() {
     assertThat(
             new StringCredentialProvider(
-                VALID_LEGACY_AUTH_TOKEN, "my.control.host", "my.cache.host", "my.token.host"))
+                VALID_LEGACY_AUTH_TOKEN,
+                "my.control.host",
+                "my.cache.host",
+                "my.storage.host",
+                "my.token.host"))
         .satisfies(
             provider -> {
               assertThat(provider.getAuthToken()).isEqualTo(VALID_LEGACY_AUTH_TOKEN);
               assertThat(provider.getControlEndpoint()).isEqualTo("my.control.host");
               assertThat(provider.getCacheEndpoint()).isEqualTo("my.cache.host");
+              assertThat(provider.getStorageEndpoint()).isEqualTo("my.storage.host");
             });
   }
 
@@ -113,12 +118,17 @@ class StringCredentialProviderTest {
   public void testCredentialProviderV1TokenOverrideEndpointsHappyPath() {
     assertThat(
             new StringCredentialProvider(
-                VALID_V1_AUTH_TOKEN, "my.control.host", "my.cache.host", "my.token.host"))
+                VALID_V1_AUTH_TOKEN,
+                "my.control.host",
+                "my.cache.host",
+                "my.storage.host",
+                "my.token.host"))
         .satisfies(
             provider -> {
               assertThat(provider.getAuthToken()).isEqualTo(VALID_V1_API_KEY);
               assertThat(provider.getControlEndpoint()).isEqualTo("my.control.host");
               assertThat(provider.getCacheEndpoint()).isEqualTo("my.cache.host");
+              assertThat(provider.getStorageEndpoint()).isEqualTo("my.storage.host");
             });
   }
 
