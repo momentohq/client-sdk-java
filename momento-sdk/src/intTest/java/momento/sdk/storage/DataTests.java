@@ -102,8 +102,8 @@ public class DataTests extends BaseTestClass {
   void storeKeyNotFound() {
     // Get key that was not set
     final GetResponse response = client.get(storeName, randomString("key")).join();
-    assertThat(response).isInstanceOf(GetResponse.Error.class);
-    assertThat(((GetResponse.Error) response).getCause()).isInstanceOf(NotFoundException.class);
+    assertThat(response).isInstanceOf(GetResponse.Success.class);
+    assert !response.success().get().value().isPresent();
   }
 
   @Test
