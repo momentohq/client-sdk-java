@@ -4,56 +4,56 @@ import java.util.Optional;
 
 public class StorageValue {
   private final Object value;
-  private final ValueType valueType;
+  private final StorageItemType itemType;
 
-  private StorageValue(Object value, ValueType valueType) {
+  private StorageValue(Object value, StorageItemType itemType) {
     this.value = value;
-    this.valueType = valueType;
+    this.itemType = itemType;
   }
 
   public static StorageValue of(byte[] value) {
-    return new StorageValue(value, ValueType.BYTE_ARRAY);
+    return new StorageValue(value, StorageItemType.BYTE_ARRAY);
   }
 
   public static StorageValue of(String value) {
-    return new StorageValue(value, ValueType.STRING);
+    return new StorageValue(value, StorageItemType.STRING);
   }
 
   public static StorageValue of(long value) {
-    return new StorageValue(value, ValueType.LONG);
+    return new StorageValue(value, StorageItemType.LONG);
   }
 
   public static StorageValue of(double value) {
-    return new StorageValue(value, ValueType.DOUBLE);
+    return new StorageValue(value, StorageItemType.DOUBLE);
   }
 
-  public ValueType getType() {
-    return valueType;
+  public StorageItemType getType() {
+    return itemType;
   }
 
   public Optional<byte[]> getByteArray() {
-    if (valueType != ValueType.BYTE_ARRAY) {
+    if (itemType != StorageItemType.BYTE_ARRAY) {
       return Optional.empty();
     }
     return Optional.of((byte[]) value);
   }
 
   public Optional<String> getString() {
-    if (valueType != ValueType.STRING) {
+    if (itemType != StorageItemType.STRING) {
       return Optional.empty();
     }
     return Optional.of((String) value);
   }
 
   public Optional<Long> getLong() {
-    if (valueType != ValueType.LONG) {
+    if (itemType != StorageItemType.LONG) {
       return Optional.empty();
     }
     return Optional.of((long) value);
   }
 
   public Optional<Double> getDouble() {
-    if (valueType != ValueType.DOUBLE) {
+    if (itemType != StorageItemType.DOUBLE) {
       return Optional.empty();
     }
     return Optional.of((double) value);
