@@ -11,7 +11,7 @@ import momento.sdk.config.StorageConfigurations;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.BadRequestException;
 import momento.sdk.exceptions.InvalidArgumentException;
-import momento.sdk.exceptions.NotFoundException;
+import momento.sdk.exceptions.StoreNotFoundException;
 import momento.sdk.responses.storage.CreateStoreResponse;
 import momento.sdk.responses.storage.DeleteStoreResponse;
 import momento.sdk.responses.storage.ListStoresResponse;
@@ -57,7 +57,7 @@ public class ControlTests extends BaseTestClass {
     assertThat(client.deleteStore(randomString("name")))
         .succeedsWithin(TEN_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DeleteStoreResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(StoreNotFoundException.class));
   }
 
   @Test
@@ -125,7 +125,7 @@ public class ControlTests extends BaseTestClass {
       assertThat(client.deleteStore(storeName))
           .succeedsWithin(TEN_SECONDS)
           .asInstanceOf(InstanceOfAssertFactories.type(DeleteStoreResponse.Error.class))
-          .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+          .satisfies(error -> assertThat(error).hasCauseInstanceOf(StoreNotFoundException.class));
     } finally {
       // Just in case the second create or delete fails
       client.deleteStore(storeName).join();

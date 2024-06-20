@@ -9,7 +9,6 @@ import grpc.control_client._DeleteStoreRequest;
 import grpc.control_client._DeleteStoreResponse;
 import grpc.control_client._ListStoresRequest;
 import grpc.control_client._ListStoresResponse;
-import io.grpc.Status;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -17,7 +16,9 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfiguration;
+import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.storage.CreateStoreResponse;
 import momento.sdk.responses.storage.DeleteStoreResponse;
 import momento.sdk.responses.storage.ListStoresResponse;
@@ -43,7 +44,6 @@ final class StorageControlClient extends ScsClientBase {
       return sendCreateStore(storeName);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          // TODO need to generalize exception mapper
           new CreateStoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
@@ -80,12 +80,9 @@ final class StorageControlClient extends ScsClientBase {
 
     final Function<Throwable, CreateStoreResponse> failure =
         e -> {
-          if (e instanceof io.grpc.StatusRuntimeException) {
-            io.grpc.StatusRuntimeException statusRuntimeException =
-                (io.grpc.StatusRuntimeException) e;
-            if (statusRuntimeException.getStatus().getCode() == Status.Code.ALREADY_EXISTS) {
-              return new CreateStoreResponse.AlreadyExists();
-            }
+          final SdkException sdkException = CacheServiceExceptionMapper.convert(e);
+          if (sdkException instanceof AlreadyExistsException) {
+            return new CreateStoreResponse.AlreadyExists();
           }
           return new CreateStoreResponse.Error(CacheServiceExceptionMapper.convert(e));
         };
