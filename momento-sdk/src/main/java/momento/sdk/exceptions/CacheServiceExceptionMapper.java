@@ -49,6 +49,8 @@ public final class CacheServiceExceptionMapper {
           new MomentoTransportErrorDetails(
               new MomentoGrpcErrorDetails(statusCode, grpcException.getMessage(), metadata));
 
+      final String errorCause = grpcException.getMessage();
+
       switch (statusCode) {
         case INVALID_ARGUMENT:
           // fall through
@@ -75,8 +77,13 @@ public final class CacheServiceExceptionMapper {
           return new LimitExceededException(grpcException, errorDetails);
 
         case NOT_FOUND:
-          return new NotFoundException(grpcException, errorDetails);
-
+          if (errorCause.contains("Element not found")) {
+            return new StoreItemNotFoundException(grpcException, errorDetails);
+          } else if (errorCause.contains("Store with name")) {
+            return new StoreNotFoundException(grpcException, errorDetails);
+          } else {
+            return new NotFoundException(grpcException, errorDetails);
+          }
         case ALREADY_EXISTS:
           return new AlreadyExistsException(grpcException, errorDetails);
 

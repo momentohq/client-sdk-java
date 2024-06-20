@@ -22,6 +22,7 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfiguration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
+import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.storage.DeleteResponse;
 import momento.sdk.responses.storage.GetResponse;
 import momento.sdk.responses.storage.PutResponse;
@@ -156,16 +157,10 @@ final class StorageDataClient extends StorageClientBase {
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
-            // TODO this logic and string matching should be in one place, eg in the service
-            // exception mapper
-            if (e instanceof io.grpc.StatusRuntimeException) {
-              io.grpc.StatusRuntimeException statusRuntimeException =
-                  (io.grpc.StatusRuntimeException) e;
-              if (statusRuntimeException.getStatus().getCode().equals(io.grpc.Status.Code.NOT_FOUND)
-                  && e.getMessage().contains("Element not found")) {
-                returnFuture.complete(GetResponse.Success.of());
-                return;
-              }
+            final SdkException sdkException = CacheServiceExceptionMapper.convert(e, metadata);
+            if (sdkException instanceof momento.sdk.exceptions.StoreItemNotFoundException) {
+              returnFuture.complete(GetResponse.Success.of());
+              return;
             }
             returnFuture.complete(
                 new GetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
