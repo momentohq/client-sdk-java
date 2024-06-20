@@ -1,7 +1,7 @@
 package momento.sdk.responses.storage;
 
 import io.grpc.Status;
-import momento.sdk.exceptions.NotFoundException;
+import momento.sdk.exceptions.StoreNotFoundException;
 import momento.sdk.internal.MomentoGrpcErrorDetails;
 import momento.sdk.internal.MomentoTransportErrorDetails;
 import org.junit.jupiter.api.Test;
@@ -55,7 +55,7 @@ public class GetResponseTest {
     // TODO distinguish store not found from key not found
     GetResponse.Error error =
         new GetResponse.Error(
-            new NotFoundException(
+            new StoreNotFoundException(
                 new Exception(),
                 new MomentoTransportErrorDetails(
                     new MomentoGrpcErrorDetails(Status.Code.NOT_FOUND, "not found"))));

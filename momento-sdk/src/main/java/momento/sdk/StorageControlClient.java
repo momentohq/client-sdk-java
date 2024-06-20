@@ -16,9 +16,9 @@ import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfiguration;
-import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.exceptions.StoreAlreadyExistsException;
 import momento.sdk.responses.storage.CreateStoreResponse;
 import momento.sdk.responses.storage.DeleteStoreResponse;
 import momento.sdk.responses.storage.ListStoresResponse;
@@ -81,7 +81,7 @@ final class StorageControlClient extends ScsClientBase {
     final Function<Throwable, CreateStoreResponse> failure =
         e -> {
           final SdkException sdkException = CacheServiceExceptionMapper.convert(e);
-          if (sdkException instanceof AlreadyExistsException) {
+          if (sdkException instanceof StoreAlreadyExistsException) {
             return new CreateStoreResponse.AlreadyExists();
           }
           return new CreateStoreResponse.Error(CacheServiceExceptionMapper.convert(e));

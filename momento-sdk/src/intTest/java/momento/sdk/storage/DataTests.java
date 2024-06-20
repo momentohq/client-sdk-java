@@ -7,7 +7,7 @@ import momento.sdk.BaseTestClass;
 import momento.sdk.PreviewStorageClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfigurations;
-import momento.sdk.exceptions.NotFoundException;
+import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.responses.storage.DeleteResponse;
 import momento.sdk.responses.storage.GetResponse;
 import momento.sdk.responses.storage.PutResponse;
@@ -112,11 +112,11 @@ public class DataTests extends BaseTestClass {
 
     final GetResponse getResponse = client.get(storeName, "").join();
     assertThat(getResponse).isInstanceOf(GetResponse.Error.class);
-    assertThat(((GetResponse.Error) getResponse)).hasCauseInstanceOf(NotFoundException.class);
+    assertThat(((GetResponse.Error) getResponse)).hasCauseInstanceOf(CacheNotFoundException.class);
 
     final PutResponse putResponse = client.put(storeName, "", "").join();
     assertThat(putResponse).isInstanceOf(PutResponse.Error.class);
-    assertThat(((PutResponse.Error) putResponse)).hasCauseInstanceOf(NotFoundException.class);
+    assertThat(((PutResponse.Error) putResponse)).hasCauseInstanceOf(CacheNotFoundException.class);
   }
 
   @Test

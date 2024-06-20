@@ -14,8 +14,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import momento.sdk.config.Configurations;
+import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.InvalidArgumentException;
-import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.requests.CollectionTtl;
 import momento.sdk.responses.SortOrder;
 import momento.sdk.responses.cache.sortedset.ScoredElement;
@@ -166,14 +166,14 @@ public class SortedSetTest extends BaseTestClass {
     assertThat(client.sortedSetPutElement(randomString("cache"), sortedSetName, "element", 1.0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
 
     assertThat(
             client.sortedSetPutElement(
                 randomString("cache"), sortedSetName, "element".getBytes(), 1.0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -279,7 +279,7 @@ public class SortedSetTest extends BaseTestClass {
                 randomString("cache"), sortedSetName, Collections.singletonMap("element", 1.0)))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementsResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
 
     assertThat(
             client.sortedSetPutElementsByteArray(
@@ -288,7 +288,7 @@ public class SortedSetTest extends BaseTestClass {
                 Collections.singletonMap("element".getBytes(), 1.0)))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetPutElementsResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -434,7 +434,7 @@ public class SortedSetTest extends BaseTestClass {
     assertThat(client.sortedSetFetchByRank(randomString("cache"), sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -558,7 +558,7 @@ public class SortedSetTest extends BaseTestClass {
                 randomString("cache"), sortedSetName, null, null, null, 0, 100))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -627,14 +627,14 @@ public class SortedSetTest extends BaseTestClass {
                 randomString("cache"), sortedSetName, "element", SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
 
     assertThat(
             client.sortedSetGetRank(
                 randomString("cache"), sortedSetName, "element".getBytes(), SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -743,12 +743,12 @@ public class SortedSetTest extends BaseTestClass {
     assertThat(client.sortedSetGetScore(randomString("cache"), sortedSetName, "element"))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
 
     assertThat(client.sortedSetGetScore(randomString("cache"), sortedSetName, "element".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -848,14 +848,14 @@ public class SortedSetTest extends BaseTestClass {
                 randomString("cache"), sortedSetName, Collections.singleton("element")))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
 
     assertThat(
             client.sortedSetGetScoresByteArray(
                 randomString("cache"), sortedSetName, Collections.singleton("element".getBytes())))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoresResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -986,14 +986,14 @@ public class SortedSetTest extends BaseTestClass {
     assertThat(client.sortedSetIncrementScore(randomString("cache"), sortedSetName, "element", 1.0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
 
     assertThat(
             client.sortedSetIncrementScore(
                 randomString("cache"), sortedSetName, "element".getBytes(), 1.0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -1106,14 +1106,14 @@ public class SortedSetTest extends BaseTestClass {
     assertThat(client.sortedSetRemoveElement(randomString("cache"), sortedSetName, "element"))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
 
     assertThat(
             client.sortedSetRemoveElement(
                 randomString("cache"), sortedSetName, "element".getBytes()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -1226,14 +1226,14 @@ public class SortedSetTest extends BaseTestClass {
                 randomString("cache"), sortedSetName, Collections.emptySet()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
 
     assertThat(
             client.sortedSetRemoveElementsByteArray(
                 randomString("cache"), sortedSetName, Collections.emptySet()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetRemoveElementsResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
