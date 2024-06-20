@@ -91,8 +91,11 @@ public final class CacheServiceExceptionMapper {
             return new CacheNotFoundException(grpcException, errorDetails);
           }
         case ALREADY_EXISTS:
-          return new CacheAlreadyExistsException(grpcException, errorDetails);
-
+          if (errorCause.contains("Store with name")) {
+            return new StoreAlreadyExistsException(grpcException, errorDetails);
+          } else {
+            return new CacheAlreadyExistsException(grpcException, errorDetails);
+          }
         case UNKNOWN:
           return new UnknownServiceException(grpcException, errorDetails);
 
