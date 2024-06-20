@@ -4,7 +4,6 @@ import io.grpc.Status;
 import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.internal.MomentoGrpcErrorDetails;
 import momento.sdk.internal.MomentoTransportErrorDetails;
-import momento.sdk.responses.storage.data.GetResponse;
 import org.junit.jupiter.api.Test;
 
 public class GetResponseTest {

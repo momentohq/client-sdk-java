@@ -22,9 +22,9 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfiguration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
-import momento.sdk.responses.storage.data.DeleteResponse;
-import momento.sdk.responses.storage.data.GetResponse;
-import momento.sdk.responses.storage.data.PutResponse;
+import momento.sdk.responses.storage.DeleteResponse;
+import momento.sdk.responses.storage.GetResponse;
+import momento.sdk.responses.storage.PutResponse;
 
 /** Client for interacting with Scs Data plane. */
 final class StorageDataClient extends StorageClientBase {

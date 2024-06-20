@@ -1,4 +1,4 @@
-package momento.sdk.responses.storage.control;
+package momento.sdk.responses.storage;
 
 import momento.sdk.exceptions.SdkException;
 

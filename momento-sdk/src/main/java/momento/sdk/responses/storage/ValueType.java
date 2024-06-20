@@ -1,4 +1,4 @@
-package momento.sdk.responses.storage.data;
+package momento.sdk.responses.storage;
 
 /** Type of value in a store. */
 public enum ValueType {

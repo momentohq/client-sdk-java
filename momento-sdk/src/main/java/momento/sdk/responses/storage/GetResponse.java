@@ -1,4 +1,4 @@
-package momento.sdk.responses.storage.data;
+package momento.sdk.responses.storage;
 
 import java.util.Optional;
 import momento.sdk.exceptions.SdkException;

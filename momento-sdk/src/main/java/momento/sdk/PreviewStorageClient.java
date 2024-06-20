@@ -4,12 +4,12 @@ import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfiguration;
-import momento.sdk.responses.storage.control.CreateStoreResponse;
-import momento.sdk.responses.storage.control.DeleteStoreResponse;
-import momento.sdk.responses.storage.control.ListStoresResponse;
-import momento.sdk.responses.storage.data.DeleteResponse;
-import momento.sdk.responses.storage.data.GetResponse;
-import momento.sdk.responses.storage.data.PutResponse;
+import momento.sdk.responses.storage.CreateStoreResponse;
+import momento.sdk.responses.storage.DeleteResponse;
+import momento.sdk.responses.storage.DeleteStoreResponse;
+import momento.sdk.responses.storage.GetResponse;
+import momento.sdk.responses.storage.ListStoresResponse;
+import momento.sdk.responses.storage.PutResponse;
 
 /**
  * Client for interacting with the preview storage service.
