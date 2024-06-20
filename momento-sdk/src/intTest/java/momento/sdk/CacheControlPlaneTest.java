@@ -7,9 +7,9 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 import java.time.Duration;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configurations;
-import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.BadRequestException;
+import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
@@ -74,7 +74,8 @@ final class CacheControlPlaneTest extends BaseTestClass {
     assertThat(target.createCache(existingCache))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(AlreadyExistsException.class));
+        .satisfies(
+            error -> assertThat(error).hasCauseInstanceOf(CacheAlreadyExistsException.class));
   }
 
   @Test
@@ -140,7 +141,8 @@ final class CacheControlPlaneTest extends BaseTestClass {
     assertThat(target.createCache(cacheName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(AlreadyExistsException.class));
+        .satisfies(
+            error -> assertThat(error).hasCauseInstanceOf(CacheAlreadyExistsException.class));
 
     assertThat(target.deleteCache(cacheName))
         .succeedsWithin(FIVE_SECONDS)

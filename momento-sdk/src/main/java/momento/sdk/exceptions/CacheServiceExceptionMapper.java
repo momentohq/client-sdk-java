@@ -91,7 +91,7 @@ public final class CacheServiceExceptionMapper {
             return new CacheNotFoundException(grpcException, errorDetails);
           }
         case ALREADY_EXISTS:
-          return new AlreadyExistsException(grpcException, errorDetails);
+          return new CacheAlreadyExistsException(grpcException, errorDetails);
 
         case UNKNOWN:
           return new UnknownServiceException(grpcException, errorDetails);

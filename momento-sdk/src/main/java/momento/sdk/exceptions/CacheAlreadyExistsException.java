@@ -3,7 +3,7 @@ package momento.sdk.exceptions;
 import momento.sdk.internal.MomentoTransportErrorDetails;
 
 /** A resource already exists. */
-public class AlreadyExistsException extends MomentoServiceException {
+public class CacheAlreadyExistsException extends MomentoServiceException {
 
   private static final String MESSAGE =
       "A cache with the specified name already exists. To resolve this error, "
@@ -15,7 +15,7 @@ public class AlreadyExistsException extends MomentoServiceException {
    * @param cause the cause.
    * @param transportErrorDetails details about the request and error.
    */
-  public AlreadyExistsException(
+  public CacheAlreadyExistsException(
       Throwable cause, MomentoTransportErrorDetails transportErrorDetails) {
     super(
         MomentoErrorCode.ALREADY_EXISTS_ERROR,
