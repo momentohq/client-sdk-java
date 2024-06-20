@@ -160,10 +160,10 @@ final class StorageDataClient extends StorageClientBase {
             final SdkException sdkException = CacheServiceExceptionMapper.convert(e, metadata);
             if (sdkException instanceof momento.sdk.exceptions.StoreItemNotFoundException) {
               returnFuture.complete(GetResponse.Success.of());
-              return;
+            } else {
+              returnFuture.complete(
+                  new GetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
             }
-            returnFuture.complete(
-                new GetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
