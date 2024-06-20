@@ -1,38 +1,26 @@
 package momento.sdk;
 
-import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
-
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import io.grpc.Metadata;
 import io.grpc.stub.AbstractFutureStub;
-import io.grpc.stub.AbstractStub;
 import io.grpc.stub.MetadataUtils;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
 
-abstract class ScsClient implements AutoCloseable {
-
-  private static final Metadata.Key<String> CACHE_NAME_KEY =
-      Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
-
-  protected Metadata metadataWithCache(String cacheName) {
-    final Metadata metadata = new Metadata();
-    metadata.put(CACHE_NAME_KEY, cacheName);
-
-    return metadata;
-  }
-
+abstract class ClientBase implements AutoCloseable {
   protected <S extends AbstractFutureStub<S>> S attachMetadata(S stub, Metadata metadata) {
     return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
 
-  protected <S extends AbstractStub<S>> S attachObservableMetadata(S stub, Metadata metadata) {
-    return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
+  protected Metadata metadataWithItem(Metadata.Key<String> key, String value) {
+    final Metadata metadata = new Metadata();
+    metadata.put(key, value);
+    return metadata;
   }
 
   protected <SdkResponse, GrpcResponse> CompletableFuture<SdkResponse> executeGrpcFunction(
