@@ -14,8 +14,8 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AuthenticationException;
+import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.InvalidArgumentException;
-import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.exceptions.ServerUnavailableException;
 import momento.sdk.responses.cache.DeleteResponse;
 import momento.sdk.responses.cache.GetBatchResponse;
@@ -148,7 +148,7 @@ final class CacheClientTest extends BaseTestClass {
     assertThat(target.flushCache(randomString("name")))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheFlushResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -643,7 +643,7 @@ final class CacheClientTest extends BaseTestClass {
     assertThat(target.getBatch(randomString("cache"), items))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(GetBatchResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -662,7 +662,7 @@ final class CacheClientTest extends BaseTestClass {
     assertThat(target.setBatch(randomString("cache"), items))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SetBatchResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -702,6 +702,6 @@ final class CacheClientTest extends BaseTestClass {
     assertThat(target.setBatchStringBytes(randomString("cache"), items))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SetBatchResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 }

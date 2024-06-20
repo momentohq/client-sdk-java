@@ -10,8 +10,8 @@ import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.BadRequestException;
+import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.InvalidArgumentException;
-import momento.sdk.exceptions.NotFoundException;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheDeleteResponse;
 import momento.sdk.responses.cache.control.CacheListResponse;
@@ -82,7 +82,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
     assertThat(target.deleteCache(randomString("name")))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDeleteResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test
@@ -149,7 +149,7 @@ final class CacheControlPlaneTest extends BaseTestClass {
     assertThat(target.deleteCache(cacheName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDeleteResponse.Error.class))
-        .satisfies(error -> assertThat(error).hasCauseInstanceOf(NotFoundException.class));
+        .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
   }
 
   @Test

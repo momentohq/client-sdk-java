@@ -3,7 +3,7 @@ package momento.sdk.exceptions;
 import momento.sdk.internal.MomentoTransportErrorDetails;
 
 /** Requested resource or the resource on which an operation was requested doesn't exist. */
-public class NotFoundException extends MomentoServiceException {
+public class CacheNotFoundException extends MomentoServiceException {
 
   private static final String MESSAGE =
       "A cache with the specified name does not exist. To resolve this error, "
@@ -15,7 +15,8 @@ public class NotFoundException extends MomentoServiceException {
    * @param cause the cause.
    * @param transportErrorDetails details about the request and error.
    */
-  public NotFoundException(Throwable cause, MomentoTransportErrorDetails transportErrorDetails) {
+  public CacheNotFoundException(
+      Throwable cause, MomentoTransportErrorDetails transportErrorDetails) {
     super(
         MomentoErrorCode.NOT_FOUND_ERROR,
         completeMessage(transportErrorDetails),

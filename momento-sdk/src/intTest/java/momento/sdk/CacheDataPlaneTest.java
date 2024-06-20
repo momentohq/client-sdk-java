@@ -8,7 +8,7 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AuthenticationException;
-import momento.sdk.exceptions.NotFoundException;
+import momento.sdk.exceptions.CacheNotFoundException;
 import momento.sdk.exceptions.TimeoutException;
 import momento.sdk.responses.cache.DeleteResponse;
 import momento.sdk.responses.cache.GetResponse;
@@ -101,11 +101,11 @@ final class CacheDataPlaneTest extends BaseTestClass {
 
     final GetResponse getResponse = client.get(cacheName, "").join();
     assertThat(getResponse).isInstanceOf(GetResponse.Error.class);
-    assertThat(((GetResponse.Error) getResponse)).hasCauseInstanceOf(NotFoundException.class);
+    assertThat(((GetResponse.Error) getResponse)).hasCauseInstanceOf(CacheNotFoundException.class);
 
     final SetResponse setResponse = client.set(cacheName, "", "", Duration.ofSeconds(10)).join();
     assertThat(setResponse).isInstanceOf(SetResponse.Error.class);
-    assertThat(((SetResponse.Error) setResponse)).hasCauseInstanceOf(NotFoundException.class);
+    assertThat(((SetResponse.Error) setResponse)).hasCauseInstanceOf(CacheNotFoundException.class);
   }
 
   @Test
