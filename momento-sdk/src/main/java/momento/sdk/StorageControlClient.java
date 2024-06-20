@@ -44,7 +44,6 @@ final class StorageControlClient extends ScsClientBase {
       return sendCreateStore(storeName);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
-          // TODO need to generalize exception mapper
           new CreateStoreResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }

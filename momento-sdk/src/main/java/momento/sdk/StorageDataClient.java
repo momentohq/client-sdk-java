@@ -161,8 +161,7 @@ final class StorageDataClient extends StorageClientBase {
             if (sdkException instanceof momento.sdk.exceptions.StoreItemNotFoundException) {
               returnFuture.complete(GetResponse.Success.of());
             } else {
-              returnFuture.complete(
-                  new GetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+              returnFuture.complete(new GetResponse.Error(CacheServiceExceptionMapper.convert(e)));
             }
           }
         },
@@ -204,8 +203,7 @@ final class StorageDataClient extends StorageClientBase {
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(
-                new PutResponse.Error(CacheServiceExceptionMapper.convert(e, new Metadata())));
+            returnFuture.complete(new PutResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -245,8 +243,7 @@ final class StorageDataClient extends StorageClientBase {
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(
-                new DeleteResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+            returnFuture.complete(new DeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
