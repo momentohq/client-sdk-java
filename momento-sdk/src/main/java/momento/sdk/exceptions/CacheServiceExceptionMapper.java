@@ -44,12 +44,17 @@ public final class CacheServiceExceptionMapper {
     if (e instanceof io.grpc.StatusRuntimeException) {
       final StatusRuntimeException grpcException = (StatusRuntimeException) e;
       final Status.Code statusCode = grpcException.getStatus().getCode();
+      final Metadata trailers = grpcException.getTrailers();
 
       final MomentoTransportErrorDetails errorDetails =
           new MomentoTransportErrorDetails(
               new MomentoGrpcErrorDetails(statusCode, grpcException.getMessage(), metadata));
 
-      final String errorCause = grpcException.getMessage();
+      String errorCause = trailers.get(Metadata.Key.of("err", Metadata.ASCII_STRING_MARSHALLER));
+      if (errorCause == null) {
+        // TODO remove once control service is updated to send "err" in metadata
+        errorCause = grpcException.getMessage();
+      }
 
       switch (statusCode) {
         case INVALID_ARGUMENT:
@@ -77,8 +82,9 @@ public final class CacheServiceExceptionMapper {
           return new LimitExceededException(grpcException, errorDetails);
 
         case NOT_FOUND:
-          if (errorCause.contains("Element not found")) {
+          if (errorCause.contains("element_not_found")) {
             return new StoreItemNotFoundException(grpcException, errorDetails);
+            // TODO change once control service is updated to send "Store with name" in metadata
           } else if (errorCause.contains("Store with name")) {
             return new StoreNotFoundException(grpcException, errorDetails);
           } else {
