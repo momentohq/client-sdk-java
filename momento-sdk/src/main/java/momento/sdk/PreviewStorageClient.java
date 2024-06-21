@@ -26,7 +26,8 @@ public class PreviewStorageClient implements IPreviewStorageClient, AutoCloseabl
     this.dataClient = new StorageDataClient(credentialProvider, configuration);
   }
 
-  /** Control operations */
+  // Control operations
+
   public CompletableFuture<CreateStoreResponse> createStore(String storeName) {
     return this.controlClient.createStore(storeName);
   }
@@ -39,7 +40,8 @@ public class PreviewStorageClient implements IPreviewStorageClient, AutoCloseabl
     return this.controlClient.listStores();
   }
 
-  /** Data operations */
+  // Data operations
+
   public CompletableFuture<GetResponse> get(String storeName, String key) {
     return this.dataClient.get(storeName, key);
   }
