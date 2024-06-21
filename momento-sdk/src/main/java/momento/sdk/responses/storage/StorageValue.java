@@ -2,6 +2,21 @@ package momento.sdk.responses.storage;
 
 import java.util.Optional;
 
+/**
+ * A value stored in the storage.
+ *
+ * <p>Values can be of the following types:
+ *
+ * <ul>
+ *   <li>byte array
+ *   <li>string
+ *   <li>long
+ *   <li>double
+ * </ul>
+ *
+ * <p>Use the appropriate accessor to retrieve the value in its corresponding type. If the
+ * underlying value is not of the requested type, an empty optional will be returned.
+ */
 public class StorageValue {
   private final Object value;
   private final StorageItemType itemType;
@@ -27,10 +42,21 @@ public class StorageValue {
     return new StorageValue(value, StorageItemType.DOUBLE);
   }
 
+  /**
+   * Get the type of the value.
+   *
+   * @return the type of the value.
+   */
   public StorageItemType getType() {
     return itemType;
   }
 
+  /**
+   * Get the value as a byte array.
+   *
+   * @return the value as a byte array. If the value is not a byte array, an empty optional is
+   *     returned.
+   */
   public Optional<byte[]> getByteArray() {
     if (itemType != StorageItemType.BYTE_ARRAY) {
       return Optional.empty();
@@ -38,6 +64,11 @@ public class StorageValue {
     return Optional.of((byte[]) value);
   }
 
+  /**
+   * Get the value as a string.
+   *
+   * @return the value as a string. If the value is not a string, an empty optional is returned.
+   */
   public Optional<String> getString() {
     if (itemType != StorageItemType.STRING) {
       return Optional.empty();
@@ -45,6 +76,11 @@ public class StorageValue {
     return Optional.of((String) value);
   }
 
+  /**
+   * Get the value as a long.
+   *
+   * @return the value as a long. If the value is not a long, an empty optional is returned.
+   */
   public Optional<Long> getLong() {
     if (itemType != StorageItemType.LONG) {
       return Optional.empty();
@@ -52,6 +88,11 @@ public class StorageValue {
     return Optional.of((long) value);
   }
 
+  /**
+   * Get the value as a double.
+   *
+   * @return the value as a double. If the value is not a double, an empty optional is returned.
+   */
   public Optional<Double> getDouble() {
     if (itemType != StorageItemType.DOUBLE) {
       return Optional.empty();
