@@ -10,9 +10,9 @@ abstract class ScsClientBase extends ClientBase {
   private static final Metadata.Key<String> CACHE_NAME_KEY =
       Metadata.Key.of("cache", ASCII_STRING_MARSHALLER);
   private static final Metadata.Key<String> SDK_AGENT_KEY =
-          Metadata.Key.of("Agent", ASCII_STRING_MARSHALLER);
+      Metadata.Key.of("Agent", ASCII_STRING_MARSHALLER);
   private static final Metadata.Key<String> RUNTIME_VERSION_KEY =
-          Metadata.Key.of("Runtime-Version", ASCII_STRING_MARSHALLER);
+      Metadata.Key.of("Runtime-Version", ASCII_STRING_MARSHALLER);
   private boolean hasSentOneTimeHeaders = false;
 
   protected Metadata metadataWithCache(String cacheName) {
@@ -23,9 +23,9 @@ abstract class ScsClientBase extends ClientBase {
     }
     hasSentOneTimeHeaders = true;
     String sdkVersion =
-            String.format("java:cache:%s", this.getClass().getPackage().getImplementationVersion());
+        String.format("java:cache:%s", this.getClass().getPackage().getImplementationVersion());
     String runtimeVer =
-            System.getProperty("java.vendor") + ", " + System.getProperty("java.version");
+        System.getProperty("java.vendor") + ", " + System.getProperty("java.version");
 
     Metadata metadata = new Metadata();
     metadata.put(CACHE_NAME_KEY, cacheName);
