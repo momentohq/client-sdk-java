@@ -1,18 +1,18 @@
 package momento.sdk.config;
 
-import momento.sdk.config.transport.TransportStrategy;
+import momento.sdk.config.transport.storage.StorageTransportStrategy;
 
 /** The contract for SDK configurables. A configuration must have a transport strategy. */
 public class StorageConfiguration {
 
-  private final TransportStrategy transportStrategy;
+  private final StorageTransportStrategy transportStrategy;
 
   /**
    * Creates a new configuration object.
    *
    * @param transportStrategy Responsible for configuring network tunables.
    */
-  public StorageConfiguration(TransportStrategy transportStrategy) {
+  public StorageConfiguration(StorageTransportStrategy transportStrategy) {
     this.transportStrategy = transportStrategy;
   }
 
@@ -21,7 +21,7 @@ public class StorageConfiguration {
    *
    * @return The transport strategy
    */
-  public TransportStrategy getTransportStrategy() {
+  public StorageTransportStrategy getTransportStrategy() {
     return transportStrategy;
   }
 
@@ -31,7 +31,8 @@ public class StorageConfiguration {
    * @param transportStrategy
    * @return a new Configuration with the updated transport strategy
    */
-  public StorageConfiguration withTransportStrategy(final TransportStrategy transportStrategy) {
+  public StorageConfiguration withTransportStrategy(
+      final StorageTransportStrategy transportStrategy) {
     return new StorageConfiguration(transportStrategy);
   }
 }

@@ -11,7 +11,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfiguration;
-import momento.sdk.config.transport.GrpcConfiguration;
+import momento.sdk.config.transport.storage.StorageGrpcConfiguration;
 import momento.sdk.internal.GrpcChannelOptions;
 
 /**
@@ -41,7 +41,7 @@ final class StorageControlGrpcStubsManager implements AutoCloseable {
         NettyChannelBuilder.forAddress(credentialProvider.getControlEndpoint(), 443);
 
     // Override grpc config to disable keepalive for control clients
-    final GrpcConfiguration controlConfig =
+    final StorageGrpcConfiguration controlConfig =
         configuration.getTransportStrategy().getGrpcConfiguration().withKeepAliveDisabled();
 
     // set additional channel options (message size, keepalive, auth, etc)
