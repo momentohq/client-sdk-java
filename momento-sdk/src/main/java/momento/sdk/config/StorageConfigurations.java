@@ -1,9 +1,9 @@
 package momento.sdk.config;
 
 import java.time.Duration;
-import momento.sdk.config.transport.GrpcConfiguration;
-import momento.sdk.config.transport.StaticTransportStrategy;
-import momento.sdk.config.transport.TransportStrategy;
+import momento.sdk.config.transport.storage.StaticStorageTransportStrategy;
+import momento.sdk.config.transport.storage.StorageGrpcConfiguration;
+import momento.sdk.config.transport.storage.StorageTransportStrategy;
 
 /** Prebuilt {@link StorageConfiguration}s for different environments. */
 public class StorageConfigurations {
@@ -13,7 +13,7 @@ public class StorageConfigurations {
    */
   public static class Laptop extends StorageConfiguration {
 
-    private Laptop(TransportStrategy transportStrategy) {
+    private Laptop(StorageTransportStrategy transportStrategy) {
       super(transportStrategy);
     }
 
@@ -26,9 +26,10 @@ public class StorageConfigurations {
      * @return the latest Laptop configuration
      */
     public static StorageConfiguration latest() {
-      final TransportStrategy transportStrategy =
+      final StorageTransportStrategy transportStrategy =
           // TODO
-          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
+          new StaticStorageTransportStrategy(
+              new StorageGrpcConfiguration(Duration.ofMillis(15000)));
       return new Laptop(transportStrategy);
     }
   }
@@ -40,7 +41,7 @@ public class StorageConfigurations {
    */
   public static class InRegion extends StorageConfiguration {
 
-    private InRegion(TransportStrategy transportStrategy) {
+    private InRegion(StorageTransportStrategy transportStrategy) {
       super(transportStrategy);
     }
 
@@ -53,15 +54,16 @@ public class StorageConfigurations {
      * @return the latest in-region configuration
      */
     public static StorageConfiguration latest() {
-      final TransportStrategy transportStrategy =
+      final StorageTransportStrategy transportStrategy =
           // TODO
-          new StaticTransportStrategy(new GrpcConfiguration(Duration.ofMillis(15000)));
+          new StaticStorageTransportStrategy(
+              new StorageGrpcConfiguration(Duration.ofMillis(15000)));
       return new InRegion(transportStrategy);
     }
   }
 
   public static class Lambda extends StorageConfiguration {
-    private Lambda(TransportStrategy transportStrategy) {
+    private Lambda(StorageTransportStrategy transportStrategy) {
       super(transportStrategy);
     }
 
@@ -81,10 +83,11 @@ public class StorageConfigurations {
      * @return the latest Lambda configuration
      */
     public static StorageConfiguration latest() {
-      final GrpcConfiguration grpcConfig =
+      final StorageGrpcConfiguration grpcConfig =
           // TODO
-          new GrpcConfiguration(Duration.ofMillis(15000)).withKeepAliveDisabled();
-      final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
+          new StorageGrpcConfiguration(Duration.ofMillis(15000)).withKeepAliveDisabled();
+      final StorageTransportStrategy transportStrategy =
+          new StaticStorageTransportStrategy(grpcConfig);
       return new Lambda(transportStrategy);
     }
   }
