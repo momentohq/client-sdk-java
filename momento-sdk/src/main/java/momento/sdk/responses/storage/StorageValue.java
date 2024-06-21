@@ -1,6 +1,7 @@
 package momento.sdk.responses.storage;
 
 import java.util.Optional;
+import momento.sdk.internal.StringHelpers;
 
 /**
  * A value stored in the storage.
@@ -98,5 +99,14 @@ public class StorageValue {
       return Optional.empty();
     }
     return Optional.of((double) value);
+  }
+
+  @Override
+  public String toString() {
+    return super.toString()
+        + ": value: "
+        + StringHelpers.truncate(value.toString())
+        + ", itemType:"
+        + itemType;
   }
 }

@@ -78,6 +78,11 @@ public interface GetResponse {
     public Optional<Success> success() {
       return Optional.of(this);
     }
+
+    @Override
+    public String toString() {
+      return super.toString() + ": value: " + value;
+    }
   }
 
   /**

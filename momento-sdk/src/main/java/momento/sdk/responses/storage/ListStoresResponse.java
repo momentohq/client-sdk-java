@@ -17,6 +17,11 @@ public interface ListStoresResponse {
     public List<StoreInfo> getStores() {
       return stores;
     }
+
+    @Override
+    public String toString() {
+      return super.toString() + ": stores: " + stores;
+    }
   }
 
   /**
