@@ -99,4 +99,22 @@ public class StorageValue {
     }
     return Optional.of((double) value);
   }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("StorageValue{");
+    sb.append("value=");
+    if (itemType == StorageItemType.STRING) {
+      sb.append('"');
+      sb.append(value);
+      sb.append('"');
+    } else {
+      sb.append(value);
+    }
+    sb.append(", itemType=");
+    sb.append(itemType);
+    sb.append('}');
+    return sb.toString();
+  }
 }

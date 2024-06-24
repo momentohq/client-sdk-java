@@ -1,12 +1,18 @@
 package momento.sdk.responses.storage;
 
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.internal.StringHelpers;
 
 /** Response for a delete operation */
 public interface DeleteResponse {
 
   /** A successful delete operation. */
-  class Success implements DeleteResponse {}
+  class Success implements DeleteResponse {
+    @Override
+    public String toString() {
+      return StringHelpers.emptyToString("DeleteResponse.Success");
+    }
+  }
 
   /**
    * A failed delete operation. The response itself is an exception, so it can be directly thrown,
@@ -22,6 +28,11 @@ public interface DeleteResponse {
      */
     public Error(SdkException cause) {
       super(cause);
+    }
+
+    @Override
+    public String toString() {
+      return toStringTemplate("DeleteResponse.Error");
     }
   }
 }

@@ -22,4 +22,9 @@ public class MomentoTransportErrorDetails {
   public MomentoGrpcErrorDetails getGrpcErrorDetails() {
     return grpcErrorDetails;
   }
+
+  @Override
+  public String toString() {
+    return "MomentoTransportErrorDetails{" + "grpcErrorDetails=" + grpcErrorDetails + '}';
+  }
 }

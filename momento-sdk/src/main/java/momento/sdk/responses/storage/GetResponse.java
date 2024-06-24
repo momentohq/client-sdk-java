@@ -78,6 +78,11 @@ public interface GetResponse {
     public Optional<Success> success() {
       return Optional.of(this);
     }
+
+    @Override
+    public String toString() {
+      return "GetResponse.Success{value=" + value + "}";
+    }
   }
 
   /**
@@ -99,6 +104,11 @@ public interface GetResponse {
     @Override
     public Optional<Success> success() {
       return Optional.empty();
+    }
+
+    @Override
+    public String toString() {
+      return toStringTemplate("GetResponse.Error");
     }
   }
 }

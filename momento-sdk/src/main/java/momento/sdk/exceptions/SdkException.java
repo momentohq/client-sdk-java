@@ -113,4 +113,18 @@ public class SdkException extends RuntimeException {
   public Optional<MomentoTransportErrorDetails> getTransportErrorDetails() {
     return Optional.ofNullable(transportErrorDetails);
   }
+
+  protected String toStringTemplate(String className) {
+    StringBuilder sb = new StringBuilder();
+    sb.append(className).append("{");
+    sb.append("message=\"").append(getMessage()).append("\"");
+    sb.append(", errorCode=").append(errorCode);
+    if (transportErrorDetails != null) {
+      sb.append(", transportErrorDetails=").append(transportErrorDetails);
+    } else {
+      sb.append(", transportErrorDetails=null");
+    }
+    sb.append("}");
+    return sb.toString();
+  }
 }

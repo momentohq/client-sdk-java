@@ -17,6 +17,17 @@ public interface ListStoresResponse {
     public List<StoreInfo> getStores() {
       return stores;
     }
+
+    @Override
+    public String toString() {
+      StringBuilder sb = new StringBuilder();
+      sb.append("ListStoresResponse.Success{");
+      sb.append("stores=[");
+      sb.append(String.join(", ", stores.stream().map(StoreInfo::toString).toArray(String[]::new)));
+      sb.append("]");
+      sb.append("}");
+      return sb.toString();
+    }
   }
 
   /**
@@ -33,6 +44,11 @@ public interface ListStoresResponse {
      */
     public Error(SdkException cause) {
       super(cause);
+    }
+
+    @Override
+    public String toString() {
+      return toStringTemplate("ListStoresResponse.Error");
     }
   }
 }
