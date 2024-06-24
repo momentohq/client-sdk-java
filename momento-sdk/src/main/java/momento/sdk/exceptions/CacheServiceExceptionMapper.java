@@ -52,7 +52,6 @@ public final class CacheServiceExceptionMapper {
 
       String errorCause = trailers.get(Metadata.Key.of("err", Metadata.ASCII_STRING_MARSHALLER));
       if (errorCause == null) {
-        // TODO remove once control service is updated to send "err" in metadata
         errorCause = grpcException.getMessage();
       }
 
@@ -82,9 +81,8 @@ public final class CacheServiceExceptionMapper {
           return new LimitExceededException(grpcException, errorDetails);
 
         case NOT_FOUND:
-          if (errorCause.contains("element_not_found")) {
+          if (errorCause.contains("item_not_found")) {
             return new StoreItemNotFoundException(grpcException, errorDetails);
-            // TODO change once control service is updated to send "Store with name" in metadata
           } else if (errorCause.contains("Store with name")) {
             return new StoreNotFoundException(grpcException, errorDetails);
           } else {
