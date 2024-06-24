@@ -81,9 +81,9 @@ public final class CacheServiceExceptionMapper {
           return new LimitExceededException(grpcException, errorDetails);
 
         case NOT_FOUND:
-          if (errorCause.contains("element_not_found")) {
+          if (errorCause.contains("item_not_found")) {
             return new StoreItemNotFoundException(grpcException, errorDetails);
-          } else if (errorCause.contains("store_not_found")) {
+          } else if (errorCause.contains("Store with name")) {
             return new StoreNotFoundException(grpcException, errorDetails);
           } else {
             return new CacheNotFoundException(grpcException, errorDetails);
