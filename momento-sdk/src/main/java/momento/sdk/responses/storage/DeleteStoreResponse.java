@@ -32,7 +32,7 @@ public interface DeleteStoreResponse {
 
     @Override
     public String toString() {
-      return toStringTemplate("DeleteStoreResponse.Error");
+      return buildToString("DeleteStoreResponse.Error");
     }
   }
 }

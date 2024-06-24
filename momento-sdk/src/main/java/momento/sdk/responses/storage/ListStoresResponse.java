@@ -48,7 +48,7 @@ public interface ListStoresResponse {
 
     @Override
     public String toString() {
-      return toStringTemplate("ListStoresResponse.Error");
+      return buildToString("ListStoresResponse.Error");
     }
   }
 }

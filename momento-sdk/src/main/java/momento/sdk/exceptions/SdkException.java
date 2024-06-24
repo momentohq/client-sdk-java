@@ -114,7 +114,7 @@ public class SdkException extends RuntimeException {
     return Optional.ofNullable(transportErrorDetails);
   }
 
-  protected String toStringTemplate(String className) {
+  protected String buildToString(String className) {
     StringBuilder sb = new StringBuilder();
     sb.append(className).append("{");
     sb.append("message=\"").append(getMessage()).append("\"");

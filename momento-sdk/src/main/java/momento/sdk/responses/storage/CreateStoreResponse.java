@@ -39,7 +39,7 @@ public interface CreateStoreResponse {
 
     @Override
     public String toString() {
-      return toStringTemplate("CreateStoreResponse.Error");
+      return buildToString("CreateStoreResponse.Error");
     }
   }
 }

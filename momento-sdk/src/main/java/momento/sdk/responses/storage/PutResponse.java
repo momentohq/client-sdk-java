@@ -32,7 +32,7 @@ public interface PutResponse {
 
     @Override
     public String toString() {
-      return toStringTemplate("PutResponse.Error");
+      return buildToString("PutResponse.Error");
     }
   }
 }

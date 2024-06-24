@@ -108,7 +108,7 @@ public interface GetResponse {
 
     @Override
     public String toString() {
-      return toStringTemplate("GetResponse.Error");
+      return buildToString("GetResponse.Error");
     }
   }
 }

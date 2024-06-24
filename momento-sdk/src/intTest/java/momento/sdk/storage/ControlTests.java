@@ -76,6 +76,9 @@ public class ControlTests extends BaseTestClass {
               success ->
                   assertThat(success.getStores())
                       .anyMatch(storeInfo -> storeInfo.getName().equals(storeName)));
+
+      final ListStoresResponse response = client.listStores().join();
+      assertThat(response).isInstanceOf(ListStoresResponse.Success.class);
     } finally {
       // cleanup
       assertThat(client.deleteStore(storeName))
