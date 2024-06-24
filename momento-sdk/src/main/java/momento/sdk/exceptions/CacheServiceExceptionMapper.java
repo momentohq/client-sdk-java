@@ -52,7 +52,7 @@ public final class CacheServiceExceptionMapper {
 
       String errorCause = trailers.get(Metadata.Key.of("err", Metadata.ASCII_STRING_MARSHALLER));
       if (errorCause == null) {
-        errorCause = grpcException.getMessage()
+        errorCause = grpcException.getMessage();
       }
 
       switch (statusCode) {
