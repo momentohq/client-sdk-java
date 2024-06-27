@@ -31,4 +31,8 @@ public class StringHelpers {
 
     return input.substring(0, maxLength) + "...";
   }
+
+  public static String emptyToString(String className) {
+    return className + "{}";
+  }
 }

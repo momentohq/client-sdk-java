@@ -1,7 +1,6 @@
 package momento.sdk.responses.storage;
 
 import java.util.Optional;
-import momento.sdk.internal.StringHelpers;
 
 /**
  * A value stored in the storage.
@@ -103,10 +102,19 @@ public class StorageValue {
 
   @Override
   public String toString() {
-    return super.toString()
-        + ": value: "
-        + StringHelpers.truncate(value.toString())
-        + ", itemType:"
-        + itemType;
+    StringBuilder sb = new StringBuilder();
+    sb.append("StorageValue{");
+    sb.append("value=");
+    if (itemType == StorageItemType.STRING) {
+      sb.append('"');
+      sb.append(value);
+      sb.append('"');
+    } else {
+      sb.append(value);
+    }
+    sb.append(", itemType=");
+    sb.append(itemType);
+    sb.append('}');
+    return sb.toString();
   }
 }

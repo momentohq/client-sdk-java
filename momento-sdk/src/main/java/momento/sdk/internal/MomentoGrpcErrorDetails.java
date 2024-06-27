@@ -71,4 +71,15 @@ public class MomentoGrpcErrorDetails {
     return Optional.ofNullable(metadata)
         .map(m -> m.get(Metadata.Key.of("cache", ASCII_STRING_MARSHALLER)));
   }
+
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("MomentoGrpcErrorDetails{");
+    sb.append("statusCode=").append(statusCode);
+    sb.append(", details=\"").append(details).append('\"');
+    sb.append(", metadata=").append(metadata);
+    sb.append('}');
+    return sb.toString();
+  }
 }

@@ -20,7 +20,13 @@ public interface ListStoresResponse {
 
     @Override
     public String toString() {
-      return super.toString() + ": stores: " + stores;
+      StringBuilder sb = new StringBuilder();
+      sb.append("ListStoresResponse.Success{");
+      sb.append("stores=[");
+      sb.append(String.join(", ", stores.stream().map(StoreInfo::toString).toArray(String[]::new)));
+      sb.append("]");
+      sb.append("}");
+      return sb.toString();
     }
   }
 
@@ -38,6 +44,11 @@ public interface ListStoresResponse {
      */
     public Error(SdkException cause) {
       super(cause);
+    }
+
+    @Override
+    public String toString() {
+      return buildToString("ListStoresResponse.Error");
     }
   }
 }

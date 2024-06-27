@@ -81,7 +81,7 @@ public interface GetResponse {
 
     @Override
     public String toString() {
-      return super.toString() + ": value: " + value;
+      return "GetResponse.Success{value=" + value + "}";
     }
   }
 
@@ -104,6 +104,11 @@ public interface GetResponse {
     @Override
     public Optional<Success> success() {
       return Optional.empty();
+    }
+
+    @Override
+    public String toString() {
+      return buildToString("GetResponse.Error");
     }
   }
 }

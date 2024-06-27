@@ -19,6 +19,6 @@ public class StoreInfo {
 
   @Override
   public String toString() {
-    return super.toString() + ": name: " + name;
+    return "StoreInfo{" + "name=\"" + name + "\"}";
   }
 }
