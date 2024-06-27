@@ -83,7 +83,7 @@ public final class CacheServiceExceptionMapper {
         case NOT_FOUND:
           if (errorCause.contains("item_not_found")) {
             return new StoreItemNotFoundException(grpcException, errorDetails);
-          } else if (errorCause.contains("Store with name")) {
+          } else if (errorCause.contains("store_not_found")) {
             return new StoreNotFoundException(grpcException, errorDetails);
           } else {
             return new CacheNotFoundException(grpcException, errorDetails);
