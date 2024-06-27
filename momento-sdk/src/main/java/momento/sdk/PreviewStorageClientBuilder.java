@@ -5,9 +5,12 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.StorageConfiguration;
 import momento.sdk.config.StorageConfigurations;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /** Builder for {@link PreviewStorageClient} */
 public final class PreviewStorageClientBuilder {
+  private final Logger logger = LoggerFactory.getLogger(PreviewStorageClient.class);
   private CredentialProvider credentialProvider;
   private StorageConfiguration configuration;
 
@@ -50,6 +53,12 @@ public final class PreviewStorageClientBuilder {
     if (credentialProvider == null) {
       credentialProvider = new EnvVarCredentialProvider("MOMENTO_API_KEY");
     }
+
+    if (configuration != null && configuration instanceof StorageConfigurations.Laptop) {
+      logger.warn(
+          "Using the Laptop configuration for the PreviewStorageClient. This is not recommended for production use.");
+    }
+
     return new PreviewStorageClient(credentialProvider, configuration);
   }
 }
