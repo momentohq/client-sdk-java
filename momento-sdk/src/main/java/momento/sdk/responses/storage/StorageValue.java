@@ -1,6 +1,6 @@
 package momento.sdk.responses.storage;
 
-import java.util.Optional;
+import momento.sdk.exceptions.ClientSdkException;
 
 /**
  * A value stored in the storage.
@@ -15,7 +15,7 @@ import java.util.Optional;
  * </ul>
  *
  * <p>Use the appropriate accessor to retrieve the value in its corresponding type. If the
- * underlying value is not of the requested type, an empty optional will be returned.
+ * underlying value is not of the requested type, an exception will be thrown.
  */
 public class StorageValue {
   private final Object value;
@@ -54,50 +54,53 @@ public class StorageValue {
   /**
    * Get the value as a byte array.
    *
-   * @return the value as a byte array. If the value is not a byte array, an empty optional is
-   *     returned.
+   * @return the value as a byte array. If the value is not a byte array, an exception will be
+   *     thrown.
    */
-  public Optional<byte[]> getByteArray() {
-    if (itemType != StorageItemType.BYTE_ARRAY) {
-      return Optional.empty();
-    }
-    return Optional.of((byte[]) value);
+  public byte[] getByteArray() {
+    ensureCorrectTypeOrThrowException(StorageItemType.BYTE_ARRAY, itemType);
+    return (byte[]) value;
   }
 
   /**
    * Get the value as a string.
    *
-   * @return the value as a string. If the value is not a string, an empty optional is returned.
+   * @return the value as a string. If the value is not a string, an exception will be thrown.
    */
-  public Optional<String> getString() {
-    if (itemType != StorageItemType.STRING) {
-      return Optional.empty();
-    }
-    return Optional.of((String) value);
+  public String getString() {
+    ensureCorrectTypeOrThrowException(StorageItemType.STRING, itemType);
+    return (String) value;
   }
 
   /**
    * Get the value as a long.
    *
-   * @return the value as a long. If the value is not a long, an empty optional is returned.
+   * @return the value as a long. If the value is not a long, an exception will be thrown.
    */
-  public Optional<Long> getLong() {
-    if (itemType != StorageItemType.LONG) {
-      return Optional.empty();
-    }
-    return Optional.of((long) value);
+  public long getLong() {
+    ensureCorrectTypeOrThrowException(StorageItemType.LONG, itemType);
+    return (long) value;
   }
 
   /**
    * Get the value as a double.
    *
-   * @return the value as a double. If the value is not a double, an empty optional is returned.
+   * @return the value as a double. If the value is not a double, an exception will be thrown.
    */
-  public Optional<Double> getDouble() {
-    if (itemType != StorageItemType.DOUBLE) {
-      return Optional.empty();
+  public double getDouble() {
+    ensureCorrectTypeOrThrowException(StorageItemType.DOUBLE, itemType);
+    return (double) value;
+  }
+
+  private void ensureCorrectTypeOrThrowException(
+      StorageItemType requested, StorageItemType actual) {
+    if (requested != actual) {
+      // In a regular Java context, ClassCastException or IllegalStateException could be
+      // appropriate here.
+      throw new ClientSdkException(
+          String.format(
+              "Value is not a %s but was: %s".format(requested.toString(), actual.toString())));
     }
-    return Optional.of((double) value);
   }
 
   @Override
