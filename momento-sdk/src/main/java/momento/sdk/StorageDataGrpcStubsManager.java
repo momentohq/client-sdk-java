@@ -139,7 +139,7 @@ final class StorageDataGrpcStubsManager implements AutoCloseable {
         configuration.getTransportStrategy().getGrpcConfiguration(), channelBuilder);
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
+    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken(), "store"));
     channelBuilder.intercept(clientInterceptors);
 
     return channelBuilder.build();

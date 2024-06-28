@@ -13,16 +13,22 @@ import io.grpc.MethodDescriptor;
 final class UserHeaderInterceptor implements ClientInterceptor {
 
   private static final Metadata.Key<String> AUTH_HEADER_KEY =
-      Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
+      Metadata.Key.of("authorization", ASCII_STRING_MARSHALLER);
   private static final Metadata.Key<String> SDK_AGENT_KEY =
-      Metadata.Key.of("Agent", ASCII_STRING_MARSHALLER);
+      Metadata.Key.of("agent", ASCII_STRING_MARSHALLER);
+  private static final Metadata.Key<String> RUNTIME_VERSION_KEY =
+      Metadata.Key.of("runtime-version", ASCII_STRING_MARSHALLER);
   private final String tokenValue;
-  private final String sdkVersion =
-      String.format("java:%s", this.getClass().getPackage().getImplementationVersion());
-  private static volatile boolean isUserAgentSent = false;
+  private final String sdkVersion;
+  private final String runtimeVersion;
+  private boolean isUserAgentSent = false;
 
-  UserHeaderInterceptor(String token) {
+  UserHeaderInterceptor(String token, String clientType) {
     tokenValue = token;
+    sdkVersion =
+        String.format(
+            "java:%s:%s", clientType, this.getClass().getPackage().getImplementationVersion());
+    runtimeVersion = System.getProperty("java.vendor") + ", " + System.getProperty("java.version");
   }
 
   @Override
@@ -35,6 +41,7 @@ final class UserHeaderInterceptor implements ClientInterceptor {
         metadata.put(AUTH_HEADER_KEY, tokenValue);
         if (!isUserAgentSent) {
           metadata.put(SDK_AGENT_KEY, sdkVersion);
+          metadata.put(RUNTIME_VERSION_KEY, runtimeVersion);
           isUserAgentSent = true;
         }
         super.start(listener, metadata);

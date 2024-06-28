@@ -43,7 +43,7 @@ final class ScsTopicGrpcStubsManager implements Closeable {
         configuration.getTransportStrategy().getGrpcConfiguration(), channelBuilder);
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken()));
+    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken(), "topic"));
     channelBuilder.intercept(clientInterceptors);
     return channelBuilder.build();
   }
