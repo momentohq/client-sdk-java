@@ -2,21 +2,21 @@ package momento.sdk.responses.storage;
 
 import java.util.Optional;
 import momento.sdk.exceptions.SdkException;
+import momento.sdk.internal.StringHelpers;
 
 /**
  * Response for a get operation.
  *
- * <p>The response can be either a {@link Success} or an {@link Error}.
+ * <p>The response can be either a {@link Found}, {@link NotFound}, or an {@link Error}.
  *
- * <p>To shortcut access to the success response, use {@link #success()}. If the operation was
- * successful, the response will be an optional of {@link Success}, otherwise it will be an empty
- * optional.
+ * <p>To shortcut access to found response, use {@link #found()}. If the operation was successful
+ * but the key was not found, the response will be an empty optional. If the operation failed, the
+ * response will be an empty optional.
  *
  * <p>To handle the response otherwise, use pattern matching or an instanceof to check if the
- * response is a {@link Success} or an {@link Error}.
+ * response is a {@link Found}, {@link NotFound}, or an {@link Error}.
  *
- * <p>Upon a success, the value can be retrieved with {@link Success#value()}. If the value was
- * found in the store, it will be present, otherwise it will be empty.
+ * <p>Upon a found response, the value can be retrieved with {@link Found#value()}.
  */
 public interface GetResponse {
   /**
@@ -27,7 +27,7 @@ public interface GetResponse {
    *
    * @return The success response, or an empty optional if the operation failed.
    */
-  Optional<Success> success();
+  Optional<Found> found();
 
   /**
    * A successful get operation.
@@ -38,31 +38,27 @@ public interface GetResponse {
    * <p>Use the appropriate type-based accessor on the value to retrieve the value in its
    * corresponding type.
    */
-  class Success implements GetResponse {
-    private final Optional<StorageValue> value;
+  class Found implements GetResponse {
+    private final StorageValue value;
 
-    private Success(Optional<StorageValue> value) {
+    private Found(StorageValue value) {
       this.value = value;
     }
 
-    public static Success of() {
-      return new Success(Optional.empty());
+    public static Found of(byte[] value) {
+      return new Found(StorageValue.of(value));
     }
 
-    public static Success of(byte[] value) {
-      return new Success(Optional.of(StorageValue.of(value)));
+    public static Found of(String value) {
+      return new Found(StorageValue.of(value));
     }
 
-    public static Success of(String value) {
-      return new Success(Optional.of(StorageValue.of(value)));
+    public static Found of(long value) {
+      return new Found(StorageValue.of(value));
     }
 
-    public static Success of(long value) {
-      return new Success(Optional.of(StorageValue.of(value)));
-    }
-
-    public static Success of(double value) {
-      return new Success(Optional.of(StorageValue.of(value)));
+    public static Found of(double value) {
+      return new Found(StorageValue.of(value));
     }
 
     /**
@@ -70,18 +66,32 @@ public interface GetResponse {
      *
      * @return The value, or an empty optional if the value does not exist.
      */
-    public Optional<StorageValue> value() {
+    public StorageValue value() {
       return value;
     }
 
     @Override
-    public Optional<Success> success() {
+    public Optional<Found> found() {
       return Optional.of(this);
     }
 
     @Override
     public String toString() {
-      return "GetResponse.Success{value=" + value + "}";
+      return "GetResponse.Found{value=" + value + "}";
+    }
+  }
+
+  class NotFound implements GetResponse {
+    public NotFound() {}
+
+    @Override
+    public Optional<Found> found() {
+      return Optional.empty();
+    }
+
+    @Override
+    public String toString() {
+      return StringHelpers.emptyToString("GetResponse.NotFound");
     }
   }
 
@@ -102,7 +112,7 @@ public interface GetResponse {
     }
 
     @Override
-    public Optional<Success> success() {
+    public Optional<Found> found() {
       return Optional.empty();
     }
 

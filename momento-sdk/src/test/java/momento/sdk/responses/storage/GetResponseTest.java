@@ -8,57 +8,56 @@ import org.junit.jupiter.api.Test;
 
 public class GetResponseTest {
   @Test
-  public void testGetResponseSuccessWorksOnTheRightType() {
-    GetResponse.Success response = GetResponse.Success.of(new byte[] {0, 1, 2, 3});
-    assert response.value().get().getByteArray().get().length == 4;
-    assert !response.value().get().getString().isPresent();
-    assert !response.value().get().getLong().isPresent();
-    assert !response.value().get().getDouble().isPresent();
+  public void testGetResponseFoundWorksOnTheRightType() {
+    GetResponse.Found response = GetResponse.Found.of(new byte[] {0, 1, 2, 3});
+    assert response.value().getByteArray().get().length == 4;
+    assert !response.value().getString().isPresent();
+    assert !response.value().getLong().isPresent();
+    assert !response.value().getDouble().isPresent();
 
-    response = GetResponse.Success.of("string");
-    assert !response.value().get().getByteArray().isPresent();
-    assert response.value().get().getString().get().equals("string");
-    assert !response.value().get().getLong().isPresent();
-    assert !response.value().get().getDouble().isPresent();
+    response = GetResponse.Found.of("string");
+    assert !response.value().getByteArray().isPresent();
+    assert response.value().getString().get().equals("string");
+    assert !response.value().getLong().isPresent();
+    assert !response.value().getDouble().isPresent();
 
-    response = GetResponse.Success.of(42L);
-    assert !response.value().get().getByteArray().isPresent();
-    assert !response.value().get().getString().isPresent();
-    assert response.value().get().getLong().get() == 42L;
-    assert !response.value().get().getDouble().isPresent();
+    response = GetResponse.Found.of(42L);
+    assert !response.value().getByteArray().isPresent();
+    assert !response.value().getString().isPresent();
+    assert response.value().getLong().get() == 42L;
+    assert !response.value().getDouble().isPresent();
 
-    response = GetResponse.Success.of(3.14);
-    assert !response.value().get().getByteArray().isPresent();
-    assert !response.value().get().getString().isPresent();
-    assert !response.value().get().getLong().isPresent();
-    assert response.value().get().getDouble().get() == 3.14;
+    response = GetResponse.Found.of(3.14);
+    assert !response.value().getByteArray().isPresent();
+    assert !response.value().getString().isPresent();
+    assert !response.value().getLong().isPresent();
+    assert response.value().getDouble().get() == 3.14;
   }
 
   @Test
   public void testConvenienceMethodsOnGetResponse() {
-    GetResponse.Success response = GetResponse.Success.of(new byte[] {0, 1, 2, 3});
-    assert response.success().isPresent();
-    assert response.success().get().value().get().getByteArray().get().length == 4;
+    GetResponse.Found response = GetResponse.Found.of(new byte[] {0, 1, 2, 3});
+    assert response.found().isPresent();
+    assert response.found().get().value().getByteArray().get().length == 4;
 
-    response = GetResponse.Success.of("string");
-    assert response.success().isPresent();
-    assert response.success().get().value().get().getString().get() == "string";
+    response = GetResponse.Found.of("string");
+    assert response.found().isPresent();
+    assert response.found().get().value().getString().get() == "string";
 
-    response = GetResponse.Success.of(42L);
-    assert response.success().isPresent();
-    assert response.success().get().value().get().getLong().get() == 42L;
+    response = GetResponse.Found.of(42L);
+    assert response.found().isPresent();
+    assert response.found().get().value().getLong().get() == 42L;
 
-    response = GetResponse.Success.of(3.14);
-    assert response.success().isPresent();
-    assert response.success().get().value().get().getDouble().get() == 3.14;
+    response = GetResponse.Found.of(3.14);
+    assert response.found().isPresent();
+    assert response.found().get().value().getDouble().get() == 3.14;
 
-    // TODO distinguish store not found from key not found
     GetResponse.Error error =
         new GetResponse.Error(
             new StoreNotFoundException(
                 new Exception(),
                 new MomentoTransportErrorDetails(
                     new MomentoGrpcErrorDetails(Status.Code.NOT_FOUND, "not found"))));
-    assert !error.success().isPresent();
+    assert !error.found().isPresent();
   }
 }
