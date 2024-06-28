@@ -20,7 +20,7 @@ final class UserHeaderInterceptor implements ClientInterceptor {
       Metadata.Key.of("runtime-version", ASCII_STRING_MARSHALLER);
   private final String tokenValue;
   private final String sdkVersion;
-  String runtimeVer = System.getProperty("java.vendor") + ", " + System.getProperty("java.version");
+  private final String runtimeVersion;
   private boolean isUserAgentSent = false;
 
   UserHeaderInterceptor(String token, String clientType) {
@@ -28,6 +28,7 @@ final class UserHeaderInterceptor implements ClientInterceptor {
     sdkVersion =
         String.format(
             "java:%s:%s", clientType, this.getClass().getPackage().getImplementationVersion());
+    runtimeVersion = System.getProperty("java.vendor") + ", " + System.getProperty("java.version");
   }
 
   @Override
@@ -40,7 +41,7 @@ final class UserHeaderInterceptor implements ClientInterceptor {
         metadata.put(AUTH_HEADER_KEY, tokenValue);
         if (!isUserAgentSent) {
           metadata.put(SDK_AGENT_KEY, sdkVersion);
-          metadata.put(RUNTIME_VERSION_KEY, runtimeVer);
+          metadata.put(RUNTIME_VERSION_KEY, runtimeVersion);
           isUserAgentSent = true;
         }
         super.start(listener, metadata);
