@@ -27,7 +27,7 @@ public interface GetResponse {
    *
    * @return The success response, or an empty optional if the operation failed.
    */
-  Optional<Found> found();
+  Optional<GetResponseFound> found();
 
   /**
    * A successful get operation.
@@ -38,7 +38,7 @@ public interface GetResponse {
    * <p>Use the appropriate type-based accessor on the value to retrieve the value in its
    * corresponding type.
    */
-  class Found implements GetResponse {
+  class Found implements GetResponse, GetResponseFound {
     private final StorageValue value;
 
     private Found(StorageValue value) {
@@ -71,7 +71,7 @@ public interface GetResponse {
     }
 
     @Override
-    public Optional<Found> found() {
+    public Optional<GetResponseFound> found() {
       return Optional.of(this);
     }
 
@@ -85,7 +85,7 @@ public interface GetResponse {
     public NotFound() {}
 
     @Override
-    public Optional<Found> found() {
+    public Optional<GetResponseFound> found() {
       return Optional.empty();
     }
 
@@ -112,7 +112,7 @@ public interface GetResponse {
     }
 
     @Override
-    public Optional<Found> found() {
+    public Optional<GetResponseFound> found() {
       return Optional.empty();
     }
 
