@@ -13,15 +13,15 @@ import io.grpc.MethodDescriptor;
 final class UserHeaderInterceptor implements ClientInterceptor {
 
   private static final Metadata.Key<String> AUTH_HEADER_KEY =
-      Metadata.Key.of("Authorization", ASCII_STRING_MARSHALLER);
+      Metadata.Key.of("authorization", ASCII_STRING_MARSHALLER);
   private static final Metadata.Key<String> SDK_AGENT_KEY =
-      Metadata.Key.of("Agent", ASCII_STRING_MARSHALLER);
+      Metadata.Key.of("agent", ASCII_STRING_MARSHALLER);
   private static final Metadata.Key<String> RUNTIME_VERSION_KEY =
-      Metadata.Key.of("Runtime-Version", ASCII_STRING_MARSHALLER);
+      Metadata.Key.of("runtime-version", ASCII_STRING_MARSHALLER);
   private final String tokenValue;
   private final String sdkVersion;
   String runtimeVer = System.getProperty("java.vendor") + ", " + System.getProperty("java.version");
-  private static volatile boolean isUserAgentSent = false;
+  private boolean isUserAgentSent = false;
 
   UserHeaderInterceptor(String token, String clientType) {
     tokenValue = token;
