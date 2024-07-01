@@ -157,7 +157,7 @@ final class StorageDataClient extends StorageClientBase {
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
-            final SdkException sdkException = CacheServiceExceptionMapper.convert(e, metadata);
+            final SdkException sdkException = CacheServiceExceptionMapper.convert(e);
             if (sdkException instanceof momento.sdk.exceptions.StoreItemNotFoundException) {
               returnFuture.complete(GetResponse.Success.of());
             } else {

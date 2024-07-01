@@ -1442,8 +1442,7 @@ final class ScsDataClient extends ScsClientBase {
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(
-                new GetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+            returnFuture.complete(new GetResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1547,8 +1546,7 @@ final class ScsDataClient extends ScsClientBase {
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(
-                new DeleteResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+            returnFuture.complete(new DeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1590,8 +1588,7 @@ final class ScsDataClient extends ScsClientBase {
 
           @Override
           public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(
-                new SetResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+            returnFuture.complete(new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1698,7 +1695,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new IncrementResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new IncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -1732,7 +1729,7 @@ final class ScsDataClient extends ScsClientBase {
         };
 
     final Function<Throwable, SetIfNotExistsResponse> failure =
-        e -> new SetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new SetIfNotExistsResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -1760,7 +1757,7 @@ final class ScsDataClient extends ScsClientBase {
         };
 
     final Function<Throwable, UpdateTtlResponse> failure =
-        e -> new UpdateTtlResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new UpdateTtlResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -1788,7 +1785,7 @@ final class ScsDataClient extends ScsClientBase {
         };
 
     final Function<Throwable, ItemGetTtlResponse> failure =
-        e -> new ItemGetTtlResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new ItemGetTtlResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -1826,7 +1823,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new SetAddElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1868,7 +1865,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new SetAddElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1910,8 +1907,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SetRemoveElementResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new SetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -1953,8 +1949,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SetRemoveElementsResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new SetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2000,7 +1995,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new SetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2050,8 +2045,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SortedSetPutElementResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new SortedSetPutElementResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2096,8 +2090,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SortedSetPutElementsResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new SortedSetPutElementsResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2150,7 +2143,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new SortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2206,7 +2199,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new SortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new SortedSetFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2234,7 +2227,7 @@ final class ScsDataClient extends ScsClientBase {
         };
 
     final Function<Throwable, SortedSetGetRankResponse> failure =
-        e -> new SortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new SortedSetGetRankResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -2276,7 +2269,7 @@ final class ScsDataClient extends ScsClientBase {
         };
 
     final Function<Throwable, SortedSetGetScoreResponse> failure =
-        e -> new SortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new SortedSetGetScoreResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -2318,7 +2311,7 @@ final class ScsDataClient extends ScsClientBase {
         };
 
     final Function<Throwable, SortedSetGetScoresResponse> failure =
-        e -> new SortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new SortedSetGetScoresResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -2340,9 +2333,7 @@ final class ScsDataClient extends ScsClientBase {
         rsp -> new SortedSetIncrementScoreResponse.Success(rsp.getScore());
 
     final Function<Throwable, SortedSetIncrementScoreResponse> failure =
-        e ->
-            new SortedSetIncrementScoreResponse.Error(
-                CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new SortedSetIncrementScoreResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -2360,9 +2351,7 @@ final class ScsDataClient extends ScsClientBase {
         rsp -> new SortedSetRemoveElementResponse.Success();
 
     final Function<Throwable, SortedSetRemoveElementResponse> failure =
-        e ->
-            new SortedSetRemoveElementResponse.Error(
-                CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new SortedSetRemoveElementResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -2380,9 +2369,7 @@ final class ScsDataClient extends ScsClientBase {
         rsp -> new SortedSetRemoveElementsResponse.Success();
 
     final Function<Throwable, SortedSetRemoveElementsResponse> failure =
-        e ->
-            new SortedSetRemoveElementsResponse.Error(
-                CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new SortedSetRemoveElementsResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -2425,8 +2412,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListConcatenateBackResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListConcatenateBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -2474,8 +2460,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListConcatenateFrontResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -2525,7 +2510,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListFetchResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2571,7 +2556,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListLengthResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListLengthResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2617,7 +2602,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListPopBackResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListPopBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2663,7 +2648,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListPushBackResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -2710,7 +2695,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListPopFrontResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListPopFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         // Execute on same thread that called execute on CompletionStage
@@ -2756,7 +2741,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListPushFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -2799,8 +2784,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListRemoveValueResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListRemoveValueResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -2846,7 +2830,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new ListRetainResponse.Error(CacheServiceExceptionMapper.convert(e, metadata)));
+                new ListRetainResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -2899,8 +2883,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new DictionaryFetchResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new DictionaryFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -2947,8 +2930,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new DictionarySetFieldResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new DictionarySetFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -2994,8 +2976,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new DictionarySetFieldsResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new DictionarySetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -3040,8 +3021,7 @@ final class ScsDataClient extends ScsClientBase {
                     new DictionaryGetFieldResponse.Error(
                         CacheServiceExceptionMapper.convert(
                             new Exception(
-                                "_DictionaryGetResponseResponse contained no data but was found"),
-                            metadata),
+                                "_DictionaryGetResponseResponse contained no data but was found")),
                         field));
               } else if (rsp.getFound().getItemsList().get(0).getResult() == ECacheResult.Miss) {
                 returnFuture.complete(new DictionaryGetFieldResponse.Miss(field));
@@ -3057,7 +3037,7 @@ final class ScsDataClient extends ScsClientBase {
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
                 new DictionaryGetFieldResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata), field));
+                    CacheServiceExceptionMapper.convert(e), field));
           }
         },
         MoreExecutors
@@ -3123,8 +3103,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new DictionaryGetFieldsResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new DictionaryGetFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -3172,8 +3151,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new DictionaryIncrementResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new DictionaryIncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -3216,8 +3194,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new DictionaryRemoveFieldResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new DictionaryRemoveFieldResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
@@ -3262,8 +3239,7 @@ final class ScsDataClient extends ScsClientBase {
           @Override
           public void onFailure(@Nonnull Throwable e) {
             returnFuture.complete(
-                new DictionaryRemoveFieldsResponse.Error(
-                    CacheServiceExceptionMapper.convert(e, metadata)));
+                new DictionaryRemoveFieldsResponse.Error(CacheServiceExceptionMapper.convert(e)));
           }
         },
         MoreExecutors
