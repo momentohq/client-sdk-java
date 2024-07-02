@@ -58,7 +58,7 @@ public class StorageValue {
    *     thrown.
    */
   public byte[] getByteArray() {
-    ensureCorrectTypeOrThrowException(StorageItemType.BYTE_ARRAY, itemType);
+    ensureCorrectTypeOrThrowException(StorageItemType.BYTE_ARRAY);
     return (byte[]) value;
   }
 
@@ -68,7 +68,7 @@ public class StorageValue {
    * @return the value as a string. If the value is not a string, an exception will be thrown.
    */
   public String getString() {
-    ensureCorrectTypeOrThrowException(StorageItemType.STRING, itemType);
+    ensureCorrectTypeOrThrowException(StorageItemType.STRING);
     return (String) value;
   }
 
@@ -78,7 +78,7 @@ public class StorageValue {
    * @return the value as a long. If the value is not a long, an exception will be thrown.
    */
   public long getLong() {
-    ensureCorrectTypeOrThrowException(StorageItemType.LONG, itemType);
+    ensureCorrectTypeOrThrowException(StorageItemType.LONG);
     return (long) value;
   }
 
@@ -88,18 +88,17 @@ public class StorageValue {
    * @return the value as a double. If the value is not a double, an exception will be thrown.
    */
   public double getDouble() {
-    ensureCorrectTypeOrThrowException(StorageItemType.DOUBLE, itemType);
+    ensureCorrectTypeOrThrowException(StorageItemType.DOUBLE);
     return (double) value;
   }
 
-  private void ensureCorrectTypeOrThrowException(
-      StorageItemType requested, StorageItemType actual) {
-    if (requested != actual) {
+  private void ensureCorrectTypeOrThrowException(StorageItemType requested) {
+    if (requested != itemType) {
       // In a regular Java context, ClassCastException or IllegalStateException could be
       // appropriate here.
       throw new ClientSdkException(
           String.format(
-              "Value is not a %s but was: %s".format(requested.toString(), actual.toString())));
+              "Value is not a %s but was: %s".format(requested.toString(), itemType.toString())));
     }
   }
 
