@@ -61,6 +61,7 @@ public class GetResponseTest {
                 new Exception(),
                 new MomentoTransportErrorDetails(
                     new MomentoGrpcErrorDetails(Status.Code.NOT_FOUND, "not found"))));
-    assert !error.found().isPresent();
+    assert error.found().isEmpty();
+    assertThrows(ClientSdkException.class, error.found()::orElseThrow);
   }
 }

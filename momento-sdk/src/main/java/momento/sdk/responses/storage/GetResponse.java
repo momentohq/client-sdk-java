@@ -1,9 +1,9 @@
 package momento.sdk.responses.storage;
 
-import java.util.Optional;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.internal.StringHelpers;
+import momento.sdk.utils.MomentoOptional;
 
 /**
  * Response for a get operation.
@@ -28,7 +28,7 @@ public interface GetResponse {
    *
    * @return The success response, or an empty optional if the operation failed.
    */
-  Optional<GetResponseFound> found();
+  MomentoOptional<GetResponseFound> found();
 
   /**
    * Returns the found response if the operation was successful, or throws an exception if the
@@ -80,8 +80,8 @@ public interface GetResponse {
     }
 
     @Override
-    public Optional<GetResponseFound> found() {
-      return Optional.of(this);
+    public MomentoOptional<GetResponseFound> found() {
+      return MomentoOptional.of(this);
     }
 
     @Override
@@ -99,8 +99,8 @@ public interface GetResponse {
     public NotFound() {}
 
     @Override
-    public Optional<GetResponseFound> found() {
-      return Optional.empty();
+    public MomentoOptional<GetResponseFound> found() {
+      return MomentoOptional.empty("Value was not found in the store.");
     }
 
     @Override
@@ -131,8 +131,8 @@ public interface GetResponse {
     }
 
     @Override
-    public Optional<GetResponseFound> found() {
-      return Optional.empty();
+    public MomentoOptional<GetResponseFound> found() {
+      return MomentoOptional.empty("The get operation failed: " + this);
     }
 
     @Override

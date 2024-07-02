@@ -2,11 +2,13 @@ package momento.sdk.storage;
 
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import momento.sdk.BaseTestClass;
 import momento.sdk.PreviewStorageClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfigurations;
+import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.StoreNotFoundException;
 import momento.sdk.responses.storage.DeleteResponse;
 import momento.sdk.responses.storage.GetResponse;
@@ -102,8 +104,9 @@ public class DataTests extends BaseTestClass {
     // Get key that was not set
     final GetResponse response = client.get(storeName, randomString("key")).join();
     assertThat(response).isInstanceOf(GetResponse.NotFound.class);
-    assert !response.found().isPresent();
+    assert response.found().isEmpty();
     assert response instanceof GetResponse.NotFound;
+    assertThrows(ClientSdkException.class, response.found()::orElseThrow);
   }
 
   @Test
@@ -143,7 +146,7 @@ public class DataTests extends BaseTestClass {
     assertThat(deleteResponse).isInstanceOf(DeleteResponse.Success.class);
 
     final GetResponse getAfterDeleteResponse = client.get(storeName, key).get();
-    assert !getAfterDeleteResponse.found().isPresent();
+    assert getAfterDeleteResponse.found().isEmpty();
     assert getAfterDeleteResponse instanceof GetResponse.NotFound;
   }
 
