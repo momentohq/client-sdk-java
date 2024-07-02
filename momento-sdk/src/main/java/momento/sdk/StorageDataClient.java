@@ -136,16 +136,16 @@ final class StorageDataClient extends StorageClientBase {
             _StoreValue value = rsp.getValue();
             switch (value.getValueCase()) {
               case BYTES_VALUE:
-                returnFuture.complete(GetResponse.Success.of(value.getBytesValue().toByteArray()));
+                returnFuture.complete(GetResponse.Found.of(value.getBytesValue().toByteArray()));
                 break;
               case STRING_VALUE:
-                returnFuture.complete(GetResponse.Success.of(value.getStringValue()));
+                returnFuture.complete(GetResponse.Found.of(value.getStringValue()));
                 break;
               case INTEGER_VALUE:
-                returnFuture.complete(GetResponse.Success.of(value.getIntegerValue()));
+                returnFuture.complete(GetResponse.Found.of(value.getIntegerValue()));
                 break;
               case DOUBLE_VALUE:
-                returnFuture.complete(GetResponse.Success.of(value.getDoubleValue()));
+                returnFuture.complete(GetResponse.Found.of(value.getDoubleValue()));
                 break;
               case VALUE_NOT_SET:
                 returnFuture.complete(
@@ -159,7 +159,7 @@ final class StorageDataClient extends StorageClientBase {
           public void onFailure(@Nonnull Throwable e) {
             final SdkException sdkException = CacheServiceExceptionMapper.convert(e);
             if (sdkException instanceof momento.sdk.exceptions.StoreItemNotFoundException) {
-              returnFuture.complete(GetResponse.Success.of());
+              returnFuture.complete(new GetResponse.NotFound());
             } else {
               returnFuture.complete(new GetResponse.Error(CacheServiceExceptionMapper.convert(e)));
             }

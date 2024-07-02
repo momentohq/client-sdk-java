@@ -48,8 +48,8 @@ public class DataTests extends BaseTestClass {
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getString().get()).isEqualTo(value);
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.asFound().value().getString()).isEqualTo(value);
   }
 
   @Test
@@ -63,9 +63,8 @@ public class DataTests extends BaseTestClass {
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getByteArray().get())
-        .isEqualTo(value.getBytes());
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.asFound().value().getByteArray()).isEqualTo(value.getBytes());
   }
 
   @Test
@@ -79,8 +78,8 @@ public class DataTests extends BaseTestClass {
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getLong().get()).isEqualTo(value);
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.asFound().value().getLong()).isEqualTo(value);
   }
 
   @Test
@@ -94,16 +93,17 @@ public class DataTests extends BaseTestClass {
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getDouble().get()).isEqualTo(value);
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.asFound().value().getDouble()).isEqualTo(value);
   }
 
   @Test
   void storeKeyNotFound() {
     // Get key that was not set
     final GetResponse response = client.get(storeName, randomString("key")).join();
-    assertThat(response).isInstanceOf(GetResponse.Success.class);
-    assert !response.success().get().value().isPresent();
+    assertThat(response).isInstanceOf(GetResponse.NotFound.class);
+    assert !response.found().isPresent();
+    assert response instanceof GetResponse.NotFound;
   }
 
   @Test
@@ -125,8 +125,8 @@ public class DataTests extends BaseTestClass {
     final String emptyValue = "";
     client.put(storeName, emptyKey, emptyValue).get();
     final GetResponse response = client.get(storeName, emptyKey).get();
-    assertThat(response).isInstanceOf(GetResponse.Success.class);
-    assert response.success().get().value().get().getString().get().isEmpty();
+    assertThat(response).isInstanceOf(GetResponse.Found.class);
+    assert response.asFound().value().getString().isEmpty();
   }
 
   @Test
@@ -136,14 +136,15 @@ public class DataTests extends BaseTestClass {
 
     client.put(storeName, key, value).get();
     final GetResponse getResponse = client.get(storeName, key).get();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getString().get()).isEqualTo(value);
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.asFound().value().getString()).isEqualTo(value);
 
     final DeleteResponse deleteResponse = client.delete(storeName, key).get();
     assertThat(deleteResponse).isInstanceOf(DeleteResponse.Success.class);
 
     final GetResponse getAfterDeleteResponse = client.get(storeName, key).get();
-    assert !getAfterDeleteResponse.success().get().value().isPresent();
+    assert !getAfterDeleteResponse.found().isPresent();
+    assert getAfterDeleteResponse instanceof GetResponse.NotFound;
   }
 
   @Test
