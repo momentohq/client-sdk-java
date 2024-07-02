@@ -25,18 +25,6 @@ public final class CacheServiceExceptionMapper {
    * @return The converted exception.
    */
   public static SdkException convert(Throwable e) {
-    return convert(e, null);
-  }
-
-  /**
-   * Common Handler for converting exceptions encountered by the SDK. Any specialized exception
-   * handling should be performed before calling this.
-   *
-   * @param e The exception to convert.
-   * @param metadata Metadata from the grpc request that caused the error.
-   * @return The converted exception.
-   */
-  public static SdkException convert(Throwable e, Metadata metadata) {
     if (e instanceof SdkException) {
       return (SdkException) e;
     }
@@ -44,13 +32,13 @@ public final class CacheServiceExceptionMapper {
     if (e instanceof io.grpc.StatusRuntimeException) {
       final StatusRuntimeException grpcException = (StatusRuntimeException) e;
       final Status.Code statusCode = grpcException.getStatus().getCode();
-      final Metadata trailers = grpcException.getTrailers();
+      final Metadata metadata = grpcException.getTrailers();
 
       final MomentoTransportErrorDetails errorDetails =
           new MomentoTransportErrorDetails(
               new MomentoGrpcErrorDetails(statusCode, grpcException.getMessage(), metadata));
 
-      String errorCause = trailers.get(Metadata.Key.of("err", Metadata.ASCII_STRING_MARSHALLER));
+      String errorCause = metadata.get(Metadata.Key.of("err", Metadata.ASCII_STRING_MARSHALLER));
       if (errorCause == null) {
         errorCause = grpcException.getMessage();
       }

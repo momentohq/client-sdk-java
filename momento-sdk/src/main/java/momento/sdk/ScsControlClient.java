@@ -140,7 +140,7 @@ final class ScsControlClient extends ScsClientBase {
         rsp -> new CacheCreateResponse.Success();
 
     final Function<Throwable, CacheCreateResponse> failure =
-        e -> new CacheCreateResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new CacheCreateResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -157,7 +157,7 @@ final class ScsControlClient extends ScsClientBase {
         rsp -> new CacheDeleteResponse.Success();
 
     final Function<Throwable, CacheDeleteResponse> failure =
-        e -> new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new CacheDeleteResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -174,7 +174,7 @@ final class ScsControlClient extends ScsClientBase {
         rsp -> new CacheFlushResponse.Success();
 
     final Function<Throwable, CacheFlushResponse> failure =
-        e -> new CacheFlushResponse.Error(CacheServiceExceptionMapper.convert(e, metadata));
+        e -> new CacheFlushResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
