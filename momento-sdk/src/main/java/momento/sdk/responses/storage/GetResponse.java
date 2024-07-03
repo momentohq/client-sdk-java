@@ -1,6 +1,5 @@
 package momento.sdk.responses.storage;
 
-import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.internal.StringHelpers;
 import momento.sdk.utils.MomentoOptional;
@@ -29,14 +28,6 @@ public interface GetResponse {
    * @return The success response, or an empty optional if the operation failed.
    */
   MomentoOptional<GetResponseFound> found();
-
-  /**
-   * Returns the found response if the operation was successful, or throws an exception if the
-   * operation failed.
-   *
-   * @return The found response.
-   */
-  GetResponseFound asFound();
 
   /**
    * A successful get operation.
@@ -85,11 +76,6 @@ public interface GetResponse {
     }
 
     @Override
-    public GetResponseFound asFound() {
-      return this;
-    }
-
-    @Override
     public String toString() {
       return "GetResponse.Found{value=" + value + "}";
     }
@@ -101,11 +87,6 @@ public interface GetResponse {
     @Override
     public MomentoOptional<GetResponseFound> found() {
       return MomentoOptional.empty("Value was not found in the store.");
-    }
-
-    @Override
-    public GetResponseFound asFound() {
-      throw new ClientSdkException("GetResponse::asFound cannot be called on GetResponse.NotFound");
     }
 
     @Override
@@ -133,11 +114,6 @@ public interface GetResponse {
     @Override
     public MomentoOptional<GetResponseFound> found() {
       return MomentoOptional.empty("The get operation failed: " + this);
-    }
-
-    @Override
-    public GetResponseFound asFound() {
-      throw new ClientSdkException("GetResponse::asFound cannot be called on GetResponse.Error");
     }
 
     @Override
