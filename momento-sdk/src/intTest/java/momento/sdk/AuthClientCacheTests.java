@@ -25,12 +25,13 @@ import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheDeleteResponse;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 public class AuthClientCacheTests extends BaseTestClass {
-  private AuthClient authClient;
-  private CacheClient cacheClient;
+  private static AuthClient authClient;
+  private static CacheClient cacheClient;
 
   private String cacheName;
 
@@ -38,13 +39,13 @@ public class AuthClientCacheTests extends BaseTestClass {
   String value = "test-value";
   private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
-  @BeforeEach
-  void setup() {
+  @BeforeAll
+  static void setup() {
     authClient = AuthClient.builder(credentialProvider).build();
     cacheClient =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();
-    cacheName = System.getenv("TEST_CACHE_NAME");
+    cacheName = testCacheName();
   }
 
   private CompletableFuture<CacheClient> getClientForTokenScope(DisposableTokenScope scope) {
