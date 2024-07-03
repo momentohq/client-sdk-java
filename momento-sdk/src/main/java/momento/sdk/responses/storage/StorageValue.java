@@ -1,6 +1,6 @@
 package momento.sdk.responses.storage;
 
-import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.utils.MomentoOptional;
 
 /**
  * A value stored in the storage.
@@ -54,52 +54,63 @@ public class StorageValue {
   /**
    * Get the value as a byte array.
    *
-   * @return the value as a byte array. If the value is not a byte array, an exception will be
-   *     thrown.
+   * @return the value as an optional byte array. If the value is not a byte array, an empty
+   *     optional will be returned. Call {@link MomentoOptional#orElseThrow()} to short circuit the
+   *     operation and throw an exception.
    */
-  public byte[] getByteArray() {
-    ensureCorrectTypeOrThrowException(StorageItemType.BYTE_ARRAY);
-    return (byte[]) value;
+  public MomentoOptional<byte[]> getByteArray() {
+    if (itemType != StorageItemType.BYTE_ARRAY) {
+      return MomentoOptional.empty(formatWrongTypeMessage(StorageItemType.BYTE_ARRAY));
+    }
+    return MomentoOptional.of((byte[]) value);
   }
 
   /**
    * Get the value as a string.
    *
-   * @return the value as a string. If the value is not a string, an exception will be thrown.
+   * @return the value as an optional string. If the value is not a string, an empty optional will
+   *     be returned. Call {@link MomentoOptional#orElseThrow()} to short circuit the operation and
+   *     throw an exception.
    */
-  public String getString() {
-    ensureCorrectTypeOrThrowException(StorageItemType.STRING);
-    return (String) value;
+  public MomentoOptional<String> getString() {
+    if (itemType != StorageItemType.STRING) {
+      return MomentoOptional.empty(formatWrongTypeMessage(StorageItemType.STRING));
+    }
+    return MomentoOptional.of((String) value);
   }
 
   /**
    * Get the value as a long.
    *
-   * @return the value as a long. If the value is not a long, an exception will be thrown.
+   * @return the value as an optional long. If the value is not a long, an empty optional will be
+   *     returned. Call {@link MomentoOptional#orElseThrow()} to short circuit the operation and
+   *     throw an exception.
    */
-  public long getLong() {
-    ensureCorrectTypeOrThrowException(StorageItemType.LONG);
-    return (long) value;
+  public MomentoOptional<Long> getLong() {
+    if (itemType != StorageItemType.LONG) {
+      return MomentoOptional.empty(formatWrongTypeMessage(StorageItemType.LONG));
+    }
+
+    return MomentoOptional.of((long) value);
   }
 
   /**
    * Get the value as a double.
    *
-   * @return the value as a double. If the value is not a double, an exception will be thrown.
+   * @return the value as an optional double. If the value is not a double, an empty optional will
+   *     be returned. Call {@link MomentoOptional#orElseThrow()} to short circuit the operation and
+   *     throw an exception.
    */
-  public double getDouble() {
-    ensureCorrectTypeOrThrowException(StorageItemType.DOUBLE);
-    return (double) value;
+  public MomentoOptional<Double> getDouble() {
+    if (itemType != StorageItemType.DOUBLE) {
+      return MomentoOptional.empty(formatWrongTypeMessage(StorageItemType.DOUBLE));
+    }
+    return MomentoOptional.of((double) value);
   }
 
-  private void ensureCorrectTypeOrThrowException(StorageItemType requested) {
-    if (requested != itemType) {
-      // In a regular Java context, ClassCastException or IllegalStateException could be
-      // appropriate here.
-      throw new ClientSdkException(
-          String.format(
-              "Value is not a %s but was: %s".format(requested.toString(), itemType.toString())));
-    }
+  private String formatWrongTypeMessage(StorageItemType requested) {
+    return String.format(
+        "Value is not a %s but was: %s".format(requested.toString(), itemType.toString()));
   }
 
   @Override
