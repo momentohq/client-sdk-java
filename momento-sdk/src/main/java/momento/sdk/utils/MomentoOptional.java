@@ -58,12 +58,13 @@ public class MomentoOptional<T> {
   }
 
   /**
-   * Gets the value of the optional.
+   * If the value is present, returns the value. Otherwise throws a {@link ClientSdkException} with
+   * a specific error message.
    *
    * @return the value.
    */
   public T get() {
-    return optional.get();
+    return this.orElseThrow();
   }
 
   /**
