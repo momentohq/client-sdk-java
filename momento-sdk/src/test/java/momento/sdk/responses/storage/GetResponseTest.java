@@ -40,20 +40,20 @@ public class GetResponseTest {
   @Test
   public void testConvenienceMethodsOnGetResponse() {
     GetResponse.Found response = GetResponse.Found.of(new byte[] {0, 1, 2, 3});
-    assert response.found().isPresent();
-    assert response.found().get().value().getByteArray().get().length == 4;
+    assert response.valueWhenFound().isPresent();
+    assert response.valueWhenFound().get().getByteArray().get().length == 4;
 
     response = GetResponse.Found.of("string");
-    assert response.found().isPresent();
-    assert response.found().get().value().getString().get() == "string";
+    assert response.valueWhenFound().isPresent();
+    assert response.valueWhenFound().get().getString().get() == "string";
 
     response = GetResponse.Found.of(42L);
-    assert response.found().isPresent();
-    assert response.found().get().value().getLong().get() == 42L;
+    assert response.valueWhenFound().isPresent();
+    assert response.valueWhenFound().get().getLong().get() == 42L;
 
     response = GetResponse.Found.of(3.14);
-    assert response.found().isPresent();
-    assert response.found().get().value().getDouble().get() == 3.14;
+    assert response.valueWhenFound().isPresent();
+    assert response.valueWhenFound().get().getDouble().get() == 3.14;
 
     GetResponse.Error error =
         new GetResponse.Error(
@@ -61,7 +61,7 @@ public class GetResponseTest {
                 new Exception(),
                 new MomentoTransportErrorDetails(
                     new MomentoGrpcErrorDetails(Status.Code.NOT_FOUND, "not found"))));
-    assert error.found().isEmpty();
-    assertThrows(ClientSdkException.class, error.found()::orElseThrow);
+    assert error.valueWhenFound().isEmpty();
+    assertThrows(ClientSdkException.class, error.valueWhenFound()::orElseThrow);
   }
 }

@@ -9,9 +9,9 @@ import momento.sdk.utils.MomentoOptional;
  *
  * <p>The response can be either a {@link Found}, {@link NotFound}, or an {@link Error}.
  *
- * <p>To shortcut access to found response, use {@link #found()}. If the operation was successful
- * but the key was not found, the response will be an empty optional. If the operation failed, the
- * response will be an empty optional.
+ * <p>To shortcut access to found value, use {@link #valueWhenFound()}. If the operation was
+ * successful but the key was not found, the response will be an empty optional. If the operation
+ * failed, the response will also be an empty optional.
  *
  * <p>To handle the response otherwise, use pattern matching or an instanceof to check if the
  * response is a {@link Found}, {@link NotFound}, or an {@link Error}.
@@ -20,14 +20,15 @@ import momento.sdk.utils.MomentoOptional;
  */
 public interface GetResponse {
   /**
-   * Returns the success response if the operation was successful, or an empty optional if the
-   * operation failed.
+   * Returns the found value if the operation was successful and the key found, or an empty optional
+   * if the key was not found or the operation failed.
    *
    * <p>This is a convenience method that can be used to avoid instanceof checks and casting.
    *
-   * @return The success response, or an empty optional if the operation failed.
+   * @return The found value if the operation was successful and the key found, or an empty
+   *     optional.
    */
-  MomentoOptional<GetResponseFound> found();
+  MomentoOptional<StorageValue> valueWhenFound();
 
   /**
    * A successful get operation.
@@ -38,7 +39,7 @@ public interface GetResponse {
    * <p>Use the appropriate type-based accessor on the value to retrieve the value in its
    * corresponding type.
    */
-  class Found implements GetResponse, GetResponseFound {
+  class Found implements GetResponse {
     private final StorageValue value;
 
     private Found(StorageValue value) {
@@ -71,8 +72,8 @@ public interface GetResponse {
     }
 
     @Override
-    public MomentoOptional<GetResponseFound> found() {
-      return MomentoOptional.of(this);
+    public MomentoOptional<StorageValue> valueWhenFound() {
+      return MomentoOptional.of(value());
     }
 
     @Override
@@ -85,7 +86,7 @@ public interface GetResponse {
     public NotFound() {}
 
     @Override
-    public MomentoOptional<GetResponseFound> found() {
+    public MomentoOptional<StorageValue> valueWhenFound() {
       return MomentoOptional.empty("Value was not found in the store.");
     }
 
@@ -112,7 +113,7 @@ public interface GetResponse {
     }
 
     @Override
-    public MomentoOptional<GetResponseFound> found() {
+    public MomentoOptional<StorageValue> valueWhenFound() {
       return MomentoOptional.empty("The get operation failed: " + this);
     }
 
