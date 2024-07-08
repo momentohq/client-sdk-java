@@ -2,11 +2,13 @@ package momento.sdk.storage;
 
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import momento.sdk.BaseTestClass;
 import momento.sdk.PreviewStorageClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfigurations;
+import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.StoreNotFoundException;
 import momento.sdk.responses.storage.DeleteResponse;
 import momento.sdk.responses.storage.GetResponse;
@@ -48,8 +50,8 @@ public class DataTests extends BaseTestClass {
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getString().get()).isEqualTo(value);
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.valueWhenFound().get().getString().get()).isEqualTo(value);
   }
 
   @Test
@@ -63,9 +65,8 @@ public class DataTests extends BaseTestClass {
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getByteArray().get())
-        .isEqualTo(value.getBytes());
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.valueWhenFound().get().getByteArray().get()).isEqualTo(value.getBytes());
   }
 
   @Test
@@ -79,8 +80,8 @@ public class DataTests extends BaseTestClass {
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getLong().get()).isEqualTo(value);
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.valueWhenFound().get().getLong().get()).isEqualTo(value);
   }
 
   @Test
@@ -94,16 +95,18 @@ public class DataTests extends BaseTestClass {
 
     // Successful Get
     final GetResponse getResponse = client.get(storeName, key).join();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getDouble().get()).isEqualTo(value);
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.valueWhenFound().get().getDouble().get()).isEqualTo(value);
   }
 
   @Test
   void storeKeyNotFound() {
     // Get key that was not set
     final GetResponse response = client.get(storeName, randomString("key")).join();
-    assertThat(response).isInstanceOf(GetResponse.Success.class);
-    assert !response.success().get().value().isPresent();
+    assertThat(response).isInstanceOf(GetResponse.NotFound.class);
+    assert response.valueWhenFound().isEmpty();
+    assert response instanceof GetResponse.NotFound;
+    assertThrows(ClientSdkException.class, response.valueWhenFound()::orElseThrow);
   }
 
   @Test
@@ -125,8 +128,8 @@ public class DataTests extends BaseTestClass {
     final String emptyValue = "";
     client.put(storeName, emptyKey, emptyValue).get();
     final GetResponse response = client.get(storeName, emptyKey).get();
-    assertThat(response).isInstanceOf(GetResponse.Success.class);
-    assert response.success().get().value().get().getString().get().isEmpty();
+    assertThat(response).isInstanceOf(GetResponse.Found.class);
+    assert response.valueWhenFound().get().getString().get().isEmpty();
   }
 
   @Test
@@ -136,14 +139,15 @@ public class DataTests extends BaseTestClass {
 
     client.put(storeName, key, value).get();
     final GetResponse getResponse = client.get(storeName, key).get();
-    assertThat(getResponse).isInstanceOf(GetResponse.Success.class);
-    assertThat(getResponse.success().get().value().get().getString().get()).isEqualTo(value);
+    assertThat(getResponse).isInstanceOf(GetResponse.Found.class);
+    assertThat(getResponse.valueWhenFound().get().getString().get()).isEqualTo(value);
 
     final DeleteResponse deleteResponse = client.delete(storeName, key).get();
     assertThat(deleteResponse).isInstanceOf(DeleteResponse.Success.class);
 
     final GetResponse getAfterDeleteResponse = client.get(storeName, key).get();
-    assert !getAfterDeleteResponse.success().get().value().isPresent();
+    assert getAfterDeleteResponse.valueWhenFound().isEmpty();
+    assert getAfterDeleteResponse instanceof GetResponse.NotFound;
   }
 
   @Test
