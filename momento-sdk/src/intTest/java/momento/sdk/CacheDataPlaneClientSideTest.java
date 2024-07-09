@@ -7,25 +7,10 @@ import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.responses.cache.DeleteResponse;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /** Tests client side exceptions */
 final class CacheDataPlaneClientSideTest extends BaseTestClass {
-  private static String cacheName;
-
-  @BeforeAll
-  static void setup() {
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
-  }
-
-  @AfterAll
-  static void teardown() {
-    cleanupTestCache(cacheName);
-  }
-
   @Test
   public void nullKeyGetReturnsError() {
     final GetResponse stringResponse = cacheClient.get(cacheName, (String) null).join();

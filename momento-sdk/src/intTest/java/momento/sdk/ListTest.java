@@ -20,24 +20,10 @@ import momento.sdk.responses.cache.list.ListPushFrontResponse;
 import momento.sdk.responses.cache.list.ListRemoveValueResponse;
 import momento.sdk.responses.cache.list.ListRetainResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class ListTest extends BaseTestClass {
-  private static String cacheName;
   private final List<String> values = Arrays.asList("val1", "val2", "val3", "val4");
-
-  @BeforeAll
-  static void setup() {
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
-  }
-
-  @AfterAll
-  static void teardown() {
-    cleanupTestCache(cacheName);
-  }
 
   @Test
   public void listConcatenateBackStringHappyPath() {

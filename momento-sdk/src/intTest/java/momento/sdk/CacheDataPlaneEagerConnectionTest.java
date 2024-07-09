@@ -8,32 +8,16 @@ import java.time.Duration;
 import momento.sdk.config.Configurations;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class CacheDataPlaneEagerConnectionTest extends BaseTestClass {
-  private static final Duration DEFAULT_ITEM_TTL_SECONDS = Duration.ofSeconds(60);
-  private static String cacheName;
-
-  @BeforeAll
-  static void setup() {
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
-  }
-
-  @AfterAll
-  static void teardown() {
-    cleanupTestCache(cacheName);
-  }
-
   @Test
   void getReturnsHitAfterSet() {
     CacheClient client =
         CacheClient.create(
             credentialProvider,
             Configurations.Laptop.latest(),
-            DEFAULT_ITEM_TTL_SECONDS,
+            DEFAULT_TTL_SECONDS,
             Duration.ofSeconds(10));
     final String key = randomString("key");
     final String value = randomString("value");

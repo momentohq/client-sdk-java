@@ -27,24 +27,9 @@ import momento.sdk.responses.cache.sortedset.SortedSetPutElementsResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class SortedSetTest extends BaseTestClass {
-  private static String cacheName;
-
-  @BeforeAll
-  static void setup() {
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
-  }
-
-  @AfterAll
-  static void teardown() {
-    cleanupTestCache(cacheName);
-  }
-
   // sortedSetPutElement
 
   @Test

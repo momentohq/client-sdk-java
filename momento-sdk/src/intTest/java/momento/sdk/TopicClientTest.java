@@ -19,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TopicClientTest extends BaseTestClass {
-  private static String cacheName;
   private static TopicClient topicClient;
 
   private final String topicName = "test-topic";
@@ -32,14 +31,11 @@ public class TopicClientTest extends BaseTestClass {
   static void setupAll() {
     topicClient =
         TopicClient.builder(credentialProvider, TopicConfigurations.Laptop.latest()).build();
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
   }
 
   @AfterAll
   static void teardownAll() {
     topicClient.close();
-    cleanupTestCache(cacheName);
   }
 
   private ISubscriptionCallbacks callbacks(CountDownLatch latch) {

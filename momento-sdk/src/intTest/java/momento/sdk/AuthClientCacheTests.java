@@ -25,13 +25,11 @@ import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheDeleteResponse;
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class AuthClientCacheTests extends BaseTestClass {
   private static AuthClient authClient;
-  private static String cacheName;
 
   String key = "test-key";
   String value = "test-value";
@@ -39,13 +37,6 @@ public class AuthClientCacheTests extends BaseTestClass {
   @BeforeAll
   static void setup() {
     authClient = AuthClient.builder(credentialProvider).build();
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
-  }
-
-  @AfterAll
-  static void tearDown() {
-    cleanupTestCache(cacheName);
   }
 
   private CompletableFuture<CacheClient> getClientForTokenScope(DisposableTokenScope scope) {

@@ -21,27 +21,13 @@ import momento.sdk.responses.cache.dictionary.DictionaryRemoveFieldsResponse;
 import momento.sdk.responses.cache.dictionary.DictionarySetFieldResponse;
 import momento.sdk.responses.cache.dictionary.DictionarySetFieldsResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class DictionaryTest extends BaseTestClass {
-  private static String cacheName;
   Map<String, String> stringStringMap = new HashMap<>();
   Map<String, byte[]> stringBytesMap = new HashMap<>();
   Map<byte[], String> bytesStringMap = new HashMap<>();
   Map<byte[], byte[]> bytesBytesMap = new HashMap<>();
-
-  @BeforeAll
-  static void setup() {
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
-  }
-
-  @AfterAll
-  static void teardown() {
-    cleanupTestCache(cacheName);
-  }
 
   @Test
   public void dictionarySetFieldAndDictionaryFetchAndHappyPath() {

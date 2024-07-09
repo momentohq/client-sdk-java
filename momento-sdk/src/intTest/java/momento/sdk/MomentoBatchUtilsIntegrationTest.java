@@ -18,21 +18,16 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
-  private static String cacheName;
   private static MomentoBatchUtils momentoBatchUtils;
 
   @BeforeAll
   static void setup() {
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
-
     momentoBatchUtils = MomentoBatchUtils.builder(cacheClient).build();
   }
 
   @AfterAll
   static void teardown() {
     momentoBatchUtils.close();
-    cleanupTestCache(cacheName);
   }
 
   @Test

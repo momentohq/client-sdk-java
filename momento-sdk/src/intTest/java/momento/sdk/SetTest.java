@@ -15,24 +15,9 @@ import momento.sdk.responses.cache.set.SetFetchResponse;
 import momento.sdk.responses.cache.set.SetRemoveElementResponse;
 import momento.sdk.responses.cache.set.SetRemoveElementsResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class SetTest extends BaseTestClass {
-  private static String cacheName;
-
-  @BeforeAll
-  static void setup() {
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
-  }
-
-  @AfterAll
-  static void teardown() {
-    cleanupTestCache(cacheName);
-  }
-
   @Test
   public void setAddElementStringHappyPath() {
     final String setName = randomString();

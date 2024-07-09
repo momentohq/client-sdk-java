@@ -30,14 +30,10 @@ import momento.sdk.responses.cache.control.CacheFlushResponse;
 import momento.sdk.responses.cache.ttl.ItemGetTtlResponse;
 import momento.sdk.responses.cache.ttl.UpdateTtlResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /** Just includes a happy test path that interacts with both control and data plane clients. */
 final class CacheClientTest extends BaseTestClass {
-  private static String cacheName;
-
   private static final String JWT_HEADER_BASE64 = "eyJhbGciOiJIUzUxMiJ9";
   private static final String JWT_INVALID_SIGNATURE_BASE64 =
       "gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";
@@ -70,17 +66,6 @@ final class CacheClientTest extends BaseTestClass {
           + JWT_INVALID_SIGNATURE_BASE64;
   private static final CredentialProvider BAD_DATA_PLANE_PROVIDER =
       new StringCredentialProvider(BAD_DATA_PLANE_JWT);
-
-  @BeforeAll
-  static void setup() {
-    cacheName = testCacheName();
-    ensureTestCacheExists(cacheName);
-  }
-
-  @AfterAll
-  static void teardown() {
-    cleanupTestCache(cacheName);
-  }
 
   @Test
   public void createCacheGetSetDeleteValuesAndDeleteCache() {

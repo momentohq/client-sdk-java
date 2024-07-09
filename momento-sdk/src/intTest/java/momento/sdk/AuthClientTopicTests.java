@@ -15,13 +15,11 @@ import org.junit.jupiter.api.Test;
 
 public class AuthClientTopicTests extends BaseTestClass {
   private static AuthClient authClient;
-  private static String cacheName;
   private static String topicName = "topic";
 
   @BeforeAll
   static void setup() {
     authClient = AuthClient.builder(credentialProvider).build();
-    cacheName = testCacheName();
   }
 
   @Test

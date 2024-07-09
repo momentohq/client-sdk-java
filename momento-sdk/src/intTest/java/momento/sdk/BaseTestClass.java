@@ -12,11 +12,10 @@ import org.junit.jupiter.api.BeforeAll;
 public class BaseTestClass {
   protected static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
   protected static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
-  protected static final Duration TEN_SECONDS = Duration.ofSeconds(10);
-
   protected static CredentialProvider credentialProvider;
 
   protected static CacheClient cacheClient;
+  protected static String cacheName;
 
   @BeforeAll
   static void beforeAll() {
@@ -24,10 +23,13 @@ public class BaseTestClass {
     cacheClient =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();
+    cacheName = testCacheName();
+    ensureTestCacheExists(cacheName);
   }
 
   @AfterAll
   static void afterAll() {
+    cleanupTestCache(cacheName);
     cacheClient.close();
   }
 
