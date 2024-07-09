@@ -4,34 +4,43 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
-import momento.sdk.config.Configurations;
 import momento.sdk.config.TopicConfigurations;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class TopicClientTest extends BaseTestClass {
-  private static final Duration DEFAULT_TTL = Duration.ofSeconds(60);
-
-  private final String cacheName = System.getenv("TEST_CACHE_NAME");
-  private CacheClient cacheClient;
-  private TopicClient topicClient;
+  private static String cacheName;
+  private static TopicClient topicClient;
 
   private final String topicName = "test-topic";
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
 
   private final List<String> receivedStringValues = new ArrayList<>();
   private final List<byte[]> receivedByteArrayValues = new ArrayList<>();
+
+  @BeforeAll
+  static void setupAll() {
+    topicClient =
+        TopicClient.builder(credentialProvider, TopicConfigurations.Laptop.latest()).build();
+    cacheName = testCacheName();
+    ensureTestCacheExists(cacheName);
+  }
+
+  @AfterAll
+  static void teardownAll() {
+    topicClient.close();
+    cleanupTestCache(cacheName);
+  }
 
   private ISubscriptionCallbacks callbacks(CountDownLatch latch) {
     return new ISubscriptionCallbacks() {
@@ -57,24 +66,6 @@ public class TopicClientTest extends BaseTestClass {
         logger.info("onError Invoked");
       }
     };
-  }
-
-  @BeforeEach
-  void setup() {
-    cacheClient =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL)
-            .build();
-
-    topicClient =
-        TopicClient.builder(credentialProvider, TopicConfigurations.Laptop.latest()).build();
-    cacheClient.createCache(cacheName).join();
-  }
-
-  @AfterEach
-  void teardown() {
-    cacheClient.deleteCache(cacheName).join();
-    cacheClient.close();
-    topicClient.close();
   }
 
   @Test
