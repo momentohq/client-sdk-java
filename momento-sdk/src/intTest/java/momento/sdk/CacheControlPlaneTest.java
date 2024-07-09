@@ -50,13 +50,22 @@ final class CacheControlPlaneTest extends BaseTestClass {
 
   @Test
   public void throwsAlreadyExistsWhenCreatingExistingCache() {
-    final String existingCache = System.getenv("TEST_CACHE_NAME");
+    final String cacheName = randomString();
+    CacheCreateResponse response = cacheClient.createCache(cacheName).join();
+    assertThat(response).isInstanceOf(CacheCreateResponse.Success.class);
 
-    assertThat(cacheClient.createCache(existingCache))
-        .succeedsWithin(FIVE_SECONDS)
-        .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
-        .satisfies(
-            error -> assertThat(error).hasCauseInstanceOf(CacheAlreadyExistsException.class));
+    try {
+      assertThat(cacheClient.createCache(cacheName))
+          .succeedsWithin(FIVE_SECONDS)
+          .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
+          .satisfies(
+              error -> assertThat(error).hasCauseInstanceOf(CacheAlreadyExistsException.class));
+    } finally {
+      // cleanup
+      assertThat(cacheClient.deleteCache(cacheName))
+          .succeedsWithin(FIVE_SECONDS)
+          .isInstanceOf(CacheDeleteResponse.Success.class);
+    }
   }
 
   @Test
