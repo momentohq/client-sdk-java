@@ -6,9 +6,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Vector;
 import momento.sdk.batchutils.MomentoBatchUtils;
 import momento.sdk.batchutils.request.BatchGetRequest;
 import momento.sdk.batchutils.response.BatchGetResponse;
@@ -147,8 +147,8 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
             .build();
 
     // test data with more keys than max concurrent requests
-    Vector<String> keys = new Vector<>();
-    Vector<String> values = new Vector<>();
+    ArrayList<String> keys = new ArrayList<>();
+    ArrayList<String> values = new ArrayList<>();
     for (int i = 0; i < numberOfKeys; i++) {
       String key = randomString("testKey" + i);
       String value = randomString("testValue" + i);
