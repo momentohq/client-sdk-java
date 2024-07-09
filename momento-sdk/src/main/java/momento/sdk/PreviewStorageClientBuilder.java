@@ -49,7 +49,7 @@ public final class PreviewStorageClientBuilder {
    *
    * @return the client.
    */
-  public IPreviewStorageClient build() {
+  public PreviewStorageClient build() {
     if (credentialProvider == null) {
       credentialProvider = new EnvVarCredentialProvider("MOMENTO_API_KEY");
     }
