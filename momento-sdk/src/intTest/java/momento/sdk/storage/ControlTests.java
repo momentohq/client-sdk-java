@@ -20,9 +20,7 @@ import org.junit.jupiter.api.Test;
 public class ControlTests extends BaseStorageTestClass {
   @Test
   public void returnsAlreadyExistsWhenCreatingExistingStore() {
-    // TODO externalize this
-    // TODO rename env var to something broader like TEST_RESOURCE_NAME
-    final String existingStore = System.getenv("TEST_CACHE_NAME");
+    final String existingStore = storeName;
 
     assertThat(storageClient.createStore(existingStore))
         .succeedsWithin(TEN_SECONDS)
