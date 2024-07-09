@@ -10,18 +10,16 @@ import momento.sdk.auth.accessControl.ExpiresIn;
 import momento.sdk.auth.accessControl.TopicSelector;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class AuthClientTopicTests extends BaseTestClass {
-  private AuthClient authClient;
-  private String cacheName;
-  private String topicName = "topic";
+  private static AuthClient authClient;
+  private static String topicName = "topic";
 
-  @BeforeEach
-  void setup() {
+  @BeforeAll
+  static void setup() {
     authClient = AuthClient.builder(credentialProvider).build();
-    cacheName = System.getenv("TEST_CACHE_NAME");
   }
 
   @Test

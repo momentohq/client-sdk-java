@@ -25,26 +25,18 @@ import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheDeleteResponse;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class AuthClientCacheTests extends BaseTestClass {
-  private AuthClient authClient;
-  private CacheClient cacheClient;
-
-  private String cacheName;
+  private static AuthClient authClient;
 
   String key = "test-key";
   String value = "test-value";
-  private static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
 
-  @BeforeEach
-  void setup() {
+  @BeforeAll
+  static void setup() {
     authClient = AuthClient.builder(credentialProvider).build();
-    cacheClient =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
-            .build();
-    cacheName = System.getenv("TEST_CACHE_NAME");
   }
 
   private CompletableFuture<CacheClient> getClientForTokenScope(DisposableTokenScope scope) {
@@ -230,26 +222,31 @@ public class AuthClientCacheTests extends BaseTestClass {
   @Test
   void generateDisposableCacheAuthTokenReadWriteHappyPath()
       throws ExecutionException, InterruptedException {
-    CacheClient readwriteCacheClient =
+    CacheClient readWriteCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheReadWrite(cacheName)).get();
+    try {
+      SetResponse setResponse = readWriteCacheClient.set(cacheName, key, value).get();
+      assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
 
-    SetResponse setResponse = readwriteCacheClient.set(cacheName, key, value).get();
-    assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
+      GetResponse getResponse = readWriteCacheClient.get(cacheName, key).get();
+      assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
+      GetResponse.Hit hit = (GetResponse.Hit) getResponse;
+      assertEquals(value, hit.valueString());
 
-    GetResponse getResponse = readwriteCacheClient.get(cacheName, key).get();
-    assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
-    GetResponse.Hit hit = (GetResponse.Hit) getResponse;
-    assertEquals(value, hit.valueString());
+      readWriteCacheClient.close();
+      readWriteCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheReadWrite("someothercache")).get();
 
-    readwriteCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheReadWrite("someothercache")).get();
-    setResponse = readwriteCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      setResponse = readWriteCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
 
-    getResponse = readwriteCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      getResponse = readWriteCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+    } finally {
+      readWriteCacheClient.close();
+    }
   }
 
   @Test
@@ -257,24 +254,28 @@ public class AuthClientCacheTests extends BaseTestClass {
       throws ExecutionException, InterruptedException {
     CacheClient readWriteCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheReadWrite(cacheName)).get();
-
     CacheClient readOnlyCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheReadOnly(cacheName)).get();
 
-    SetResponse setResponse = readOnlyCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+    try {
+      SetResponse setResponse = readOnlyCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
 
-    SetResponse setResponseForVerifyingGetResponse =
-        readWriteCacheClient.set(cacheName, key, value).get();
-    assertTrue(
-        setResponseForVerifyingGetResponse instanceof SetResponse.Success,
-        "Unexpected response: " + setResponseForVerifyingGetResponse);
+      SetResponse setResponseForVerifyingGetResponse =
+          readWriteCacheClient.set(cacheName, key, value).get();
+      assertTrue(
+          setResponseForVerifyingGetResponse instanceof SetResponse.Success,
+          "Unexpected response: " + setResponseForVerifyingGetResponse);
 
-    GetResponse getResponse = readOnlyCacheClient.get(cacheName, key).get();
-    assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
-    GetResponse.Hit hit = (GetResponse.Hit) getResponse;
-    assertEquals(value, hit.valueString());
+      GetResponse getResponse = readOnlyCacheClient.get(cacheName, key).get();
+      assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
+      GetResponse.Hit hit = (GetResponse.Hit) getResponse;
+      assertEquals(value, hit.valueString());
+    } finally {
+      readWriteCacheClient.close();
+      readOnlyCacheClient.close();
+    }
   }
 
   @Test
@@ -282,28 +283,33 @@ public class AuthClientCacheTests extends BaseTestClass {
       throws ExecutionException, InterruptedException {
     CacheClient readWriteCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheReadWrite(cacheName)).get();
-
     CacheClient writeOnlyCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheWriteOnly(cacheName)).get();
 
-    SetResponse setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
-    assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
+    try {
+      SetResponse setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
+      assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
 
-    GetResponse getResponse = writeOnlyCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      GetResponse getResponse = writeOnlyCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
 
-    getResponse = readWriteCacheClient.get(cacheName, key).get();
-    assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
-    GetResponse.Hit hit = (GetResponse.Hit) getResponse;
-    assertEquals(value, hit.valueString());
+      getResponse = readWriteCacheClient.get(cacheName, key).get();
+      assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
+      GetResponse.Hit hit = (GetResponse.Hit) getResponse;
+      assertEquals(value, hit.valueString());
 
-    writeOnlyCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheWriteOnly("someothercache")).get();
+      writeOnlyCacheClient.close();
+      writeOnlyCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheWriteOnly("someothercache")).get();
 
-    setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+    } finally {
+      readWriteCacheClient.close();
+      writeOnlyCacheClient.close();
+    }
   }
 
   @Test
@@ -528,36 +534,42 @@ public class AuthClientCacheTests extends BaseTestClass {
   @Test
   void generateDisposableCacheKeyAuthTokenReadWriteHappyPath()
       throws ExecutionException, InterruptedException {
-    CacheClient readwriteCacheClient =
+    CacheClient readWriteCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheKeyReadWrite(cacheName, key)).get();
 
-    SetResponse setResponse = readwriteCacheClient.set(cacheName, key, value).get();
-    assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
+    try {
+      SetResponse setResponse = readWriteCacheClient.set(cacheName, key, value).get();
+      assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
 
-    GetResponse getResponse = readwriteCacheClient.get(cacheName, key).get();
-    assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
-    GetResponse.Hit hit = (GetResponse.Hit) getResponse;
-    assertEquals(value, hit.valueString());
+      GetResponse getResponse = readWriteCacheClient.get(cacheName, key).get();
+      assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
+      GetResponse.Hit hit = (GetResponse.Hit) getResponse;
+      assertEquals(value, hit.valueString());
 
-    readwriteCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyReadWrite("someothercache", key))
-            .get();
-    setResponse = readwriteCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
-    getResponse = readwriteCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      readWriteCacheClient.close();
+      readWriteCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheKeyReadWrite("someothercache", key))
+              .get();
+      setResponse = readWriteCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      getResponse = readWriteCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
 
-    readwriteCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyReadWrite(cacheName, "someotherkey"))
-            .get();
-    setResponse = readwriteCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
-    getResponse = readwriteCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      readWriteCacheClient.close();
+      readWriteCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheKeyReadWrite(cacheName, "someotherkey"))
+              .get();
+      setResponse = readWriteCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      getResponse = readWriteCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+    } finally {
+      readWriteCacheClient.close();
+    }
   }
 
   @Test
@@ -566,31 +578,38 @@ public class AuthClientCacheTests extends BaseTestClass {
     CacheClient readOnlyCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheKeyReadOnly(cacheName, key)).get();
 
-    SetResponse setResponse = readOnlyCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+    try {
+      SetResponse setResponse = readOnlyCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
 
-    CacheClient readWriteCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyReadWrite(cacheName, key)).get();
-    readWriteCacheClient.set(cacheName, key, value).get();
+      CacheClient readWriteCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheKeyReadWrite(cacheName, key)).get();
+      readWriteCacheClient.set(cacheName, key, value).get();
 
-    GetResponse getResponse = readOnlyCacheClient.get(cacheName, key).get();
-    assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
-    GetResponse.Hit hit = (GetResponse.Hit) getResponse;
-    assertEquals(value, hit.valueString());
+      GetResponse getResponse = readOnlyCacheClient.get(cacheName, key).get();
+      assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
+      GetResponse.Hit hit = (GetResponse.Hit) getResponse;
+      assertEquals(value, hit.valueString());
 
-    readOnlyCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyReadOnly("someothercache", key)).get();
-    getResponse = readOnlyCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      readOnlyCacheClient.close();
+      readOnlyCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheKeyReadOnly("someothercache", key))
+              .get();
+      getResponse = readOnlyCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
 
-    readOnlyCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyReadWrite(cacheName, "someotherkey"))
-            .get();
-    getResponse = readOnlyCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      readOnlyCacheClient.close();
+      readOnlyCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheKeyReadWrite(cacheName, "someotherkey"))
+              .get();
+      getResponse = readOnlyCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+    } finally {
+      readOnlyCacheClient.close();
+    }
   }
 
   @Test
@@ -599,25 +618,31 @@ public class AuthClientCacheTests extends BaseTestClass {
     CacheClient writeOnlyCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheKeyWriteOnly(cacheName, key)).get();
 
-    SetResponse setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
-    assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
-    GetResponse getResponse = writeOnlyCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+    try {
+      SetResponse setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
+      assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
+      GetResponse getResponse = writeOnlyCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
 
-    writeOnlyCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyWriteOnly("someothercache", key))
-            .get();
-    setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      writeOnlyCacheClient.close();
+      writeOnlyCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheKeyWriteOnly("someothercache", key))
+              .get();
+      setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
 
-    writeOnlyCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyWriteOnly(cacheName, "someotherkey"))
-            .get();
-    setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      writeOnlyCacheClient.close();
+      writeOnlyCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheKeyWriteOnly(cacheName, "someotherkey"))
+              .get();
+      setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+    } finally {
+      writeOnlyCacheClient.close();
+    }
   }
 
   @Test
@@ -854,37 +879,44 @@ public class AuthClientCacheTests extends BaseTestClass {
   @Test
   void generateDisposableCacheKeyPrefixAuthTokenReadWriteHappyPath()
       throws ExecutionException, InterruptedException {
-    CacheClient readwriteCacheClient =
+    CacheClient readWriteCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheKeyPrefixReadWrite(cacheName, key)).get();
 
-    SetResponse setResponse = readwriteCacheClient.set(cacheName, key, value).get();
-    assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
+    try {
+      SetResponse setResponse = readWriteCacheClient.set(cacheName, key, value).get();
+      assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
 
-    GetResponse getResponse = readwriteCacheClient.get(cacheName, key).get();
-    assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
-    GetResponse.Hit hit = (GetResponse.Hit) getResponse;
-    assertEquals(value, hit.valueString());
+      GetResponse getResponse = readWriteCacheClient.get(cacheName, key).get();
+      assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
+      GetResponse.Hit hit = (GetResponse.Hit) getResponse;
+      assertEquals(value, hit.valueString());
 
-    readwriteCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyPrefixReadWrite("someothercache", key))
-            .get();
-    setResponse = readwriteCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
-    getResponse = readwriteCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      readWriteCacheClient.close();
+      readWriteCacheClient =
+          getClientForTokenScope(
+                  DisposableTokenScopes.cacheKeyPrefixReadWrite("someothercache", key))
+              .get();
+      setResponse = readWriteCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      getResponse = readWriteCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
 
-    readwriteCacheClient =
-        getClientForTokenScope(
-                DisposableTokenScopes.cacheKeyPrefixReadWrite(cacheName, "someotherkey"))
-            .get();
-    setResponse = readwriteCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
-    getResponse = readwriteCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      readWriteCacheClient.close();
+      readWriteCacheClient =
+          getClientForTokenScope(
+                  DisposableTokenScopes.cacheKeyPrefixReadWrite(cacheName, "someotherkey"))
+              .get();
+      setResponse = readWriteCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      getResponse = readWriteCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+    } finally {
+      readWriteCacheClient.close();
+    }
   }
 
   @Test
@@ -893,33 +925,41 @@ public class AuthClientCacheTests extends BaseTestClass {
     CacheClient readOnlyCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheKeyPrefixReadOnly(cacheName, key)).get();
 
-    SetResponse setResponse = readOnlyCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+    try {
+      SetResponse setResponse = readOnlyCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
 
-    CacheClient readWriteCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyPrefixReadWrite(cacheName, key)).get();
-    readWriteCacheClient.set(cacheName, key, value).get();
+      CacheClient readWriteCacheClient =
+          getClientForTokenScope(DisposableTokenScopes.cacheKeyPrefixReadWrite(cacheName, key))
+              .get();
+      readWriteCacheClient.set(cacheName, key, value).get();
 
-    GetResponse getResponse = readOnlyCacheClient.get(cacheName, key).get();
-    assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
-    GetResponse.Hit hit = (GetResponse.Hit) getResponse;
-    assertEquals(value, hit.valueString());
+      GetResponse getResponse = readOnlyCacheClient.get(cacheName, key).get();
+      assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
+      GetResponse.Hit hit = (GetResponse.Hit) getResponse;
+      assertEquals(value, hit.valueString());
 
-    readOnlyCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyPrefixReadOnly("someothercache", key))
-            .get();
-    getResponse = readOnlyCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      readOnlyCacheClient.close();
+      readOnlyCacheClient =
+          getClientForTokenScope(
+                  DisposableTokenScopes.cacheKeyPrefixReadOnly("someothercache", key))
+              .get();
+      getResponse = readOnlyCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
 
-    readOnlyCacheClient =
-        getClientForTokenScope(
-                DisposableTokenScopes.cacheKeyPrefixReadOnly(cacheName, "someotherkey"))
-            .get();
-    getResponse = readOnlyCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      readOnlyCacheClient.close();
+      readOnlyCacheClient =
+          getClientForTokenScope(
+                  DisposableTokenScopes.cacheKeyPrefixReadOnly(cacheName, "someotherkey"))
+              .get();
+      getResponse = readOnlyCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+    } finally {
+      readOnlyCacheClient.close();
+    }
   }
 
   @Test
@@ -928,26 +968,33 @@ public class AuthClientCacheTests extends BaseTestClass {
     CacheClient writeOnlyCacheClient =
         getClientForTokenScope(DisposableTokenScopes.cacheKeyPrefixWriteOnly(cacheName, key)).get();
 
-    SetResponse setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
-    assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
-    GetResponse getResponse = writeOnlyCacheClient.get(cacheName, key).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+    try {
+      SetResponse setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
+      assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
+      GetResponse getResponse = writeOnlyCacheClient.get(cacheName, key).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
 
-    writeOnlyCacheClient =
-        getClientForTokenScope(DisposableTokenScopes.cacheKeyPrefixWriteOnly("someothercache", key))
-            .get();
-    setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      writeOnlyCacheClient.close();
+      writeOnlyCacheClient =
+          getClientForTokenScope(
+                  DisposableTokenScopes.cacheKeyPrefixWriteOnly("someothercache", key))
+              .get();
+      setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
 
-    writeOnlyCacheClient =
-        getClientForTokenScope(
-                DisposableTokenScopes.cacheKeyPrefixWriteOnly(cacheName, "someotherkey"))
-            .get();
-    setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      writeOnlyCacheClient.close();
+      writeOnlyCacheClient =
+          getClientForTokenScope(
+                  DisposableTokenScopes.cacheKeyPrefixWriteOnly(cacheName, "someotherkey"))
+              .get();
+      setResponse = writeOnlyCacheClient.set(cacheName, key, value).get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+    } finally {
+      writeOnlyCacheClient.close();
+    }
   }
 
   // Tests using DisposableTokenScopes composed of multiple permissions
@@ -969,78 +1016,84 @@ public class AuthClientCacheTests extends BaseTestClass {
 
     CacheClient client = getClientForTokenScope(scope).get();
 
-    // Test read/write on specified key and key prefix
-    SetResponse setResponse = client.set(cacheName, "cow", "moo").get();
-    assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
-    GetResponse getResponse = client.get(cacheName, "cow").get();
-    assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
-    GetResponse.Hit hit = (GetResponse.Hit) getResponse;
-    assertEquals("moo", hit.valueString());
+    try {
+      // Test read/write on specified key and key prefix
+      SetResponse setResponse = client.set(cacheName, "cow", "moo").get();
+      assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
+      GetResponse getResponse = client.get(cacheName, "cow").get();
+      assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
+      GetResponse.Hit hit = (GetResponse.Hit) getResponse;
+      assertEquals("moo", hit.valueString());
 
-    setResponse = client.set(cacheName, "pet-cat", "meow").get();
-    assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
-    getResponse = client.get(cacheName, "pet-cat").get();
-    assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
-    GetResponse.Hit hit2 = (GetResponse.Hit) getResponse;
-    assertEquals("meow", hit2.valueString());
+      setResponse = client.set(cacheName, "pet-cat", "meow").get();
+      assertTrue(setResponse instanceof SetResponse.Success, "Unexpected response: " + setResponse);
+      getResponse = client.get(cacheName, "pet-cat").get();
+      assertTrue(getResponse instanceof GetResponse.Hit, "Unexpected response: " + getResponse);
+      GetResponse.Hit hit2 = (GetResponse.Hit) getResponse;
+      assertEquals("meow", hit2.valueString());
 
-    // Test read/write on a different cache or unspecified key/prefix
-    setResponse = client.set(cacheName, "giraffe", "noidea").get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
-    getResponse = client.get(cacheName, "giraffe").get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      // Test read/write on a different cache or unspecified key/prefix
+      setResponse = client.set(cacheName, "giraffe", "noidea").get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      getResponse = client.get(cacheName, "giraffe").get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
 
-    // Test read/write on specified key and key prefix to a different cache
-    permissions = new ArrayList<>();
-    permissions.add(
-        new DisposableToken.CacheItemPermission(
-            CacheRole.ReadWrite,
-            CacheSelector.ByName("a-totally-different-cache"),
-            CacheItemSelector.ByKey("cow")));
-    permissions.add(
-        new DisposableToken.CacheItemPermission(
-            CacheRole.ReadWrite,
-            CacheSelector.ByName("a-totally-different-cache"),
-            CacheItemSelector.ByKeyPrefix("pet")));
-    scope = new DisposableTokenScope(permissions);
+      // Test read/write on specified key and key prefix to a different cache
+      permissions = new ArrayList<>();
+      permissions.add(
+          new DisposableToken.CacheItemPermission(
+              CacheRole.ReadWrite,
+              CacheSelector.ByName("a-totally-different-cache"),
+              CacheItemSelector.ByKey("cow")));
+      permissions.add(
+          new DisposableToken.CacheItemPermission(
+              CacheRole.ReadWrite,
+              CacheSelector.ByName("a-totally-different-cache"),
+              CacheItemSelector.ByKeyPrefix("pet")));
+      scope = new DisposableTokenScope(permissions);
 
-    client = getClientForTokenScope(scope).get();
+      client.close();
+      client = getClientForTokenScope(scope).get();
 
-    setResponse = client.set(cacheName, "cow", "moo").get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
-    getResponse = client.get(cacheName, "cow").get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      setResponse = client.set(cacheName, "cow", "moo").get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      getResponse = client.get(cacheName, "cow").get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
 
-    setResponse = client.set(cacheName, "pet-cat", "meow").get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
-    getResponse = client.get(cacheName, "pet-cat").get();
-    assertEquals(
-        MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+      setResponse = client.set(cacheName, "pet-cat", "meow").get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((SetResponse.Error) setResponse).getErrorCode());
+      getResponse = client.get(cacheName, "pet-cat").get();
+      assertEquals(
+          MomentoErrorCode.PERMISSION_ERROR, ((GetResponse.Error) getResponse).getErrorCode());
+    } finally {
+      client.close();
+    }
   }
 
   @Test
   void generateDisposableMultiPermissionReadOnlyWithSelectorsAllCaches() {
     String cache2Name = cacheName + "-2";
+
+    List<DisposableTokenPermission> permissions = new ArrayList<>();
+    permissions.add(
+        new DisposableToken.CacheItemPermission(
+            CacheRole.ReadOnly, CacheSelector.AllCaches, CacheItemSelector.ByKey("cow")));
+    permissions.add(
+        new DisposableToken.CacheItemPermission(
+            CacheRole.ReadOnly, CacheSelector.AllCaches, CacheItemSelector.ByKeyPrefix("pet")));
+    DisposableTokenScope scope = new DisposableTokenScope(permissions);
+    CacheClient client = getClientForTokenScope(scope).join();
+
     try {
       CacheCreateResponse createCacheResponse = cacheClient.createCache(cache2Name).get();
       assertTrue(
           createCacheResponse instanceof CacheCreateResponse.Success,
           "Unexpected response: " + createCacheResponse);
-
-      List<DisposableTokenPermission> permissions = new ArrayList<>();
-      permissions.add(
-          new DisposableToken.CacheItemPermission(
-              CacheRole.ReadOnly, CacheSelector.AllCaches, CacheItemSelector.ByKey("cow")));
-      permissions.add(
-          new DisposableToken.CacheItemPermission(
-              CacheRole.ReadOnly, CacheSelector.AllCaches, CacheItemSelector.ByKeyPrefix("pet")));
-      DisposableTokenScope scope = new DisposableTokenScope(permissions);
-      CacheClient client = getClientForTokenScope(scope).get();
 
       // sets should fail for both caches
       SetResponse setResponse = client.set(cacheName, "cow", "moo").get();
@@ -1091,31 +1144,31 @@ public class AuthClientCacheTests extends BaseTestClass {
       CacheDeleteResponse response = cacheClient.deleteCache(cache2Name).join();
       assertTrue(
           response instanceof CacheDeleteResponse.Success, "Unexpected response: " + response);
+      client.close();
     }
   }
 
   @Test
   void generateDisposableMultiPermissionReadOnlyWriteOnly() {
     String cache2Name = cacheName + "-2";
+
+    List<DisposableTokenPermission> permissions = new ArrayList<>();
+    permissions.add(
+        new DisposableToken.CacheItemPermission(
+            CacheRole.WriteOnly, CacheSelector.ByName(cacheName), CacheItemSelector.ByKey("cow")));
+    permissions.add(
+        new DisposableToken.CacheItemPermission(
+            CacheRole.ReadOnly,
+            CacheSelector.ByName(cache2Name),
+            CacheItemSelector.ByKeyPrefix("pet")));
+    DisposableTokenScope scope = new DisposableTokenScope(permissions);
+    CacheClient client = getClientForTokenScope(scope).join();
+
     try {
       CacheCreateResponse createCacheResponse = cacheClient.createCache(cache2Name).get();
       assertTrue(
           createCacheResponse instanceof CacheCreateResponse.Success,
           "Unexpected response: " + createCacheResponse);
-
-      List<DisposableTokenPermission> permissions = new ArrayList<>();
-      permissions.add(
-          new DisposableToken.CacheItemPermission(
-              CacheRole.WriteOnly,
-              CacheSelector.ByName(cacheName),
-              CacheItemSelector.ByKey("cow")));
-      permissions.add(
-          new DisposableToken.CacheItemPermission(
-              CacheRole.ReadOnly,
-              CacheSelector.ByName(cache2Name),
-              CacheItemSelector.ByKeyPrefix("pet")));
-      DisposableTokenScope scope = new DisposableTokenScope(permissions);
-      CacheClient client = getClientForTokenScope(scope).get();
 
       // we can write to only one key and not read in test cache
       SetResponse setResponse = client.set(cacheName, "cow", "moo").get();
@@ -1156,6 +1209,7 @@ public class AuthClientCacheTests extends BaseTestClass {
       CacheDeleteResponse response = cacheClient.deleteCache(cache2Name).join();
       assertTrue(
           response instanceof CacheDeleteResponse.Success, "Unexpected response: " + response);
+      client.close();
     }
   }
 }

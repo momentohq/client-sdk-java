@@ -1,57 +1,44 @@
 package momento.sdk;
 
+import static momento.sdk.TestUtils.randomBytes;
+import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import java.nio.charset.StandardCharsets;
-import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
 import momento.sdk.batchutils.MomentoBatchUtils;
 import momento.sdk.batchutils.request.BatchGetRequest;
 import momento.sdk.batchutils.response.BatchGetResponse;
-import momento.sdk.config.Configurations;
 import momento.sdk.responses.cache.GetResponse;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
+  private static MomentoBatchUtils momentoBatchUtils;
 
-  private CacheClient cacheClient;
-  private String cacheName;
-  private MomentoBatchUtils momentoBatchUtils;
-
-  @BeforeEach
-  void setup() {
-    cacheClient =
-        CacheClient.builder(
-                credentialProvider, Configurations.Laptop.latest(), Duration.ofSeconds(10))
-            .build();
-    cacheName = "batchTest";
-    cacheClient.createCache(cacheName).join();
-
+  @BeforeAll
+  static void setup() {
     momentoBatchUtils = MomentoBatchUtils.builder(cacheClient).build();
   }
 
-  @AfterEach
-  void teardown() {
+  @AfterAll
+  static void teardown() {
     momentoBatchUtils.close();
-    cacheClient.deleteCache(cacheName).join();
-    cacheClient.close();
   }
 
   @Test
   void testBatchGetWithStringKeys() {
     // Setup test data
-    String key1 = "testKey1";
-    String value1 = "testValue1";
+    String key1 = randomString();
+    String value1 = randomString();
     cacheClient.set(cacheName, key1, value1).join();
 
-    String key2 = "testKey2";
-    String value2 = "testValue2";
+    String key2 = randomString();
+    String value2 = randomString();
     cacheClient.set(cacheName, key2, value2).join();
 
     // Create a batch get request
@@ -103,12 +90,12 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
   @Test
   void testBatchGetWithByteArrayKeys() {
     // Setup test data
-    byte[] key1 = "testKey1".getBytes();
-    byte[] value1 = "testValue1".getBytes();
+    byte[] key1 = randomBytes();
+    byte[] value1 = randomBytes();
     cacheClient.set(cacheName, key1, value1).join();
 
-    byte[] key2 = "testKey2".getBytes();
-    byte[] value2 = "testValue2".getBytes();
+    byte[] key2 = randomBytes();
+    byte[] value2 = randomBytes();
     cacheClient.set(cacheName, key2, value2).join();
 
     // Create a batch get request
@@ -160,14 +147,17 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
             .build();
 
     // test data with more keys than max concurrent requests
+    ArrayList<String> keys = new ArrayList<>();
+    ArrayList<String> values = new ArrayList<>();
     for (int i = 0; i < numberOfKeys; i++) {
-      String key = "testKey" + i;
-      String value = "testValue" + i;
+      String key = randomString("testKey" + i);
+      String value = randomString("testValue" + i);
       cacheClient.set(cacheName, key, value).join();
+
+      keys.add(key);
+      values.add(value);
     }
 
-    List<String> keys =
-        IntStream.range(0, numberOfKeys).mapToObj(i -> "testKey" + i).collect(Collectors.toList());
     BatchGetRequest.StringKeyBatchGetRequest request =
         new BatchGetRequest.StringKeyBatchGetRequest(keys);
 
@@ -183,8 +173,8 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
 
     // Assert each response
     for (int i = 0; i < numberOfKeys; i++) {
-      String expectedKey = "testKey" + i;
-      String expectedValue = "testValue" + i;
+      String expectedKey = keys.get(i);
+      String expectedValue = values.get(i);
       boolean keyFound =
           summaries.stream()
               .anyMatch(
@@ -204,7 +194,8 @@ public class MomentoBatchUtilsIntegrationTest extends BaseTestClass {
   @Test
   void testBatchGetOrderWithStringKeys() {
     // Setup test data with a specific order
-    List<String> keys = Arrays.asList("key3", "key1", "key2");
+    List<String> keys =
+        Arrays.asList(randomString("key3"), randomString("key1"), randomString("key2"));
     List<String> values = Arrays.asList("value3", "value1", "value2");
 
     for (int i = 0; i < keys.size(); i++) {
