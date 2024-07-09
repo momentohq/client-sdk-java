@@ -19,7 +19,7 @@ public class BaseCacheTestClass {
 
   @BeforeAll
   static void beforeAll() {
-    credentialProvider = CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
+    credentialProvider = CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
     cacheClient =
         CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
             .build();

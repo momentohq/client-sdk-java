@@ -17,7 +17,7 @@ public class BaseStorageTestClass {
 
   @BeforeAll
   static void beforeAll() {
-    credentialProvider = CredentialProvider.fromEnvVar("TEST_AUTH_TOKEN");
+    credentialProvider = CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
     storageClient =
         new PreviewStorageClientBuilder()
             .withCredentialProvider(credentialProvider)
