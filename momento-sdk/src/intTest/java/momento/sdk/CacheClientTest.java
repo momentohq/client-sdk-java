@@ -33,7 +33,7 @@ import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
 /** Just includes a happy test path that interacts with both control and data plane clients. */
-final class CacheClientTest extends BaseTestClass {
+final class CacheClientTest extends BaseCacheTestClass {
   private static final String JWT_HEADER_BASE64 = "eyJhbGciOiJIUzUxMiJ9";
   private static final String JWT_INVALID_SIGNATURE_BASE64 =
       "gdghdjjfjyehhdkkkskskmmls76573jnajhjjjhjdhnndy";

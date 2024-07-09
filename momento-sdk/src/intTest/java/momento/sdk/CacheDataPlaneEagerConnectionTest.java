@@ -1,6 +1,5 @@
 package momento.sdk;
 
-import static momento.sdk.BaseTestClass.credentialProvider;
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -10,7 +9,7 @@ import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;
 import org.junit.jupiter.api.Test;
 
-public class CacheDataPlaneEagerConnectionTest extends BaseTestClass {
+public class CacheDataPlaneEagerConnectionTest extends BaseCacheTestClass {
   @Test
   void getReturnsHitAfterSet() {
     CacheClient client =

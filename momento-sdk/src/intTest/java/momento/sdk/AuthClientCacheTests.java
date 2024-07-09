@@ -28,7 +28,7 @@ import momento.sdk.responses.cache.control.CacheDeleteResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class AuthClientCacheTests extends BaseTestClass {
+public class AuthClientCacheTests extends BaseCacheTestClass {
   private static AuthClient authClient;
 
   String key = "test-key";
