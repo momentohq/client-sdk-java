@@ -23,7 +23,7 @@ import momento.sdk.responses.cache.dictionary.DictionarySetFieldsResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-public class DictionaryTest extends BaseTestClass {
+public class DictionaryTest extends BaseCacheTestClass {
   Map<String, String> stringStringMap = new HashMap<>();
   Map<String, byte[]> stringBytesMap = new HashMap<>();
   Map<byte[], String> bytesStringMap = new HashMap<>();

@@ -10,7 +10,7 @@ import momento.sdk.responses.cache.SetResponse;
 import org.junit.jupiter.api.Test;
 
 /** Tests client side exceptions */
-final class CacheDataPlaneClientSideTest extends BaseTestClass {
+final class CacheDataPlaneClientSideTest extends BaseCacheTestClass {
   @Test
   public void nullKeyGetReturnsError() {
     final GetResponse stringResponse = cacheClient.get(cacheName, (String) null).join();

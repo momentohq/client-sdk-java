@@ -18,7 +18,7 @@ import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class TopicClientTest extends BaseTestClass {
+public class TopicClientTest extends BaseCacheTestClass {
   private static TopicClient topicClient;
 
   private final String topicName = "test-topic";

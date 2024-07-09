@@ -13,7 +13,7 @@ import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
-public class AuthClientTopicTests extends BaseTestClass {
+public class AuthClientTopicTests extends BaseCacheTestClass {
   private static AuthClient authClient;
   private static String topicName = "topic";
 

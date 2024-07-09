@@ -29,7 +29,7 @@ import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-public class SortedSetTest extends BaseTestClass {
+public class SortedSetTest extends BaseCacheTestClass {
   // sortedSetPutElement
 
   @Test

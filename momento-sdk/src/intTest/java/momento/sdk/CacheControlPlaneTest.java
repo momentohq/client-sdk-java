@@ -21,7 +21,7 @@ import momento.sdk.responses.cache.signing.SigningKeyRevokeResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-final class CacheControlPlaneTest extends BaseTestClass {
+final class CacheControlPlaneTest extends BaseCacheTestClass {
   @Test
   public void createListRevokeSigningKeyWorks() {
     final SigningKeyCreateResponse signingKeyCreateResponse =

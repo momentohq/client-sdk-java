@@ -16,7 +16,7 @@ import momento.sdk.responses.cache.SetResponse;
 import org.junit.jupiter.api.Test;
 
 /** Tests with Async APIs. */
-final class CacheDataPlaneTest extends BaseTestClass {
+final class CacheDataPlaneTest extends BaseCacheTestClass {
   @Test
   void getReturnsHitAfterSet() {
     final String key = randomString("key");

@@ -22,7 +22,7 @@ import momento.sdk.responses.cache.list.ListRetainResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-public class ListTest extends BaseTestClass {
+public class ListTest extends BaseCacheTestClass {
   private final List<String> values = Arrays.asList("val1", "val2", "val3", "val4");
 
   @Test

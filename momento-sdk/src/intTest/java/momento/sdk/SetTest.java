@@ -17,7 +17,7 @@ import momento.sdk.responses.cache.set.SetRemoveElementsResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.Test;
 
-public class SetTest extends BaseTestClass {
+public class SetTest extends BaseCacheTestClass {
   @Test
   public void setAddElementStringHappyPath() {
     final String setName = randomString();

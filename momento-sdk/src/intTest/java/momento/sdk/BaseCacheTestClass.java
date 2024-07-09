@@ -9,7 +9,7 @@ import momento.sdk.responses.cache.control.CacheDeleteResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
-public class BaseTestClass {
+public class BaseCacheTestClass {
   protected static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
   protected static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
   protected static CredentialProvider credentialProvider;
