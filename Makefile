@@ -1,3 +1,6 @@
+.PHONY: all
+all: precommit
+
 .PHONY: clean
 ## Clean the project
 clean:
@@ -34,7 +37,7 @@ lint:
 
 .PHONY: precommit
 ## Run the precommit checks
-precommit: format lint test
+precommit: format lint build test
 
 .PHONY: help
 # See <https://gist.github.com/klmr/575726c7e05d8780505a> for explanation.

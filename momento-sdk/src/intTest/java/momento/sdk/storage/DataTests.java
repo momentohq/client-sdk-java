@@ -80,7 +80,12 @@ public class DataTests extends BaseStorageTestClass {
     assertThat(response).isInstanceOf(GetResponse.NotFound.class);
     assert response.valueWhenFound().isEmpty();
     assert response instanceof GetResponse.NotFound;
-    assertThrows(ClientSdkException.class, response.valueWhenFound()::orElseThrow);
+    assertThrows(ClientSdkException.class, response.valueWhenFound()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> {
+          response.valueWhenFound().orElseThrow(() -> new RuntimeException("derp"));
+        });
   }
 
   @Test
