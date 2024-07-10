@@ -23,7 +23,7 @@ Example Code: [BasicExample.java](src/main/java/momento/client/example/BasicExam
 
 Update your Gradle build to include the components
 
-**build.gradle.kts**
+#### build.gradle.kts
 
 ```kotlin
 dependencies {
