@@ -24,6 +24,9 @@ dependencies {
     // Logging framework to log and enable logging in the Momento client.
     implementation("ch.qos.logback:logback-classic:1.4.7")
 
+    // Histogram for collecting stats in the load generator
+    implementation("org.hdrhistogram:HdrHistogram:2.1.12")
+
     // Use JUnit Jupiter for testing.
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
 }
