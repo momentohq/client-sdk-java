@@ -6,6 +6,7 @@ import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
+import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.cache.DeleteResponse;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.IncrementResponse;
@@ -95,7 +96,7 @@ public class DocExamplesJavaAPIs {
     if (response instanceof CacheCreateResponse.Success) {
       System.out.println("Cache 'test-cache' created");
     } else if (response instanceof CacheCreateResponse.Error error) {
-      if (error.getCause() instanceof AlreadyExistsException) {
+      if (error.getErrorCode() == MomentoErrorCode.ALREADY_EXISTS_ERROR) {
         System.out.println("Cache 'test-cache' already exists");
       } else {
         throw new RuntimeException(
