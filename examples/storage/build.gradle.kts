@@ -40,6 +40,12 @@ tasks.test {
     useJUnitPlatform()
 }
 
+task("basic", JavaExec::class) {
+    description = "Run the basic example"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.BasicExample")
+}
+
 task("docExamples", JavaExec::class) {
     description = "Validate that the API doc examples run"
     classpath = sourceSets.main.get().runtimeClasspath
