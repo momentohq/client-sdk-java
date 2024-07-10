@@ -1,5 +1,6 @@
 package momento.sdk.responses.storage;
 
+import java.util.function.Supplier;
 import momento.sdk.utils.MomentoOptional;
 
 /**
@@ -55,8 +56,8 @@ public class StorageValue {
    * Get the value as a byte array.
    *
    * @return the value as an optional byte array. If the value is not a byte array, an empty
-   *     optional will be returned. Call {@link MomentoOptional#orElseThrow()} to short circuit the
-   *     operation and throw an exception.
+   *     optional will be returned. Call {@link MomentoOptional#orElseThrow(Supplier)} to short
+   *     circuit the operation and throw an exception.
    */
   public MomentoOptional<byte[]> getByteArray() {
     if (itemType != StorageItemType.BYTE_ARRAY) {
@@ -69,8 +70,8 @@ public class StorageValue {
    * Get the value as a string.
    *
    * @return the value as an optional string. If the value is not a string, an empty optional will
-   *     be returned. Call {@link MomentoOptional#orElseThrow()} to short circuit the operation and
-   *     throw an exception.
+   *     be returned. Call {@link MomentoOptional#orElseThrow(Supplier)} to short circuit the
+   *     operation and throw an exception.
    */
   public MomentoOptional<String> getString() {
     if (itemType != StorageItemType.STRING) {
@@ -83,8 +84,8 @@ public class StorageValue {
    * Get the value as a long.
    *
    * @return the value as an optional long. If the value is not a long, an empty optional will be
-   *     returned. Call {@link MomentoOptional#orElseThrow()} to short circuit the operation and
-   *     throw an exception.
+   *     returned. Call {@link MomentoOptional#orElseThrow(Supplier)} to short circuit the operation
+   *     and throw an exception.
    */
   public MomentoOptional<Long> getLong() {
     if (itemType != StorageItemType.LONG) {
@@ -98,8 +99,8 @@ public class StorageValue {
    * Get the value as a double.
    *
    * @return the value as an optional double. If the value is not a double, an empty optional will
-   *     be returned. Call {@link MomentoOptional#orElseThrow()} to short circuit the operation and
-   *     throw an exception.
+   *     be returned. Call {@link MomentoOptional#orElseThrow(Supplier)} to short circuit the
+   *     operation and throw an exception.
    */
   public MomentoOptional<Double> getDouble() {
     if (itemType != StorageItemType.DOUBLE) {

@@ -12,29 +12,65 @@ import org.junit.jupiter.api.Test;
 public class GetResponseTest {
   @Test
   public void testGetResponseFoundWorksOnTheRightType() {
-    GetResponse.Found response = GetResponse.Found.of(new byte[] {0, 1, 2, 3});
+    final GetResponse.Found response = GetResponse.Found.of(new byte[] {0, 1, 2, 3});
     assert response.value().getByteArray().get().length == 4;
-    assertThrows(ClientSdkException.class, response.value().getString()::orElseThrow);
-    assertThrows(ClientSdkException.class, response.value().getLong()::orElseThrow);
-    assertThrows(ClientSdkException.class, response.value().getDouble()::orElseThrow);
+    assertThrows(ClientSdkException.class, response.value().getString()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response.value().getString().orElseThrow(() -> new RuntimeException("derp")));
+    assertThrows(ClientSdkException.class, response.value().getLong()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response.value().getLong().orElseThrow(() -> new RuntimeException("derp")));
+    assertThrows(ClientSdkException.class, response.value().getDouble()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response.value().getDouble().orElseThrow(() -> new RuntimeException("derp")));
 
-    response = GetResponse.Found.of("string");
-    assertThrows(ClientSdkException.class, response.value().getByteArray()::orElseThrow);
-    assert response.value().getString().get().equals("string");
-    assertThrows(ClientSdkException.class, response.value().getLong()::orElseThrow);
-    assertThrows(ClientSdkException.class, response.value().getDouble()::orElseThrow);
+    final GetResponse.Found response2 = GetResponse.Found.of("string");
+    assertThrows(ClientSdkException.class, response2.value().getByteArray()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response2.value().getByteArray().orElseThrow(() -> new RuntimeException("derp")));
+    assert response2.value().getString().get().equals("string");
+    assertThrows(ClientSdkException.class, response2.value().getLong()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response2.value().getLong().orElseThrow(() -> new RuntimeException("derp")));
+    assertThrows(ClientSdkException.class, response2.value().getDouble()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response2.value().getDouble().orElseThrow(() -> new RuntimeException("derp")));
 
-    response = GetResponse.Found.of(42L);
-    assertThrows(ClientSdkException.class, response.value().getByteArray()::orElseThrow);
-    assertThrows(ClientSdkException.class, response.value().getString()::orElseThrow);
-    assert response.value().getLong().get() == 42L;
-    assertThrows(ClientSdkException.class, response.value().getDouble()::orElseThrow);
+    final GetResponse.Found response3 = GetResponse.Found.of(42L);
+    assertThrows(ClientSdkException.class, response3.value().getByteArray()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response3.value().getByteArray().orElseThrow(() -> new RuntimeException("derp")));
+    assertThrows(ClientSdkException.class, response3.value().getString()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response3.value().getString().orElseThrow(() -> new RuntimeException("derp")));
+    assert response3.value().getLong().get() == 42L;
+    assertThrows(ClientSdkException.class, response3.value().getDouble()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response3.value().getDouble().orElseThrow(() -> new RuntimeException("derp")));
 
-    response = GetResponse.Found.of(3.14);
-    assertThrows(ClientSdkException.class, response.value().getByteArray()::orElseThrow);
-    assertThrows(ClientSdkException.class, response.value().getString()::orElseThrow);
-    assertThrows(ClientSdkException.class, response.value().getLong()::orElseThrow);
-    assert response.value().getDouble().get() == 3.14;
+    final GetResponse.Found response4 = GetResponse.Found.of(3.14);
+    assertThrows(ClientSdkException.class, response4.value().getByteArray()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response4.value().getByteArray().orElseThrow(() -> new RuntimeException("derp")));
+    assertThrows(ClientSdkException.class, response4.value().getString()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response4.value().getString().orElseThrow(() -> new RuntimeException("derp")));
+    assertThrows(ClientSdkException.class, response4.value().getLong()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> response4.value().getLong().orElseThrow(() -> new RuntimeException("derp")));
+    assert response4.value().getDouble().get() == 3.14;
   }
 
   @Test
@@ -62,6 +98,9 @@ public class GetResponseTest {
                 new MomentoTransportErrorDetails(
                     new MomentoGrpcErrorDetails(Status.Code.NOT_FOUND, "not found"))));
     assert error.valueWhenFound().isEmpty();
-    assertThrows(ClientSdkException.class, error.valueWhenFound()::orElseThrow);
+    assertThrows(ClientSdkException.class, error.valueWhenFound()::get);
+    assertThrows(
+        RuntimeException.class,
+        () -> error.valueWhenFound().orElseThrow(() -> new RuntimeException("derp")));
   }
 }

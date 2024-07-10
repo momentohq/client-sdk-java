@@ -1,6 +1,7 @@
 package momento.sdk.utils;
 
 import java.util.Optional;
+import java.util.function.Supplier;
 import momento.sdk.exceptions.ClientSdkException;
 
 /**
@@ -64,7 +65,7 @@ public class MomentoOptional<T> {
    * @return the value.
    */
   public T get() {
-    return this.orElseThrow();
+    return optional.orElseThrow(() -> new ClientSdkException(onEmptyExceptionMessage));
   }
 
   /**
@@ -72,8 +73,12 @@ public class MomentoOptional<T> {
    *
    * @return the value.
    */
-  public T orElseThrow() {
-    return optional.orElseThrow(() -> new ClientSdkException(onEmptyExceptionMessage));
+  public <X extends Throwable> T orElseThrow(Supplier<? extends X> exceptionSupplier) throws X {
+    if (this.isEmpty()) {
+      throw exceptionSupplier.get();
+    } else {
+      return this.get();
+    }
   }
 
   /**
