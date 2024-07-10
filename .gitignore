@@ -46,4 +46,3 @@ examples/lib/.classpath
 examples/lib/.project
 examples/lib/bin
 .vscode/
-*logback.xml
