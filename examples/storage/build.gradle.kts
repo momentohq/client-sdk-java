@@ -19,14 +19,8 @@ repositories {
 dependencies {
     implementation("software.momento.java:sdk:1.14.1")
 
-    implementation("com.google.guava:guava:31.1-android")
-
     // Logging framework to log and enable logging in the Momento client.
     implementation("ch.qos.logback:logback-classic:1.4.7")
-    implementation("org.slf4j:slf4j-api:1.7.36")
-
-    // Histogram for collecting stats in the load generator
-    implementation("org.hdrhistogram:HdrHistogram:2.1.12")
 
     // Use JUnit Jupiter for testing.
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
