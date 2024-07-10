@@ -59,8 +59,8 @@ task("docCheatSheet", JavaExec::class) {
 }
 
 task("docsTasks") {
-    dependsOn("docExamples")
     dependsOn("docCheatSheet")
+    dependsOn("docExamples")
 }
 
 task("prepareKotlinBuildScriptModel") {}
