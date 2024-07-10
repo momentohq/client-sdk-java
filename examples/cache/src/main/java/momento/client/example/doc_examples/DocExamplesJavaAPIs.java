@@ -5,7 +5,6 @@ import java.util.stream.Collectors;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configurations;
-import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.cache.DeleteResponse;
 import momento.sdk.responses.cache.GetResponse;
