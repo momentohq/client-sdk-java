@@ -1,5 +1,6 @@
 package momento.client.example;
 
+import java.nio.charset.StandardCharsets;
 import momento.sdk.PreviewStorageClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfigurations;
@@ -8,8 +9,6 @@ import momento.sdk.responses.storage.CreateStoreResponse;
 import momento.sdk.responses.storage.GetResponse;
 import momento.sdk.responses.storage.ListStoresResponse;
 import momento.sdk.responses.storage.StoreInfo;
-
-import java.nio.charset.StandardCharsets;
 
 public class BasicExample {
 
@@ -54,11 +53,19 @@ public class BasicExample {
         System.out.printf("Found value for key '%s': '%s'%n", KEY, hit.value().getString().get());
 
         // you're not sure of the type:
-        switch(hit.value().getType()) {
-            case BYTE_ARRAY -> { System.out.println("Got a byte array: " + hit.value().getByteArray().get()); }
-            case STRING -> { System.out.println("Got a string: " + hit.value().getString().get()); }
-            case LONG -> { System.out.println("Got a long: " + hit.value().getLong().get()); }
-            case DOUBLE -> { System.out.println("Got a double: " + hit.value().getDouble().get());}
+        switch (hit.value().getType()) {
+          case BYTE_ARRAY -> {
+            System.out.println("Got a byte array: " + hit.value().getByteArray().get());
+          }
+          case STRING -> {
+            System.out.println("Got a string: " + hit.value().getString().get());
+          }
+          case LONG -> {
+            System.out.println("Got a long: " + hit.value().getLong().get());
+          }
+          case DOUBLE -> {
+            System.out.println("Got a double: " + hit.value().getDouble().get());
+          }
         }
       } else if (getResponse instanceof GetResponse.NotFound) {
         System.out.println("Found no value for key " + KEY);

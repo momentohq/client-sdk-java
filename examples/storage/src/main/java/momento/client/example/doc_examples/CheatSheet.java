@@ -7,9 +7,9 @@ import momento.sdk.config.StorageConfigurations;
 public class CheatSheet {
   public static void main(String[] args) {
     try (final var storageClient =
-                 new PreviewStorageClient(
-                         CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
-                         StorageConfigurations.Laptop.latest())) {
+        new PreviewStorageClient(
+            CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+            StorageConfigurations.Laptop.latest())) {
       // ...
     }
   }
