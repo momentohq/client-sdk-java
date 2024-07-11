@@ -19,13 +19,8 @@ repositories {
 dependencies {
     implementation("software.momento.java:sdk:1.14.1")
 
-    implementation("com.google.guava:guava:31.1-android")
-
     // Logging framework to log and enable logging in the Momento client.
     implementation("ch.qos.logback:logback-classic:1.4.7")
-
-    // Histogram for collecting stats in the load generator
-    implementation("org.hdrhistogram:HdrHistogram:2.1.12")
 
     // Use JUnit Jupiter for testing.
     testImplementation("org.junit.jupiter:junit-jupiter:5.9.2")
@@ -43,10 +38,27 @@ tasks.test {
     useJUnitPlatform()
 }
 
-task("topic", JavaExec::class) {
-    description = "Run the topic example"
+task("basic", JavaExec::class) {
+    description = "Run the basic example"
     classpath = sourceSets.main.get().runtimeClasspath
-    mainClass.set("momento.client.example.TopicExample")
+    mainClass.set("momento.client.example.BasicExample")
+}
+
+task("docExamples", JavaExec::class) {
+    description = "Validate that the API doc examples run"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.doc_examples.DocExamplesJavaAPIs")
+}
+
+task("docCheatSheet", JavaExec::class) {
+    description = "Validate that the doc cheat sheet runs"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.doc_examples.CheatSheet")
+}
+
+task("docsTasks") {
+    dependsOn("docCheatSheet")
+    dependsOn("docExamples")
 }
 
 task("prepareKotlinBuildScriptModel") {}
