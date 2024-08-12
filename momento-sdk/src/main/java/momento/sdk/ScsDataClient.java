@@ -21,6 +21,7 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.protobuf.ByteString;
 import grpc.cache_client.ECacheResult;
+import grpc.cache_client.ScsGrpc;
 import grpc.cache_client._DeleteRequest;
 import grpc.cache_client._DeleteResponse;
 import grpc.cache_client._DictionaryDeleteRequest;
@@ -99,6 +100,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -160,6 +164,7 @@ final class ScsDataClient extends ScsClientBase {
 
   private final Duration itemDefaultTtl;
   private final ScsDataGrpcStubsManager scsDataGrpcStubsManager;
+  private final ExecutorService requestConcurrencyExecutor;
 
   ScsDataClient(
       @Nonnull CredentialProvider credentialProvider,
@@ -167,6 +172,12 @@ final class ScsDataClient extends ScsClientBase {
       @Nonnull Duration defaultTtl) {
     this.itemDefaultTtl = defaultTtl;
     this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(credentialProvider, configuration);
+    if (configuration.getConcurrencyLimit().isPresent()) {
+      this.requestConcurrencyExecutor =
+          Executors.newWorkStealingPool(configuration.getConcurrencyLimit().get());
+    } else {
+      this.requestConcurrencyExecutor = null;
+    }
   }
 
   public void connect(final long eagerConnectionTimeout) {
@@ -1411,44 +1422,74 @@ final class ScsDataClient extends ScsClientBase {
         .collect(Collectors.toList());
   }
 
-  private CompletableFuture<GetResponse> sendGet(String cacheName, ByteString key) {
+  private <T, R> CompletableFuture<R> sendUnaryRequest(
+      String cacheName,
+      Function<ScsGrpc.ScsFutureStub, ListenableFuture<T>> stubCall,
+      Function<T, R> responseConverter,
+      Function<Exception, R> errorHandler) {
+
     checkCacheNameValid(cacheName);
 
-    // Submit request to non-blocking stub
-    final Metadata metadata = metadataWithCache(cacheName);
-    final ListenableFuture<_GetResponse> rspFuture =
-        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata).get(buildGetRequest(key));
+    return executeWithConcurrencyLimiting(
+        () -> {
+          final Metadata metadata = metadataWithCache(cacheName);
+          final ListenableFuture<T> rspFuture =
+              stubCall.apply(attachMetadata(scsDataGrpcStubsManager.getStub(), metadata));
 
-    // Build a CompletableFuture to return to caller
-    final CompletableFuture<GetResponse> returnFuture =
-        new CompletableFuture<GetResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
+          final CompletableFuture<R> returnFuture =
+              new CompletableFuture<R>() {
+                @Override
+                public boolean cancel(boolean mayInterruptIfRunning) {
+                  final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+                  super.cancel(mayInterruptIfRunning);
+                  return result;
+                }
+              };
 
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<_GetResponse>() {
-          @Override
-          public void onSuccess(_GetResponse rsp) {
-            returnFuture.complete(convertGetResponse(rsp));
-          }
+          Futures.addCallback(
+              rspFuture,
+              new FutureCallback<T>() {
+                @Override
+                public void onSuccess(T rsp) {
+                  returnFuture.complete(responseConverter.apply(rsp));
+                }
 
-          @Override
-          public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(new GetResponse.Error(CacheServiceExceptionMapper.convert(e)));
-          }
+                @Override
+                public void onFailure(@Nonnull Throwable e) {
+                  returnFuture.complete(errorHandler.apply((Exception) e));
+                }
+              },
+              MoreExecutors.directExecutor());
+
+          return returnFuture;
         },
-        // Execute on same thread that called execute on CompletionStage
-        MoreExecutors.directExecutor());
+        errorHandler);
+  }
 
-    return returnFuture;
+  private <R> CompletableFuture<R> executeWithConcurrencyLimiting(
+      Supplier<CompletableFuture<R>> operation, Function<Exception, R> errorHandler) {
+
+    if (requestConcurrencyExecutor != null) {
+      return CompletableFuture.supplyAsync(
+          () -> {
+            try {
+              return operation.get().get();
+            } catch (Exception e) {
+              return errorHandler.apply(e);
+            }
+          },
+          requestConcurrencyExecutor);
+    } else {
+      return operation.get();
+    }
+  }
+
+  private CompletableFuture<GetResponse> sendGet(String cacheName, ByteString key) {
+    return sendUnaryRequest(
+        cacheName,
+        stub -> stub.get(buildGetRequest(key)),
+        this::convertGetResponse,
+        e -> new GetResponse.Error(CacheServiceExceptionMapper.convert(e)));
   }
 
   private CompletableFuture<GetBatchResponse> sendGetBatch(
@@ -1557,44 +1598,11 @@ final class ScsDataClient extends ScsClientBase {
 
   private CompletableFuture<SetResponse> sendSet(
       String cacheName, ByteString key, ByteString value, Duration ttl) {
-    checkCacheNameValid(cacheName);
-
-    // Submit request to non-blocking stub
-    final Metadata metadata = metadataWithCache(cacheName);
-    final ListenableFuture<_SetResponse> rspFuture =
-        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-            .set(buildSetRequest(key, value, ttl));
-
-    // Build a CompletableFuture to return to caller
-    final CompletableFuture<SetResponse> returnFuture =
-        new CompletableFuture<SetResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
-
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<_SetResponse>() {
-          @Override
-          public void onSuccess(_SetResponse rsp) {
-            returnFuture.complete(convertSetResponse(value, rsp));
-          }
-
-          @Override
-          public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
-          }
-        },
-        // Execute on same thread that called execute on CompletionStage
-        MoreExecutors.directExecutor());
-
-    return returnFuture;
+    return sendUnaryRequest(
+        cacheName,
+        stub -> stub.set(buildSetRequest(key, value, ttl)),
+        rsp -> convertSetResponse(value, rsp),
+        e -> new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
   }
 
   private CompletableFuture<SetBatchResponse> sendSetBatch(
@@ -3715,5 +3723,35 @@ final class ScsDataClient extends ScsClientBase {
   @Override
   public void close() {
     scsDataGrpcStubsManager.close();
+  }
+
+  public static void main(String[] args) {
+    final AtomicInteger concurrentExecutions = new AtomicInteger(0);
+    final AtomicInteger maxConcurrentExecutions = new AtomicInteger(0);
+    final ExecutorService requestConcurrencyExecutor = Executors.newWorkStealingPool(100);
+    final List<CompletableFuture<Void>> futures = new ArrayList<>();
+
+    for (int i = 0; i < 10000; ++i) {
+      CompletableFuture<Void> future =
+          CompletableFuture.runAsync(
+              () -> {
+                int current = concurrentExecutions.incrementAndGet();
+                maxConcurrentExecutions.updateAndGet(max -> Math.max(max, current));
+                try {
+                  Thread.sleep(10);
+                } catch (InterruptedException e) {
+                  throw new RuntimeException(e);
+                }
+                concurrentExecutions.decrementAndGet();
+              },
+              requestConcurrencyExecutor);
+      futures.add(future);
+    }
+
+    CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+    System.out.println("Max concurrent executions: " + maxConcurrentExecutions.get());
+
+    requestConcurrencyExecutor.shutdown();
   }
 }

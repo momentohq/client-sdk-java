@@ -1,6 +1,7 @@
 package momento.sdk.config;
 
 import java.time.Duration;
+import java.util.Optional;
 import momento.sdk.config.transport.GrpcConfiguration;
 import momento.sdk.config.transport.TransportStrategy;
 import momento.sdk.retry.RetryStrategy;
@@ -11,6 +12,8 @@ public class Configuration {
   private final TransportStrategy transportStrategy;
   private final RetryStrategy retryStrategy;
 
+  private final Integer concurrencyLimit;
+
   /**
    * Creates a new configuration object.
    *
@@ -20,6 +23,14 @@ public class Configuration {
   public Configuration(TransportStrategy transportStrategy, RetryStrategy retryStrategy) {
     this.transportStrategy = transportStrategy;
     this.retryStrategy = retryStrategy;
+    this.concurrencyLimit = null;
+  }
+
+  public Configuration(
+      TransportStrategy transportStrategy, RetryStrategy retryStrategy, int concurrencyLimit) {
+    this.transportStrategy = transportStrategy;
+    this.retryStrategy = retryStrategy;
+    this.concurrencyLimit = concurrencyLimit;
   }
 
   /**
@@ -61,5 +72,9 @@ public class Configuration {
 
   public Configuration withRetryStrategy(final RetryStrategy retryStrategy) {
     return new Configuration(this.transportStrategy, retryStrategy);
+  }
+
+  public Optional<Integer> getConcurrencyLimit() {
+    return Optional.ofNullable(concurrencyLimit);
   }
 }
