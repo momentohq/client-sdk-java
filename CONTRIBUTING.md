@@ -1,7 +1,7 @@
 ## Development
 
 1. Install Java
-    * `brew install openjdk`
+    * `brew install openjdk` - TODO
 1. Clone repo
     * `git clone git@github.com:momentohq/client-sdk-java.git`
 1. Run gradle build
