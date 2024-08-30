@@ -1667,10 +1667,10 @@ public final class CacheClient implements AutoCloseable {
    *
    * @param cacheName The cache containing the list.
    * @param listName The list to fetch.
-   * @param startIndex Start index (inclusive) for fetch operation. Defaults to 0 if not provided.
-   * @param endIndex End index (exclusive) for fetch operation. Defaults to the end of the list if
+   * @param startIndex Start index (inclusive) for the fetch operation. Defaults to 0 if not provided.
+   * @param endIndex End index (exclusive) for the fetch operation. Defaults to the end of the list if
    *     not provided.
-   * @return Future containing the result of the list fetch back operation: {@link
+   * @return Future containing the result of the list fetch operation: {@link
    *     ListFetchResponse.Hit} containing the fetched data, {@link ListFetchResponse.Miss} if no
    *     data was found, or {@link ListFetchResponse.Error}.
    */
@@ -1687,7 +1687,7 @@ public final class CacheClient implements AutoCloseable {
    *
    * @param cacheName The cache containing the list.
    * @param listName The list to fetch.
-   * @return Future containing the result of the list fetch back operation: {@link
+   * @return Future containing the result of the list fetch operation: {@link
    *     ListFetchResponse.Hit} containing the fetched data, {@link ListFetchResponse.Miss} if no
    *     data was found, or {@link ListFetchResponse.Error}.
    */
