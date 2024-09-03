@@ -99,6 +99,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
@@ -1414,89 +1415,48 @@ final class ScsDataClient extends ScsClientBase {
   private CompletableFuture<GetResponse> sendGet(String cacheName, ByteString key) {
     checkCacheNameValid(cacheName);
 
-    // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
-    final ListenableFuture<_GetResponse> rspFuture =
-        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata).get(buildGetRequest(key));
+    final Supplier<ListenableFuture<_GetResponse>> stubSupplier =
+        () -> attachMetadata(scsDataGrpcStubsManager.getStub(), metadata).get(buildGetRequest(key));
 
-    // Build a CompletableFuture to return to caller
-    final CompletableFuture<GetResponse> returnFuture =
-        new CompletableFuture<GetResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
+    final Function<_GetResponse, GetResponse> success = this::convertGetResponse;
+    final Function<Throwable, GetResponse> failure =
+        e -> new GetResponse.Error(CacheServiceExceptionMapper.convert(e));
 
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<_GetResponse>() {
-          @Override
-          public void onSuccess(_GetResponse rsp) {
-            returnFuture.complete(convertGetResponse(rsp));
-          }
-
-          @Override
-          public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(new GetResponse.Error(CacheServiceExceptionMapper.convert(e)));
-          }
-        },
-        // Execute on same thread that called execute on CompletionStage
-        MoreExecutors.directExecutor());
-
-    return returnFuture;
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
   private CompletableFuture<GetBatchResponse> sendGetBatch(
       String cacheName, List<ByteString> keys) {
     checkCacheNameValid(cacheName);
 
-    final CompletableFuture<GetBatchResponse> future = new CompletableFuture<>();
     final Metadata metadata = metadataWithCache(cacheName);
-    final _GetBatchRequest request = buildGetBatchRequest(keys);
-    try {
-      attachObservableMetadata(scsDataGrpcStubsManager.getObservableStub(), metadata)
-          .getBatch(
-              request,
-              new StreamObserver<_GetResponse>() {
-                final List<_GetResponse> responses = new ArrayList<>();
 
-                @Override
-                public void onNext(_GetResponse response) {
-                  responses.add(response);
-                }
+    final Consumer<StreamObserver<_GetResponse>> stubMethod =
+        observer -> {
+          final _GetBatchRequest request = buildGetBatchRequest(keys);
+          attachObservableMetadata(scsDataGrpcStubsManager.getObservableStub(), metadata)
+              .getBatch(request, observer);
+        };
 
-                @Override
-                public void onError(Throwable t) {
-                  future.complete(
-                      new GetBatchResponse.Error(CacheServiceExceptionMapper.convert(t)));
-                }
+    final Function<List<_GetResponse>, GetBatchResponse> success =
+        responses -> {
+          final Iterator<ByteString> keysIt = keys.iterator();
+          final Iterator<_GetResponse> responsesIt = responses.iterator();
 
-                @Override
-                public void onCompleted() {
-                  final Iterator<ByteString> keysIt = keys.iterator();
-                  final Iterator<_GetResponse> responsesIt = responses.iterator();
+          final Map<String, GetResponse> responseMap = new HashMap<>();
+          while (keysIt.hasNext() && responsesIt.hasNext()) {
+            final String key = keysIt.next().toStringUtf8();
+            final _GetResponse value = responsesIt.next();
+            responseMap.put(key, convertGetResponse(value));
+          }
+          return new GetBatchResponse.Success(responseMap);
+        };
 
-                  final Map<String, GetResponse> responseMap = new HashMap<>();
-                  while (keysIt.hasNext() && responsesIt.hasNext()) {
-                    final String key = keysIt.next().toStringUtf8();
-                    final _GetResponse value = responsesIt.next();
-                    responseMap.put(key, convertGetResponse(value));
-                  }
-                  future.complete(new GetBatchResponse.Success(responseMap));
-                }
-              });
-    } catch (Exception e) {
-      // Exception during gRPC call setup
-      future.completeExceptionally(
-          new GetBatchResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
+    final Function<Throwable, GetBatchResponse> error =
+        e -> new GetBatchResponse.Error(CacheServiceExceptionMapper.convert(e));
 
-    return future;
+    return executeGrpcBatchFunction(stubMethod, success, error);
   }
 
   private GetResponse convertGetResponse(_GetResponse response) {
@@ -1518,133 +1478,71 @@ final class ScsDataClient extends ScsClientBase {
 
   private CompletableFuture<DeleteResponse> sendDelete(String cacheName, ByteString key) {
     checkCacheNameValid(cacheName);
-    // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
-    final ListenableFuture<_DeleteResponse> rspFuture =
-        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata).delete(buildDeleteRequest(key));
 
-    // Build a CompletableFuture to return to caller
-    final CompletableFuture<DeleteResponse> returnFuture =
-        new CompletableFuture<DeleteResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
+    final Supplier<ListenableFuture<_DeleteResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .delete(buildDeleteRequest(key));
 
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<_DeleteResponse>() {
-          @Override
-          public void onSuccess(_DeleteResponse rsp) {
-            returnFuture.complete(new DeleteResponse.Success());
-          }
+    final Function<_DeleteResponse, DeleteResponse> success = rsp -> new DeleteResponse.Success();
+    final Function<Throwable, DeleteResponse> failure =
+        e -> new DeleteResponse.Error(CacheServiceExceptionMapper.convert(e));
 
-          @Override
-          public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(new DeleteResponse.Error(CacheServiceExceptionMapper.convert(e)));
-          }
-        },
-        // Execute on same thread that called execute on CompletionStage
-        MoreExecutors.directExecutor());
-
-    return returnFuture;
+    return executeGrpcFunction(stubSupplier, success, failure);
   }
 
   private CompletableFuture<SetResponse> sendSet(
       String cacheName, ByteString key, ByteString value, Duration ttl) {
     checkCacheNameValid(cacheName);
 
-    // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
-    final ListenableFuture<_SetResponse> rspFuture =
-        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-            .set(buildSetRequest(key, value, ttl));
 
-    // Build a CompletableFuture to return to caller
-    final CompletableFuture<SetResponse> returnFuture =
-        new CompletableFuture<SetResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
+    final Supplier<ListenableFuture<_SetResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .set(buildSetRequest(key, value, ttl));
 
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<_SetResponse>() {
-          @Override
-          public void onSuccess(_SetResponse rsp) {
-            returnFuture.complete(convertSetResponse(value, rsp));
-          }
+    final Function<_SetResponse, SetResponse> success = rsp -> convertSetResponse(value, rsp);
+    final Function<Throwable, SetResponse> error =
+        e -> new SetResponse.Error(CacheServiceExceptionMapper.convert(e));
 
-          @Override
-          public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(new SetResponse.Error(CacheServiceExceptionMapper.convert(e)));
-          }
-        },
-        // Execute on same thread that called execute on CompletionStage
-        MoreExecutors.directExecutor());
-
-    return returnFuture;
+    return executeGrpcFunction(stubSupplier, success, error);
   }
 
   private CompletableFuture<SetBatchResponse> sendSetBatch(
       String cacheName, Map<ByteString, ByteString> keysToValues, Duration ttl) {
     checkCacheNameValid(cacheName);
 
-    final CompletableFuture<SetBatchResponse> future = new CompletableFuture<>();
     final Metadata metadata = metadataWithCache(cacheName);
     final _SetBatchRequest request = buildSetBatchRequest(keysToValues, ttl);
-    try {
-      attachObservableMetadata(scsDataGrpcStubsManager.getObservableStub(), metadata)
-          .setBatch(
-              request,
-              new StreamObserver<_SetResponse>() {
-                final List<_SetResponse> responses = new ArrayList<>();
 
-                @Override
-                public void onNext(_SetResponse response) {
-                  responses.add(response);
-                }
+    final Consumer<StreamObserver<_SetResponse>> stubMethod =
+        observer -> {
+          attachObservableMetadata(scsDataGrpcStubsManager.getObservableStub(), metadata)
+              .setBatch(request, observer);
+        };
 
-                @Override
-                public void onError(Throwable t) {
-                  future.complete(
-                      new SetBatchResponse.Error(CacheServiceExceptionMapper.convert(t)));
-                }
+    final Function<List<_SetResponse>, SetBatchResponse> success =
+        responses -> {
+          final Iterator<_SetRequest> requestsIt = request.getItemsList().iterator();
+          final Iterator<_SetResponse> responsesIt = responses.iterator();
 
-                @Override
-                public void onCompleted() {
-                  final Iterator<_SetRequest> requestsIt = request.getItemsList().iterator();
-                  final Iterator<_SetResponse> responsesIt = responses.iterator();
+          final Map<String, SetResponse> responseMap = new HashMap<>();
+          while (requestsIt.hasNext() && responsesIt.hasNext()) {
+            final _SetRequest setRequest = requestsIt.next();
+            final String key = setRequest.getCacheKey().toStringUtf8();
+            final SetResponse setResponse =
+                convertSetResponse(setRequest.getCacheBody(), responsesIt.next());
+            responseMap.put(key, setResponse);
+          }
+          return new SetBatchResponse.Success(responseMap);
+        };
 
-                  final Map<String, SetResponse> responseMap = new HashMap<>();
-                  while (requestsIt.hasNext() && responsesIt.hasNext()) {
-                    final _SetRequest setRequest = requestsIt.next();
-                    final String key = setRequest.getCacheKey().toStringUtf8();
-                    final SetResponse setResponse =
-                        convertSetResponse(setRequest.getCacheBody(), responsesIt.next());
-                    responseMap.put(key, setResponse);
-                  }
-                  future.complete(new SetBatchResponse.Success(responseMap));
-                }
-              });
-    } catch (Exception e) {
-      // Exception during gRPC call setup
-      future.completeExceptionally(
-          new GetBatchResponse.Error(CacheServiceExceptionMapper.convert(e)));
-    }
+    final Function<Throwable, SetBatchResponse> error =
+        e -> new SetBatchResponse.Error(CacheServiceExceptionMapper.convert(e));
 
-    return future;
+    return executeGrpcBatchFunction(stubMethod, success, error);
   }
 
   private SetResponse convertSetResponse(ByteString value, _SetResponse response) {
@@ -1665,44 +1563,19 @@ final class ScsDataClient extends ScsClientBase {
   private CompletableFuture<IncrementResponse> sendIncrement(
       String cacheName, ByteString field, long amount, Duration ttl) {
 
-    // Submit request to non-blocking stub
     final Metadata metadata = metadataWithCache(cacheName);
-    final ListenableFuture<_IncrementResponse> rspFuture =
-        attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
-            .increment(buildIncrementRequest(field, amount, ttl));
+    final Supplier<ListenableFuture<_IncrementResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .increment(buildIncrementRequest(field, amount, ttl));
 
-    // Build a CompletableFuture to return to caller
-    final CompletableFuture<IncrementResponse> returnFuture =
-        new CompletableFuture<IncrementResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
+    final Function<_IncrementResponse, IncrementResponse> success =
+        rsp -> new IncrementResponse.Success((int) rsp.getValue());
 
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<_IncrementResponse>() {
-          @Override
-          public void onSuccess(_IncrementResponse rsp) {
-            returnFuture.complete(new IncrementResponse.Success((int) rsp.getValue()));
-          }
+    final Function<Throwable, IncrementResponse> error =
+        e -> new IncrementResponse.Error(CacheServiceExceptionMapper.convert(e));
 
-          @Override
-          public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(
-                new IncrementResponse.Error(CacheServiceExceptionMapper.convert(e)));
-          }
-        },
-        MoreExecutors
-            .directExecutor()); // Execute on same thread that called execute on CompletionStage
-    // returned
-
-    return returnFuture;
+    return executeGrpcFunction(stubSupplier, success, error);
   }
 
   private CompletableFuture<SetIfNotExistsResponse> sendSetIfNotExists(

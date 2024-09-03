@@ -7,7 +7,11 @@ import com.google.common.util.concurrent.MoreExecutors;
 import io.grpc.Metadata;
 import io.grpc.stub.AbstractFutureStub;
 import io.grpc.stub.MetadataUtils;
+import io.grpc.stub.StreamObserver;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
@@ -61,5 +65,39 @@ abstract class ClientBase implements AutoCloseable {
         MoreExecutors.directExecutor());
 
     return returnFuture;
+  }
+
+  protected <SdkResponse, GrpcResponse> CompletableFuture<SdkResponse> executeGrpcBatchFunction(
+      Consumer<StreamObserver<GrpcResponse>> stubMethod,
+      Function<List<GrpcResponse>, SdkResponse> successFunction,
+      Function<Throwable, SdkResponse> errorFunction) {
+
+    final CompletableFuture<SdkResponse> future = new CompletableFuture<>();
+
+    try {
+      stubMethod.accept(
+          new StreamObserver<GrpcResponse>() {
+            private final List<GrpcResponse> responses = new ArrayList<>();
+
+            @Override
+            public void onNext(GrpcResponse response) {
+              responses.add(response);
+            }
+
+            @Override
+            public void onError(Throwable t) {
+              future.complete(errorFunction.apply(t));
+            }
+
+            @Override
+            public void onCompleted() {
+              future.complete(successFunction.apply(responses));
+            }
+          });
+    } catch (Exception e) {
+      future.complete(errorFunction.apply(e));
+    }
+
+    return future;
   }
 }
