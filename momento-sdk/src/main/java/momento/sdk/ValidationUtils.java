@@ -73,6 +73,12 @@ public final class ValidationUtils {
     }
   }
 
+  static void checkListNameValid(byte[] listName) {
+    if (listName == null) {
+      throw new InvalidArgumentException(LIST_NAME_CANNOT_BE_NULL);
+    }
+  }
+
   static void checkListNameValid(String listName) {
     if (listName == null) {
       throw new InvalidArgumentException(LIST_NAME_CANNOT_BE_NULL);

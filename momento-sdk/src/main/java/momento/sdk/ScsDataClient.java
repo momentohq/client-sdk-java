@@ -953,6 +953,29 @@ final class ScsDataClient extends ScsClientBase {
 
   CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
       @Nonnull String cacheName,
+      @Nonnull byte[] listName,
+      @Nonnull Iterable<byte[]> values,
+      @Nullable Integer truncateBackToSize,
+      @Nullable CollectionTtl ttl) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      ensureValidValue(values);
+
+      if (ttl == null) {
+        ttl = CollectionTtl.of(itemDefaultTtl);
+      }
+
+      return sendListConcatenateFront(
+          cacheName, convert(listName), convertByteArrayIterable(values), truncateBackToSize, ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new ListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
+      @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<byte[]> values,
       @Nullable Integer truncateBackToSize,
@@ -971,6 +994,22 @@ final class ScsDataClient extends ScsClientBase {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new ListConcatenateFrontResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<ListFetchResponse> listFetch(
+      @Nonnull String cacheName,
+      @Nonnull byte[] listName,
+      @Nullable Integer startIndex,
+      @Nullable Integer endIndex) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      checkIndexRangeValid(startIndex, endIndex);
+      return sendListFetch(cacheName, convert(listName), startIndex, endIndex);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new ListFetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1147,6 +1186,23 @@ final class ScsDataClient extends ScsClientBase {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new ListRemoveValueResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  CompletableFuture<ListRetainResponse> listRetain(
+      @Nonnull String cacheName,
+      @Nonnull byte[] listName,
+      @Nullable Integer startIndex,
+      @Nullable Integer endIndex) {
+    try {
+      checkCacheNameValid(cacheName);
+      checkListNameValid(listName);
+      checkIndexRangeValid(startIndex, endIndex);
+
+      return sendListRetain(cacheName, convert(listName), startIndex, endIndex);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new ListRetainResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 

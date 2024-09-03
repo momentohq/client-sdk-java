@@ -1620,12 +1620,54 @@ public final class CacheClient implements AutoCloseable {
    */
   public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
       @Nonnull String cacheName,
+      @Nonnull byte[] listName,
+      @Nonnull Iterable<byte[]> values,
+      @Nullable Integer truncateBackToSize,
+      @Nullable CollectionTtl ttl) {
+    return scsDataClient.listConcatenateFrontByteArray(
+        cacheName, listName, values, truncateBackToSize, ttl);
+  }
+  /**
+   * Adds the given values to the front of a list.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the values.
+   * @param values The values to add to the list.
+   * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive. Will not truncate if not provided.
+   * @param ttl TTL for the set in cache. This TTL takes precedence over the TTL used when
+   *     initializing a cache client. Defaults to the client's TTL if not provided.
+   * @return Future containing the result of the list concatenate front operation: {@link
+   *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
+   */
+  public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
+      @Nonnull String cacheName,
       @Nonnull String listName,
       @Nonnull Iterable<byte[]> values,
       @Nullable Integer truncateBackToSize,
       @Nullable CollectionTtl ttl) {
     return scsDataClient.listConcatenateFrontByteArray(
         cacheName, listName, values, truncateBackToSize, ttl);
+  }
+
+  /**
+   * Adds the given values to the front of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the values.
+   * @param values The values to add to the list.
+   * @param truncateBackToSize If the list exceeds this length, remove excess from the front of the
+   *     list. Must be positive. Will not truncate if not provided.
+   * @return Future containing the result of the list concatenate front operation: {@link
+   *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
+   */
+  public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
+      @Nonnull String cacheName,
+      @Nonnull byte[] listName,
+      @Nonnull Iterable<byte[]> values,
+      @Nullable Integer truncateBackToSize) {
+    return scsDataClient.listConcatenateFrontByteArray(
+        cacheName, listName, values, truncateBackToSize, null);
   }
 
   /**
@@ -1658,8 +1700,43 @@ public final class CacheClient implements AutoCloseable {
    *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
    */
   public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
+      @Nonnull String cacheName, @Nonnull byte[] listName, @Nonnull Iterable<byte[]> values) {
+    return scsDataClient.listConcatenateFrontByteArray(cacheName, listName, values, null, null);
+  }
+
+  /**
+   * Adds the given values to the front of a list. Refreshes the list with the client's default TTL.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list in which to add the values.
+   * @param values The values to add to the list.
+   * @return Future containing the result of the list concatenate front operation: {@link
+   *     ListConcatenateFrontResponse.Success} or {@link ListConcatenateFrontResponse.Error}.
+   */
+  public CompletableFuture<ListConcatenateFrontResponse> listConcatenateFrontByteArray(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull Iterable<byte[]> values) {
     return scsDataClient.listConcatenateFrontByteArray(cacheName, listName, values, null, null);
+  }
+
+  /**
+   * Fetches all elements of a list between the given indices.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list to fetch.
+   * @param startIndex Start index (inclusive) for the fetch operation. Defaults to 0 if not
+   *     provided.
+   * @param endIndex End index (exclusive) for the fetch operation. Defaults to the end of the list
+   *     if not provided.
+   * @return Future containing the result of the list fetch operation: {@link ListFetchResponse.Hit}
+   *     containing the fetched data, {@link ListFetchResponse.Miss} if no data was found, or {@link
+   *     ListFetchResponse.Error}.
+   */
+  public CompletableFuture<ListFetchResponse> listFetch(
+      @Nonnull String cacheName,
+      @Nonnull byte[] listName,
+      @Nullable Integer startIndex,
+      @Nullable Integer endIndex) {
+    return scsDataClient.listFetch(cacheName, listName, startIndex, endIndex);
   }
 
   /**
@@ -1681,6 +1758,20 @@ public final class CacheClient implements AutoCloseable {
       @Nullable Integer startIndex,
       @Nullable Integer endIndex) {
     return scsDataClient.listFetch(cacheName, listName, startIndex, endIndex);
+  }
+
+  /**
+   * Fetches all elements of a list between the given indices.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list to fetch.
+   * @return Future containing the result of the list fetch operation: {@link ListFetchResponse.Hit}
+   *     containing the fetched data, {@link ListFetchResponse.Miss} if no data was found, or {@link
+   *     ListFetchResponse.Error}.
+   */
+  public CompletableFuture<ListFetchResponse> listFetch(
+      @Nonnull String cacheName, @Nonnull byte[] listName) {
+    return scsDataClient.listFetch(cacheName, listName, null, null);
   }
 
   /**
@@ -1985,6 +2076,24 @@ public final class CacheClient implements AutoCloseable {
   public CompletableFuture<ListRemoveValueResponse> listRemoveValue(
       @Nonnull String cacheName, @Nonnull String listName, @Nonnull byte[] value) {
     return scsDataClient.listRemoveValue(cacheName, listName, value);
+  }
+
+  /**
+   * Retains only the elements of a list that are between the given indices.
+   *
+   * @param cacheName The cache containing the list.
+   * @param listName The list to cut down.
+   * @param startIndex - Start index (inclusive) for list retain operation.
+   * @param endIndex - End index (exclusive) for list retain operation.
+   * @return Future containing the result of the list retain value operation: {@link
+   *     ListRetainResponse.Success} or {@link ListRetainResponse.Error}.
+   */
+  public CompletableFuture<ListRetainResponse> listRetain(
+      @Nonnull String cacheName,
+      @Nonnull byte[] listName,
+      @Nullable Integer startIndex,
+      @Nullable Integer endIndex) {
+    return scsDataClient.listRetain(cacheName, listName, startIndex, endIndex);
   }
 
   /**
