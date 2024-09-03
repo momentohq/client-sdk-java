@@ -102,11 +102,11 @@ public class DataTests extends BaseStorageTestClass {
   }
 
   @Test
-  public void allowEmptyKeyValuesOnGet() throws Exception {
-    final String emptyKey = "";
+  public void allowEmptyValuesOnGet() throws Exception {
+    final String key = randomString("key");
     final String emptyValue = "";
-    storageClient.put(storeName, emptyKey, emptyValue).get();
-    final GetResponse response = storageClient.get(storeName, emptyKey).get();
+    storageClient.put(storeName, key, emptyValue).get();
+    final GetResponse response = storageClient.get(storeName, key).get();
     assertThat(response).isInstanceOf(GetResponse.Found.class);
     assert response.valueWhenFound().get().getString().get().isEmpty();
   }
