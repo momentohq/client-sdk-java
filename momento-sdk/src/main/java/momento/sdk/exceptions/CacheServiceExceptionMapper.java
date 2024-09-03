@@ -77,7 +77,9 @@ public final class CacheServiceExceptionMapper {
             return new CacheNotFoundException(grpcException, errorDetails);
           }
         case ALREADY_EXISTS:
-          if (errorCause.contains("Store with name")) {
+          // TODO: Switch to use the metadata when that can distinguish between a store and cache
+          // already exists
+          if (grpcException.getMessage().contains("Store with name")) {
             return new StoreAlreadyExistsException(grpcException, errorDetails);
           } else {
             return new CacheAlreadyExistsException(grpcException, errorDetails);
