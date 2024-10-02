@@ -53,3 +53,10 @@ tasks.named("analyzeIntTestClassesDependencies").configure {
 tasks.named("analyzeTestClassesDependencies").configure {
     enabled = false
 }
+
+tasks.register<JavaExec>("run") {
+    group = "application"
+    description = "Runs the Program class"
+    mainClass.set("momento.sdk.Program") // Fully qualified class name
+    classpath = sourceSets["main"].runtimeClasspath
+}

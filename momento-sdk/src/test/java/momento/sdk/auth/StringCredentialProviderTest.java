@@ -145,4 +145,20 @@ class StringCredentialProviderTest {
         .isThrownBy(() -> new StringCredentialProvider(TEST_V1_MISSING_API_KEY))
         .withMessageContaining("parse auth token");
   }
+
+  //    @Test
+  //    public void testCredentialProviderWithMomentoLocal() {
+  //      String apiKey =
+  // "eyJlbmRwb2ludCI6ImNlbGwtYWxwaGEtZGV2LnByZXByb2QuYS5tb21lbnRvaHEuY29tIiwiYXBpX2tleSI6ImV5SmhiR2NpT2lKSVV6STFOaUo5LmV5SnpkV0lpT2lKeWFYTm9kR2xBYlc5dFpXNTBiMmh4TG1OdmJTSXNJblpsY2lJNk1Td2ljQ0k2SWtOQlFUMGlMQ0psZUhBaU9qRTNNekEwTURZMU9ESjkuTHJmNTNMNEg2bDlVY05XNGJMLXJtRm96elluQm1RUjFSaUUxZzdGZktiWSJ9";
+  //        assertThat(CredentialProvider.withMomentoLocal(apiKey))
+  //                .satisfies(
+  //                        provider -> {
+  ////                            assertThat(provider.getAuthToken()).isEqualTo(apiKey);
+  //
+  // assertThat(provider.getControlEndpoint()).isEqualTo("127.0.0.1:8080");
+  //                            assertThat(provider.getCacheEndpoint()).isEqualTo("127.0.0.1:8080");
+  //
+  // assertThat(provider.getStorageEndpoint()).isEqualTo("127.0.0.1:8080");
+  //                        });
+  //    }
 }

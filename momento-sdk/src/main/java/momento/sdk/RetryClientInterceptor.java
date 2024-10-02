@@ -76,6 +76,7 @@ final class RetryClientInterceptor implements ClientInterceptor {
       final MethodDescriptor<ReqT, RespT> method,
       final CallOptions callOptions,
       final Channel channel) {
+    CallOptions newCallOptions = callOptions.withDeadlineAfter(10, TimeUnit.SECONDS);
     // currently the SDK only supports unary operations which we want to retry on
     if (!method.getType().clientSendsOneMessage()) {
       return channel.newCall(method, callOptions);
@@ -91,18 +92,9 @@ final class RetryClientInterceptor implements ClientInterceptor {
             new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(
                 responseListener) {
 
-              /**
-               * At this point, the ClientCall has been closed. Any additional calls to the
-               * ClientCall will not be processed by the server. The server does not send any
-               * further messages, acknowledgements, or notifications. This is the point where we
-               * can safely check the status of the initial request that was made, and determine if
-               * we want to retry or not.
-               *
-               * @param status the result of the remote call.
-               * @param trailers metadata provided at call completion.
-               */
               @Override
               public void onClose(Status status, Metadata trailers) {
+                System.out.println("onClose function invoked" + method.getFullMethodName());
                 // we don't have any more business with the server, and since we either complete the
                 // call or retry
                 // later on, we try to cancel the current attempt. If the request was successful,
@@ -131,7 +123,7 @@ final class RetryClientInterceptor implements ClientInterceptor {
                 }
 
                 logger.debug(
-                    "Retrying request {} on error code {} with delay {} millisecodns",
+                    "Retrying request {} on error code {} with delay {} milliseconds",
                     method.getFullMethodName(),
                     status.getCode().toString(),
                     retryDelay.get().toMillis());
@@ -164,6 +156,8 @@ final class RetryClientInterceptor implements ClientInterceptor {
       private void cancelAttempt() {
         if (future != null) {
           future.cancel(true);
+        } else {
+          System.out.println("Future is null");
         }
       }
     };

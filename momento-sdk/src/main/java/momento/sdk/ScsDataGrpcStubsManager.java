@@ -179,7 +179,7 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
   private ManagedChannel setupChannel(
       CredentialProvider credentialProvider, Configuration configuration) {
     final NettyChannelBuilder channelBuilder =
-        NettyChannelBuilder.forAddress(credentialProvider.getCacheEndpoint(), 443);
+        NettyChannelBuilder.forAddress(credentialProvider.getCacheEndpoint(), 8080).usePlaintext();
 
     // set additional channel options (message size, keepalive, auth, etc)
     GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(

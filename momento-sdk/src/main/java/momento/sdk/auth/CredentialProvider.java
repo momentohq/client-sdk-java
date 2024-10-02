@@ -28,6 +28,16 @@ public abstract class CredentialProvider {
     return new EnvVarCredentialProvider(envVar);
   }
 
+  public static CredentialProvider withMomentoLocal(@Nonnull String authToken) {
+    String momentoLocalOverride = "127.0.0.1";
+    return new StringCredentialProvider(
+        authToken,
+        momentoLocalOverride,
+        momentoLocalOverride,
+        momentoLocalOverride,
+        momentoLocalOverride);
+  }
+
   /**
    * Gets the token used to authenticate to Momento.
    *
