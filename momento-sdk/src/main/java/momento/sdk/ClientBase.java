@@ -46,44 +46,75 @@ abstract class ClientBase implements AutoCloseable {
     return metadata;
   }
 
+  /**
+   * Executes the provided operation using the request concurrency executor in order to limit the
+   * number of concurrent operations to the size of the executor thread pool. Executes the operation
+   * directly if the executor is null.
+   */
+  protected <R> CompletableFuture<R> executeWithConcurrencyLimiting(
+      Supplier<CompletableFuture<R>> operation, Function<Throwable, R> errorHandler) {
+
+    if (requestConcurrencyExecutor != null) {
+      return CompletableFuture.supplyAsync(
+          () -> {
+            try {
+              // The first get() starts the operation and the second get() blocks the executor
+              // thread until the operation completes. The result is then wrapped in the outer
+              // CompletableFuture.
+              return operation.get().get();
+            } catch (Exception e) {
+              return errorHandler.apply(e);
+            }
+          },
+          requestConcurrencyExecutor);
+    } else {
+      return operation.get();
+    }
+  }
+
   protected <SdkResponse, GrpcResponse> CompletableFuture<SdkResponse> executeGrpcFunction(
       Supplier<ListenableFuture<GrpcResponse>> stubSupplier,
       Function<GrpcResponse, SdkResponse> successFunction,
       Function<Throwable, SdkResponse> errorFunction) {
 
-    // Submit request to non-blocking stub
-    final ListenableFuture<GrpcResponse> rspFuture = stubSupplier.get();
+    return executeWithConcurrencyLimiting(
+        () -> {
+          // Submit request to non-blocking stub
+          final ListenableFuture<GrpcResponse> rspFuture = stubSupplier.get();
 
-    // Build a CompletableFuture to return to caller
-    final CompletableFuture<SdkResponse> returnFuture =
-        new CompletableFuture<SdkResponse>() {
-          @Override
-          public boolean cancel(boolean mayInterruptIfRunning) {
-            // propagate cancel to the listenable future if called on returned completable future
-            final boolean result = rspFuture.cancel(mayInterruptIfRunning);
-            super.cancel(mayInterruptIfRunning);
-            return result;
-          }
-        };
+          // Build a CompletableFuture to return to caller
+          final CompletableFuture<SdkResponse> returnFuture =
+              new CompletableFuture<SdkResponse>() {
+                @Override
+                public boolean cancel(boolean mayInterruptIfRunning) {
+                  // propagate cancel to the listenable future if called on returned completable
+                  // future
+                  final boolean result = rspFuture.cancel(mayInterruptIfRunning);
+                  super.cancel(mayInterruptIfRunning);
+                  return result;
+                }
+              };
 
-    // Convert returned ListenableFuture to CompletableFuture
-    Futures.addCallback(
-        rspFuture,
-        new FutureCallback<GrpcResponse>() {
-          @Override
-          public void onSuccess(GrpcResponse rsp) {
-            returnFuture.complete(successFunction.apply(rsp));
-          }
+          // Convert returned ListenableFuture to CompletableFuture
+          Futures.addCallback(
+              rspFuture,
+              new FutureCallback<GrpcResponse>() {
+                @Override
+                public void onSuccess(GrpcResponse rsp) {
+                  returnFuture.complete(successFunction.apply(rsp));
+                }
 
-          @Override
-          public void onFailure(@Nonnull Throwable e) {
-            returnFuture.complete(errorFunction.apply(e));
-          }
+                @Override
+                public void onFailure(@Nonnull Throwable e) {
+                  returnFuture.complete(errorFunction.apply(e));
+                }
+              },
+              // Execute on same thread that called execute on CompletionStage
+              MoreExecutors.directExecutor());
+
+          return returnFuture;
         },
-        // Execute on same thread that called execute on CompletionStage
-        MoreExecutors.directExecutor());
-
-    return returnFuture;
+        errorFunction);
   }
 
   protected <SdkResponse, GrpcResponse> CompletableFuture<SdkResponse> executeGrpcBatchFunction(
@@ -91,33 +122,36 @@ abstract class ClientBase implements AutoCloseable {
       Function<List<GrpcResponse>, SdkResponse> successFunction,
       Function<Throwable, SdkResponse> errorFunction) {
 
-    final CompletableFuture<SdkResponse> future = new CompletableFuture<>();
+    return executeWithConcurrencyLimiting(
+        () -> {
+          final CompletableFuture<SdkResponse> future = new CompletableFuture<>();
+          try {
+            stubMethod.accept(
+                new StreamObserver<GrpcResponse>() {
+                  private final List<GrpcResponse> responses = new ArrayList<>();
 
-    try {
-      stubMethod.accept(
-          new StreamObserver<GrpcResponse>() {
-            private final List<GrpcResponse> responses = new ArrayList<>();
+                  @Override
+                  public void onNext(GrpcResponse response) {
+                    responses.add(response);
+                  }
 
-            @Override
-            public void onNext(GrpcResponse response) {
-              responses.add(response);
-            }
+                  @Override
+                  public void onError(Throwable t) {
+                    future.complete(errorFunction.apply(t));
+                  }
 
-            @Override
-            public void onError(Throwable t) {
-              future.complete(errorFunction.apply(t));
-            }
+                  @Override
+                  public void onCompleted() {
+                    future.complete(successFunction.apply(responses));
+                  }
+                });
+          } catch (Exception e) {
+            future.complete(errorFunction.apply(e));
+          }
 
-            @Override
-            public void onCompleted() {
-              future.complete(successFunction.apply(responses));
-            }
-          });
-    } catch (Exception e) {
-      future.complete(errorFunction.apply(e));
-    }
-
-    return future;
+          return future;
+        },
+        errorFunction);
   }
 
   /**
