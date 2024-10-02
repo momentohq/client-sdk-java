@@ -50,6 +50,7 @@ final class ScsControlClient extends ScsClientBase {
   private final ScsControlGrpcStubsManager controlGrpcStubsManager;
 
   ScsControlClient(@Nonnull CredentialProvider credentialProvider, Configuration configuration) {
+    super(null);
     this.credentialProvider = credentialProvider;
     this.controlGrpcStubsManager =
         new ScsControlGrpcStubsManager(credentialProvider, configuration);
@@ -278,7 +279,7 @@ final class ScsControlClient extends ScsClientBase {
   }
 
   @Override
-  public void close() {
+  public void doClose() {
     controlGrpcStubsManager.close();
   }
 }

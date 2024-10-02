@@ -166,6 +166,7 @@ final class ScsDataClient extends ScsClientBase {
       @Nonnull CredentialProvider credentialProvider,
       @Nonnull Configuration configuration,
       @Nonnull Duration defaultTtl) {
+    super(null);
     this.itemDefaultTtl = defaultTtl;
     this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(credentialProvider, configuration);
   }
@@ -3642,7 +3643,7 @@ final class ScsDataClient extends ScsClientBase {
   }
 
   @Override
-  public void close() {
+  public void doClose() {
     scsDataGrpcStubsManager.close();
   }
 }

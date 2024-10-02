@@ -11,12 +11,31 @@ import io.grpc.stub.StreamObserver;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 abstract class ClientBase implements AutoCloseable {
+
+  protected final ExecutorService requestConcurrencyExecutor;
+
+  protected final Logger logger = LoggerFactory.getLogger(getClass());
+
+  public ClientBase(@Nullable Integer concurrencyLimit) {
+    if (concurrencyLimit != null) {
+      requestConcurrencyExecutor = Executors.newFixedThreadPool(concurrencyLimit);
+    } else {
+      requestConcurrencyExecutor = null;
+    }
+  }
+
   protected <S extends AbstractFutureStub<S>> S attachMetadata(S stub, Metadata metadata) {
     return stub.withInterceptors(MetadataUtils.newAttachHeadersInterceptor(metadata));
   }
@@ -99,5 +118,36 @@ abstract class ClientBase implements AutoCloseable {
     }
 
     return future;
+  }
+
+  /**
+   * Closes this resource, relinquishing any underlying resources. This method is invoked in the
+   * close method of the base client class.
+   */
+  public abstract void doClose();
+
+  /**
+   * Gracefully shuts down the request concurrency executor, if one exists. This happens ahead of
+   * shutting down the actual gRPC clients, so it acts mainly to let any queued up requests get
+   * through.
+   */
+  private void closeRequestConcurrencyExecutor() {
+    if (requestConcurrencyExecutor != null) {
+      try {
+        requestConcurrencyExecutor.shutdown();
+        if (!requestConcurrencyExecutor.awaitTermination(30, TimeUnit.SECONDS)) {
+          logger.warn(
+              "Momento requests still processing after 30 seconds while awaiting shutdown.");
+        }
+      } catch (InterruptedException e) {
+        throw new RuntimeException(e);
+      }
+    }
+  }
+
+  @Override
+  public void close() {
+    closeRequestConcurrencyExecutor();
+    doClose();
   }
 }

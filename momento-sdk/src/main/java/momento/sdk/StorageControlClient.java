@@ -32,6 +32,7 @@ final class StorageControlClient extends ScsClientBase {
 
   StorageControlClient(
       @Nonnull CredentialProvider credentialProvider, StorageConfiguration configuration) {
+    super(null);
     this.credentialProvider = credentialProvider;
     this.controlGrpcStubsManager =
         new StorageControlGrpcStubsManager(credentialProvider, configuration);
@@ -128,7 +129,7 @@ final class StorageControlClient extends ScsClientBase {
   }
 
   @Override
-  public void close() {
+  public void doClose() {
     controlGrpcStubsManager.close();
   }
 }
