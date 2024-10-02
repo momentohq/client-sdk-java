@@ -166,7 +166,7 @@ final class ScsDataClient extends ScsClientBase {
       @Nonnull CredentialProvider credentialProvider,
       @Nonnull Configuration configuration,
       @Nonnull Duration defaultTtl) {
-    super(null);
+    super(configuration.getTransportStrategy().getMaxConcurrentRequests());
     this.itemDefaultTtl = defaultTtl;
     this.scsDataGrpcStubsManager = new ScsDataGrpcStubsManager(credentialProvider, configuration);
   }

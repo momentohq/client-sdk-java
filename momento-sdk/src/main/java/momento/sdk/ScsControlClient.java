@@ -50,7 +50,7 @@ final class ScsControlClient extends ScsClientBase {
   private final ScsControlGrpcStubsManager controlGrpcStubsManager;
 
   ScsControlClient(@Nonnull CredentialProvider credentialProvider, Configuration configuration) {
-    super(null);
+    super(configuration.getTransportStrategy().getMaxConcurrentRequests());
     this.credentialProvider = credentialProvider;
     this.controlGrpcStubsManager =
         new ScsControlGrpcStubsManager(credentialProvider, configuration);
