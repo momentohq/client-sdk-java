@@ -64,7 +64,7 @@ final class StorageControlGrpcStubsManager implements AutoCloseable {
    * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
    */
   ScsControlGrpc.ScsControlFutureStub getStub() {
-    return futureStub.withDeadlineAfter(DEADLINE.getSeconds(), TimeUnit.SECONDS);
+    return futureStub.withDeadlineAfter(DEADLINE.toMillis(), TimeUnit.MILLISECONDS);
   }
 
   @Override
