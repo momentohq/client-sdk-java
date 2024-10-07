@@ -159,7 +159,7 @@ final class StorageDataGrpcStubsManager implements AutoCloseable {
     int nextStubIndex = this.nextStubIndex.getAndIncrement();
     return futureStubs
         .get(nextStubIndex % this.numGrpcChannels)
-        .withDeadlineAfter(deadline.getSeconds(), TimeUnit.SECONDS);
+        .withDeadlineAfter(deadline.toMillis(), TimeUnit.MILLISECONDS);
   }
 
   @Override

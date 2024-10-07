@@ -48,16 +48,7 @@ final class ScsTopicGrpcStubsManager implements Closeable {
     return channelBuilder.build();
   }
 
-  /**
-   * Returns a stub with appropriate deadlines.
-   *
-   * <p>Each stub is deliberately decorated with Deadline. Deadlines work differently than timeouts.
-   * When a deadline is set on a stub, it simply means that once the stub is created it must be used
-   * before the deadline expires. Hence, the stub returned from here should never be cached and the
-   * safest behavior is for clients to request a new stub each time.
-   *
-   * <p><a href="https://github.com/grpc/grpc-java/issues/1495">more information</a>
-   */
+  /** Returns a pubsub stub. */
   PubsubGrpc.PubsubStub getStub() {
     return stub;
   }
