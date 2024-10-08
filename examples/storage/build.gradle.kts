@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("software.momento.java:sdk:1.14.2")
+    implementation("software.momento.java:sdk:1.15.1")
 
     // Logging framework to log and enable logging in the Momento client.
     implementation("ch.qos.logback:logback-classic:1.4.7")
