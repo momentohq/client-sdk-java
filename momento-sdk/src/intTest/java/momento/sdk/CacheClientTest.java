@@ -11,8 +11,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
+import momento.sdk.config.Configuration;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AuthenticationException;
 import momento.sdk.exceptions.CacheNotFoundException;
@@ -685,5 +687,33 @@ final class CacheClientTest extends BaseCacheTestClass {
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SetBatchResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
+  }
+
+  @Test
+  public void concurrencyLimitedGetSet() throws Exception {
+    Configuration config = Configurations.Laptop.latest();
+    config =
+        config.withTransportStrategy(config.getTransportStrategy().withMaxConcurrentRequests(2));
+    try (final CacheClient client =
+        CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build()) {
+      final String keyPrefix = randomString();
+      final List<CompletableFuture<SetResponse>> futures = new ArrayList<>();
+      final List<String> keys = new ArrayList<>();
+      for (int i = 0; i < 20; ++i) {
+        final String key = keyPrefix + i;
+        futures.add(client.set(cacheName, key, keyPrefix));
+        keys.add(key);
+      }
+      CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
+
+      Thread.sleep(200);
+
+      final GetBatchResponse getBatchResponse = client.getBatch(cacheName, keys).join();
+
+      assertThat(getBatchResponse).isInstanceOf(GetBatchResponse.Success.class);
+      assertThat(((GetBatchResponse.Success) getBatchResponse).valueMap())
+          .hasSize(20)
+          .containsValue(keyPrefix);
+    }
   }
 }

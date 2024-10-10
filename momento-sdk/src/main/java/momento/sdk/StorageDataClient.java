@@ -33,6 +33,7 @@ final class StorageDataClient extends StorageClientBase {
 
   StorageDataClient(
       @Nonnull CredentialProvider credentialProvider, @Nonnull StorageConfiguration configuration) {
+    super(null);
     this.storageDataGrpcStubsManager =
         new StorageDataGrpcStubsManager(credentialProvider, configuration);
   }
@@ -253,7 +254,7 @@ final class StorageDataClient extends StorageClientBase {
   }
 
   @Override
-  public void close() {
+  public void doClose() {
     storageDataGrpcStubsManager.close();
   }
 }

@@ -25,6 +25,7 @@ public class ScsTopicClient extends ScsClientBase {
 
   public ScsTopicClient(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
+    super(null);
     this.topicGrpcStubsManager = new ScsTopicGrpcStubsManager(credentialProvider, configuration);
   }
 
@@ -176,7 +177,7 @@ public class ScsTopicClient extends ScsClientBase {
   }
 
   @Override
-  public void close() {
+  public void doClose() {
     topicGrpcStubsManager.close();
   }
 }
