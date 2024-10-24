@@ -57,6 +57,7 @@ public class DefaultRetryEligibilityStrategy implements RetryEligibilityStrategy
           add("cache_client.Scs/ListLength");
           // not idempotent: "/cache_client.Scs/ListConcatenateFront",
           // not idempotent: "/cache_client.Scs/ListConcatenateBack"
+          add("cache_client.Scs/GetBatch");
         }
       };
 

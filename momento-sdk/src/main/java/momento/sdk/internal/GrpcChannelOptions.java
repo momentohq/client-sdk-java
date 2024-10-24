@@ -18,8 +18,10 @@ public class GrpcChannelOptions {
 
   public static void applyGrpcConfigurationToChannelBuilder(
       GrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder) {
-    channelBuilder.useTransportSecurity();
-    channelBuilder.disableRetry();
+    //    channelBuilder.useTransportSecurity();
+    //    channelBuilder.disableRetry();
+    channelBuilder.enableRetry();
+    channelBuilder.maxRetryAttempts(3);
 
     final Optional<Integer> maxMessageSize = grpcConfig.getMaxMessageSize();
     if (maxMessageSize.isPresent()) {
