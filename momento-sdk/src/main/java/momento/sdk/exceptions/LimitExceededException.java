@@ -28,6 +28,9 @@ public class LimitExceededException extends MomentoServiceException {
   public static LimitExceededException CreateWithMessageWrapper(
       Throwable cause, MomentoTransportErrorDetails transportErrorDetails, String errorCause) {
     String messageWrapper = LimitExceededMessageWrapper.UNKNOWN_LIMIT_EXCEEDED.toString();
+
+    // If provided, we use the `err` metadata value to determine the most
+    // appropriate error message to return.
     switch (errorCause) {
       case "topic_subscriptions_limit_exceeded":
         messageWrapper = LimitExceededMessageWrapper.TOPIC_SUBSCRIPTIONS_LIMIT_EXCEEDED.toString();
@@ -48,6 +51,8 @@ public class LimitExceededException extends MomentoServiceException {
         messageWrapper = LimitExceededMessageWrapper.ELEMENT_SIZE_LIMIT_EXCEEDED.toString();
         break;
       default:
+        // If `err` metadata is unavailable, try to use the error details field
+        // to return the an appropriate error message.
         String lowerCasedMessage = errorCause.toLowerCase();
         if (lowerCasedMessage.contains("subscribers")) {
           messageWrapper =
