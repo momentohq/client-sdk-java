@@ -66,7 +66,8 @@ public final class CacheServiceExceptionMapper {
           return new AuthenticationException(grpcException, errorDetails);
 
         case RESOURCE_EXHAUSTED:
-          return new LimitExceededException(grpcException, errorDetails);
+          return LimitExceededException.CreateWithMessageWrapper(
+              grpcException, errorDetails, errorCause);
 
         case NOT_FOUND:
           if (errorCause.contains("item_not_found")) {
