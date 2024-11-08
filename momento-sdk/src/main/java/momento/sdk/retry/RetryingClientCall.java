@@ -7,24 +7,20 @@ import javax.annotation.Nullable;
 
 /**
  * A custom implementation of {@link ClientCall} that handles retrying unary (single request, single
- * response) operations. This class is used by the RetryClientInterceptor to manage retry logic for
- * failed gRPC calls.
+ * response) and streaming call operations. This class is used by the RetryClientInterceptor to
+ * manage retry logic for failed gRPC calls.
  *
- * <p>The {@code RetryingUnaryClientCall} wraps an original {@link ClientCall} and intercepts the
- * methods related to starting, sending messages, and handling the response. If the original call
- * encounters an error, the interceptor schedules a retry attempt based on the configured retry
- * strategy and eligibility rules.
+ * <p>The {@code RetryingClientCall} wraps an original {@link ClientCall} and intercepts the methods
+ * related to starting, sending messages, and handling the response. If the original call encounters
+ * an error, the interceptor schedules a retry attempt based on the configured retry strategy and
+ * eligibility rules.
  *
- * <p>Each instance of {@code RetryingUnaryClientCall} maintains its own state, including the
- * request message, response listener, headers, and other properties specific to the call. When a
- * retry is needed, a new instance of this class is created with the original request details, and
- * the retry attempt is initiated.
- *
- * <p>Note that this implementation assumes that the gRPC call is unary, meaning the client sends
- * one message and receives one response. For streaming calls or other call types, a different
- * approach or implementation would be required.
+ * <p>Each instance of {@code RetryingClientCall} maintains its own state, including the request
+ * message, response listener, headers, and other properties specific to the call. When a retry is
+ * needed, a new instance of this class is created with the original request details, and the retry
+ * attempt is initiated.
  */
-public class RetryingUnaryClientCall<ReqT, RespT> extends ClientCall<ReqT, RespT> {
+public class RetryingClientCall<ReqT, RespT> extends ClientCall<ReqT, RespT> {
 
   private ClientCall<ReqT, RespT> delegate;
   private Listener<RespT> responseListener;
@@ -34,12 +30,12 @@ public class RetryingUnaryClientCall<ReqT, RespT> extends ClientCall<ReqT, RespT
   private boolean compressionEnabled;
 
   /**
-   * Constructs a new instance of {@code RetryingUnaryClientCall} with the provided delegate.
+   * Constructs a new instance of {@code RetryingClientCall} with the provided delegate.
    *
    * @param delegate The original {@link ClientCall} to be wrapped and managed by this retrying
    *     call.
    */
-  public RetryingUnaryClientCall(final ClientCall<ReqT, RespT> delegate) {
+  public RetryingClientCall(final ClientCall<ReqT, RespT> delegate) {
     this.delegate = delegate;
   }
 
