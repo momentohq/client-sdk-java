@@ -1,22 +1,22 @@
 <head>
-  <meta name="Momento Java Client Library Documentation" content="Java client software development kit for Momento Cache">
+  <meta name="Momento Client Library Documentation for Java" content="Momento client software development kit for Java">
 </head>
 <img src="https://docs.momentohq.com/img/momento-logo-forest.svg" alt="logo" width="400"/>
 
 [![project status](https://momentohq.github.io/standards-and-practices/badges/project-status-official.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
 [![project stability](https://momentohq.github.io/standards-and-practices/badges/project-stability-stable.svg)](https://github.com/momentohq/standards-and-practices/blob/main/docs/momento-on-github.md)
 
-# Momento Java Client Library
+# Momento Client Library for Java
 
 Momento Cache is a fast, simple, pay-as-you-go caching solution without any of the operational overhead
-required by traditional caching solutions.  This repo contains the source code for the Momento Java client library.
+required by traditional caching solutions.  This repo contains the source code for the Momento client library for Java.
 
 To get started with Momento you will need a Momento Auth Token. You can get one from the [Momento Console](https://console.gomomento.com).
 
 * Website: [https://www.gomomento.com/](https://www.gomomento.com/)
 * Momento Documentation: [https://docs.momentohq.com/](https://docs.momentohq.com/)
 * Getting Started: [https://docs.momentohq.com/getting-started](https://docs.momentohq.com/getting-started)
-* Java SDK Documentation: [https://docs.momentohq.com/sdks/java](https://docs.momentohq.com/sdks/java)
+* Momento SDK Documentation for Java: [https://docs.momentohq.com/sdks/java](https://docs.momentohq.com/sdks/java)
 * Discuss: [Momento Discord](https://discord.gg/3HkAKjUZGq)
 
 ## Packages
