@@ -45,6 +45,8 @@ public class SubscriptionWrapperTest {
             (message) -> {},
             () -> {},
             (err) -> {},
+            (discontinuity) -> {},
+            () -> {},
             () -> {
               logger.info("Got to our connection lost callback!");
               gotConnectionLostCallback.set(true);

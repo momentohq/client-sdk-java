@@ -1,5 +1,6 @@
 package momento.sdk;
 
+import momento.sdk.responses.topic.TopicDiscontinuity;
 import momento.sdk.responses.topic.TopicMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,6 +24,16 @@ public interface ISubscriptionCallbacks {
    * @param t The throwable representing the error.
    */
   void onError(Throwable t);
+
+  /** Called when a discontinuity occurs during the subscription. */
+  default void onDiscontinuity(TopicDiscontinuity discontinuity) {
+      logger.info("Discontinuity occurred: {}", discontinuity);
+  };
+
+  /** Called when a heartbeat is received during the subscription. */
+  default void onHeartbeat() {
+        logger.info("Heartbeat received");
+  };
 
   /** Called when the connection to the topic is lost. */
   default void onConnectionLost() {

@@ -12,6 +12,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
+import momento.sdk.responses.topic.TopicDiscontinuity;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
@@ -117,6 +118,7 @@ class SubscriptionWrapper implements AutoCloseable {
             .setTopic(options.getTopicName())
             .setResumeAtTopicSequenceNumber(
                 options.subscriptionState.getResumeAtTopicSequenceNumber())
+            .setSequencePage(options.subscriptionState.getResumeAtTopicSequencePage())
             .build();
 
     try {
@@ -155,15 +157,21 @@ class SubscriptionWrapper implements AutoCloseable {
 
   private void handleSubscriptionDiscontinuity(_SubscriptionItem discontinuityItem) {
     logger.debug(
-        "{}, {}, {}, {}",
+        "discontinuity {}, {}, {}, {}, {}, {}",
         options.getCacheName(),
         options.getTopicName(),
         discontinuityItem.getDiscontinuity().getLastTopicSequence(),
+        discontinuityItem.getDiscontinuity().getNewTopicSequence(),
+        discontinuityItem.getDiscontinuity().getLastTopicSequence(),
         discontinuityItem.getDiscontinuity().getNewTopicSequence());
+
+    options.onDiscontinuity(new TopicDiscontinuity((int) discontinuityItem.getDiscontinuity().getLastTopicSequence(),
+        (int) discontinuityItem.getDiscontinuity().getNewTopicSequence(), (int) discontinuityItem.getDiscontinuity().getNewSequencePage()));
   }
 
   private void handleSubscriptionHeartbeat() {
     logger.debug("heartbeat {} {}", options.getCacheName(), options.getTopicName());
+    options.onHeartbeat();
   }
 
   private void handleSubscriptionUnknown() {
@@ -175,6 +183,16 @@ class SubscriptionWrapper implements AutoCloseable {
     _TopicValue topicValue = topicItem.getValue();
     options.subscriptionState.setResumeAtTopicSequenceNumber(
         (int) topicItem.getTopicSequenceNumber());
+    options.subscriptionState.setResumeAtTopicSequencePage(
+            (int) topicItem.getSequencePage());
+
+    logger.debug(
+        "Received Item on subscription stream: {}, {}, {}, {}, {}",
+        options.getCacheName(),
+        options.getTopicName(),
+        topicItem.getPublisherId(),
+        topicItem.getTopicSequenceNumber(),
+        topicItem.getSequencePage());
     TopicMessage message;
 
     switch (topicValue.getKindCase()) {

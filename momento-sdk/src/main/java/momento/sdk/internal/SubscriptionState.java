@@ -5,6 +5,7 @@ public class SubscriptionState {
 
   private Runnable unsubscribeFn;
   private Integer lastTopicSequenceNumber;
+  private Integer lastTopicSequencePage;
   private boolean isSubscribed;
 
   /** Constructs a new SubscriptionState instance with default values. */
@@ -25,6 +26,20 @@ public class SubscriptionState {
   /** Sets the topic sequence number to resume the subscription from. */
   public void setResumeAtTopicSequenceNumber(int lastTopicSequenceNumber) {
     this.lastTopicSequenceNumber = lastTopicSequenceNumber;
+  }
+
+    /**
+     * Gets the topic sequence page to resume the subscription from.
+     *
+     * @return The topic sequence page to resume from.
+     */
+  public int getResumeAtTopicSequencePage() {
+    return lastTopicSequencePage != null ? lastTopicSequencePage : 0;
+  }
+
+  /** Sets the topic sequence page to resume the subscription from. */
+  public void setResumeAtTopicSequencePage(int lastTopicSequencePage) {
+    this.lastTopicSequencePage = lastTopicSequencePage;
   }
 
   /** Sets the subscription state to "subscribed." */
