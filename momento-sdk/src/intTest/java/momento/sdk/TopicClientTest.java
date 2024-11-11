@@ -65,12 +65,12 @@ public class TopicClientTest extends BaseCacheTestClass {
 
       @Override
       public void onDiscontinuity(TopicDiscontinuity discontinuity) {
-          logger.info("onDiscontinuity Invoked");
+        logger.info("onDiscontinuity Invoked");
       }
 
       @Override
       public void onHeartbeat() {
-          logger.info("onHeartbeat Invoked");
+        logger.info("onHeartbeat Invoked");
       }
     };
   }

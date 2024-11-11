@@ -28,11 +28,11 @@ public class SubscriptionState {
     this.lastTopicSequenceNumber = lastTopicSequenceNumber;
   }
 
-    /**
-     * Gets the topic sequence page to resume the subscription from.
-     *
-     * @return The topic sequence page to resume from.
-     */
+  /**
+   * Gets the topic sequence page to resume the subscription from.
+   *
+   * @return The topic sequence page to resume from.
+   */
   public int getResumeAtTopicSequencePage() {
     return lastTopicSequencePage != null ? lastTopicSequencePage : 0;
   }

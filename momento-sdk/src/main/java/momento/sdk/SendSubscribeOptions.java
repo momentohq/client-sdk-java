@@ -64,11 +64,11 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
   }
 
   public DiscontinuityCallback getOnDiscontinuity() {
-      return onDiscontinuity;
+    return onDiscontinuity;
   }
 
   public HeartbeatCallback getOnHeartbeat() {
-      return onHeartbeat;
+    return onHeartbeat;
   }
 
   public SubscriptionState getSubscriptionState() {
@@ -101,7 +101,7 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
 
   @Override
   public void onHeartbeat() {
-      onHeartbeat.onHeartbeat();
+    onHeartbeat.onHeartbeat();
   }
 
   @Override
