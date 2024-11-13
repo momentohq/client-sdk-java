@@ -18,26 +18,27 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 import momento.sdk.retry.RetryEligibilityStrategy;
 import momento.sdk.retry.RetryStrategy;
-import momento.sdk.retry.RetryingUnaryClientCall;
+import momento.sdk.retry.RetryingClientCall;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * Interceptor for retrying client calls with gRPC servers. This interceptor is responsible for
- * handling retry logic when making unary (single request, single response) gRPC calls.
+ * handling retry logic when making unary (single request, single response) and streaming gRPC
+ * calls.
  *
  * <p>A {@link ClientCall} is essentially an instance of a gRPC invoker. Every gRPC interceptor
  * expects us to return such client call(s) that it will execute in order. Each call has a "start"
  * method, which is the entry point for the call.
  *
- * <p>This retry client interceptor returns an instance of a {@link RetryingUnaryClientCall}, which
- * is a client call designed to handle retrying unary (single request, single response) operations.
- * The interceptor uses a provided {@link RetryStrategy} to determine when and how to retry failed
- * calls.
+ * <p>This retry client interceptor returns an instance of a {@link RetryingClientCall}, which is a
+ * client call designed to handle retrying unary (single request, single response) and streaming
+ * call operations. The interceptor uses a provided {@link RetryStrategy} to determine when and how
+ * to retry failed calls.
  *
  * <p>When a gRPC call is intercepted, the interceptor checks whether the method is unary (client
- * sends one message), and if so, it wraps the original {@link ClientCall} with the {@link
- * RetryingUnaryClientCall}. This custom call is responsible for handling the retry logic.
+ * sends one message) or streaming, and if so, it wraps the original {@link ClientCall} with the
+ * {@link RetryingClientCall}. This custom call is responsible for handling the retry logic.
  *
  * <p>When the gRPC call is closed, the {@code onClose} method is called, which is the point where
  * we can safely check the status of the initial request that was made and determine if we want to
@@ -47,8 +48,6 @@ import org.slf4j.LoggerFactory;
  * <p>If the retry attempts are exhausted or if the provided delay is not present (indicating that
  * we should not retry anymore), the interceptor propagates the final result to the original
  * listener, effectively completing the call with the last status received.
- *
- * <p>Note that the interceptor only supports unary operations for retrying.
  *
  * @see RetryStrategy
  * @see RetryEligibilityStrategy
@@ -76,12 +75,12 @@ final class RetryClientInterceptor implements ClientInterceptor {
       final MethodDescriptor<ReqT, RespT> method,
       final CallOptions callOptions,
       final Channel channel) {
-    // currently the SDK only supports unary operations which we want to retry on
+
     if (!method.getType().clientSendsOneMessage()) {
       return channel.newCall(method, callOptions);
     }
 
-    return new RetryingUnaryClientCall<ReqT, RespT>(channel.newCall(method, callOptions)) {
+    return new RetryingClientCall<ReqT, RespT>(channel.newCall(method, callOptions)) {
       private int attemptNumber = 0;
       @Nullable private Future<?> future = null;
 
@@ -90,7 +89,6 @@ final class RetryClientInterceptor implements ClientInterceptor {
         super.start(
             new ForwardingClientCallListener.SimpleForwardingClientCallListener<RespT>(
                 responseListener) {
-
               /**
                * At this point, the ClientCall has been closed. Any additional calls to the
                * ClientCall will not be processed by the server. The server does not send any
@@ -126,12 +124,13 @@ final class RetryClientInterceptor implements ClientInterceptor {
                 // a delay not present indicates we have exhausted retries or exceeded
                 // delay or any variable the strategy author wishes to not retry anymore
                 if (!retryDelay.isPresent()) {
+                  cancelAttempt();
                   super.onClose(status, trailers);
                   return;
                 }
 
                 logger.debug(
-                    "Retrying request {} on error code {} with delay {} millisecodns",
+                    "Retrying request {} on error code {} with delay {} milliseconds",
                     method.getFullMethodName(),
                     status.getCode().toString(),
                     retryDelay.get().toMillis());
