@@ -1,12 +1,11 @@
 package momento.sdk.responses.topic;
 
 public class TopicDiscontinuity {
-  private final Integer lastSequenceNumber;
-  private final Integer newSequenceNumber;
-  private final Integer newSequencePage;
+  private final Long lastSequenceNumber;
+  private final Long newSequenceNumber;
+  private final Long newSequencePage;
 
-  public TopicDiscontinuity(
-      Integer lastSequenceNumber, Integer newSequenceNumber, Integer newSequencePage) {
+  public TopicDiscontinuity(long lastSequenceNumber, long newSequenceNumber, long newSequencePage) {
     this.lastSequenceNumber = lastSequenceNumber;
     this.newSequenceNumber = newSequenceNumber;
     this.newSequencePage = newSequencePage;
@@ -27,21 +26,21 @@ public class TopicDiscontinuity {
   /*
    * Gets the last sequence number.
    */
-  public Integer getLastSequenceNumber() {
+  public long getLastSequenceNumber() {
     return lastSequenceNumber;
   }
 
   /*
    * Gets the new sequence number.
    */
-  public Integer getNewSequenceNumber() {
+  public long getNewSequenceNumber() {
     return newSequenceNumber;
   }
 
   /*
    * Gets the new sequence page.
    */
-  public Integer getNewSequencePage() {
+  public long getNewSequencePage() {
     return newSequencePage;
   }
 }

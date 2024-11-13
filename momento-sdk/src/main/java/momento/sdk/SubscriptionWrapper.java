@@ -157,19 +157,18 @@ class SubscriptionWrapper implements AutoCloseable {
 
   private void handleSubscriptionDiscontinuity(_SubscriptionItem discontinuityItem) {
     logger.debug(
-        "discontinuity {}, {}, {}, {}, {}, {}",
+        "discontinuity {}, {}, {}, {}, {}",
         options.getCacheName(),
         options.getTopicName(),
         discontinuityItem.getDiscontinuity().getLastTopicSequence(),
         discontinuityItem.getDiscontinuity().getNewTopicSequence(),
-        discontinuityItem.getDiscontinuity().getLastTopicSequence(),
-        discontinuityItem.getDiscontinuity().getNewTopicSequence());
+        discontinuityItem.getDiscontinuity().getNewSequencePage());
 
     options.onDiscontinuity(
         new TopicDiscontinuity(
-            (int) discontinuityItem.getDiscontinuity().getLastTopicSequence(),
-            (int) discontinuityItem.getDiscontinuity().getNewTopicSequence(),
-            (int) discontinuityItem.getDiscontinuity().getNewSequencePage()));
+            discontinuityItem.getDiscontinuity().getLastTopicSequence(),
+            discontinuityItem.getDiscontinuity().getNewTopicSequence(),
+            discontinuityItem.getDiscontinuity().getNewSequencePage()));
   }
 
   private void handleSubscriptionHeartbeat() {
@@ -184,9 +183,8 @@ class SubscriptionWrapper implements AutoCloseable {
   private void handleSubscriptionItemMessage(_SubscriptionItem item) {
     _TopicItem topicItem = item.getItem();
     _TopicValue topicValue = topicItem.getValue();
-    options.subscriptionState.setResumeAtTopicSequenceNumber(
-        (int) topicItem.getTopicSequenceNumber());
-    options.subscriptionState.setResumeAtTopicSequencePage((int) topicItem.getSequencePage());
+    options.subscriptionState.setResumeAtTopicSequenceNumber(topicItem.getTopicSequenceNumber());
+    options.subscriptionState.setResumeAtTopicSequencePage(topicItem.getSequencePage());
 
     logger.debug(
         "Received Item on subscription stream: {}, {}, {}, {}, {}",
