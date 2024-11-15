@@ -163,8 +163,10 @@ class SubscriptionWrapper implements AutoCloseable {
         discontinuityItem.getDiscontinuity().getLastTopicSequence(),
         discontinuityItem.getDiscontinuity().getNewTopicSequence(),
         discontinuityItem.getDiscontinuity().getNewSequencePage());
-    options.subscriptionState.setResumeAtTopicSequenceNumber(discontinuityItem.getDiscontinuity().getNewTopicSequence());
-    options.subscriptionState.setResumeAtTopicSequencePage(discontinuityItem.getDiscontinuity().getNewSequencePage());
+    options.subscriptionState.setResumeAtTopicSequenceNumber(
+        discontinuityItem.getDiscontinuity().getNewTopicSequence());
+    options.subscriptionState.setResumeAtTopicSequencePage(
+        discontinuityItem.getDiscontinuity().getNewSequencePage());
     options.onDiscontinuity(
         new TopicDiscontinuity(
             discontinuityItem.getDiscontinuity().getLastTopicSequence(),
