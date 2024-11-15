@@ -13,14 +13,17 @@ public class TopicDiscontinuity {
 
   @Override
   public String toString() {
-    return "TopicDiscontinuity{"
-        + "lastSequenceNumber="
-        + lastSequenceNumber
-        + ", newSequenceNumber="
-        + newSequenceNumber
-        + ", newSequencePage="
-        + newSequencePage
-        + '}';
+
+    StringBuilder sb = new StringBuilder();
+    sb.append("TopicDiscontinuity{");
+    sb.append("lastSequenceNumber=");
+    sb.append(lastSequenceNumber);
+    sb.append(", newSequenceNumber=");
+    sb.append(newSequenceNumber);
+    sb.append(", newSequencePage=");
+    sb.append(newSequencePage);
+    sb.append('}');
+    return sb.toString();
   }
 
   /*

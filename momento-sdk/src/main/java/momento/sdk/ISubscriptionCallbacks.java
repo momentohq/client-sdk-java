@@ -26,16 +26,10 @@ public interface ISubscriptionCallbacks {
   void onError(Throwable t);
 
   /** Called when a discontinuity occurs during the subscription. */
-  default void onDiscontinuity(TopicDiscontinuity discontinuity) {
-    logger.info("Discontinuity occurred: {}", discontinuity);
-  }
-  ;
+  default void onDiscontinuity(TopicDiscontinuity discontinuity) {};
 
   /** Called when a heartbeat is received during the subscription. */
-  default void onHeartbeat() {
-    logger.info("Heartbeat received");
-  }
-  ;
+  default void onHeartbeat() {};
 
   /** Called when the connection to the topic is lost. */
   default void onConnectionLost() {
