@@ -12,6 +12,7 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
+import momento.sdk.responses.topic.TopicDiscontinuity;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.slf4j.Logger;
@@ -117,6 +118,7 @@ class SubscriptionWrapper implements AutoCloseable {
             .setTopic(options.getTopicName())
             .setResumeAtTopicSequenceNumber(
                 options.subscriptionState.getResumeAtTopicSequenceNumber())
+            .setSequencePage(options.subscriptionState.getResumeAtTopicSequencePage())
             .build();
 
     try {
@@ -154,16 +156,27 @@ class SubscriptionWrapper implements AutoCloseable {
   }
 
   private void handleSubscriptionDiscontinuity(_SubscriptionItem discontinuityItem) {
-    logger.debug(
-        "{}, {}, {}, {}",
+    logger.trace(
+        "discontinuity {}, {}, {}, {}, {}",
         options.getCacheName(),
         options.getTopicName(),
         discontinuityItem.getDiscontinuity().getLastTopicSequence(),
+        discontinuityItem.getDiscontinuity().getNewTopicSequence(),
+        discontinuityItem.getDiscontinuity().getNewSequencePage());
+    options.subscriptionState.setResumeAtTopicSequenceNumber(
         discontinuityItem.getDiscontinuity().getNewTopicSequence());
+    options.subscriptionState.setResumeAtTopicSequencePage(
+        discontinuityItem.getDiscontinuity().getNewSequencePage());
+    options.onDiscontinuity(
+        new TopicDiscontinuity(
+            discontinuityItem.getDiscontinuity().getLastTopicSequence(),
+            discontinuityItem.getDiscontinuity().getNewTopicSequence(),
+            discontinuityItem.getDiscontinuity().getNewSequencePage()));
   }
 
   private void handleSubscriptionHeartbeat() {
-    logger.debug("heartbeat {} {}", options.getCacheName(), options.getTopicName());
+    logger.trace("heartbeat {} {}", options.getCacheName(), options.getTopicName());
+    options.onHeartbeat();
   }
 
   private void handleSubscriptionUnknown() {
@@ -173,8 +186,8 @@ class SubscriptionWrapper implements AutoCloseable {
   private void handleSubscriptionItemMessage(_SubscriptionItem item) {
     _TopicItem topicItem = item.getItem();
     _TopicValue topicValue = topicItem.getValue();
-    options.subscriptionState.setResumeAtTopicSequenceNumber(
-        (int) topicItem.getTopicSequenceNumber());
+    options.subscriptionState.setResumeAtTopicSequenceNumber(topicItem.getTopicSequenceNumber());
+    options.subscriptionState.setResumeAtTopicSequencePage(topicItem.getSequencePage());
     TopicMessage message;
 
     switch (topicValue.getKindCase()) {

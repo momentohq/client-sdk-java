@@ -4,7 +4,8 @@ package momento.sdk.internal;
 public class SubscriptionState {
 
   private Runnable unsubscribeFn;
-  private Integer lastTopicSequenceNumber;
+  private Long lastTopicSequenceNumber;
+  private Long lastTopicSequencePage;
   private boolean isSubscribed;
 
   /** Constructs a new SubscriptionState instance with default values. */
@@ -18,13 +19,27 @@ public class SubscriptionState {
    *
    * @return The topic sequence number to resume from.
    */
-  public int getResumeAtTopicSequenceNumber() {
+  public long getResumeAtTopicSequenceNumber() {
     return (lastTopicSequenceNumber != null ? lastTopicSequenceNumber : -1) + 1;
   }
 
   /** Sets the topic sequence number to resume the subscription from. */
-  public void setResumeAtTopicSequenceNumber(int lastTopicSequenceNumber) {
+  public void setResumeAtTopicSequenceNumber(long lastTopicSequenceNumber) {
     this.lastTopicSequenceNumber = lastTopicSequenceNumber;
+  }
+
+  /**
+   * Gets the topic sequence page to resume the subscription from.
+   *
+   * @return The topic sequence page to resume from.
+   */
+  public long getResumeAtTopicSequencePage() {
+    return lastTopicSequencePage != null ? lastTopicSequencePage : 0;
+  }
+
+  /** Sets the topic sequence page to resume the subscription from. */
+  public void setResumeAtTopicSequencePage(long lastTopicSequencePage) {
+    this.lastTopicSequencePage = lastTopicSequencePage;
   }
 
   /** Sets the subscription state to "subscribed." */

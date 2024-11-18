@@ -1,6 +1,7 @@
 package momento.sdk;
 
 import momento.sdk.internal.SubscriptionState;
+import momento.sdk.responses.topic.TopicDiscontinuity;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 
@@ -10,6 +11,8 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
   ItemCallback onItem;
   CompletedCallback onCompleted;
   ErrorCallback onError;
+  DiscontinuityCallback onDiscontinuity;
+  HeartbeatCallback onHeartbeat;
   ConnectionLostCallback onConnectionLost;
   ConnectionRestoredCallback onConnectionRestored;
   SubscriptionState subscriptionState;
@@ -21,6 +24,8 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
       ItemCallback onItem,
       CompletedCallback onCompleted,
       ErrorCallback onError,
+      DiscontinuityCallback onDiscontinuity,
+      HeartbeatCallback onHeartbeat,
       ConnectionLostCallback onConnectionLost,
       ConnectionRestoredCallback onConnectionRestored,
       SubscriptionState subscriptionState,
@@ -30,6 +35,8 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
     this.onItem = onItem;
     this.onCompleted = onCompleted;
     this.onError = onError;
+    this.onDiscontinuity = onDiscontinuity;
+    this.onHeartbeat = onHeartbeat;
     this.onConnectionLost = onConnectionLost;
     this.onConnectionRestored = onConnectionRestored;
     this.subscriptionState = subscriptionState;
@@ -56,6 +63,14 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
     return onError;
   }
 
+  public DiscontinuityCallback getOnDiscontinuity() {
+    return onDiscontinuity;
+  }
+
+  public HeartbeatCallback getOnHeartbeat() {
+    return onHeartbeat;
+  }
+
   public SubscriptionState getSubscriptionState() {
     return subscriptionState;
   }
@@ -77,6 +92,16 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
   @Override
   public void onError(Throwable t) {
     onError.onError(t);
+  }
+
+  @Override
+  public void onDiscontinuity(TopicDiscontinuity discontinuity) {
+    onDiscontinuity.onDiscontinuity(discontinuity);
+  }
+
+  @Override
+  public void onHeartbeat() {
+    onHeartbeat.onHeartbeat();
   }
 
   @Override
@@ -102,6 +127,16 @@ class SendSubscribeOptions implements ISubscriptionCallbacks {
   @FunctionalInterface
   public interface ErrorCallback {
     void onError(Throwable t);
+  }
+
+  @FunctionalInterface
+  public interface DiscontinuityCallback {
+    void onDiscontinuity(TopicDiscontinuity discontinuity);
+  }
+
+  @FunctionalInterface
+  public interface HeartbeatCallback {
+    void onHeartbeat();
   }
 
   @FunctionalInterface

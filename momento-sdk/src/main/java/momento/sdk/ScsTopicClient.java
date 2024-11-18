@@ -79,6 +79,8 @@ public class ScsTopicClient extends ScsClientBase {
             options::onItem,
             options::onCompleted,
             options::onError,
+            options::onDiscontinuity,
+            options::onHeartbeat,
             options::onConnectionLost,
             options::onConnectionRestored,
             subscriptionState,

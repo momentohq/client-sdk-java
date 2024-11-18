@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import momento.sdk.config.TopicConfigurations;
 import momento.sdk.exceptions.MomentoErrorCode;
+import momento.sdk.responses.topic.TopicDiscontinuity;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
@@ -60,6 +61,16 @@ public class TopicClientTest extends BaseCacheTestClass {
       @Override
       public void onError(Throwable t) {
         logger.info("onError Invoked");
+      }
+
+      @Override
+      public void onDiscontinuity(TopicDiscontinuity discontinuity) {
+        logger.info("onDiscontinuity Invoked");
+      }
+
+      @Override
+      public void onHeartbeat() {
+        logger.info("onHeartbeat Invoked");
       }
     };
   }
