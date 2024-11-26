@@ -57,6 +57,8 @@ import momento.sdk.responses.cache.sortedset.SortedSetPutElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetPutElementsResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
+import momento.sdk.responses.cache.ttl.DecreaseTtlResponse;
+import momento.sdk.responses.cache.ttl.IncreaseTtlResponse;
 import momento.sdk.responses.cache.ttl.ItemGetTtlResponse;
 import momento.sdk.responses.cache.ttl.UpdateTtlResponse;
 import org.slf4j.Logger;
@@ -566,11 +568,11 @@ public final class CacheClient implements AutoCloseable {
   }
 
   /**
-   * Updates Ttl for a key to the given ttl.
+   * Updates TTL for a key to the given TTL.
    *
-   * @param cacheName Name of the cache to update the ttl for an item/key.
-   * @param key {String} The key for which the ttl is to be updated.
-   * @param ttl {Duration} The new ttl for the item
+   * @param cacheName Name of the cache to update the TTL for an item/key.
+   * @param key The key for which the TTL is to be updated.
+   * @param ttl The new TTL for the item
    * @return Future containing the result of the updateTtl operation.
    */
   public CompletableFuture<UpdateTtlResponse> updateTtl(
@@ -582,13 +584,77 @@ public final class CacheClient implements AutoCloseable {
    * Updates Ttl for a key to the given value.
    *
    * @param cacheName Name of the cache to update the ttl for an item/key.
-   * @param key {Byte Array} The key under for the ttl is to be updated.
-   * @param ttl {Duration} The new ttl for the item
+   * @param key The key under for the ttl is to be updated.
+   * @param ttl The new ttl for the item
    * @return Future containing the result of the updateTtl operation.
    */
   public CompletableFuture<UpdateTtlResponse> updateTtl(
       String cacheName, byte[] key, Duration ttl) {
     return scsDataClient.updateTtl(cacheName, key, ttl);
+  }
+
+  /**
+   * Increase the TTL for a key to the given TTL.
+   *
+   * <p>Conditionally overwrites the TTL to the new TTL provided the new TTL is greater than the
+   * current TTL.
+   *
+   * @param cacheName Name of the cache to increase the TTL for an item/key.
+   * @param key The key for which the TTL is to be increased.
+   * @param ttl The new TTL for the item.
+   * @return Future containing the result of the increaseTtl operation.
+   */
+  public CompletableFuture<IncreaseTtlResponse> increaseTtl(
+      String cacheName, String key, Duration ttl) {
+    return scsDataClient.increaseTtl(cacheName, key, ttl);
+  }
+
+  /**
+   * Increase the TTL for a key to the given TTL.
+   *
+   * <p>Conditionally overwrites the TTL to the new TTL provided the new TTL is greater than the
+   * current TTL.
+   *
+   * @param cacheName Name of the cache to increase the TTL for an item/key.
+   * @param key The key for which the TTL is to be increased.
+   * @param ttl The new TTL for the item.
+   * @return Future containing the result of the increaseTtl operation.
+   */
+  public CompletableFuture<IncreaseTtlResponse> increaseTtl(
+      String cacheName, byte[] key, Duration ttl) {
+    return scsDataClient.increaseTtl(cacheName, key, ttl);
+  }
+
+  /**
+   * Decrease the TTL for a key to the given TTL.
+   *
+   * <p>Conditionally overwrites the TTL to the new TTL provided the new TTL is less than the
+   * current TTL.
+   *
+   * @param cacheName Name of the cache to decrease the TTL for an item/key.
+   * @param key The key for which the TTL is to be decreased.
+   * @param ttl The new TTL for the item.
+   * @return Future containing the result of the decreaseTtl operation.
+   */
+  public CompletableFuture<DecreaseTtlResponse> decreaseTtl(
+      String cacheName, String key, Duration ttl) {
+    return scsDataClient.decreaseTtl(cacheName, key, ttl);
+  }
+
+  /**
+   * Decrease the TTL for a key to the given TTL.
+   *
+   * <p>Conditionally overwrites the TTL to the new TTL provided the new TTL is less than the
+   * current TTL.
+   *
+   * @param cacheName Name of the cache to decrease the TTL for an item/key.
+   * @param key The key for which the TTL is to be decreased.
+   * @param ttl The new TTL for the item.
+   * @return Future containing the result of the decreaseTtl operation.
+   */
+  public CompletableFuture<DecreaseTtlResponse> decreaseTtl(
+      String cacheName, byte[] key, Duration ttl) {
+    return scsDataClient.decreaseTtl(cacheName, key, ttl);
   }
 
   /**

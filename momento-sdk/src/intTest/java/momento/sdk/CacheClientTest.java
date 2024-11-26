@@ -29,6 +29,8 @@ import momento.sdk.responses.cache.SetIfNotExistsResponse;
 import momento.sdk.responses.cache.SetResponse;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheFlushResponse;
+import momento.sdk.responses.cache.ttl.DecreaseTtlResponse;
+import momento.sdk.responses.cache.ttl.IncreaseTtlResponse;
 import momento.sdk.responses.cache.ttl.ItemGetTtlResponse;
 import momento.sdk.responses.cache.ttl.UpdateTtlResponse;
 import org.assertj.core.api.InstanceOfAssertFactories;
@@ -286,6 +288,366 @@ final class CacheClientTest extends BaseCacheTestClass {
     assertThat(updateTtlResponse).isInstanceOf(UpdateTtlResponse.Error.class);
     assertThat(((UpdateTtlResponse.Error) updateTtlResponse).getMessage())
         .contains("Cache item TTL cannot be negative");
+  }
+
+  /** Test increasing TTL for an existing key with a String key. */
+  @Test
+  public void shouldIncreaseTTLAndGetItWithStringKey() {
+    final String key = randomString();
+
+    // Set a key with default TTL
+    SetResponse setResponse = cacheClient.set(cacheName, key, "value", DEFAULT_TTL_SECONDS).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Retrieve the current TTL
+    ItemGetTtlResponse initialTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(initialTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long initialTtlMillis = ((ItemGetTtlResponse.Hit) initialTtlResponse).remainingTtlMillis();
+    assertThat(initialTtlMillis).isLessThan(DEFAULT_TTL_SECONDS.toMillis());
+
+    // Increase TTL to 300 seconds
+    Duration updatedTTL = Duration.of(300, ChronoUnit.SECONDS);
+    CompletableFuture<IncreaseTtlResponse> increaseFuture =
+        cacheClient.increaseTtl(cacheName, key, updatedTTL);
+    IncreaseTtlResponse increaseTtlResponse = increaseFuture.join();
+
+    assertThat(increaseTtlResponse).isInstanceOf(IncreaseTtlResponse.Set.class);
+
+    // Retrieve the updated TTL
+    ItemGetTtlResponse updatedTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(updatedTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long updatedTtlMillis = ((ItemGetTtlResponse.Hit) updatedTtlResponse).remainingTtlMillis();
+
+    // Assert that the updated TTL is greater than the initial TTL but less than or equal to
+    // updatedTTL
+    assertThat(updatedTtlMillis).isGreaterThan(initialTtlMillis);
+    assertThat(updatedTtlMillis).isLessThanOrEqualTo(updatedTTL.toMillis());
+  }
+
+  /** Test increasing TTL for an existing key with a byte array key. */
+  @Test
+  public void shouldIncreaseTTLAndGetItWithByteArrayKey() {
+    final byte[] key = randomBytes();
+
+    // Set a key with default TTL
+    SetResponse setResponse =
+        cacheClient.set(cacheName, key, "value".getBytes(), DEFAULT_TTL_SECONDS).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Retrieve the current TTL
+    ItemGetTtlResponse initialTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(initialTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long initialTtlMillis = ((ItemGetTtlResponse.Hit) initialTtlResponse).remainingTtlMillis();
+    assertThat(initialTtlMillis).isLessThan(DEFAULT_TTL_SECONDS.toMillis());
+
+    // Increase TTL to 300 seconds
+    Duration updatedTTL = Duration.of(300, ChronoUnit.SECONDS);
+    CompletableFuture<IncreaseTtlResponse> increaseFuture =
+        cacheClient.increaseTtl(cacheName, key, updatedTTL);
+    IncreaseTtlResponse increaseTtlResponse = increaseFuture.join();
+
+    assertThat(increaseTtlResponse).isInstanceOf(IncreaseTtlResponse.Set.class);
+
+    // Retrieve the updated TTL
+    ItemGetTtlResponse updatedTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(updatedTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long updatedTtlMillis = ((ItemGetTtlResponse.Hit) updatedTtlResponse).remainingTtlMillis();
+
+    // Assert that the updated TTL is greater than the initial TTL but less than or equal to
+    // updatedTTL
+    assertThat(updatedTtlMillis).isGreaterThan(initialTtlMillis);
+    assertThat(updatedTtlMillis).isLessThanOrEqualTo(updatedTTL.toMillis());
+  }
+
+  /** Test that increasing TTL with a negative duration throws an error. */
+  @Test
+  public void throwsOnIncreaseTTLWhenNegative() {
+    final String key = randomString();
+
+    // Set a key with default TTL
+    SetResponse setResponse = cacheClient.set(cacheName, key, "value", DEFAULT_TTL_SECONDS).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Attempt to increase TTL with a negative duration
+    Duration negativeTTL = Duration.of(-1, ChronoUnit.SECONDS);
+    CompletableFuture<IncreaseTtlResponse> increaseFuture =
+        cacheClient.increaseTtl(cacheName, key, negativeTTL);
+    IncreaseTtlResponse increaseTtlResponse = increaseFuture.join();
+
+    assertThat(increaseTtlResponse).isInstanceOf(IncreaseTtlResponse.Error.class);
+    assertThat(((IncreaseTtlResponse.Error) increaseTtlResponse).getMessage())
+        .contains("Cache item TTL cannot be negative");
+  }
+
+  /**
+   * Test that increasing TTL is not set when the new TTL is not greater than the current TTL with a
+   * String key.
+   */
+  @Test
+  public void shouldNotSetIncreaseTTLWhenConditionNotSatisfiedWithStringKey() {
+    final String key = randomString();
+
+    // Set a key with TTL of 300 seconds
+    Duration initialTTL = Duration.of(300, ChronoUnit.SECONDS);
+    SetResponse setResponse = cacheClient.set(cacheName, key, "value", initialTTL).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Attempt to increase TTL to 200 seconds (less than current TTL)
+    Duration lowerTTL = Duration.of(200, ChronoUnit.SECONDS);
+    CompletableFuture<IncreaseTtlResponse> increaseFuture =
+        cacheClient.increaseTtl(cacheName, key, lowerTTL);
+    IncreaseTtlResponse increaseTtlResponse = increaseFuture.join();
+
+    assertThat(increaseTtlResponse).isInstanceOf(IncreaseTtlResponse.NotSet.class);
+
+    // Verify that TTL remains unchanged
+    ItemGetTtlResponse ttlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(ttlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long remainingTtlMillis = ((ItemGetTtlResponse.Hit) ttlResponse).remainingTtlMillis();
+    assertThat(remainingTtlMillis).isLessThanOrEqualTo(initialTTL.toMillis());
+    assertThat(remainingTtlMillis).isGreaterThan(initialTTL.minusSeconds(60).toMillis());
+  }
+
+  /**
+   * Test that increasing TTL is not set when the new TTL is not greater than the current TTL with a
+   * byte array key.
+   */
+  @Test
+  public void shouldNotSetIncreaseTTLWhenConditionNotSatisfiedWithByteArrayKey() {
+    final byte[] key = randomBytes();
+
+    // Set a key with TTL of 300 seconds
+    Duration initialTTL = Duration.of(300, ChronoUnit.SECONDS);
+    SetResponse setResponse =
+        cacheClient.set(cacheName, key, "value".getBytes(), initialTTL).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Attempt to increase TTL to 200 seconds (less than current TTL)
+    Duration lowerTTL = Duration.of(200, ChronoUnit.SECONDS);
+    CompletableFuture<IncreaseTtlResponse> increaseFuture =
+        cacheClient.increaseTtl(cacheName, key, lowerTTL);
+    IncreaseTtlResponse increaseTtlResponse = increaseFuture.join();
+
+    assertThat(increaseTtlResponse).isInstanceOf(IncreaseTtlResponse.NotSet.class);
+
+    // Verify that TTL remains unchanged
+    ItemGetTtlResponse ttlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(ttlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long remainingTtlMillis = ((ItemGetTtlResponse.Hit) ttlResponse).remainingTtlMillis();
+    assertThat(remainingTtlMillis).isLessThanOrEqualTo(initialTTL.toMillis());
+    assertThat(remainingTtlMillis).isGreaterThan(initialTTL.minusSeconds(60).toMillis());
+  }
+
+  /** Test that increasing TTL results in a miss when the key does not exist with a String key. */
+  @Test
+  public void shouldMissOnIncreaseTTLWhenKeyDoesNotExistWithStringKey() {
+    final String key = randomString();
+
+    // Attempt to increase TTL
+    Duration newTTL = Duration.of(300, ChronoUnit.SECONDS);
+    CompletableFuture<IncreaseTtlResponse> increaseFuture =
+        cacheClient.increaseTtl(cacheName, key, newTTL);
+    IncreaseTtlResponse increaseTtlResponse = increaseFuture.join();
+
+    assertThat(increaseTtlResponse).isInstanceOf(IncreaseTtlResponse.Miss.class);
+  }
+
+  /**
+   * Test that increasing TTL results in a miss when the key does not exist with a byte array key.
+   */
+  @Test
+  public void shouldMissOnIncreaseTTLWhenKeyDoesNotExistWithByteArrayKey() {
+    final byte[] key = randomBytes();
+
+    // Attempt to increase TTL
+    Duration newTTL = Duration.of(300, ChronoUnit.SECONDS);
+    CompletableFuture<IncreaseTtlResponse> increaseFuture =
+        cacheClient.increaseTtl(cacheName, key, newTTL);
+    IncreaseTtlResponse increaseTtlResponse = increaseFuture.join();
+
+    assertThat(increaseTtlResponse).isInstanceOf(IncreaseTtlResponse.Miss.class);
+  }
+
+  /** Test decreasing TTL for an existing key with a String key. */
+  @Test
+  public void shouldDecreaseTTLAndGetItWithStringKey() {
+    final String key = randomString();
+
+    // Set a key with TTL of 300 seconds
+    Duration initialTTL = Duration.of(300, ChronoUnit.SECONDS);
+    SetResponse setResponse = cacheClient.set(cacheName, key, "value", initialTTL).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Retrieve the current TTL
+    ItemGetTtlResponse initialTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(initialTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long initialTtlMillis = ((ItemGetTtlResponse.Hit) initialTtlResponse).remainingTtlMillis();
+    assertThat(initialTtlMillis).isLessThanOrEqualTo(initialTTL.toMillis());
+
+    // Decrease TTL to 200 seconds
+    Duration updatedTTL = Duration.of(200, ChronoUnit.SECONDS);
+    CompletableFuture<DecreaseTtlResponse> decreaseFuture =
+        cacheClient.decreaseTtl(cacheName, key, updatedTTL);
+    DecreaseTtlResponse decreaseTtlResponse = decreaseFuture.join();
+
+    assertThat(decreaseTtlResponse).isInstanceOf(DecreaseTtlResponse.Set.class);
+
+    // Retrieve the updated TTL
+    ItemGetTtlResponse updatedTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(updatedTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long updatedTtlMillis = ((ItemGetTtlResponse.Hit) updatedTtlResponse).remainingTtlMillis();
+
+    // The new ttl should be less than the new ttl due to network latency
+    assertThat(updatedTtlMillis).isLessThan(updatedTTL.toMillis());
+  }
+
+  /** Test decreasing TTL for an existing key with a byte array key. */
+  @Test
+  public void shouldDecreaseTTLAndGetItWithByteArrayKey() {
+    final byte[] key = randomBytes();
+
+    // Set a key with TTL of 300 seconds
+    Duration initialTTL = Duration.of(300, ChronoUnit.SECONDS);
+    SetResponse setResponse =
+        cacheClient.set(cacheName, key, "value".getBytes(), initialTTL).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Retrieve the current TTL
+    ItemGetTtlResponse initialTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(initialTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long initialTtlMillis = ((ItemGetTtlResponse.Hit) initialTtlResponse).remainingTtlMillis();
+    assertThat(initialTtlMillis).isLessThanOrEqualTo(initialTTL.toMillis());
+
+    // Decrease TTL to 200 seconds
+    Duration updatedTTL = Duration.of(200, ChronoUnit.SECONDS);
+    CompletableFuture<DecreaseTtlResponse> decreaseFuture =
+        cacheClient.decreaseTtl(cacheName, key, updatedTTL);
+    DecreaseTtlResponse decreaseTtlResponse = decreaseFuture.join();
+
+    assertThat(decreaseTtlResponse).isInstanceOf(DecreaseTtlResponse.Set.class);
+
+    // Retrieve the updated TTL
+    ItemGetTtlResponse updatedTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(updatedTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long updatedTtlMillis = ((ItemGetTtlResponse.Hit) updatedTtlResponse).remainingTtlMillis();
+
+    // The new ttl should be less than the new ttl due to network latency
+    assertThat(updatedTtlMillis).isLessThan(updatedTTL.toMillis());
+  }
+
+  /** Test that decreasing TTL with a negative duration throws an error. */
+  @Test
+  public void throwsOnDecreaseTTLWhenNegative() {
+    final String key = randomString();
+
+    // Set a key with default TTL
+    SetResponse setResponse = cacheClient.set(cacheName, key, "value", DEFAULT_TTL_SECONDS).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Attempt to decrease TTL with a negative duration
+    Duration negativeTTL = Duration.of(-1, ChronoUnit.SECONDS);
+    CompletableFuture<DecreaseTtlResponse> decreaseFuture =
+        cacheClient.decreaseTtl(cacheName, key, negativeTTL);
+    DecreaseTtlResponse decreaseTtlResponse = decreaseFuture.join();
+
+    assertThat(decreaseTtlResponse).isInstanceOf(DecreaseTtlResponse.Error.class);
+    assertThat(((DecreaseTtlResponse.Error) decreaseTtlResponse).getMessage())
+        .contains("Cache item TTL cannot be negative");
+  }
+
+  /**
+   * Test that decreasing TTL is not set when the new TTL is not less than the current TTL with a
+   * String key.
+   */
+  @Test
+  public void shouldNotSetDecreaseTTLWhenConditionNotSatisfiedWithStringKey() {
+    final String key = randomString();
+
+    // Set a key with TTL of 200 seconds
+    Duration initialTTL = Duration.of(200, ChronoUnit.SECONDS);
+    SetResponse setResponse = cacheClient.set(cacheName, key, "value", initialTTL).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Attempt to decrease TTL to 300 seconds (greater than current TTL)
+    Duration higherTTL = Duration.of(300, ChronoUnit.SECONDS);
+    CompletableFuture<DecreaseTtlResponse> decreaseFuture =
+        cacheClient.decreaseTtl(cacheName, key, higherTTL);
+    DecreaseTtlResponse decreaseTtlResponse = decreaseFuture.join();
+
+    assertThat(decreaseTtlResponse).isInstanceOf(DecreaseTtlResponse.NotSet.class);
+
+    // Verify that TTL remains unchanged
+    ItemGetTtlResponse ttlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(ttlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long remainingTtlMillis = ((ItemGetTtlResponse.Hit) ttlResponse).remainingTtlMillis();
+    assertThat(remainingTtlMillis).isLessThanOrEqualTo(initialTTL.toMillis());
+    assertThat(remainingTtlMillis).isGreaterThanOrEqualTo(initialTTL.minusSeconds(60).toMillis());
+  }
+
+  /**
+   * Test that decreasing TTL is not set when the new TTL is not less than the current TTL with a
+   * byte array key.
+   */
+  @Test
+  public void shouldNotSetDecreaseTTLWhenConditionNotSatisfiedWithByteArrayKey() {
+    final byte[] key = randomBytes();
+
+    // Set a key with TTL of 200 seconds
+    Duration initialTTL = Duration.of(200, ChronoUnit.SECONDS);
+    SetResponse setResponse =
+        cacheClient.set(cacheName, key, "value".getBytes(), initialTTL).join();
+    assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
+
+    // Attempt to decrease TTL to 300 seconds (greater than current TTL)
+    Duration higherTTL = Duration.of(300, ChronoUnit.SECONDS);
+    CompletableFuture<DecreaseTtlResponse> decreaseFuture =
+        cacheClient.decreaseTtl(cacheName, key, higherTTL);
+    DecreaseTtlResponse decreaseTtlResponse = decreaseFuture.join();
+
+    assertThat(decreaseTtlResponse).isInstanceOf(DecreaseTtlResponse.NotSet.class);
+
+    // Verify that TTL remains unchanged
+    ItemGetTtlResponse ttlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    assertThat(ttlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
+    long remainingTtlMillis = ((ItemGetTtlResponse.Hit) ttlResponse).remainingTtlMillis();
+    assertThat(remainingTtlMillis).isLessThanOrEqualTo(initialTTL.toMillis());
+    assertThat(remainingTtlMillis).isGreaterThanOrEqualTo(initialTTL.minusSeconds(60).toMillis());
+  }
+
+  /** Test that decreasing TTL results in a miss when the key does not exist with a String key. */
+  @Test
+  public void shouldMissOnDecreaseTTLWhenKeyDoesNotExistWithStringKey() {
+    final String key = randomString();
+
+    // Ensure the key does not exist by attempting to delete it first (optional)
+    cacheClient.delete(cacheName, key).join();
+
+    // Attempt to decrease TTL
+    Duration newTTL = Duration.of(100, ChronoUnit.SECONDS);
+    CompletableFuture<DecreaseTtlResponse> decreaseFuture =
+        cacheClient.decreaseTtl(cacheName, key, newTTL);
+    DecreaseTtlResponse decreaseTtlResponse = decreaseFuture.join();
+
+    assertThat(decreaseTtlResponse).isInstanceOf(DecreaseTtlResponse.Miss.class);
+  }
+
+  /**
+   * Test that decreasing TTL results in a miss when the key does not exist with a byte array key.
+   */
+  @Test
+  public void shouldMissOnDecreaseTTLWhenKeyDoesNotExistWithByteArrayKey() {
+    final byte[] key = randomBytes();
+
+    // Ensure the key does not exist by attempting to delete it first (optional)
+    cacheClient.delete(cacheName, key).join();
+
+    // Attempt to decrease TTL
+    Duration newTTL = Duration.of(100, ChronoUnit.SECONDS);
+    CompletableFuture<DecreaseTtlResponse> decreaseFuture =
+        cacheClient.decreaseTtl(cacheName, key, newTTL);
+    DecreaseTtlResponse decreaseTtlResponse = decreaseFuture.join();
+
+    assertThat(decreaseTtlResponse).isInstanceOf(DecreaseTtlResponse.Miss.class);
   }
 
   @Test
