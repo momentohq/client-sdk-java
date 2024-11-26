@@ -153,6 +153,8 @@ import momento.sdk.responses.cache.sortedset.SortedSetPutElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetPutElementsResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetRemoveElementsResponse;
+import momento.sdk.responses.cache.ttl.DecreaseTtlResponse;
+import momento.sdk.responses.cache.ttl.IncreaseTtlResponse;
 import momento.sdk.responses.cache.ttl.ItemGetTtlResponse;
 import momento.sdk.responses.cache.ttl.UpdateTtlResponse;
 
@@ -386,6 +388,58 @@ final class ScsDataClient extends ScsClientBase {
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new UpdateTtlResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  public CompletableFuture<IncreaseTtlResponse> increaseTtl(
+      String cacheName, String key, Duration ttl) {
+    try {
+      ensureValidKey(key);
+      ensureValidTtl(ttl);
+      checkCacheNameValid(cacheName);
+      return sendIncreaseTtl(cacheName, convert(key), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new IncreaseTtlResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  public CompletableFuture<IncreaseTtlResponse> increaseTtl(
+      String cacheName, byte[] key, Duration ttl) {
+    try {
+      ensureValidKey(key);
+      ensureValidTtl(ttl);
+      checkCacheNameValid(cacheName);
+      return sendIncreaseTtl(cacheName, convert(key), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new IncreaseTtlResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  public CompletableFuture<DecreaseTtlResponse> decreaseTtl(
+      String cacheName, String key, Duration ttl) {
+    try {
+      ensureValidKey(key);
+      ensureValidTtl(ttl);
+      checkCacheNameValid(cacheName);
+      return sendDecreaseTtl(cacheName, convert(key), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new DecreaseTtlResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
+  public CompletableFuture<DecreaseTtlResponse> decreaseTtl(
+      String cacheName, byte[] key, Duration ttl) {
+    try {
+      ensureValidKey(key);
+      ensureValidTtl(ttl);
+      checkCacheNameValid(cacheName);
+      return sendDecreaseTtl(cacheName, convert(key), ttl);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new DecreaseTtlResponse.Error(CacheServiceExceptionMapper.convert(e)));
     }
   }
 
@@ -1688,6 +1742,66 @@ final class ScsDataClient extends ScsClientBase {
 
     final Function<Throwable, UpdateTtlResponse> failure =
         e -> new UpdateTtlResponse.Error(CacheServiceExceptionMapper.convert(e));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
+  private CompletableFuture<IncreaseTtlResponse> sendIncreaseTtl(
+      String cacheName, ByteString key, Duration ttl) {
+
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_UpdateTtlResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .updateTtl(buildIncreaseTtlRequest(key, ttl));
+
+    final Function<_UpdateTtlResponse, IncreaseTtlResponse> success =
+        rsp -> {
+          if (rsp.getResultCase().equals(_UpdateTtlResponse.ResultCase.SET)) {
+            return new IncreaseTtlResponse.Set();
+          } else if (rsp.getResultCase().equals(_UpdateTtlResponse.ResultCase.NOT_SET)) {
+            return new IncreaseTtlResponse.NotSet();
+          } else if (rsp.getResultCase().equals(_UpdateTtlResponse.ResultCase.MISSING)) {
+            return new IncreaseTtlResponse.Miss();
+          } else {
+            return new IncreaseTtlResponse.Error(
+                new UnknownException("Unrecognized update-ttl result: " + rsp.getResultCase()));
+          }
+        };
+
+    final Function<Throwable, IncreaseTtlResponse> failure =
+        e -> new IncreaseTtlResponse.Error(CacheServiceExceptionMapper.convert(e));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
+  private CompletableFuture<DecreaseTtlResponse> sendDecreaseTtl(
+      String cacheName, ByteString key, Duration ttl) {
+
+    final Metadata metadata = metadataWithCache(cacheName);
+
+    final Supplier<ListenableFuture<_UpdateTtlResponse>> stubSupplier =
+        () ->
+            attachMetadata(scsDataGrpcStubsManager.getStub(), metadata)
+                .updateTtl(buildDecreaseTtlRequest(key, ttl));
+
+    final Function<_UpdateTtlResponse, DecreaseTtlResponse> success =
+        rsp -> {
+          if (rsp.getResultCase().equals(_UpdateTtlResponse.ResultCase.SET)) {
+            return new DecreaseTtlResponse.Set();
+          } else if (rsp.getResultCase().equals(_UpdateTtlResponse.ResultCase.NOT_SET)) {
+            return new DecreaseTtlResponse.NotSet();
+          } else if (rsp.getResultCase().equals(_UpdateTtlResponse.ResultCase.MISSING)) {
+            return new DecreaseTtlResponse.Miss();
+          } else {
+            return new DecreaseTtlResponse.Error(
+                new UnknownException("Unrecognized update-ttl result: " + rsp.getResultCase()));
+          }
+        };
+
+    final Function<Throwable, DecreaseTtlResponse> failure =
+        e -> new DecreaseTtlResponse.Error(CacheServiceExceptionMapper.convert(e));
 
     return executeGrpcFunction(stubSupplier, success, failure);
   }
@@ -3231,6 +3345,22 @@ final class ScsDataClient extends ScsClientBase {
     return _UpdateTtlRequest.newBuilder()
         .setCacheKey(key)
         .setOverwriteToMilliseconds(ttl.toMillis())
+        .build();
+  }
+
+  private _UpdateTtlRequest buildIncreaseTtlRequest(
+      @Nonnull ByteString key, @Nonnull Duration ttl) {
+    return _UpdateTtlRequest.newBuilder()
+        .setCacheKey(key)
+        .setIncreaseToMilliseconds(ttl.toMillis())
+        .build();
+  }
+
+  private _UpdateTtlRequest buildDecreaseTtlRequest(
+      @Nonnull ByteString key, @Nonnull Duration ttl) {
+    return _UpdateTtlRequest.newBuilder()
+        .setCacheKey(key)
+        .setDecreaseToMilliseconds(ttl.toMillis())
         .build();
   }
 
