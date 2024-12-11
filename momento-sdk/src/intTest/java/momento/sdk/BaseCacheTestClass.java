@@ -3,7 +3,9 @@ package momento.sdk;
 import java.time.Duration;
 import java.util.UUID;
 import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.Configuration;
 import momento.sdk.config.Configurations;
+import momento.sdk.config.ReadConcern;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheDeleteResponse;
 import org.junit.jupiter.api.AfterAll;
@@ -15,14 +17,25 @@ public class BaseCacheTestClass {
   protected static CredentialProvider credentialProvider;
 
   protected static CacheClient cacheClient;
+  protected static CacheClient consistentReadCacheClient;
+  protected static CacheClient balancedReadCacheClient;
   protected static String cacheName;
 
   @BeforeAll
   static void beforeAll() {
+    final boolean consistentReads = System.getenv("CONSISTENT_READS") != null;
+
     credentialProvider = CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
-    cacheClient =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
-            .build();
+
+    final Configuration config = Configurations.Laptop.latest();
+    final Configuration consistentConfig = config.withReadConcern(ReadConcern.CONSISTENT);
+
+    balancedReadCacheClient =
+        CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build();
+    consistentReadCacheClient =
+        CacheClient.builder(credentialProvider, consistentConfig, DEFAULT_TTL_SECONDS).build();
+    cacheClient = consistentReads ? consistentReadCacheClient : balancedReadCacheClient;
+
     cacheName = testCacheName();
     ensureTestCacheExists(cacheName);
   }
@@ -30,7 +43,8 @@ public class BaseCacheTestClass {
   @AfterAll
   static void afterAll() {
     cleanupTestCache(cacheName);
-    cacheClient.close();
+    balancedReadCacheClient.close();
+    consistentReadCacheClient.close();
   }
 
   protected static void ensureTestCacheExists(String cacheName) {
@@ -50,10 +64,6 @@ public class BaseCacheTestClass {
   }
 
   public static String testCacheName() {
-    return "java-integration-test-default-" + UUID.randomUUID();
-  }
-
-  public static String testStoreName() {
     return "java-integration-test-default-" + UUID.randomUUID();
   }
 }

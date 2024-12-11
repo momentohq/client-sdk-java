@@ -58,9 +58,7 @@ jobs:
         arguments: clean build
 
     - name: Run integration tests
-      uses: gradle/gradle-build-action@v2
-      with:
-        arguments: integrationTest
+      run: make prod-test
 
   build-examples:
     runs-on: ubuntu-latest
