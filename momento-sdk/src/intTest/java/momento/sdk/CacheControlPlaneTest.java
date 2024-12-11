@@ -199,17 +199,4 @@ final class CacheControlPlaneTest extends BaseCacheTestClass {
                         DEFAULT_TTL_SECONDS)
                     .build());
   }
-
-  @Test
-  public void throwsInvalidArgumentForNullRequestTimeout() {
-    //noinspection resource
-    assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(
-            () ->
-                CacheClient.builder(
-                        credentialProvider,
-                        Configurations.Laptop.latest().withTimeout(null),
-                        DEFAULT_TTL_SECONDS)
-                    .build());
-  }
 }

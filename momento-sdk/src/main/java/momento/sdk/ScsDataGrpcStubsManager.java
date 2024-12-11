@@ -4,11 +4,14 @@ import grpc.cache_client.ScsGrpc;
 import io.grpc.ClientInterceptor;
 import io.grpc.ConnectivityState;
 import io.grpc.ManagedChannel;
+import io.grpc.Metadata;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -24,6 +27,7 @@ import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
+import momento.sdk.config.ReadConcern;
 import momento.sdk.exceptions.ConnectionFailedException;
 import momento.sdk.internal.GrpcChannelOptions;
 import org.slf4j.Logger;
@@ -71,7 +75,7 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
 
   private final ExecutorService retryExecutor;
 
-  // An arbitary selection of twice the number of available processors.
+  // An arbitrary selection of twice the number of available processors.
   private static final int MAX_RETRY_THREAD_POOL_SIZE = 64;
   // Timeout to keep threads idle/alive in the retry thread pool
   private static final long RETRY_THREAD_POOL_KEEP_ALIVE_SECONDS = 60L;
@@ -185,8 +189,15 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
     GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(
         configuration.getTransportStrategy().getGrpcConfiguration(), channelBuilder);
 
+    final Map<Metadata.Key<String>, String> extraHeaders = new HashMap<>();
+    if (configuration.getReadConcern() != ReadConcern.BALANCED) {
+      extraHeaders.put(
+          UserHeaderInterceptor.READ_CONCERN, configuration.getReadConcern().toLowerCase());
+    }
+
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken(), "cache"));
+    clientInterceptors.add(
+        new UserHeaderInterceptor(credentialProvider.getAuthToken(), "cache", extraHeaders));
     clientInterceptors.add(
         new RetryClientInterceptor(
             configuration.getRetryStrategy(), retryScheduler, retryExecutor));
