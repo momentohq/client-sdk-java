@@ -1,9 +1,10 @@
-package momento.sdk;
+package momento.sdk.cache;
 
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.time.Duration;
+import momento.sdk.CacheClient;
 import momento.sdk.config.Configurations;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.SetResponse;

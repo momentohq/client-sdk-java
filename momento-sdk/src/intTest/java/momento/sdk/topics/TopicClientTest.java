@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.topics;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -7,6 +7,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
+import momento.sdk.ISubscriptionCallbacks;
+import momento.sdk.TopicClient;
+import momento.sdk.cache.BaseCacheTestClass;
 import momento.sdk.config.TopicConfigurations;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.topic.TopicDiscontinuity;
@@ -23,7 +26,7 @@ public class TopicClientTest extends BaseCacheTestClass {
   private static TopicClient topicClient;
 
   private final String topicName = "test-topic";
-  private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
+  private final Logger logger = LoggerFactory.getLogger(TopicClientTest.class);
 
   private final List<String> receivedStringValues = new ArrayList<>();
   private final List<byte[]> receivedByteArrayValues = new ArrayList<>();

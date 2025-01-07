@@ -4,7 +4,6 @@ import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import momento.sdk.BaseStorageTestClass;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.StoreNotFoundException;
 import momento.sdk.responses.storage.DeleteResponse;

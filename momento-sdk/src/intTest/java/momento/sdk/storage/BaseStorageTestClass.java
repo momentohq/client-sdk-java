@@ -1,7 +1,8 @@
-package momento.sdk;
+package momento.sdk.storage;
 
 import java.time.Duration;
 import java.util.UUID;
+import momento.sdk.PreviewStorageClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfigurations;
 import momento.sdk.responses.storage.CreateStoreResponse;
@@ -19,10 +20,7 @@ public class BaseStorageTestClass {
   static void beforeAll() {
     credentialProvider = CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
     storageClient =
-        new PreviewStorageClientBuilder()
-            .withCredentialProvider(credentialProvider)
-            .withConfiguration(StorageConfigurations.Laptop.latest())
-            .build();
+        new PreviewStorageClient(credentialProvider, StorageConfigurations.Laptop.latest());
     storeName = testStoreName();
     ensureTestStoreExists(storeName);
   }

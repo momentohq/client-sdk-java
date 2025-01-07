@@ -1,13 +1,15 @@
-package momento.sdk;
+package momento.sdk.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
+import momento.sdk.AuthClient;
 import momento.sdk.auth.accessControl.CacheSelector;
 import momento.sdk.auth.accessControl.DisposableTokenScopes;
 import momento.sdk.auth.accessControl.ExpiresIn;
 import momento.sdk.auth.accessControl.TopicSelector;
+import momento.sdk.cache.BaseCacheTestClass;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
 import org.junit.jupiter.api.BeforeAll;

@@ -82,18 +82,12 @@ fun registerIntegrationTestTask(name: String, testClasses: List<String>) {
 
 registerIntegrationTestTask(
     "test-auth-service",
-    listOf("momento.sdk.AuthClient*")
+    listOf("momento.sdk.auth.*")
 )
 
 registerIntegrationTestTask(
     "test-cache-service",
-    listOf(
-        "momento.sdk.Cache*",
-        "momento.sdk.DictionaryTest",
-        "momento.sdk.ListTest",
-        "momento.sdk.SetTest",
-        "momento.sdk.SortedSetTest"
-    )
+    listOf("momento.sdk.cache.*")
 )
 
 registerIntegrationTestTask(
@@ -103,5 +97,5 @@ registerIntegrationTestTask(
 
 registerIntegrationTestTask(
     "test-topics-service",
-    listOf("momento.sdk.Topic*")
+    listOf("momento.sdk.topics.*")
 )

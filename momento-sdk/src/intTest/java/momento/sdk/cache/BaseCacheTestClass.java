@@ -1,7 +1,8 @@
-package momento.sdk;
+package momento.sdk.cache;
 
 import java.time.Duration;
 import java.util.UUID;
+import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
 import momento.sdk.config.Configurations;
@@ -17,8 +18,6 @@ public class BaseCacheTestClass {
   protected static CredentialProvider credentialProvider;
 
   protected static CacheClient cacheClient;
-  protected static CacheClient consistentReadCacheClient;
-  protected static CacheClient balancedReadCacheClient;
   protected static String cacheName;
 
   @BeforeAll
@@ -30,11 +29,10 @@ public class BaseCacheTestClass {
     final Configuration config = Configurations.Laptop.latest();
     final Configuration consistentConfig = config.withReadConcern(ReadConcern.CONSISTENT);
 
-    balancedReadCacheClient =
-        CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build();
-    consistentReadCacheClient =
-        CacheClient.builder(credentialProvider, consistentConfig, DEFAULT_TTL_SECONDS).build();
-    cacheClient = consistentReads ? consistentReadCacheClient : balancedReadCacheClient;
+    cacheClient =
+        consistentReads
+            ? CacheClient.builder(credentialProvider, consistentConfig, DEFAULT_TTL_SECONDS).build()
+            : CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build();
 
     cacheName = testCacheName();
     ensureTestCacheExists(cacheName);
@@ -43,8 +41,7 @@ public class BaseCacheTestClass {
   @AfterAll
   static void afterAll() {
     cleanupTestCache(cacheName);
-    balancedReadCacheClient.close();
-    consistentReadCacheClient.close();
+    cacheClient.close();
   }
 
   protected static void ensureTestCacheExists(String cacheName) {
