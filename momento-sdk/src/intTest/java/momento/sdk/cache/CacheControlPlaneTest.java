@@ -1,10 +1,11 @@
-package momento.sdk;
+package momento.sdk.cache;
 
 import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import java.time.Duration;
+import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AuthenticationException;
@@ -196,19 +197,6 @@ final class CacheControlPlaneTest extends BaseCacheTestClass {
                 CacheClient.builder(
                         credentialProvider,
                         Configurations.Laptop.latest().withTimeout(Duration.ofMillis(-1)),
-                        DEFAULT_TTL_SECONDS)
-                    .build());
-  }
-
-  @Test
-  public void throwsInvalidArgumentForNullRequestTimeout() {
-    //noinspection resource
-    assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(
-            () ->
-                CacheClient.builder(
-                        credentialProvider,
-                        Configurations.Laptop.latest().withTimeout(null),
                         DEFAULT_TTL_SECONDS)
                     .build());
   }

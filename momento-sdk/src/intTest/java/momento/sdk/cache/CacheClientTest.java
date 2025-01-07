@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.cache;
 
 import static momento.sdk.TestUtils.randomBytes;
 import static momento.sdk.TestUtils.randomString;
@@ -12,6 +12,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
+import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.auth.StringCredentialProvider;
 import momento.sdk.config.Configuration;

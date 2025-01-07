@@ -1,3 +1,5 @@
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+
 plugins {
     id("momento.publishable-java-lib")
     id("momento.junit-tests")
@@ -53,3 +55,47 @@ tasks.named("analyzeIntTestClassesDependencies").configure {
 tasks.named("analyzeTestClassesDependencies").configure {
     enabled = false
 }
+
+fun registerIntegrationTestTask(name: String, testClasses: List<String>) {
+    tasks.register<Test>(name) {
+        description = "Runs $name integration tests"
+        group = "verification"
+
+        val integrationTestTask = tasks.named<Test>("integrationTest").get()
+        classpath = integrationTestTask.classpath
+        testClassesDirs = integrationTestTask.testClassesDirs
+
+        filter {
+            testClasses.forEach { testClass ->
+                includeTestsMatching(testClass)
+            }
+        }
+
+        useJUnitPlatform()
+        testLogging {
+            exceptionFormat = TestExceptionFormat.FULL
+            events("passed", "skipped", "failed")
+        }
+        outputs.upToDateWhen { false }
+    }
+}
+
+registerIntegrationTestTask(
+    "test-auth-service",
+    listOf("momento.sdk.auth.*")
+)
+
+registerIntegrationTestTask(
+    "test-cache-service",
+    listOf("momento.sdk.cache.*")
+)
+
+registerIntegrationTestTask(
+    "test-storage-service",
+    listOf("momento.sdk.storage.*")
+)
+
+registerIntegrationTestTask(
+    "test-topics-service",
+    listOf("momento.sdk.topics.*")
+)

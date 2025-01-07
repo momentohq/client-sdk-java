@@ -12,6 +12,7 @@ import java.util.List;
 import momento.sdk.batchutils.MomentoBatchUtils;
 import momento.sdk.batchutils.request.BatchGetRequest;
 import momento.sdk.batchutils.response.BatchGetResponse;
+import momento.sdk.cache.BaseCacheTestClass;
 import momento.sdk.responses.cache.GetResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;

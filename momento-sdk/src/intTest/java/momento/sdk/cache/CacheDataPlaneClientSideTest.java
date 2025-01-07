@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.cache;
 
 import static org.assertj.core.api.Assertions.assertThat;
 

@@ -1,9 +1,12 @@
-package momento.sdk;
+package momento.sdk.cache;
 
 import java.time.Duration;
 import java.util.UUID;
+import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
+import momento.sdk.config.Configuration;
 import momento.sdk.config.Configurations;
+import momento.sdk.config.ReadConcern;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheDeleteResponse;
 import org.junit.jupiter.api.AfterAll;
@@ -19,10 +22,18 @@ public class BaseCacheTestClass {
 
   @BeforeAll
   static void beforeAll() {
+    final boolean consistentReads = System.getenv("CONSISTENT_READS") != null;
+
     credentialProvider = CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
+
+    final Configuration config = Configurations.Laptop.latest();
+    final Configuration consistentConfig = config.withReadConcern(ReadConcern.CONSISTENT);
+
     cacheClient =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
-            .build();
+        consistentReads
+            ? CacheClient.builder(credentialProvider, consistentConfig, DEFAULT_TTL_SECONDS).build()
+            : CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build();
+
     cacheName = testCacheName();
     ensureTestCacheExists(cacheName);
   }
@@ -50,10 +61,6 @@ public class BaseCacheTestClass {
   }
 
   public static String testCacheName() {
-    return "java-integration-test-default-" + UUID.randomUUID();
-  }
-
-  public static String testStoreName() {
     return "java-integration-test-default-" + UUID.randomUUID();
   }
 }

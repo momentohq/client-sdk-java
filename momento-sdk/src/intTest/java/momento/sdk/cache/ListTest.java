@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.cache;
 
 import static momento.sdk.TestUtils.randomBytes;
 import static momento.sdk.TestUtils.randomString;

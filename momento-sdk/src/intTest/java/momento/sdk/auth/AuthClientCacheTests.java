@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -9,7 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import momento.sdk.auth.StringCredentialProvider;
+import momento.sdk.AuthClient;
+import momento.sdk.CacheClient;
 import momento.sdk.auth.accessControl.CacheItemSelector;
 import momento.sdk.auth.accessControl.CacheRole;
 import momento.sdk.auth.accessControl.CacheSelector;
@@ -18,6 +19,7 @@ import momento.sdk.auth.accessControl.DisposableTokenPermission;
 import momento.sdk.auth.accessControl.DisposableTokenScope;
 import momento.sdk.auth.accessControl.DisposableTokenScopes;
 import momento.sdk.auth.accessControl.ExpiresIn;
+import momento.sdk.cache.BaseCacheTestClass;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
