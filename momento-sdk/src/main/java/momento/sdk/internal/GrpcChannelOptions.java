@@ -1,6 +1,7 @@
 package momento.sdk.internal;
 
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
+import java.time.Duration;
 import java.util.concurrent.TimeUnit;
 import momento.sdk.config.transport.IGrpcConfiguration;
 
@@ -12,24 +13,28 @@ public class GrpcChannelOptions {
 
   public static final boolean DEFAULT_KEEPALIVE_WITHOUT_STREAM = true;
   public static final int DEFAULT_KEEPALIVE_TIME_MS = 5000; // milliseconds
+  public static final Duration DEFAULT_KEEPALIVE_TIME =
+      Duration.ofMillis(DEFAULT_KEEPALIVE_TIME_MS);
   public static final int DEFAULT_KEEPALIVE_TIMEOUT_MS = 1000; // milliseconds
+  public static final Duration DEFAULT_KEEPALIVE_TIMEOUT =
+      Duration.ofMillis(DEFAULT_KEEPALIVE_TIMEOUT_MS);
 
   public static void applyGrpcConfigurationToChannelBuilder(
       IGrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder) {
     channelBuilder.useTransportSecurity();
     channelBuilder.disableRetry();
 
-    grpcConfig.getMaxMessageSize().ifPresent(channelBuilder::maxInboundMessageSize);
+    grpcConfig.getMaxReceivedMessageSize().ifPresent(channelBuilder::maxInboundMessageSize);
 
     // no equivalent for maxOutboundMessageSize
 
     grpcConfig
-        .getKeepAliveTimeMs()
-        .ifPresent(integer -> channelBuilder.keepAliveTime(integer, TimeUnit.MILLISECONDS));
+        .getKeepAliveTime()
+        .ifPresent(d -> channelBuilder.keepAliveTime(d.toMillis(), TimeUnit.MILLISECONDS));
 
     grpcConfig
-        .getKeepAliveTimeoutMs()
-        .ifPresent(integer -> channelBuilder.keepAliveTimeout(integer, TimeUnit.MILLISECONDS));
+        .getKeepAliveTimeout()
+        .ifPresent(d -> channelBuilder.keepAliveTimeout(d.toMillis(), TimeUnit.MILLISECONDS));
 
     grpcConfig.getKeepAliveWithoutCalls().ifPresent(channelBuilder::keepAliveWithoutCalls);
   }

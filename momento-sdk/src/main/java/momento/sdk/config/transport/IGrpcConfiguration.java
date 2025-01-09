@@ -24,7 +24,7 @@ public interface IGrpcConfiguration {
    *
    * @return the maximum message size, or empty if there is no specified maximum.
    */
-  Optional<Integer> getMaxMessageSize();
+  Optional<Integer> getMaxReceivedMessageSize();
 
   /**
    * Whether keepalive will be performed when there are no outstanding requests on a connection.
@@ -38,12 +38,12 @@ public interface IGrpcConfiguration {
    *
    * @return the time to wait for a keepalive ping response before considering the connection dead.
    */
-  Optional<Integer> getKeepAliveTimeoutMs();
+  Optional<Duration> getKeepAliveTimeout();
 
   /**
    * The time to wait between keepalive pings.
    *
    * @return the time to wait between keepalive pings.
    */
-  Optional<Integer> getKeepAliveTimeMs();
+  Optional<Duration> getKeepAliveTime();
 }
