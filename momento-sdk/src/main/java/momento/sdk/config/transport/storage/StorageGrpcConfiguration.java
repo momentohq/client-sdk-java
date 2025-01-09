@@ -5,17 +5,19 @@ import static momento.sdk.ValidationUtils.ensureRequestDeadlineValid;
 import java.time.Duration;
 import java.util.Optional;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+import momento.sdk.config.transport.IGrpcConfiguration;
 import momento.sdk.internal.GrpcChannelOptions;
 
 /** Abstracts away the gRPC configuration tunables. */
-public class StorageGrpcConfiguration {
+public class StorageGrpcConfiguration implements IGrpcConfiguration {
 
-  private final Duration deadline;
+  private final @Nonnull Duration deadline;
   private final int minNumGrpcChannels;
-  private final Optional<Integer> maxMessageSize;
-  private final Optional<Boolean> keepAliveWithoutCalls;
-  private final Optional<Integer> keepAliveTimeoutMs;
-  private final Optional<Integer> keepAliveTimeMs;
+  private final @Nullable Integer maxMessageSize;
+  private final @Nullable Boolean keepAliveWithoutCalls;
+  private final @Nullable Duration keepAliveTimeout;
+  private final @Nullable Duration keepAliveTime;
 
   /**
    * Constructs a StorageGrpcConfiguration.
@@ -26,10 +28,38 @@ public class StorageGrpcConfiguration {
     this(
         deadline,
         1,
-        Optional.of(GrpcChannelOptions.DEFAULT_MAX_MESSAGE_SIZE),
-        Optional.of(GrpcChannelOptions.DEFAULT_KEEPALIVE_WITHOUT_STREAM),
-        Optional.of(GrpcChannelOptions.DEFAULT_KEEPALIVE_TIMEOUT_MS),
-        Optional.of(GrpcChannelOptions.DEFAULT_KEEPALIVE_TIME_MS));
+        GrpcChannelOptions.DEFAULT_MAX_MESSAGE_SIZE,
+        GrpcChannelOptions.DEFAULT_KEEPALIVE_WITHOUT_STREAM,
+        GrpcChannelOptions.DEFAULT_KEEPALIVE_TIMEOUT,
+        GrpcChannelOptions.DEFAULT_KEEPALIVE_TIME);
+  }
+
+  /**
+   * Constructs a StorageGrpcConfiguration.
+   *
+   * @param deadline The maximum duration of a gRPC call.
+   * @param minNumGrpcChannels The minimum number of gRPC channels to keep open at any given time.
+   * @param maxMessageSize The maximum size of a message (in bytes) that can be received by the
+   *     client.
+   * @param keepAliveWithoutCalls Whether to send keepalive pings without any active calls.
+   * @param keepAliveTimeout The time in milliseconds to wait for a keepalive ping response before
+   *     considering the connection dead.
+   * @param keepAliveTime The time in milliseconds to wait between keepalive pings.
+   */
+  public StorageGrpcConfiguration(
+      @Nonnull Duration deadline,
+      int minNumGrpcChannels,
+      Optional<Integer> maxMessageSize,
+      Optional<Boolean> keepAliveWithoutCalls,
+      Optional<Integer> keepAliveTimeout,
+      Optional<Integer> keepAliveTime) {
+    this(
+        deadline,
+        minNumGrpcChannels,
+        maxMessageSize.orElse(null),
+        keepAliveWithoutCalls.orElse(null),
+        keepAliveTimeout.map(Duration::ofMillis).orElse(null),
+        keepAliveTime.map(Duration::ofMillis).orElse(null));
   }
 
   /**
@@ -47,25 +77,20 @@ public class StorageGrpcConfiguration {
   public StorageGrpcConfiguration(
       @Nonnull Duration deadline,
       int minNumGrpcChannels,
-      Optional<Integer> maxMessageSize,
-      Optional<Boolean> keepAliveWithoutCalls,
-      Optional<Integer> keepAliveTimeout,
-      Optional<Integer> keepAliveTime) {
+      @Nullable Integer maxMessageSize,
+      @Nullable Boolean keepAliveWithoutCalls,
+      @Nullable Duration keepAliveTimeout,
+      @Nullable Duration keepAliveTime) {
     ensureRequestDeadlineValid(deadline);
     this.deadline = deadline;
     this.minNumGrpcChannels = minNumGrpcChannels;
     this.maxMessageSize = maxMessageSize;
     this.keepAliveWithoutCalls = keepAliveWithoutCalls;
-    this.keepAliveTimeoutMs = keepAliveTimeout;
-    this.keepAliveTimeMs = keepAliveTime;
+    this.keepAliveTimeout = keepAliveTimeout;
+    this.keepAliveTime = keepAliveTime;
   }
 
-  /**
-   * How long the client will wait for an RPC to complete before it is terminated with {@link
-   * io.grpc.Status.Code#DEADLINE_EXCEEDED}.
-   *
-   * @return the deadline
-   */
+  @Override
   public Duration getDeadline() {
     return deadline;
   }
@@ -82,15 +107,11 @@ public class StorageGrpcConfiguration {
         minNumGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
-        keepAliveTimeoutMs,
-        keepAliveTimeMs);
+        keepAliveTimeout,
+        keepAliveTime);
   }
 
-  /**
-   * The minimum number of gRPC channels to keep open at any given time.
-   *
-   * @return the minimum number of gRPC channels.
-   */
+  @Override
   public int getMinNumGrpcChannels() {
     return minNumGrpcChannels;
   }
@@ -107,17 +128,22 @@ public class StorageGrpcConfiguration {
         minNumGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
-        keepAliveTimeoutMs,
-        keepAliveTimeMs);
+        keepAliveTimeout,
+        keepAliveTime);
   }
 
   /**
    * The maximum size of a message (in bytes) that can be received by the client.
    *
-   * @return the maximum message size.
+   * @return the maximum message size, or empty if there is no specified maximum.
    */
   public Optional<Integer> getMaxMessageSize() {
-    return maxMessageSize;
+    return getMaxReceivedMessageSize();
+  }
+
+  @Override
+  public Optional<Integer> getMaxReceivedMessageSize() {
+    return Optional.ofNullable(maxMessageSize);
   }
 
   /**
@@ -130,19 +156,15 @@ public class StorageGrpcConfiguration {
     return new StorageGrpcConfiguration(
         deadline,
         minNumGrpcChannels,
-        Optional.of(maxMessageSize),
+        maxMessageSize,
         keepAliveWithoutCalls,
-        keepAliveTimeoutMs,
-        keepAliveTimeMs);
+        keepAliveTimeout,
+        keepAliveTime);
   }
 
-  /**
-   * Whether keepalive will be performed when there are no outstanding requests on a connection.
-   *
-   * @return the boolean indicating whether to send keepalive pings without any active calls.
-   */
+  @Override
   public Optional<Boolean> getKeepAliveWithoutCalls() {
-    return keepAliveWithoutCalls;
+    return Optional.ofNullable(keepAliveWithoutCalls);
   }
 
   /**
@@ -162,13 +184,33 @@ public class StorageGrpcConfiguration {
    */
   public StorageGrpcConfiguration withKeepAliveWithoutCalls(
       Optional<Boolean> keepAliveWithoutCalls) {
+    return withKeepAliveWithoutCalls(keepAliveWithoutCalls.orElse(null));
+  }
+
+  /**
+   * Copy constructor that updates whether keepalive will be performed when there are no outstanding
+   * requests on a connection.
+   *
+   * <p>NOTE: keep-alives are very important for long-lived server environments where there may be
+   * periods of time when the connection is idle. However, they are very problematic for lambda
+   * environments where the lambda runtime is continuously frozen and unfrozen, because the lambda
+   * may be frozen before the "ACK" is received from the server. This can cause the keep-alive to
+   * timeout even though the connection is completely healthy. Therefore, keep-alives should be
+   * disabled in lambda and similar environments.
+   *
+   * @param keepAliveWithoutCalls The boolean indicating whether to send keepalive pings without any
+   *     active calls.
+   * @return The updated StorageGrpcConfiguration.
+   */
+  public StorageGrpcConfiguration withKeepAliveWithoutCalls(
+      @Nullable Boolean keepAliveWithoutCalls) {
     return new StorageGrpcConfiguration(
         deadline,
         minNumGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
-        keepAliveTimeoutMs,
-        keepAliveTimeMs);
+        keepAliveTimeout,
+        keepAliveTime);
   }
 
   /**
@@ -177,7 +219,12 @@ public class StorageGrpcConfiguration {
    * @return the time to wait for a keepalive ping response before considering the connection dead.
    */
   public Optional<Integer> getKeepAliveTimeoutMs() {
-    return keepAliveTimeoutMs;
+    return getKeepAliveTimeout().map(d -> (int) d.toMillis());
+  }
+
+  @Override
+  public Optional<Duration> getKeepAliveTimeout() {
+    return Optional.ofNullable(keepAliveTimeout);
   }
 
   /**
@@ -200,8 +247,8 @@ public class StorageGrpcConfiguration {
         minNumGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
-        Optional.of(keepAliveTimeoutMs),
-        keepAliveTimeMs);
+        Duration.ofMillis(keepAliveTimeoutMs),
+        keepAliveTime);
   }
 
   /**
@@ -210,7 +257,12 @@ public class StorageGrpcConfiguration {
    * @return the time to wait between keepalive pings.
    */
   public Optional<Integer> getKeepAliveTimeMs() {
-    return keepAliveTimeMs;
+    return getKeepAliveTime().map(d -> (int) d.toMillis());
+  }
+
+  @Override
+  public Optional<Duration> getKeepAliveTime() {
+    return Optional.ofNullable(keepAliveTime);
   }
 
   /**
@@ -232,8 +284,8 @@ public class StorageGrpcConfiguration {
         minNumGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
-        keepAliveTimeoutMs,
-        Optional.of(keepAliveTimeMs));
+        keepAliveTimeout,
+        Duration.ofMillis(keepAliveTimeMs));
   }
 
   /**
@@ -250,11 +302,6 @@ public class StorageGrpcConfiguration {
    */
   public StorageGrpcConfiguration withKeepAliveDisabled() {
     return new StorageGrpcConfiguration(
-        deadline,
-        minNumGrpcChannels,
-        maxMessageSize,
-        Optional.empty(),
-        Optional.empty(),
-        Optional.empty());
+        deadline, minNumGrpcChannels, maxMessageSize, null, null, null);
   }
 }
