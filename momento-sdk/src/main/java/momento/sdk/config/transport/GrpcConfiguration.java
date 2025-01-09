@@ -8,7 +8,7 @@ import javax.annotation.Nonnull;
 import momento.sdk.internal.GrpcChannelOptions;
 
 /** Abstracts away the gRPC configuration tunables. */
-public class GrpcConfiguration {
+public class GrpcConfiguration implements IGrpcConfiguration {
 
   private final Duration deadline;
   private final int minNumGrpcChannels;
@@ -60,12 +60,7 @@ public class GrpcConfiguration {
     this.keepAliveTimeMs = keepAliveTime;
   }
 
-  /**
-   * How long the client will wait for an RPC to complete before it is terminated with {@link
-   * io.grpc.Status.Code#DEADLINE_EXCEEDED}.
-   *
-   * @return the deadline
-   */
+  @Override
   public Duration getDeadline() {
     return deadline;
   }
@@ -86,11 +81,7 @@ public class GrpcConfiguration {
         keepAliveTimeMs);
   }
 
-  /**
-   * The minimum number of gRPC channels to keep open at any given time.
-   *
-   * @return the minimum number of gRPC channels.
-   */
+  @Override
   public int getMinNumGrpcChannels() {
     return minNumGrpcChannels;
   }
@@ -111,11 +102,7 @@ public class GrpcConfiguration {
         keepAliveTimeMs);
   }
 
-  /**
-   * The maximum size of a message (in bytes) that can be received by the client.
-   *
-   * @return the maximum message size.
-   */
+  @Override
   public Optional<Integer> getMaxMessageSize() {
     return maxMessageSize;
   }
@@ -136,11 +123,7 @@ public class GrpcConfiguration {
         keepAliveTimeMs);
   }
 
-  /**
-   * Whether keepalive will be performed when there are no outstanding requests on a connection.
-   *
-   * @return the boolean indicating whether to send keepalive pings without any active calls.
-   */
+  @Override
   public Optional<Boolean> getKeepAliveWithoutCalls() {
     return keepAliveWithoutCalls;
   }
@@ -170,11 +153,7 @@ public class GrpcConfiguration {
         keepAliveTimeMs);
   }
 
-  /**
-   * The time to wait for a keepalive ping response before considering the connection dead.
-   *
-   * @return the time to wait for a keepalive ping response before considering the connection dead.
-   */
+  @Override
   public Optional<Integer> getKeepAliveTimeoutMs() {
     return keepAliveTimeoutMs;
   }
@@ -203,11 +182,7 @@ public class GrpcConfiguration {
         keepAliveTimeMs);
   }
 
-  /**
-   * The time to wait between keepalive pings.
-   *
-   * @return the time to wait between keepalive pings.
-   */
+  @Override
   public Optional<Integer> getKeepAliveTimeMs() {
     return keepAliveTimeMs;
   }
