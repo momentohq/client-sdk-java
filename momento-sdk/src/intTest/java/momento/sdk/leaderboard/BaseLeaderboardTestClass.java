@@ -9,7 +9,6 @@ import momento.sdk.config.Configuration;
 import momento.sdk.config.Configurations;
 import momento.sdk.config.LeaderboardConfiguration;
 import momento.sdk.config.LeaderboardConfigurations;
-import momento.sdk.config.ReadConcern;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.control.CacheDeleteResponse;
 import org.junit.jupiter.api.AfterAll;
@@ -26,17 +25,11 @@ public class BaseLeaderboardTestClass {
 
   @BeforeAll
   static void beforeAll() {
-    final boolean consistentReads = System.getenv("CONSISTENT_READS") != null;
-
     credentialProvider = CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
 
     final Configuration config = Configurations.Laptop.latest();
-    final Configuration consistentConfig = config.withReadConcern(ReadConcern.CONSISTENT);
 
-    cacheClient =
-        consistentReads
-            ? CacheClient.builder(credentialProvider, consistentConfig, DEFAULT_TTL_SECONDS).build()
-            : CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build();
+    cacheClient = CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build();
 
     final LeaderboardConfiguration leaderboardConfig = LeaderboardConfigurations.Laptop.latest();
     leaderboardClient = LeaderboardClient.builder(credentialProvider, leaderboardConfig).build();

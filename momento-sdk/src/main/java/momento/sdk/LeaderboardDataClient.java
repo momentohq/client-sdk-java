@@ -125,7 +125,7 @@ final class LeaderboardDataClient extends ScsClientBase {
         rsp -> {
           final List<LeaderboardElement> elements =
               rsp.getElementsList().stream()
-                  .map(e -> new LeaderboardElement(e.getId(), e.getScore()))
+                  .map(e -> new LeaderboardElement(e.getId(), e.getScore(), e.getRank()))
                   .collect(Collectors.toList());
           return new FetchResponse.Success(elements);
         };
