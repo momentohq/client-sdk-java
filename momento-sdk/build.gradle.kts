@@ -99,3 +99,8 @@ registerIntegrationTestTask(
     "test-topics-service",
     listOf("momento.sdk.topics.*")
 )
+
+registerIntegrationTestTask(
+    "test-leaderboard-service",
+    listOf("momento.sdk.leaderboard.*")
+)

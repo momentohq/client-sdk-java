@@ -1,6 +1,7 @@
 package momento.sdk;
 
 import java.time.Duration;
+import java.util.Map;
 import momento.sdk.auth.accessControl.ExpiresIn;
 import momento.sdk.exceptions.InvalidArgumentException;
 
@@ -35,6 +36,10 @@ public final class ValidationUtils {
       "Disposable token must expire within 1 hour";
   static final String DISPOSABLE_TOKEN_MUST_HAVE_AN_EXPIRY =
       "Disposable tokens must have an expiry";
+  static final String LEADERBOARD_NAME_IS_REQUIRED = "Non-empty leaderboard name is required.";
+  static final String LEADERBOARD_ELEMENTS_NON_EMPTY = "Leaderboard elements cannot be empty.";
+  static final String RANK_RANGE_INVALID =
+      "Ranks must not be negative and endRank (exclusive) must be larger than startRank (inclusive).";
 
   ValidationUtils() {}
 
@@ -168,6 +173,24 @@ public final class ValidationUtils {
       throw new InvalidArgumentException(DISPOSABLE_TOKEN_EXPIRY_EXCEEDS_ONE_HOUR);
     } else if (expiresIn.getSeconds() <= 0) {
       throw new InvalidArgumentException(DISPOSABLE_TOKEN_EXPIRY_MUST_BE_POSITIVE);
+    }
+  }
+
+  static void validateLeaderboardName(String leaderboardName) {
+    if (leaderboardName == null || leaderboardName.isEmpty()) {
+      throw new InvalidArgumentException(LEADERBOARD_NAME_IS_REQUIRED);
+    }
+  }
+
+  static void validateLeaderboardElements(Map<Integer, Double> elements) {
+    if (elements == null || elements.isEmpty()) {
+      throw new InvalidArgumentException(LEADERBOARD_ELEMENTS_NON_EMPTY);
+    }
+  }
+
+  static void validateRankRange(int startRank, int endRank) {
+    if (startRank < 0 || endRank < 0 || endRank <= startRank) {
+      throw new InvalidArgumentException(RANK_RANGE_INVALID);
     }
   }
 }

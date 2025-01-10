@@ -36,7 +36,7 @@ test-cache-service:
 
 ## Run the leaderboard service tests
 test-leaderboard-service:
-	@echo "Leaderboard client not implemented yet."
+	@CONSISTENT_READS=1 ./gradlew test-leaderboard-service
 
 ## Run the storage service tests
 test-storage-service:
