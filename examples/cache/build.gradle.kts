@@ -14,10 +14,13 @@ plugins {
 repositories {
     // Use Maven Central for resolving dependencies.
     mavenCentral()
+    maven {
+        url = uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+    }
 }
 
 dependencies {
-    implementation("software.momento.java:sdk:1.18.0")
+    implementation("software.momento.java:sdk:1.18.1-SNAPSHOT")
 
     implementation("com.google.guava:guava:31.1-android")
 
@@ -117,3 +120,9 @@ task("docsTasks") {
 
 
 task("prepareKotlinBuildScriptModel") {}
+
+task("leaderboard", JavaExec::class) {
+    description = "Run the leaderboard example"
+    classpath = sourceSets.main.get().runtimeClasspath
+    mainClass.set("momento.client.example.LeaderboardExample")
+}
