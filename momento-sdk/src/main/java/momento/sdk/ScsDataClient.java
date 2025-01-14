@@ -6,14 +6,14 @@ import static momento.sdk.ValidationUtils.checkIndexRangeValid;
 import static momento.sdk.ValidationUtils.checkListNameValid;
 import static momento.sdk.ValidationUtils.checkScoreRangeValid;
 import static momento.sdk.ValidationUtils.checkSetNameValid;
-import static momento.sdk.ValidationUtils.checkSortedSetCountValid;
 import static momento.sdk.ValidationUtils.checkSortedSetNameValid;
-import static momento.sdk.ValidationUtils.checkSortedSetOffsetValid;
 import static momento.sdk.ValidationUtils.ensureValidCacheSet;
 import static momento.sdk.ValidationUtils.ensureValidKey;
 import static momento.sdk.ValidationUtils.ensureValidTruncateToSize;
 import static momento.sdk.ValidationUtils.ensureValidTtl;
 import static momento.sdk.ValidationUtils.ensureValidValue;
+import static momento.sdk.ValidationUtils.validateCount;
+import static momento.sdk.ValidationUtils.validateOffset;
 
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
@@ -734,8 +734,8 @@ final class ScsDataClient extends ScsClientBase {
       checkCacheNameValid(cacheName);
       checkSortedSetNameValid(sortedSetName);
       checkScoreRangeValid(minScore, maxScore);
-      checkSortedSetOffsetValid(offset);
-      checkSortedSetCountValid(count);
+      validateOffset(offset);
+      validateCount(count);
 
       return sendSortedSetFetchByScore(
           cacheName, convert(sortedSetName), minScore, maxScore, order, offset, count);

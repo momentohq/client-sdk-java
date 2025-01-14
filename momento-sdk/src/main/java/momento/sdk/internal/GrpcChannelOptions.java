@@ -6,10 +6,13 @@ import java.util.concurrent.TimeUnit;
 import momento.sdk.config.transport.IGrpcConfiguration;
 
 public class GrpcChannelOptions {
-  // The default value for max_send_message_length is 4mb.  We need to increase this to 5mb in order
-  // to
-  // support cases where users have requested a limit increase up to our maximum item size of 5mb.
+  // The default value for max_send_message_length is 4MB.  We need to increase this to 5MB in order
+  // to support cases where users have requested a limit increase up to our maximum item size of
+  // 5MB.
   public static final int DEFAULT_MAX_MESSAGE_SIZE = 5_243_000; // bytes
+  // Leaderboards have a separate max message size from the cache methods. This default limit of
+  // 200MB is in place to prevent memory issues in the event of an erroneously large message.
+  public static final int DEFAULT_LEADERBOARD_MAX_MESSAGE_SIZE = 209_715_200; // bytes
 
   public static final boolean DEFAULT_KEEPALIVE_WITHOUT_STREAM = true;
   public static final int DEFAULT_KEEPALIVE_TIME_MS = 5000; // milliseconds

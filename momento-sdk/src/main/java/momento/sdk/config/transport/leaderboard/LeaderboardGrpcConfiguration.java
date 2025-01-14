@@ -28,7 +28,7 @@ public class LeaderboardGrpcConfiguration implements IGrpcConfiguration {
     this(
         deadline,
         1,
-        GrpcChannelOptions.DEFAULT_MAX_MESSAGE_SIZE,
+        GrpcChannelOptions.DEFAULT_LEADERBOARD_MAX_MESSAGE_SIZE,
         GrpcChannelOptions.DEFAULT_KEEPALIVE_WITHOUT_STREAM,
         GrpcChannelOptions.DEFAULT_KEEPALIVE_TIMEOUT,
         GrpcChannelOptions.DEFAULT_KEEPALIVE_TIME);
