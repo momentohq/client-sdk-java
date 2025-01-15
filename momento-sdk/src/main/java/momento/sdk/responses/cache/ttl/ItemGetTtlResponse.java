@@ -10,7 +10,7 @@ import momento.sdk.internal.StringHelpers;
  */
 public interface ItemGetTtlResponse {
 
-  /** A successful ≈ operation for a key that exists. */
+  /** A successful item get ttl operation for a key that exists. */
   class Hit implements ItemGetTtlResponse {
     private final Duration remainingTtl;
 
