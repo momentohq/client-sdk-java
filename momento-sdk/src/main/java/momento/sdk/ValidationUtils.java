@@ -14,15 +14,7 @@ public final class ValidationUtils {
 
   static final String REQUEST_DEADLINE_MUST_BE_POSITIVE = "Request deadline must be positive";
   static final String CACHE_ITEM_TTL_CANNOT_BE_NEGATIVE = "Cache item TTL cannot be negative.";
-  static final String A_NON_NULL_KEY_IS_REQUIRED = "A non-null key is required.";
-  static final String A_NON_NULL_VALUE_IS_REQUIRED = "A non-null value is required.";
-  static final String CACHE_NAME_IS_REQUIRED = "Cache name is required.";
-  static final String STORE_NAME_IS_REQUIRED = "Store name is required.";
-  static final String TOPIC_NAME_IS_REQUIRED = "Topic name is required.";
-  static final String DICTIONARY_NAME_IS_REQUIRED = "Dictionary name is required.";
-  static final String SET_NAME_CANNOT_BE_NULL = "Set name cannot be null.";
-  static final String SORTED_SET_NAME_CANNOT_BE_NULL = "Sorted set name cannot be null.";
-  static final String LIST_NAME_CANNOT_BE_NULL = "List name cannot be null.";
+  static final String CANNOT_BE_NULL = " cannot be null.";
   static final String INDEX_RANGE_INVALID =
       "endIndex (exclusive) must be larger than startIndex (inclusive).";
   static final String SCORE_RANGE_INVALID =
@@ -55,51 +47,35 @@ public final class ValidationUtils {
   }
 
   static void checkCacheNameValid(String cacheName) {
-    if (cacheName == null) {
-      throw new InvalidArgumentException(CACHE_NAME_IS_REQUIRED);
-    }
+    validateNotNull(cacheName, "Cache name");
   }
 
   static void checkStoreNameValid(String storeName) {
-    if (storeName == null) {
-      throw new InvalidArgumentException(STORE_NAME_IS_REQUIRED);
-    }
+    validateNotNull(storeName, "Store name");
   }
 
   static void checkTopicNameValid(String topicName) {
-    if (topicName == null) {
-      throw new InvalidArgumentException(TOPIC_NAME_IS_REQUIRED);
-    }
+    validateNotNull(topicName, "Topic name");
   }
 
   static void checkDictionaryNameValid(String dictionaryName) {
-    if (dictionaryName == null) {
-      throw new InvalidArgumentException(DICTIONARY_NAME_IS_REQUIRED);
-    }
+    validateNotNull(dictionaryName, "Dictionary name");
   }
 
   static void checkListNameValid(byte[] listName) {
-    if (listName == null) {
-      throw new InvalidArgumentException(LIST_NAME_CANNOT_BE_NULL);
-    }
+    validateNotNull(listName, "List name");
   }
 
   static void checkListNameValid(String listName) {
-    if (listName == null) {
-      throw new InvalidArgumentException(LIST_NAME_CANNOT_BE_NULL);
-    }
+    validateNotNull(listName, "List name");
   }
 
   static void checkSetNameValid(String setName) {
-    if (setName == null) {
-      throw new InvalidArgumentException(SET_NAME_CANNOT_BE_NULL);
-    }
+    validateNotNull(setName, "Set name");
   }
 
   static void checkSortedSetNameValid(String sortedSetName) {
-    if (sortedSetName == null) {
-      throw new InvalidArgumentException(SORTED_SET_NAME_CANNOT_BE_NULL);
-    }
+    validateNotNull(sortedSetName, "Sorted set name");
   }
 
   static void checkIndexRangeValid(Integer startIndex, Integer endIndex) {
@@ -118,13 +94,13 @@ public final class ValidationUtils {
     }
   }
 
-  static void checkSortedSetOffsetValid(Integer offset) {
+  static void validateOffset(Integer offset) {
     if (offset != null && offset < 0) {
       throw new InvalidArgumentException("Offset must be greater than or equal to 0.");
     }
   }
 
-  static void checkSortedSetCountValid(Integer count) {
+  static void validateCount(Integer count) {
     if (count != null && count <= 0) {
       throw new InvalidArgumentException("Count must be greater than 0.");
     }
@@ -137,15 +113,11 @@ public final class ValidationUtils {
   }
 
   static void ensureValidKey(Object key) {
-    if (key == null) {
-      throw new InvalidArgumentException(A_NON_NULL_KEY_IS_REQUIRED);
-    }
+    validateNotNull(key, "Key");
   }
 
   static void ensureValidValue(Object value) {
-    if (value == null) {
-      throw new InvalidArgumentException(A_NON_NULL_VALUE_IS_REQUIRED);
-    }
+    validateNotNull(value, "Value");
   }
 
   static void ensureValidTtl(Duration ttl) {
@@ -191,6 +163,12 @@ public final class ValidationUtils {
   static void validateRankRange(int startRank, int endRank) {
     if (startRank < 0 || endRank < 0 || endRank <= startRank) {
       throw new InvalidArgumentException(RANK_RANGE_INVALID);
+    }
+  }
+
+  static void validateNotNull(Object object, String name) {
+    if (object == null) {
+      throw new InvalidArgumentException(name + CANNOT_BE_NULL);
     }
   }
 }
