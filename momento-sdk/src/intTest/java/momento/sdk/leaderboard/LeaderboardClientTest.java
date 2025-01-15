@@ -144,7 +144,7 @@ public class LeaderboardClientTest extends BaseLeaderboardTestClass {
         .isInstanceOf(UpsertResponse.Success.class);
 
     // ascending
-    assertThat(leaderboard.fetchByScore(null, null, SortOrder.ASCENDING))
+    assertThat(leaderboard.fetchByScore())
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(FetchResponse.Success.class))
         .satisfies(

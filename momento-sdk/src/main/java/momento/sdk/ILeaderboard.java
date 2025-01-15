@@ -14,7 +14,7 @@ import momento.sdk.responses.leaderboard.UpsertResponse;
 public interface ILeaderboard {
 
   /**
-   * Updates elements in a leaderboard or inserts elements if they do not already exist. The
+   * Update elements in a leaderboard or insert elements if they do not already exist. The
    * leaderboard is also created if it does not already exist. Note: can upsert a maximum of 8192
    * elements at a time.
    *
@@ -64,6 +64,14 @@ public interface ILeaderboard {
       @Nullable Double minScore, @Nullable Double maxScore, @Nullable SortOrder order);
 
   /**
+   * Fetch the first 8192 elements of the leaderboard, sorted by score ascending.
+   *
+   * @return A future containing the result of the fetch operation: {@link FetchResponse.Success}
+   *     containing the elements, or {@link FetchResponse.Error}.
+   */
+  CompletableFuture<FetchResponse> fetchByScore();
+
+  /**
    * Fetch the elements of the leaderboard by index (rank). Note: can fetch a maximum of 8192
    * elements at a time and rank is 0-based (index begins at 0).
    *
@@ -81,11 +89,12 @@ public interface ILeaderboard {
       int startRank, int endRank, @Nullable SortOrder order);
 
   /**
-   * Looks up the rank of the given elements in the leaderboard. The returned elements will be
-   * sorted numerically by their IDs. Note: rank is 0-based (index begins at 0).
+   * Look up the rank of the given elements in the leaderboard. The returned elements will be sorted
+   * numerically by their IDs. Note: rank is 0-based (index begins at 0).
    *
    * @param ids The IDs of the elements to fetch from the leaderboard.
-   * @param order The order to fetch the elements in. Defaults to {@link SortOrder#ASCENDING}.
+   * @param order The rank order to fetch the elements in, based on their scores. Defaults to {@link
+   *     SortOrder#ASCENDING}.
    * @return A future containing the result of the fetch operation: {@link FetchResponse.Success}
    *     containing the elements, or {@link FetchResponse.Error}.
    */
@@ -93,7 +102,7 @@ public interface ILeaderboard {
       @Nonnull Iterable<Integer> ids, @Nullable SortOrder order);
 
   /**
-   * Fetches the length (number of items) of the leaderboard.
+   * Fetch the length (number of items) of the leaderboard.
    *
    * @return A future containing the result of the length operation: {@link LengthResponse.Success}
    *     containing the length of the leaderboard, or {@link LengthResponse.Error}.
@@ -111,7 +120,7 @@ public interface ILeaderboard {
   CompletableFuture<RemoveElementsResponse> removeElements(@Nonnull Iterable<Integer> ids);
 
   /**
-   * Deletes all elements in the leaderboard.
+   * Delete all elements in the leaderboard.
    *
    * @return A future containing the result of the delete operation: {@link DeleteResponse.Success},
    *     or {@link DeleteResponse.Error}.

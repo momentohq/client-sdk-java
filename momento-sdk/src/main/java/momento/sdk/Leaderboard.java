@@ -47,6 +47,12 @@ public class Leaderboard implements ILeaderboard {
   }
 
   @Override
+  public CompletableFuture<FetchResponse> fetchByScore() {
+    return leaderboardDataClient.fetchByScore(
+        cacheName, leaderboardName, null, null, null, null, null);
+  }
+
+  @Override
   public CompletableFuture<FetchResponse> fetchByRank(
       int startRank, int endRank, @Nullable SortOrder order) {
     return leaderboardDataClient.fetchByRank(cacheName, leaderboardName, startRank, endRank, order);
