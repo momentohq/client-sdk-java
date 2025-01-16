@@ -53,7 +53,8 @@ final class ScsControlClient extends ScsClientBase {
     super(configuration.getTransportStrategy().getMaxConcurrentRequests());
     this.credentialProvider = credentialProvider;
     this.controlGrpcStubsManager =
-        new ScsControlGrpcStubsManager(credentialProvider, configuration);
+        new ScsControlGrpcStubsManager(
+            credentialProvider, configuration.getTransportStrategy().getGrpcConfiguration());
   }
 
   CompletableFuture<CacheCreateResponse> createCache(String cacheName) {

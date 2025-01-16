@@ -94,12 +94,7 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     return deadline;
   }
 
-  /**
-   * Copy constructor that updates the deadline.
-   *
-   * @param deadline The new deadline.
-   * @return The updated GrpcConfiguration.
-   */
+  @Override
   public GrpcConfiguration withDeadline(Duration deadline) {
     return new GrpcConfiguration(
         deadline,

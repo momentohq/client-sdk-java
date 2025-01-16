@@ -72,12 +72,7 @@ public class LeaderboardGrpcConfiguration implements IGrpcConfiguration {
     return deadline;
   }
 
-  /**
-   * Copy constructor that updates the deadline.
-   *
-   * @param deadline The new deadline.
-   * @return The updated LeaderboardGrpcConfiguration.
-   */
+  @Override
   public LeaderboardGrpcConfiguration withDeadline(Duration deadline) {
     return new LeaderboardGrpcConfiguration(
         deadline,

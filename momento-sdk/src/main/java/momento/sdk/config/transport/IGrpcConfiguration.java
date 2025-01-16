@@ -13,6 +13,14 @@ public interface IGrpcConfiguration {
   Duration getDeadline();
 
   /**
+   * Copy constructor that updates the deadline.
+   *
+   * @param deadline The new deadline.
+   * @return The updated configuration.
+   */
+  IGrpcConfiguration withDeadline(Duration deadline);
+
+  /**
    * The minimum number of gRPC channels to keep open at any given time.
    *
    * @return the minimum number of gRPC channels.

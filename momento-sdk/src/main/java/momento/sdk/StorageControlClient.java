@@ -27,15 +27,14 @@ import momento.sdk.responses.storage.StoreInfo;
 /** Client for interacting with Scs Control Plane. */
 final class StorageControlClient extends ScsClientBase {
 
-  private final CredentialProvider credentialProvider;
   private final StorageControlGrpcStubsManager controlGrpcStubsManager;
 
   StorageControlClient(
       @Nonnull CredentialProvider credentialProvider, StorageConfiguration configuration) {
     super(null);
-    this.credentialProvider = credentialProvider;
     this.controlGrpcStubsManager =
-        new StorageControlGrpcStubsManager(credentialProvider, configuration);
+        new StorageControlGrpcStubsManager(
+            credentialProvider, configuration.getTransportStrategy().getGrpcConfiguration());
   }
 
   CompletableFuture<CreateStoreResponse> createStore(String storeName) {

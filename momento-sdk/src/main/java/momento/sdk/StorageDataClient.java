@@ -35,7 +35,8 @@ final class StorageDataClient extends StorageClientBase {
       @Nonnull CredentialProvider credentialProvider, @Nonnull StorageConfiguration configuration) {
     super(null);
     this.storageDataGrpcStubsManager =
-        new StorageDataGrpcStubsManager(credentialProvider, configuration);
+        new StorageDataGrpcStubsManager(
+            credentialProvider, configuration.getTransportStrategy().getGrpcConfiguration());
   }
 
   public void connect(final long eagerConnectionTimeout) {

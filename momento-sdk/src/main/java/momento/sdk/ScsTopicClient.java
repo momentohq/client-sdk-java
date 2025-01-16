@@ -6,11 +6,13 @@ import grpc.cache_client.pubsub._SubscriptionItem;
 import grpc.cache_client.pubsub._SubscriptionRequest;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.stub.StreamObserver;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
+import momento.sdk.config.transport.IGrpcConfiguration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.internal.SubscriptionState;
 import momento.sdk.responses.topic.TopicPublishResponse;
@@ -21,12 +23,17 @@ import org.slf4j.LoggerFactory;
 public class ScsTopicClient extends ScsClientBase {
 
   private final Logger logger = LoggerFactory.getLogger(ScsTopicClient.class);
+  private final Duration deadline;
   private final ScsTopicGrpcStubsManager topicGrpcStubsManager;
 
   public ScsTopicClient(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
     super(null);
-    this.topicGrpcStubsManager = new ScsTopicGrpcStubsManager(credentialProvider, configuration);
+    final IGrpcConfiguration grpcConfiguration =
+        configuration.getTransportStrategy().getGrpcConfiguration();
+    this.deadline = grpcConfiguration.getDeadline();
+    this.topicGrpcStubsManager =
+        new ScsTopicGrpcStubsManager(credentialProvider, grpcConfiguration);
   }
 
   public CompletableFuture<TopicPublishResponse> publish(
@@ -103,14 +110,7 @@ public class ScsTopicClient extends ScsClientBase {
     try {
       topicGrpcStubsManager
           .getStub()
-          .withDeadlineAfter(
-              topicGrpcStubsManager
-                  .getConfiguration()
-                  .getTransportStrategy()
-                  .getGrpcConfiguration()
-                  .getDeadline()
-                  .getSeconds(),
-              TimeUnit.SECONDS)
+          .withDeadlineAfter(deadline.toMillis(), TimeUnit.MILLISECONDS)
           .publish(
               request,
               new StreamObserver() {
