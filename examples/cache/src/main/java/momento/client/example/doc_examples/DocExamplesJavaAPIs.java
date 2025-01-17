@@ -38,17 +38,14 @@ public class DocExamplesJavaAPIs {
     CredentialProvider.fromString(authToken);
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   public static void example_API_ConfigurationLaptop() {
     Configurations.Laptop.v1();
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   public static void example_API_ConfigurationInRegionLatest() {
     Configurations.InRegion.latest();
   }
 
-  @SuppressWarnings("ResultOfMethodCallIgnored")
   public static void example_API_ConfigurationLowLatency() {
     Configurations.LowLatency.latest();
   }
