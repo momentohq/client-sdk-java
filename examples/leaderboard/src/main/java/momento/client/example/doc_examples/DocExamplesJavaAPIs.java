@@ -22,6 +22,8 @@ import momento.sdk.responses.storage.DeleteResponse;
 
 public class DocExamplesJavaAPIs {
 
+  private static final int TOTAL_NUM_ELEMENTS = 2;
+
   @SuppressWarnings("EmptyTryBlock")
   public static void example_API_InstantiateLeaderboardClient() {
     try (final LeaderboardClient leaderboardClient =
@@ -33,19 +35,12 @@ public class DocExamplesJavaAPIs {
     }
   }
 
-  public static void example_API_CreateLeaderboard(
-      LeaderboardClient leaderboardClient, String cacheName, String leaderboardName) {
+  public static void example_API_CreateLeaderboard(LeaderboardClient leaderboardClient) {
     final ILeaderboard leaderboard;
     try {
-      leaderboard = leaderboardClient.leaderboard(cacheName, leaderboardName);
+      leaderboard = leaderboardClient.leaderboard("cache", "leaderboard");
     } catch (InvalidArgumentException e) {
-      throw new RuntimeException(
-          "Cache name '"
-              + cacheName
-              + "' or leaderboard name '"
-              + leaderboardName
-              + "' is invalid.",
-          e);
+      throw new RuntimeException("Cache name or leaderboard name is invalid.", e);
     }
   }
 
@@ -66,10 +61,9 @@ public class DocExamplesJavaAPIs {
     }
   }
 
-  public static void example_API_LeaderboardUpsertPagination(
-      ILeaderboard leaderboard, int totalNumElements) {
+  public static void example_API_LeaderboardUpsertPagination(ILeaderboard leaderboard) {
     final Map<Integer, Double> elements =
-        IntStream.range(0, totalNumElements)
+        IntStream.range(0, TOTAL_NUM_ELEMENTS)
             .boxed()
             .collect(
                 Collectors.toMap(i -> i + 1, i -> i * ThreadLocalRandom.current().nextDouble()));
@@ -126,9 +120,8 @@ public class DocExamplesJavaAPIs {
     }
   }
 
-  public static void example_API_LeaderboardFetchByScorePagination(
-      ILeaderboard leaderboard, int totalNumElements) {
-    for (int offset = 0; offset < totalNumElements; offset += 8192) {
+  public static void example_API_LeaderboardFetchByScorePagination(ILeaderboard leaderboard) {
+    for (int offset = 0; offset < TOTAL_NUM_ELEMENTS; offset += 8192) {
       final FetchResponse response =
           leaderboard.fetchByScore(null, null, null, offset, null).join();
       if (response instanceof FetchResponse.Success success) {
@@ -160,9 +153,8 @@ public class DocExamplesJavaAPIs {
     }
   }
 
-  public static void example_API_LeaderboardFetchByRankPagination(
-      ILeaderboard leaderboard, int totalNumElements) {
-    for (int rank = 0; rank < totalNumElements; rank += 8192) {
+  public static void example_API_LeaderboardFetchByRankPagination(ILeaderboard leaderboard) {
+    for (int rank = 0; rank < TOTAL_NUM_ELEMENTS; rank += 8192) {
       final FetchResponse response =
           leaderboard.fetchByRank(rank, rank + 8192, SortOrder.ASCENDING).join();
       if (response instanceof FetchResponse.Success success) {
@@ -252,15 +244,15 @@ public class DocExamplesJavaAPIs {
                 LeaderboardConfigurations.Laptop.latest())
             .build()) {
       example_API_InstantiateLeaderboardClient();
-      example_API_CreateLeaderboard(leaderboardClient, "test-cache", "leaderboard");
+      example_API_CreateLeaderboard(leaderboardClient);
 
       final ILeaderboard leaderboard = leaderboardClient.leaderboard("test-cache", "leaderboard");
       example_API_LeaderboardUpsert(leaderboard);
-      example_API_LeaderboardUpsertPagination(leaderboard, 2);
+      example_API_LeaderboardUpsertPagination(leaderboard);
       example_API_LeaderboardFetchByScore(leaderboard);
-      example_API_LeaderboardFetchByScorePagination(leaderboard, 2);
+      example_API_LeaderboardFetchByScorePagination(leaderboard);
       example_API_LeaderboardFetchByRank(leaderboard);
-      example_API_LeaderboardFetchByRankPagination(leaderboard, 2);
+      example_API_LeaderboardFetchByRankPagination(leaderboard);
       example_API_LeaderboardGetRank(leaderboard);
       example_API_LeaderboardLength(leaderboard);
       example_API_LeaderboardRemoveElements(leaderboard);
