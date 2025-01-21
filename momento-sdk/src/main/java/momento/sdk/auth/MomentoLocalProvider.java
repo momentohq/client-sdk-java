@@ -18,6 +18,14 @@ public class MomentoLocalProvider extends CredentialProvider {
     this.port = port;
   }
 
+  public MomentoLocalProvider(String hostname) {
+    this(hostname, DEFAULT_PORT);
+  }
+
+  public MomentoLocalProvider(int port) {
+    this(DEFAULT_HOSTNAME, port);
+  }
+
   public MomentoLocalProvider() {
     this(DEFAULT_HOSTNAME, DEFAULT_PORT);
   }

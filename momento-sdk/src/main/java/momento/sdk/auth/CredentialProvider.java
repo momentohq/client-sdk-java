@@ -34,9 +34,7 @@ public abstract class CredentialProvider {
    * @return The Momento local provider.
    */
   public static CredentialProvider forMomentoLocal() {
-    String defaultHostname = "127.0.0.1";
-    int defaultPort = 8080;
-    return new MomentoLocalProvider(defaultHostname, defaultPort);
+    return new MomentoLocalProvider();
   }
 
   /**
