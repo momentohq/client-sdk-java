@@ -30,6 +30,7 @@ public abstract class CredentialProvider {
 
   /**
    * Creates a CredentialProvider using the provided MomentoLocalProviderProps.
+   *
    * @return The Momento local provider.
    */
   public static CredentialProvider forMomentoLocal() {
@@ -55,7 +56,8 @@ public abstract class CredentialProvider {
   /**
    * Gets whether the control plane endpoint connection is secure.
    *
-   * @return true if connecting to the control plane endpoint connection with TLS; false if not using TLS
+   * @return true if connecting to the control plane endpoint connection with TLS; false if not
+   *     using TLS
    */
   public abstract boolean isControlEndpointSecure();
 
@@ -66,11 +68,11 @@ public abstract class CredentialProvider {
    */
   public abstract String getCacheEndpoint();
 
-
   /**
    * Gets whether the data plane endpoint connection is secure.
    *
-   * @return true if connecting to the data plane endpoint connection with TLS; false if not using TLS
+   * @return true if connecting to the data plane endpoint connection with TLS; false if not using
+   *     TLS
    */
   public abstract boolean isCacheEndpointSecure();
 

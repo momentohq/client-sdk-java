@@ -167,7 +167,7 @@ public class StringCredentialProvider extends CredentialProvider {
 
   @Override
   public boolean isCacheEndpointSecure() {
-      return true;
+    return true;
   }
 
   @Override
@@ -187,6 +187,6 @@ public class StringCredentialProvider extends CredentialProvider {
 
   @Override
   public boolean isTokenEndpointSecure() {
-      return true;
+    return true;
   }
 }
