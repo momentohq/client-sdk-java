@@ -29,6 +29,16 @@ public abstract class CredentialProvider {
   }
 
   /**
+   * Creates a CredentialProvider using the provided MomentoLocalProviderProps.
+   * @return The Momento local provider.
+   */
+  public static CredentialProvider forMomentoLocal() {
+    String defaultHostname = "127.0.0.1";
+    int defaultPort = 8080;
+    return new MomentoLocalProvider(defaultHostname, defaultPort);
+  }
+
+  /**
    * Gets the token used to authenticate to Momento.
    *
    * @return The token.
@@ -43,11 +53,26 @@ public abstract class CredentialProvider {
   public abstract String getControlEndpoint();
 
   /**
+   * Gets whether the control plane endpoint connection is secure.
+   *
+   * @return true if connecting to the control plane endpoint connection with TLS; false if not using TLS
+   */
+  public abstract boolean isControlEndpointSecure();
+
+  /**
    * Gets the endpoint with which the Momento client will connect to the Momento data plane.
    *
    * @return The endpoint.
    */
   public abstract String getCacheEndpoint();
+
+
+  /**
+   * Gets whether the data plane endpoint connection is secure.
+   *
+   * @return true if connecting to the data plane endpoint connection with TLS; false if not using TLS
+   */
+  public abstract boolean isCacheEndpointSecure();
 
   /**
    * Gets the endpoint with which the Momento client will connect to the Momento storage service.
@@ -57,10 +82,24 @@ public abstract class CredentialProvider {
   public abstract String getStorageEndpoint();
 
   /**
+   * Gets whether the storage endpoint connection is secure.
+   *
+   * @return true if connecting to the storage endpoint connection with TLS; false if not using TLS
+   */
+  public abstract boolean isStorageEndpointSecure();
+
+  /**
    * Gets the token endpoint with which the Momento client will connect to the Momento token
    * service.
    *
    * @return The token endpoint.
    */
   public abstract String getTokenEndpoint();
+
+  /**
+   * Gets whether the token endpoint connection is secure.
+   *
+   * @return true if connecting to the token endpoint connection with TLS; false if not using TLS
+   */
+  public abstract boolean isTokenEndpointSecure();
 }

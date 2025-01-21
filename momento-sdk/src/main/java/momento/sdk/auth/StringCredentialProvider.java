@@ -156,8 +156,18 @@ public class StringCredentialProvider extends CredentialProvider {
   }
 
   @Override
+  public boolean isControlEndpointSecure() {
+    return true;
+  }
+
+  @Override
   public String getCacheEndpoint() {
     return cacheEndpoint;
+  }
+
+  @Override
+  public boolean isCacheEndpointSecure() {
+      return true;
   }
 
   @Override
@@ -166,7 +176,17 @@ public class StringCredentialProvider extends CredentialProvider {
   }
 
   @Override
+  public boolean isStorageEndpointSecure() {
+    return true;
+  }
+
+  @Override
   public String getTokenEndpoint() {
     return tokenEndpoint;
+  }
+
+  @Override
+  public boolean isTokenEndpointSecure() {
+      return true;
   }
 }

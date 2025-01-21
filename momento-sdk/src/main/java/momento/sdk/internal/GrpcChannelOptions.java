@@ -23,9 +23,20 @@ public class GrpcChannelOptions {
       Duration.ofMillis(DEFAULT_KEEPALIVE_TIMEOUT_MS);
 
   public static void applyGrpcConfigurationToChannelBuilder(
-      IGrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder) {
-    channelBuilder.useTransportSecurity();
-    channelBuilder.disableRetry();
+          IGrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder) {
+    applyGrpcConfigurationToChannelBuilder(grpcConfig, channelBuilder, true);
+  }
+
+  public static void applyGrpcConfigurationToChannelBuilder(
+      IGrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder, boolean isSecure) {
+    if (isSecure) {
+      channelBuilder.useTransportSecurity();
+      channelBuilder.disableRetry();
+    } else {
+      channelBuilder.usePlaintext();
+      channelBuilder.enableRetry();
+      channelBuilder.maxRetryAttempts(3);
+    }
 
     grpcConfig.getMaxReceivedMessageSize().ifPresent(channelBuilder::maxInboundMessageSize);
 

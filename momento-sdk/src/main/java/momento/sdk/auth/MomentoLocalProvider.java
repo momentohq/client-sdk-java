@@ -1,0 +1,80 @@
+package momento.sdk.auth;
+
+public class MomentoLocalProvider extends CredentialProvider {
+    private final String cacheEndpoint;
+    private final String controlEndpoint;
+    private final String tokenEndpoint;
+    private final String storageEndpoint;
+    private final int port;
+
+    private static final String DEFAULT_HOSTNAME = "127.0.0.1";
+    private static final int DEFAULT_PORT = 8080;
+
+    public MomentoLocalProvider(String hostname, int port) {
+        this.cacheEndpoint = hostname;
+        this.controlEndpoint = hostname;
+        this.tokenEndpoint = hostname;
+        this.storageEndpoint = hostname;
+        this.port = port;
+    }
+
+    public MomentoLocalProvider() {
+        this(DEFAULT_HOSTNAME, DEFAULT_PORT);
+    }
+
+    @Override
+    public String getAuthToken() {
+        return "";
+    }
+
+    @Override
+    public String getCacheEndpoint() {
+        return cacheEndpoint;
+    }
+
+    @Override
+    public boolean isCacheEndpointSecure() {
+        return isSecureConnection(cacheEndpoint);
+    }
+
+    @Override
+    public String getControlEndpoint() {
+        return controlEndpoint;
+    }
+
+    @Override
+    public boolean isControlEndpointSecure() {
+        return isSecureConnection(controlEndpoint);
+    }
+
+    @Override
+    public String getTokenEndpoint() {
+        return tokenEndpoint;
+    }
+
+    @Override
+    public boolean isTokenEndpointSecure() {
+        return isSecureConnection(tokenEndpoint);
+    }
+
+    @Override
+    public String getStorageEndpoint() {
+        return storageEndpoint;
+    }
+
+    @Override
+    public boolean isStorageEndpointSecure() {
+        return isSecureConnection(storageEndpoint);
+    }
+
+    private boolean isSecureConnection(String endpoint) {
+        return endpoint.startsWith("https://");
+    }
+
+    /**
+     * Returns the port used by this credential provider.
+     */
+    public int getPort() {
+        return port;
+    }
+}
