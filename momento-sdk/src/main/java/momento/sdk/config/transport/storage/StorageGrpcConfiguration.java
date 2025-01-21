@@ -95,12 +95,7 @@ public class StorageGrpcConfiguration implements IGrpcConfiguration {
     return deadline;
   }
 
-  /**
-   * Copy constructor that updates the deadline.
-   *
-   * @param deadline The new deadline.
-   * @return The updated StorageGrpcConfiguration.
-   */
+  @Override
   public StorageGrpcConfiguration withDeadline(Duration deadline) {
     return new StorageGrpcConfiguration(
         deadline,

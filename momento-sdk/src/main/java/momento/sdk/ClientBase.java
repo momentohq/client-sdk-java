@@ -174,7 +174,8 @@ abstract class ClientBase implements AutoCloseable {
               "Momento requests still processing after 30 seconds while awaiting shutdown.");
         }
       } catch (InterruptedException e) {
-        throw new RuntimeException(e);
+        logger.warn("Request concurrency executor was interrupted while awaiting shutdown.");
+        Thread.currentThread().interrupt();
       }
     }
   }

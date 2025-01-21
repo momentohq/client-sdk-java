@@ -56,7 +56,9 @@ final class LeaderboardDataClient extends ScsClientBase {
       @Nonnull LeaderboardConfiguration configuration) {
     super(null);
 
-    this.stubsManager = new LeaderboardGrpcStubsManager(credentialProvider, configuration);
+    this.stubsManager =
+        new LeaderboardGrpcStubsManager(
+            credentialProvider, configuration.getTransportStrategy().getGrpcConfiguration());
   }
 
   public CompletableFuture<UpsertResponse> upsert(
