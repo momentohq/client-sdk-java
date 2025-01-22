@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.MomentoLocalProvider;
 import momento.sdk.config.Configuration;
 import momento.sdk.config.transport.GrpcConfiguration;
 import momento.sdk.internal.GrpcChannelOptions;
@@ -38,15 +37,9 @@ final class ScsControlGrpcStubsManager implements AutoCloseable {
 
   private static ManagedChannel setupConnection(
       CredentialProvider credentialProvider, Configuration configuration) {
-    final NettyChannelBuilder channelBuilder;
-
-    if (credentialProvider.isControlEndpointSecure()) {
-      channelBuilder = NettyChannelBuilder.forAddress(credentialProvider.getControlEndpoint(), 443);
-    } else {
-      int port = ((MomentoLocalProvider) credentialProvider).getPort();
-      channelBuilder =
-          NettyChannelBuilder.forAddress(credentialProvider.getControlEndpoint(), port);
-    }
+    int port = credentialProvider.getPort();
+    final NettyChannelBuilder channelBuilder =
+        NettyChannelBuilder.forAddress(credentialProvider.getControlEndpoint(), port);
 
     // Override grpc config to disable keepalive for control clients
     final GrpcConfiguration controlConfig =

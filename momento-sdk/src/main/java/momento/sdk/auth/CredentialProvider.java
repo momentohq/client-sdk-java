@@ -102,4 +102,11 @@ public abstract class CredentialProvider {
    * @return true if connecting to the token endpoint connection with TLS; false if not using TLS
    */
   public abstract boolean isTokenEndpointSecure();
+
+  /**
+   * Gets the port with which the Momento client will connect to the Momento control plane.
+   *
+   * @return The port.
+   */
+  public abstract int getPort();
 }

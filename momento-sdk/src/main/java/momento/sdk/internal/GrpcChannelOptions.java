@@ -34,7 +34,6 @@ public class GrpcChannelOptions {
       channelBuilder.disableRetry();
     } else {
       channelBuilder.usePlaintext();
-      channelBuilder.enableRetry();
     }
 
     grpcConfig.getMaxReceivedMessageSize().ifPresent(channelBuilder::maxInboundMessageSize);
