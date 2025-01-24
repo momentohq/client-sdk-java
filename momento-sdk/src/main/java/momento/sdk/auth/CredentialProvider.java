@@ -52,14 +52,6 @@ public abstract class CredentialProvider {
   public abstract String getControlEndpoint();
 
   /**
-   * Gets whether the control plane endpoint connection is secure.
-   *
-   * @return true if connecting to the control plane endpoint connection with TLS; false if not
-   *     using TLS
-   */
-  public abstract boolean isControlEndpointSecure();
-
-  /**
    * Gets the endpoint with which the Momento client will connect to the Momento data plane.
    *
    * @return The endpoint.
@@ -67,26 +59,11 @@ public abstract class CredentialProvider {
   public abstract String getCacheEndpoint();
 
   /**
-   * Gets whether the data plane endpoint connection is secure.
-   *
-   * @return true if connecting to the data plane endpoint connection with TLS; false if not using
-   *     TLS
-   */
-  public abstract boolean isCacheEndpointSecure();
-
-  /**
    * Gets the endpoint with which the Momento client will connect to the Momento storage service.
    *
    * @return The endpoint.
    */
   public abstract String getStorageEndpoint();
-
-  /**
-   * Gets whether the storage endpoint connection is secure.
-   *
-   * @return true if connecting to the storage endpoint connection with TLS; false if not using TLS
-   */
-  public abstract boolean isStorageEndpointSecure();
 
   /**
    * Gets the token endpoint with which the Momento client will connect to the Momento token
@@ -97,11 +74,12 @@ public abstract class CredentialProvider {
   public abstract String getTokenEndpoint();
 
   /**
-   * Gets whether the token endpoint connection is secure.
+   * Gets whether the endpoint connection is secure.
    *
-   * @return true if connecting to the token endpoint connection with TLS; false if not using TLS
+   * @return true if connecting to the endpoint connection with TLS; false if not
+   *     using TLS
    */
-  public abstract boolean isTokenEndpointSecure();
+  public abstract boolean isEndpointSecure();
 
   /**
    * Gets the port with which the Momento client will connect to the Momento local.

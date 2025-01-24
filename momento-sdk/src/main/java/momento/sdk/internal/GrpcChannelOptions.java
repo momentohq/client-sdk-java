@@ -29,9 +29,10 @@ public class GrpcChannelOptions {
 
   public static void applyGrpcConfigurationToChannelBuilder(
       IGrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder, boolean isSecure) {
+    channelBuilder.disableRetry();
+
     if (isSecure) {
       channelBuilder.useTransportSecurity();
-      channelBuilder.disableRetry();
     } else {
       channelBuilder.usePlaintext();
     }

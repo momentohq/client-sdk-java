@@ -41,18 +41,8 @@ public class MomentoLocalProvider extends CredentialProvider {
   }
 
   @Override
-  public boolean isCacheEndpointSecure() {
-    return isSecureConnection(cacheEndpoint);
-  }
-
-  @Override
   public String getControlEndpoint() {
     return controlEndpoint;
-  }
-
-  @Override
-  public boolean isControlEndpointSecure() {
-    return isSecureConnection(controlEndpoint);
   }
 
   @Override
@@ -61,18 +51,13 @@ public class MomentoLocalProvider extends CredentialProvider {
   }
 
   @Override
-  public boolean isTokenEndpointSecure() {
-    return isSecureConnection(tokenEndpoint);
-  }
-
-  @Override
   public String getStorageEndpoint() {
     return storageEndpoint;
   }
 
   @Override
-  public boolean isStorageEndpointSecure() {
-    return isSecureConnection(storageEndpoint);
+  public boolean isEndpointSecure() {
+    return isSecureConnection(DEFAULT_HOSTNAME);
   }
 
   @Override
