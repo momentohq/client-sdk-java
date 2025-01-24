@@ -190,7 +190,7 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
     GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(
         configuration.getTransportStrategy().getGrpcConfiguration(),
         channelBuilder,
-        credentialProvider.isEndpointSecure());
+        credentialProvider.isEndpointSecure(credentialProvider.getCacheEndpoint()));
 
     final Map<Metadata.Key<String>, String> extraHeaders = new HashMap<>();
     if (configuration.getReadConcern() != ReadConcern.BALANCED) {

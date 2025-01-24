@@ -10,17 +10,15 @@ class MomentoLocalProviderTest {
 
   @Test
   void testDefaultConstructor() {
+    String hostname = "127.0.0.1";
     MomentoLocalProvider provider = new MomentoLocalProvider();
 
-    assertEquals("127.0.0.1", provider.getCacheEndpoint());
-    assertEquals("127.0.0.1", provider.getControlEndpoint());
-    assertEquals("127.0.0.1", provider.getTokenEndpoint());
-    assertEquals("127.0.0.1", provider.getStorageEndpoint());
+    assertEquals(hostname, provider.getCacheEndpoint());
+    assertEquals(hostname, provider.getControlEndpoint());
+    assertEquals(hostname, provider.getTokenEndpoint());
+    assertEquals(hostname, provider.getStorageEndpoint());
     assertEquals(8080, provider.getPort());
-    assertFalse(provider.isCacheEndpointSecure());
-    assertFalse(provider.isControlEndpointSecure());
-    assertFalse(provider.isTokenEndpointSecure());
-    assertFalse(provider.isStorageEndpointSecure());
+    assertFalse(provider.isEndpointSecure(hostname));
     assertEquals("", provider.getAuthToken());
   }
 
@@ -33,7 +31,7 @@ class MomentoLocalProviderTest {
     assertEquals("localhost", provider.getTokenEndpoint());
     assertEquals("localhost", provider.getStorageEndpoint());
     assertEquals(9090, provider.getPort());
-    assertFalse(provider.isCacheEndpointSecure());
+    assertFalse(provider.isEndpointSecure("localhost"));
   }
 
   @Test
@@ -60,21 +58,15 @@ class MomentoLocalProviderTest {
 
   @Test
   void testSecureEndpointDetection() {
-    MomentoLocalProvider provider = new MomentoLocalProvider("https://secure-host");
-
-    assertTrue(provider.isCacheEndpointSecure());
-    assertTrue(provider.isControlEndpointSecure());
-    assertTrue(provider.isTokenEndpointSecure());
-    assertTrue(provider.isStorageEndpointSecure());
+    String secureHost = "https://secure-host";
+    MomentoLocalProvider provider = new MomentoLocalProvider(secureHost);
+    assertTrue(provider.isEndpointSecure(secureHost));
   }
 
   @Test
   void testInsecureEndpointDetection() {
-    MomentoLocalProvider provider = new MomentoLocalProvider("http://insecure-host");
-
-    assertFalse(provider.isCacheEndpointSecure());
-    assertFalse(provider.isControlEndpointSecure());
-    assertFalse(provider.isTokenEndpointSecure());
-    assertFalse(provider.isStorageEndpointSecure());
+    String insecureHost = "http://insecure-host";
+    MomentoLocalProvider provider = new MomentoLocalProvider(insecureHost);
+    assertFalse(provider.isEndpointSecure(insecureHost));
   }
 }

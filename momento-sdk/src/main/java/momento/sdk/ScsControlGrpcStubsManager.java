@@ -47,7 +47,9 @@ final class ScsControlGrpcStubsManager implements AutoCloseable {
 
     // set additional channel options (message size, keepalive, auth, etc)
     GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(
-        controlConfig, channelBuilder, credentialProvider.isEndpointSecure());
+        controlConfig,
+        channelBuilder,
+        credentialProvider.isEndpointSecure(credentialProvider.getControlEndpoint()));
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken(), "cache"));

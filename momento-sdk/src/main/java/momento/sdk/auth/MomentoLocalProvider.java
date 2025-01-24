@@ -56,8 +56,8 @@ public class MomentoLocalProvider extends CredentialProvider {
   }
 
   @Override
-  public boolean isEndpointSecure() {
-    return isSecureConnection(DEFAULT_HOSTNAME);
+  public boolean isEndpointSecure(String endpoint) {
+    return isSecureConnection(endpoint);
   }
 
   @Override
