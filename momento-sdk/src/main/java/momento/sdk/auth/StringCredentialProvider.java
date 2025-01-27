@@ -169,4 +169,14 @@ public class StringCredentialProvider extends CredentialProvider {
   public String getTokenEndpoint() {
     return tokenEndpoint;
   }
+
+  @Override
+  public boolean isEndpointSecure() {
+    return true;
+  }
+
+  @Override
+  public int getPort() {
+    return 443;
+  }
 }

@@ -29,6 +29,15 @@ public abstract class CredentialProvider {
   }
 
   /**
+   * Creates a CredentialProvider using the provided MomentoLocalProviderProps.
+   *
+   * @return The Momento local provider.
+   */
+  public static CredentialProvider forMomentoLocal() {
+    return new MomentoLocalProvider();
+  }
+
+  /**
    * Gets the token used to authenticate to Momento.
    *
    * @return The token.
@@ -63,4 +72,18 @@ public abstract class CredentialProvider {
    * @return The token endpoint.
    */
   public abstract String getTokenEndpoint();
+
+  /**
+   * Gets whether the endpoint connection is secure.
+   *
+   * @return true if connecting to the endpoint connection with TLS; false if not using TLS
+   */
+  public abstract boolean isEndpointSecure();
+
+  /**
+   * Gets the port with which the Momento client will connect to the Momento local.
+   *
+   * @return The port.
+   */
+  public abstract int getPort();
 }

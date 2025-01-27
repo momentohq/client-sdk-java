@@ -37,15 +37,17 @@ final class ScsControlGrpcStubsManager implements AutoCloseable {
 
   private static ManagedChannel setupConnection(
       CredentialProvider credentialProvider, Configuration configuration) {
+    int port = credentialProvider.getPort();
     final NettyChannelBuilder channelBuilder =
-        NettyChannelBuilder.forAddress(credentialProvider.getControlEndpoint(), 443);
+        NettyChannelBuilder.forAddress(credentialProvider.getControlEndpoint(), port);
 
     // Override grpc config to disable keepalive for control clients
     final GrpcConfiguration controlConfig =
         configuration.getTransportStrategy().getGrpcConfiguration().withKeepAliveDisabled();
 
     // set additional channel options (message size, keepalive, auth, etc)
-    GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(controlConfig, channelBuilder);
+    GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(
+        controlConfig, channelBuilder, credentialProvider.isEndpointSecure());
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken(), "cache"));

@@ -24,8 +24,18 @@ public class GrpcChannelOptions {
 
   public static void applyGrpcConfigurationToChannelBuilder(
       IGrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder) {
-    channelBuilder.useTransportSecurity();
+    applyGrpcConfigurationToChannelBuilder(grpcConfig, channelBuilder, true);
+  }
+
+  public static void applyGrpcConfigurationToChannelBuilder(
+      IGrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder, boolean isSecure) {
     channelBuilder.disableRetry();
+
+    if (isSecure) {
+      channelBuilder.useTransportSecurity();
+    } else {
+      channelBuilder.usePlaintext();
+    }
 
     grpcConfig.getMaxReceivedMessageSize().ifPresent(channelBuilder::maxInboundMessageSize);
 
