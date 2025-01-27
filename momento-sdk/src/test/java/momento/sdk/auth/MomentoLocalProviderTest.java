@@ -2,7 +2,6 @@ package momento.sdk.auth;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,7 +17,7 @@ class MomentoLocalProviderTest {
     assertEquals(hostname, provider.getTokenEndpoint());
     assertEquals(hostname, provider.getStorageEndpoint());
     assertEquals(8080, provider.getPort());
-    assertFalse(provider.isEndpointSecure(hostname));
+    assertFalse(provider.isEndpointSecure());
     assertEquals("", provider.getAuthToken());
   }
 
@@ -31,7 +30,7 @@ class MomentoLocalProviderTest {
     assertEquals("localhost", provider.getTokenEndpoint());
     assertEquals("localhost", provider.getStorageEndpoint());
     assertEquals(9090, provider.getPort());
-    assertFalse(provider.isEndpointSecure("localhost"));
+    assertFalse(provider.isEndpointSecure());
   }
 
   @Test
@@ -57,16 +56,9 @@ class MomentoLocalProviderTest {
   }
 
   @Test
-  void testSecureEndpointDetection() {
-    String secureHost = "https://secure-host";
-    MomentoLocalProvider provider = new MomentoLocalProvider(secureHost);
-    assertTrue(provider.isEndpointSecure(secureHost));
-  }
-
-  @Test
   void testInsecureEndpointDetection() {
     String insecureHost = "http://insecure-host";
     MomentoLocalProvider provider = new MomentoLocalProvider(insecureHost);
-    assertFalse(provider.isEndpointSecure(insecureHost));
+    assertFalse(provider.isEndpointSecure());
   }
 }

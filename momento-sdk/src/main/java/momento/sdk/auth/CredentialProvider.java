@@ -78,7 +78,7 @@ public abstract class CredentialProvider {
    *
    * @return true if connecting to the endpoint connection with TLS; false if not using TLS
    */
-  public abstract boolean isEndpointSecure(String endpoint);
+  public abstract boolean isEndpointSecure();
 
   /**
    * Gets the port with which the Momento client will connect to the Momento local.

@@ -171,7 +171,7 @@ public class StringCredentialProvider extends CredentialProvider {
   }
 
   @Override
-  public boolean isEndpointSecure(String endpoint) {
+  public boolean isEndpointSecure() {
     return true;
   }
 

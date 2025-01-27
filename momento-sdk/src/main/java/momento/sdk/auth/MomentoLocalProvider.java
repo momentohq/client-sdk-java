@@ -56,16 +56,12 @@ public class MomentoLocalProvider extends CredentialProvider {
   }
 
   @Override
-  public boolean isEndpointSecure(String endpoint) {
-    return isSecureConnection(endpoint);
+  public boolean isEndpointSecure() {
+    return false;
   }
 
   @Override
   public int getPort() {
     return port;
-  }
-
-  private boolean isSecureConnection(String endpoint) {
-    return endpoint.startsWith("https://");
   }
 }
