@@ -1,11 +1,10 @@
 package momento.sdk;
 
-import momento.sdk.retry.MomentoRpcMethod;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import momento.sdk.retry.MomentoRpcMethod;
 
 public class TestRetryMetricsCollector {
   // Data structure to store timestamps: cacheName -> requestName -> [timestamps]
