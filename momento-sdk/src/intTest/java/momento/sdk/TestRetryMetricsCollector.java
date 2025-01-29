@@ -1,4 +1,4 @@
-package momento.sdk.retry;
+package momento.sdk;
 
 import java.util.ArrayList;
 import java.util.HashMap;
