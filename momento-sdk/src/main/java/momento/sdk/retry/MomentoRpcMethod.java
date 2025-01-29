@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.retry;
 
 public enum MomentoRpcMethod {
   GET("_GetRequest"),

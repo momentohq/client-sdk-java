@@ -1,5 +1,7 @@
 package momento.sdk;
 
+import momento.sdk.retry.MomentoRpcMethod;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
