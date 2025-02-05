@@ -134,7 +134,7 @@ final class GrpcMiddlewareInterceptor implements ClientInterceptor {
 
     @Override
     public void onClose(final Status status, final Metadata trailers) {
-      if (status.getCode() == Status.Code.DEADLINE_EXCEEDED) {
+      if (status.getCode() == Status.Code.DEADLINE_EXCEEDED && channel instanceof ManagedChannel) {
         ConnectivityState connectionStatus = ((ManagedChannel) channel).getState(false);
         logger.warn(
             "gRPC Deadline Exceeded: {} - {} | Connection state: {} | Method: {}",
