@@ -9,9 +9,11 @@ import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -28,6 +30,8 @@ import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
 import momento.sdk.config.ReadConcern;
+import momento.sdk.config.middleware.Middleware;
+import momento.sdk.config.middleware.MiddlewareRequestHandlerContext;
 import momento.sdk.exceptions.ConnectionFailedException;
 import momento.sdk.internal.GrpcChannelOptions;
 import org.slf4j.Logger;
@@ -46,6 +50,7 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
   private final List<ScsGrpc.ScsFutureStub> futureStubs;
   private final List<ScsGrpc.ScsStub> observableStubs;
   private final AtomicInteger nextStubIndex = new AtomicInteger(0);
+  public static final UUID CONNECTION_ID_KEY = UUID.randomUUID();
 
   private final int numGrpcChannels;
   private final Duration deadline;
@@ -204,6 +209,12 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
     clientInterceptors.add(
         new RetryClientInterceptor(
             configuration.getRetryStrategy(), retryScheduler, retryExecutor));
+
+    List<Middleware> middlewares = configuration.getMiddlewares();
+    MiddlewareRequestHandlerContext context =
+        () -> Collections.singletonMap(CONNECTION_ID_KEY.toString(), UUID.randomUUID().toString());
+    clientInterceptors.add(new GrpcMiddlewareInterceptor(middlewares, context));
+
     channelBuilder.intercept(clientInterceptors);
 
     return channelBuilder.build();
