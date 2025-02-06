@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.List;
 import java.util.Map;
-import momento.sdk.TestRetryMetricsCollector;
+import momento.sdk.retry.utils.TestRetryMetricsCollector;
 import org.junit.jupiter.api.Test;
 
 public class TestRetryMetricsCollectorTest {
