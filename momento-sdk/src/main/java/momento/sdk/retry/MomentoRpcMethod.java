@@ -1,5 +1,8 @@
 package momento.sdk.retry;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public enum MomentoRpcMethod {
   GET("_GetRequest"),
   SET("_SetRequest"),
@@ -48,11 +51,39 @@ public enum MomentoRpcMethod {
 
   private final String requestName;
 
+  private static final Map<String, MomentoRpcMethod> lookup = new HashMap<>();
+
+  static {
+    for (MomentoRpcMethod method : MomentoRpcMethod.values()) {
+      lookup.put(method.getRequestName(), method);
+    }
+  }
+
+  /**
+   * Constructor for MomentoRpcMethod.
+   *
+   * @param requestName - The request name.
+   */
   MomentoRpcMethod(String requestName) {
     this.requestName = requestName;
   }
 
+  /**
+   * Returns the request name.
+   *
+   * @return The request name.
+   */
   public String getRequestName() {
     return requestName;
+  }
+
+  /**
+   * Returns the MomentoRpcMethod from the request name.
+   *
+   * @param requestName - The request name.
+   * @return The MomentoRpcMethod.
+   */
+  public static MomentoRpcMethod fromString(String requestName) {
+    return lookup.getOrDefault(requestName, null);
   }
 }

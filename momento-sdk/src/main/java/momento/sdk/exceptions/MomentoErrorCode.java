@@ -48,5 +48,5 @@ public enum MomentoErrorCode {
   CLIENT_RESOURCE_EXHAUSTED,
 
   /** Unknown or non-specific client-side error. */
-  UNKNOWN,
+  UNKNOWN;
 }
