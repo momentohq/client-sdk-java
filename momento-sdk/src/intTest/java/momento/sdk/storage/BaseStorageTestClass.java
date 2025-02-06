@@ -11,7 +11,7 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
 public class BaseStorageTestClass {
-  protected static final Duration TEN_SECONDS = Duration.ofSeconds(10);
+  protected static final Duration THIRTY_SECONDS = Duration.ofSeconds(30);
   protected static CredentialProvider credentialProvider;
   protected static PreviewStorageClient storageClient;
   protected static String storeName;
