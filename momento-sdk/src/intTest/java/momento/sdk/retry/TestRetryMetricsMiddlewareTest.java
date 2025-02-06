@@ -7,11 +7,11 @@ import io.grpc.Metadata;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import momento.sdk.TestRetryMetricsMiddlewareArgs;
-import momento.sdk.TestRetryMetricsMiddlewareRequestHandler;
 import momento.sdk.config.middleware.MiddlewareMetadata;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.exceptions.MomentoErrorCodeMetadataConverter;
+import momento.sdk.retry.utils.TestRetryMetricsMiddlewareArgs;
+import momento.sdk.retry.utils.TestRetryMetricsMiddlewareRequestHandler;
 import org.junit.jupiter.api.Test;
 
 public class TestRetryMetricsMiddlewareTest extends BaseCacheRetryTestClass {

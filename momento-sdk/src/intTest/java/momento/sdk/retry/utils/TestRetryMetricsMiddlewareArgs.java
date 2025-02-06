@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.retry.utils;
 
 import java.util.List;
 import org.slf4j.Logger;

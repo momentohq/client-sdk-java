@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.retry.utils;
 
 import momento.sdk.config.middleware.Middleware;
 import momento.sdk.config.middleware.MiddlewareRequestHandler;
