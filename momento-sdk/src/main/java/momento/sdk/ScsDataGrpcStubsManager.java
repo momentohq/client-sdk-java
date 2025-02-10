@@ -204,16 +204,17 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
     }
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
-    clientInterceptors.add(
-        new UserHeaderInterceptor(credentialProvider.getAuthToken(), "cache", extraHeaders));
-    clientInterceptors.add(
-        new RetryClientInterceptor(
-            configuration.getRetryStrategy(), retryScheduler, retryExecutor));
 
     List<Middleware> middlewares = configuration.getMiddlewares();
     MiddlewareRequestHandlerContext context =
         () -> Collections.singletonMap(CONNECTION_ID_KEY.toString(), UUID.randomUUID().toString());
     clientInterceptors.add(new GrpcMiddlewareInterceptor(middlewares, context));
+
+    clientInterceptors.add(
+        new UserHeaderInterceptor(credentialProvider.getAuthToken(), "cache", extraHeaders));
+    clientInterceptors.add(
+        new RetryClientInterceptor(
+            configuration.getRetryStrategy(), retryScheduler, retryExecutor));
 
     channelBuilder.intercept(clientInterceptors);
 

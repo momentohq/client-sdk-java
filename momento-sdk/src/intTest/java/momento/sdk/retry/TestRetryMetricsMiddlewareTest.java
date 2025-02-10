@@ -62,9 +62,6 @@ public class TestRetryMetricsMiddlewareTest extends BaseCacheRetryTestClass {
 
     Map<String, Map<MomentoRpcMethod, List<Long>>> allMetrics =
         testRetryMetricsCollector.getAllMetrics();
-
-    System.out.println(allMetrics);
-
     assertEquals(1, allMetrics.size());
     assertTrue(allMetrics.containsKey(cacheName));
     assertTrue(allMetrics.get(cacheName).containsKey(MomentoRpcMethod.SET));
@@ -79,7 +76,6 @@ public class TestRetryMetricsMiddlewareTest extends BaseCacheRetryTestClass {
     String requestId = UUID.randomUUID().toString();
     String returnError = MomentoErrorCode.SERVER_UNAVAILABLE.name();
     List<String> errorRpcList = List.of(MomentoRpcMethod.GET.getRequestName());
-    System.out.println(errorRpcList);
     int errorCount = 3;
     List<String> delayRpcList = List.of(MomentoRpcMethod.GET.getRequestName());
     int delayMillis = 100;
