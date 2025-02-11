@@ -27,7 +27,7 @@ jobs:
 
       - name: Start Momento Local
         run: |
-          docker-compose -f docker-compose.yml up -d
+          docker run -d -p 8080:8080 gomomento/momento-local
 
       - name: Build and test with Momento Local
         env:
@@ -37,4 +37,4 @@ jobs:
       - name: Clean up Docker Container
         if: always()
         run: |
-          docker-compose -f docker-compose.yml down
+          docker rm -f momento-local || true
