@@ -51,8 +51,8 @@ test-http-service:
 	@echo "No tests for http service."
 
 ## Run the retry service tests
-test-retry-service:
-	./gradlew test-retry-service
+test-retries:
+	./gradlew test-retries
 
 ## Format the code
 format:

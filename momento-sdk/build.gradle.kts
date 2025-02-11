@@ -111,6 +111,6 @@ registerIntegrationTestTask(
 )
 
 registerIntegrationTestTask(
-    "test-retry-service",
+    "test-retries",
     listOf("momento.sdk.retry.*")
 )
