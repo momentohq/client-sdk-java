@@ -30,7 +30,7 @@ jobs:
       - name: Build and test with Momento Local
         env:
           MOMENTO_PORT: 8080
-        run: make test-retry-services
+        run: make test-retry-service
 
       - name: Clean up Docker Container
         run: docker rm -f momento-local || true
