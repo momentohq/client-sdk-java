@@ -78,4 +78,15 @@ public class Leaderboard implements ILeaderboard {
   public CompletableFuture<DeleteResponse> delete() {
     return leaderboardDataClient.delete(cacheName, leaderboardName);
   }
+
+  @Override
+  public CompletableFuture<FetchResponse> getCompetitionRank(
+      @Nonnull Iterable<Integer> ids, @Nonnull SortOrder order) {
+    return leaderboardDataClient.getCompetitionRank(cacheName, leaderboardName, ids, order);
+  }
+
+  @Override
+  public CompletableFuture<FetchResponse> getCompetitionRank(@Nonnull Iterable<Integer> ids) {
+    return this.getCompetitionRank(ids, SortOrder.DESCENDING);
+  }
 }

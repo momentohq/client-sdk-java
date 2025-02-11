@@ -707,4 +707,60 @@ public class LeaderboardClientTest extends BaseLeaderboardTestClass {
         .asInstanceOf(InstanceOfAssertFactories.type(DeleteResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(InvalidArgumentException.class));
   }
+
+  @Test
+  public void getCompetitionRankHappyPath() {
+    final String leaderboardName = randomString("leaderboard");
+    final ILeaderboard leaderboard = leaderboardClient.leaderboard(cacheName, leaderboardName);
+
+    final Map<Integer, Double> elements = new HashMap<>();
+    elements.put(0, 20.0);
+    elements.put(1, 10.0);
+    elements.put(2, 10.0);
+    elements.put(3, 5.0);
+
+    assertThat(leaderboard.upsert(elements))
+        .succeedsWithin(FIVE_SECONDS)
+        .isInstanceOf(UpsertResponse.Success.class);
+
+    // descending
+    assertThat(leaderboard.getCompetitionRank(elements.keySet()))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(FetchResponse.Success.class))
+        .satisfies(
+            resp ->
+                assertThat(resp.elementsList())
+                    .extracting("id", "rank")
+                    .containsExactly(tuple(0, 0), tuple(1, 1), tuple(2, 1), tuple(3, 3)));
+
+    // ascending
+    assertThat(leaderboard.getCompetitionRank(elements.keySet(), SortOrder.ASCENDING))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(FetchResponse.Success.class))
+        .satisfies(
+            resp ->
+                assertThat(resp.elementsList())
+                    .extracting("id", "rank")
+                    .containsExactly(tuple(0, 3), tuple(1, 1), tuple(2, 1), tuple(3, 0)));
+
+    // ids are a subset of the leaderboard
+    assertThat(leaderboard.getCompetitionRank(new HashSet<>(Arrays.asList(1, 2))))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(FetchResponse.Success.class))
+        .satisfies(
+            resp ->
+                assertThat(resp.elementsList())
+                    .extracting("id", "rank")
+                    .containsExactly(tuple(1, 1), tuple(2, 1)));
+
+    // ids are a superset of the leaderboard
+    assertThat(leaderboard.getCompetitionRank(new HashSet<>(Arrays.asList(1, 2, 3, 4))))
+        .succeedsWithin(FIVE_SECONDS)
+        .asInstanceOf(InstanceOfAssertFactories.type(FetchResponse.Success.class))
+        .satisfies(
+            resp ->
+                assertThat(resp.elementsList())
+                    .extracting("id", "rank")
+                    .containsExactly(tuple(1, 1), tuple(2, 1), tuple(3, 3)));
+  }
 }
