@@ -470,8 +470,6 @@ final class LeaderboardDataClient extends ScsClientBase {
       } else {
         requestBuilder.setOrder(_Order.ASCENDING);
       }
-    } else {
-      requestBuilder.setOrder(_Order.DESCENDING);
     }
 
     return requestBuilder.build();
