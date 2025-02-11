@@ -733,34 +733,34 @@ public class LeaderboardClientTest extends BaseLeaderboardTestClass {
                     .extracting("id", "rank")
                     .containsExactly(tuple(0, 0), tuple(1, 1), tuple(2, 1), tuple(3, 3)));
 
-    // descending
-    assertThat(leaderboard.getRank(elements.keySet(), SortOrder.DESCENDING))
+    // ascending
+    assertThat(leaderboard.getCompetitionRank(elements.keySet(), SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(FetchResponse.Success.class))
         .satisfies(
             resp ->
                 assertThat(resp.elementsList())
                     .extracting("id", "rank")
-                    .containsExactly(tuple(1, 2), tuple(2, 1), tuple(3, 0)));
+                        .containsExactly(tuple(0, 3), tuple(1, 1), tuple(2, 1), tuple(3, 0)));
 
     // ids are a subset of the leaderboard
-    assertThat(leaderboard.getRank(new HashSet<>(Arrays.asList(1, 2)), null))
+    assertThat(leaderboard.getCompetitionRank(new HashSet<>(Arrays.asList(1, 2)), null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(FetchResponse.Success.class))
         .satisfies(
             resp ->
                 assertThat(resp.elementsList())
                     .extracting("id", "rank")
-                    .containsExactly(tuple(1, 0), tuple(2, 1)));
+                    .containsExactly(tuple(1, 1), tuple(2, 1)));
 
     // ids are a superset of the leaderboard
-    assertThat(leaderboard.getRank(new HashSet<>(Arrays.asList(1, 2, 3, 4)), null))
+    assertThat(leaderboard.getCompetitionRank(new HashSet<>(Arrays.asList(1, 2, 3, 4)), null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(FetchResponse.Success.class))
         .satisfies(
             resp ->
                 assertThat(resp.elementsList())
                     .extracting("id", "rank")
-                    .containsExactly(tuple(1, 0), tuple(2, 1), tuple(3, 2)));
+                    .containsExactly(tuple(1, 1), tuple(2, 1), tuple(3, 3)));
   }
 }
