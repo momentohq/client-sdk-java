@@ -741,7 +741,7 @@ public class LeaderboardClientTest extends BaseLeaderboardTestClass {
             resp ->
                 assertThat(resp.elementsList())
                     .extracting("id", "rank")
-                        .containsExactly(tuple(0, 3), tuple(1, 1), tuple(2, 1), tuple(3, 0)));
+                    .containsExactly(tuple(0, 3), tuple(1, 1), tuple(2, 1), tuple(3, 0)));
 
     // ids are a subset of the leaderboard
     assertThat(leaderboard.getCompetitionRank(new HashSet<>(Arrays.asList(1, 2)), null))
