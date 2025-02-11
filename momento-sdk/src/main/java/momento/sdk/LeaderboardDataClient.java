@@ -178,7 +178,7 @@ final class LeaderboardDataClient extends ScsClientBase {
       @Nonnull String cacheName,
       @Nonnull String leaderboardName,
       @Nonnull Iterable<Integer> ids,
-      @Nullable SortOrder order) {
+      @Nonnull SortOrder order) {
     try {
       checkCacheNameValid(cacheName);
       validateLeaderboardName(leaderboardName);
@@ -279,7 +279,7 @@ final class LeaderboardDataClient extends ScsClientBase {
       @Nonnull String cacheName,
       @Nonnull String leaderboardName,
       @Nonnull Iterable<Integer> ids,
-      @Nullable SortOrder order) {
+      @Nonnull SortOrder order) {
     final Metadata metadata = metadataWithCache(cacheName);
     final Supplier<ListenableFuture<_GetCompetitionRankResponse>> stubSupplier =
         () ->
@@ -460,16 +460,14 @@ final class LeaderboardDataClient extends ScsClientBase {
   }
 
   private _GetCompetitionRankRequest buildGetCompetitionRankRequest(
-      @Nonnull String leaderboardName, @Nonnull Iterable<Integer> ids, @Nullable SortOrder order) {
+      @Nonnull String leaderboardName, @Nonnull Iterable<Integer> ids, @Nonnull SortOrder order) {
     final _GetCompetitionRankRequest.Builder requestBuilder =
         _GetCompetitionRankRequest.newBuilder().setLeaderboard(leaderboardName).addAllIds(ids);
 
-    if (order != null) {
-      if (order == SortOrder.DESCENDING) {
-        requestBuilder.setOrder(_Order.DESCENDING);
-      } else {
-        requestBuilder.setOrder(_Order.ASCENDING);
-      }
+    if (order == SortOrder.DESCENDING) {
+      requestBuilder.setOrder(_Order.DESCENDING);
+    } else {
+      requestBuilder.setOrder(_Order.ASCENDING);
     }
 
     return requestBuilder.build();

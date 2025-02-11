@@ -81,7 +81,12 @@ public class Leaderboard implements ILeaderboard {
 
   @Override
   public CompletableFuture<FetchResponse> getCompetitionRank(
-      @Nonnull Iterable<Integer> ids, @Nullable SortOrder order) {
+      @Nonnull Iterable<Integer> ids, @Nonnull SortOrder order) {
     return leaderboardDataClient.getCompetitionRank(cacheName, leaderboardName, ids, order);
+  }
+
+  @Override
+  public CompletableFuture<FetchResponse> getCompetitionRank(@Nonnull Iterable<Integer> ids) {
+    return this.getCompetitionRank(ids, SortOrder.DESCENDING);
   }
 }

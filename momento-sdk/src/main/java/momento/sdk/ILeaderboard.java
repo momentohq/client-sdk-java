@@ -132,11 +132,21 @@ public interface ILeaderboard {
    * (index begins at 0).
    *
    * @param ids The IDs of the elements to fetch from the leaderboard.
-   * @param order The rank order to fetch the elements in, based on their scores. Defaults to {@link
-   *     SortOrder#DESCENDING}.
+   * @param order The rank order to fetch the elements in, based on their scores.
    * @return A future containing the result of the fetch operation: {@link FetchResponse.Success}
    *     containing the elements, or {@link FetchResponse.Error}.
    */
   CompletableFuture<FetchResponse> getCompetitionRank(
-      @Nonnull Iterable<Integer> ids, @Nullable SortOrder order);
+      @Nonnull Iterable<Integer> ids, @Nonnull SortOrder order);
+
+  /**
+   * Look up the competition ranks of the given elements in the leaderboard. Note: rank is 0-based
+   * (index begins at 0). The rank order is descending, so elements with higher scores will have
+   * lower ranks.
+   *
+   * @param ids The IDs of the elements to fetch from the leaderboard.
+   * @return A future containing the result of the fetch operation: {@link FetchResponse.Success}
+   *     containing the elements, or {@link FetchResponse.Error}.
+   */
+  CompletableFuture<FetchResponse> getCompetitionRank(@Nonnull Iterable<Integer> ids);
 }
