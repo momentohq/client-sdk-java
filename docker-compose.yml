@@ -1,0 +1,7 @@
+services:
+  momento-local:
+    image: gomomento/momento-local
+    container_name: momento-local
+    ports:
+      - "8080:8080"
+    restart: always

@@ -27,12 +27,14 @@ jobs:
 
       - name: Start Momento Local
         run: |
-          docker run -d -p 8080:8080 gomomento/momento-local
+          docker-compose -f docker-compose.yml up -d
 
       - name: Build and test with Momento Local
         env:
           MOMENTO_PORT: 8080
-        run: make test-retry-service
+        run: make test-retries
 
       - name: Clean up Docker Container
-        run: docker rm -f momento-local || true
+        if: always()
+        run: |
+          docker-compose -f docker-compose.yml down
