@@ -17,6 +17,8 @@ import grpc.leaderboard._GetByRankRequest;
 import grpc.leaderboard._GetByRankResponse;
 import grpc.leaderboard._GetByScoreRequest;
 import grpc.leaderboard._GetByScoreResponse;
+import grpc.leaderboard._GetCompetitionRankRequest;
+import grpc.leaderboard._GetCompetitionRankResponse;
 import grpc.leaderboard._GetLeaderboardLengthRequest;
 import grpc.leaderboard._GetLeaderboardLengthResponse;
 import grpc.leaderboard._GetRankRequest;
@@ -172,6 +174,23 @@ final class LeaderboardDataClient extends ScsClientBase {
     }
   }
 
+  public CompletableFuture<FetchResponse> getCompetitionRank(
+      @Nonnull String cacheName,
+      @Nonnull String leaderboardName,
+      @Nonnull Iterable<Integer> ids,
+      @Nullable SortOrder order) {
+    try {
+      checkCacheNameValid(cacheName);
+      validateLeaderboardName(leaderboardName);
+      validateNotNull(ids, "ids");
+
+      return sendgetCompetitionRank(cacheName, leaderboardName, ids, order);
+    } catch (Exception e) {
+      return CompletableFuture.completedFuture(
+          new FetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
+  }
+
   private CompletableFuture<UpsertResponse> sendUpsert(
       @Nonnull String cacheName,
       @Nonnull String leaderboardName,
@@ -180,7 +199,7 @@ final class LeaderboardDataClient extends ScsClientBase {
     final Supplier<ListenableFuture<_Empty>> stubSupplier =
         () ->
             attachMetadata(stubsManager.getStub(), metadata)
-                .upsertElements(buildUpsertElementsRequest(cacheName, leaderboardName, elements));
+                .upsertElements(buildUpsertElementsRequest(leaderboardName, elements));
 
     final Function<_Empty, UpsertResponse> success = rsp -> new UpsertResponse.Success();
 
@@ -204,7 +223,7 @@ final class LeaderboardDataClient extends ScsClientBase {
             attachMetadata(stubsManager.getStub(), metadata)
                 .getByScore(
                     buildGetByScoreRequest(
-                        cacheName, leaderboardName, minScore, maxScore, order, offset, count));
+                        leaderboardName, minScore, maxScore, order, offset, count));
 
     final Function<_GetByScoreResponse, FetchResponse> success =
         rsp -> new FetchResponse.Success(convertToLeaderboardElements(rsp.getElementsList()));
@@ -225,8 +244,7 @@ final class LeaderboardDataClient extends ScsClientBase {
     final Supplier<ListenableFuture<_GetByRankResponse>> stubSupplier =
         () ->
             attachMetadata(stubsManager.getStub(), metadata)
-                .getByRank(
-                    buildGetByRankRequest(cacheName, leaderboardName, startRank, endRank, order));
+                .getByRank(buildGetByRankRequest(leaderboardName, startRank, endRank, order));
 
     final Function<_GetByRankResponse, FetchResponse> success =
         rsp -> new FetchResponse.Success(convertToLeaderboardElements(rsp.getElementsList()));
@@ -246,9 +264,29 @@ final class LeaderboardDataClient extends ScsClientBase {
     final Supplier<ListenableFuture<_GetRankResponse>> stubSupplier =
         () ->
             attachMetadata(stubsManager.getStub(), metadata)
-                .getRank(buildGetRankRequest(cacheName, leaderboardName, ids, order));
+                .getRank(buildGetRankRequest(leaderboardName, ids, order));
 
     final Function<_GetRankResponse, FetchResponse> success =
+        rsp -> new FetchResponse.Success(convertToLeaderboardElements(rsp.getElementsList()));
+
+    final Function<Throwable, FetchResponse> failure =
+        e -> new FetchResponse.Error(CacheServiceExceptionMapper.convert(e));
+
+    return executeGrpcFunction(stubSupplier, success, failure);
+  }
+
+  CompletableFuture<FetchResponse> sendgetCompetitionRank(
+      @Nonnull String cacheName,
+      @Nonnull String leaderboardName,
+      @Nonnull Iterable<Integer> ids,
+      @Nullable SortOrder order) {
+    final Metadata metadata = metadataWithCache(cacheName);
+    final Supplier<ListenableFuture<_GetCompetitionRankResponse>> stubSupplier =
+        () ->
+            attachMetadata(stubsManager.getStub(), metadata)
+                .getCompetitionRank(buildgetCompetitionRankRequest(leaderboardName, ids, order));
+
+    final Function<_GetCompetitionRankResponse, FetchResponse> success =
         rsp -> new FetchResponse.Success(convertToLeaderboardElements(rsp.getElementsList()));
 
     final Function<Throwable, FetchResponse> failure =
@@ -269,7 +307,7 @@ final class LeaderboardDataClient extends ScsClientBase {
     final Supplier<ListenableFuture<_GetLeaderboardLengthResponse>> stubSupplier =
         () ->
             attachMetadata(stubsManager.getStub(), metadata)
-                .getLeaderboardLength(buildLengthRequest(cacheName, leaderboardName));
+                .getLeaderboardLength(buildLengthRequest(leaderboardName));
 
     final Function<_GetLeaderboardLengthResponse, LengthResponse> success =
         rsp -> {
@@ -289,7 +327,7 @@ final class LeaderboardDataClient extends ScsClientBase {
     final Supplier<ListenableFuture<_Empty>> stubSupplier =
         () ->
             attachMetadata(stubsManager.getStub(), metadata)
-                .removeElements(buildRemoveElementsRequest(cacheName, leaderboardName, ids));
+                .removeElements(buildRemoveElementsRequest(leaderboardName, ids));
 
     final Function<_Empty, RemoveElementsResponse> success =
         rsp -> new RemoveElementsResponse.Success();
@@ -306,7 +344,7 @@ final class LeaderboardDataClient extends ScsClientBase {
     final Supplier<ListenableFuture<_Empty>> stubSupplier =
         () ->
             attachMetadata(stubsManager.getStub(), metadata)
-                .deleteLeaderboard(buildDeleteRequest(cacheName, leaderboardName));
+                .deleteLeaderboard(buildDeleteRequest(leaderboardName));
 
     final Function<_Empty, DeleteResponse> success = rsp -> new DeleteResponse.Success();
 
@@ -317,11 +355,8 @@ final class LeaderboardDataClient extends ScsClientBase {
   }
 
   private _UpsertElementsRequest buildUpsertElementsRequest(
-      @Nonnull String cacheName,
-      @Nonnull String leaderboardName,
-      @Nonnull Map<Integer, Double> elements) {
+      @Nonnull String leaderboardName, @Nonnull Map<Integer, Double> elements) {
     return _UpsertElementsRequest.newBuilder()
-        .setCacheName(cacheName)
         .setLeaderboard(leaderboardName)
         .addAllElements(
             elements.entrySet().stream()
@@ -331,7 +366,6 @@ final class LeaderboardDataClient extends ScsClientBase {
   }
 
   private _GetByScoreRequest buildGetByScoreRequest(
-      @Nonnull String cacheName,
       @Nonnull String leaderboardName,
       @Nullable Double minScore,
       @Nullable Double maxScore,
@@ -352,7 +386,6 @@ final class LeaderboardDataClient extends ScsClientBase {
 
     final _GetByScoreRequest.Builder requestBuilder =
         _GetByScoreRequest.newBuilder()
-            .setCacheName(cacheName)
             .setLeaderboard(leaderboardName)
             .setScoreRange(scoreBuilder.build());
 
@@ -378,14 +411,9 @@ final class LeaderboardDataClient extends ScsClientBase {
   }
 
   private _GetByRankRequest buildGetByRankRequest(
-      @Nonnull String cacheName,
-      @Nonnull String leaderboardName,
-      int startRank,
-      int endRank,
-      @Nullable SortOrder order) {
+      @Nonnull String leaderboardName, int startRank, int endRank, @Nullable SortOrder order) {
     final _GetByRankRequest.Builder requestBuilder =
         _GetByRankRequest.newBuilder()
-            .setCacheName(cacheName)
             .setLeaderboard(leaderboardName)
             .setRankRange(
                 _RankRange.newBuilder()
@@ -402,15 +430,9 @@ final class LeaderboardDataClient extends ScsClientBase {
   }
 
   private _GetRankRequest buildGetRankRequest(
-      @Nonnull String cacheName,
-      @Nonnull String leaderboardName,
-      @Nonnull Iterable<Integer> ids,
-      @Nullable SortOrder order) {
+      @Nonnull String leaderboardName, @Nonnull Iterable<Integer> ids, @Nullable SortOrder order) {
     final _GetRankRequest.Builder requestBuilder =
-        _GetRankRequest.newBuilder()
-            .setCacheName(cacheName)
-            .setLeaderboard(leaderboardName)
-            .addAllIds(ids);
+        _GetRankRequest.newBuilder().setLeaderboard(leaderboardName).addAllIds(ids);
 
     if (order == SortOrder.DESCENDING) {
       requestBuilder.setOrder(_Order.DESCENDING);
@@ -421,29 +443,38 @@ final class LeaderboardDataClient extends ScsClientBase {
     return requestBuilder.build();
   }
 
-  private _GetLeaderboardLengthRequest buildLengthRequest(
-      @Nonnull String cacheName, @Nonnull String leaderboardName) {
-    return _GetLeaderboardLengthRequest.newBuilder()
-        .setCacheName(cacheName)
-        .setLeaderboard(leaderboardName)
-        .build();
+  private _GetLeaderboardLengthRequest buildLengthRequest(@Nonnull String leaderboardName) {
+    return _GetLeaderboardLengthRequest.newBuilder().setLeaderboard(leaderboardName).build();
   }
 
   private _RemoveElementsRequest buildRemoveElementsRequest(
-      @Nonnull String cacheName, @Nonnull String leaderboardName, @Nonnull Iterable<Integer> ids) {
+      @Nonnull String leaderboardName, @Nonnull Iterable<Integer> ids) {
     return _RemoveElementsRequest.newBuilder()
-        .setCacheName(cacheName)
         .setLeaderboard(leaderboardName)
         .addAllIds(ids)
         .build();
   }
 
-  private _DeleteLeaderboardRequest buildDeleteRequest(
-      @Nonnull String cacheName, @Nonnull String leaderboardName) {
-    return _DeleteLeaderboardRequest.newBuilder()
-        .setCacheName(cacheName)
-        .setLeaderboard(leaderboardName)
-        .build();
+  private _DeleteLeaderboardRequest buildDeleteRequest(@Nonnull String leaderboardName) {
+    return _DeleteLeaderboardRequest.newBuilder().setLeaderboard(leaderboardName).build();
+  }
+
+  private _GetCompetitionRankRequest buildgetCompetitionRankRequest(
+      @Nonnull String leaderboardName, @Nonnull Iterable<Integer> ids, @Nullable SortOrder order) {
+    final _GetCompetitionRankRequest.Builder requestBuilder =
+        _GetCompetitionRankRequest.newBuilder().setLeaderboard(leaderboardName).addAllIds(ids);
+
+    if (order != null) {
+      if (order == SortOrder.DESCENDING) {
+        requestBuilder.setOrder(_Order.DESCENDING);
+      } else {
+        requestBuilder.setOrder(_Order.ASCENDING);
+      }
+    } else {
+      requestBuilder.setOrder(_Order.DESCENDING);
+    }
+
+    return requestBuilder.build();
   }
 
   @Override

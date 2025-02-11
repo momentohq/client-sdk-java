@@ -126,4 +126,17 @@ public interface ILeaderboard {
    *     or {@link DeleteResponse.Error}.
    */
   CompletableFuture<DeleteResponse> delete();
+
+  /**
+   * Look up the competition ranks of the given elements in the leaderboard. Note: rank is 0-based
+   * (index begins at 0).
+   *
+   * @param ids The IDs of the elements to fetch from the leaderboard.
+   * @param order The rank order to fetch the elements in, based on their scores. Defaults to {@link
+   *     SortOrder#DESCENDING}.
+   * @return A future containing the result of the fetch operation: {@link FetchResponse.Success}
+   *     containing the elements, or {@link FetchResponse.Error}.
+   */
+  CompletableFuture<FetchResponse> getCompetitionRank(
+      @Nonnull Iterable<Integer> ids, @Nullable SortOrder order);
 }
