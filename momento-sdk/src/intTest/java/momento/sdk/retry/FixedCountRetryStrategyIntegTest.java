@@ -8,6 +8,7 @@ import static org.slf4j.LoggerFactory.getLogger;
 import java.util.Collections;
 import java.util.UUID;
 import momento.sdk.exceptions.MomentoErrorCode;
+import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.IncrementResponse;
 import momento.sdk.retry.utils.TestRetryMetricsCollector;
@@ -44,10 +45,8 @@ public class FixedCountRetryStrategyIntegTest {
           assertThat(cacheClient.get(cacheName, "key"))
               .succeedsWithin(FIVE_SECONDS)
               .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
-              .satisfies(
-                  error ->
-                      assertThat(error.getErrorCode())
-                          .isEqualTo(MomentoErrorCode.SERVER_UNAVAILABLE));
+              .extracting(SdkException::getErrorCode)
+              .isEqualTo(MomentoErrorCode.SERVER_UNAVAILABLE);
 
           assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
               .isEqualTo(3);
@@ -70,10 +69,8 @@ public class FixedCountRetryStrategyIntegTest {
           assertThat(cacheClient.increment(cacheName, "key", 1))
               .succeedsWithin(FIVE_SECONDS)
               .asInstanceOf(InstanceOfAssertFactories.type(IncrementResponse.Error.class))
-              .satisfies(
-                  error ->
-                      assertThat(error.getErrorCode())
-                          .isEqualTo(MomentoErrorCode.SERVER_UNAVAILABLE));
+              .extracting(SdkException::getErrorCode)
+              .isEqualTo(MomentoErrorCode.SERVER_UNAVAILABLE);
 
           assertThat(
                   testRetryMetricsCollector.getTotalRetryCount(
@@ -99,8 +96,7 @@ public class FixedCountRetryStrategyIntegTest {
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.get(cacheName, "key"))
               .succeedsWithin(FIVE_SECONDS)
-              .extracting(response -> (GetResponse.Miss) response)
-              .isNotNull();
+              .isInstanceOf(GetResponse.Miss.class);
 
           assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
               .isBetween(2, 3);
