@@ -184,7 +184,7 @@ final class LeaderboardDataClient extends ScsClientBase {
       validateLeaderboardName(leaderboardName);
       validateNotNull(ids, "ids");
 
-      return sendgetCompetitionRank(cacheName, leaderboardName, ids, order);
+      return sendGetCompetitionRank(cacheName, leaderboardName, ids, order);
     } catch (Exception e) {
       return CompletableFuture.completedFuture(
           new FetchResponse.Error(CacheServiceExceptionMapper.convert(e)));
@@ -275,7 +275,7 @@ final class LeaderboardDataClient extends ScsClientBase {
     return executeGrpcFunction(stubSupplier, success, failure);
   }
 
-  CompletableFuture<FetchResponse> sendgetCompetitionRank(
+  CompletableFuture<FetchResponse> sendGetCompetitionRank(
       @Nonnull String cacheName,
       @Nonnull String leaderboardName,
       @Nonnull Iterable<Integer> ids,
@@ -284,7 +284,7 @@ final class LeaderboardDataClient extends ScsClientBase {
     final Supplier<ListenableFuture<_GetCompetitionRankResponse>> stubSupplier =
         () ->
             attachMetadata(stubsManager.getStub(), metadata)
-                .getCompetitionRank(buildgetCompetitionRankRequest(leaderboardName, ids, order));
+                .getCompetitionRank(buildGetCompetitionRankRequest(leaderboardName, ids, order));
 
     final Function<_GetCompetitionRankResponse, FetchResponse> success =
         rsp -> new FetchResponse.Success(convertToLeaderboardElements(rsp.getElementsList()));
@@ -459,7 +459,7 @@ final class LeaderboardDataClient extends ScsClientBase {
     return _DeleteLeaderboardRequest.newBuilder().setLeaderboard(leaderboardName).build();
   }
 
-  private _GetCompetitionRankRequest buildgetCompetitionRankRequest(
+  private _GetCompetitionRankRequest buildGetCompetitionRankRequest(
       @Nonnull String leaderboardName, @Nonnull Iterable<Integer> ids, @Nullable SortOrder order) {
     final _GetCompetitionRankRequest.Builder requestBuilder =
         _GetCompetitionRankRequest.newBuilder().setLeaderboard(leaderboardName).addAllIds(ids);
