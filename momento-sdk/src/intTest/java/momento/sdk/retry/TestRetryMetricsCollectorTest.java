@@ -69,7 +69,6 @@ public class TestRetryMetricsCollectorTest {
     collector.addTimestamp("cache2", MomentoRpcMethod.SET, 3000);
 
     Map<String, Map<MomentoRpcMethod, List<Long>>> metrics = collector.getAllMetrics();
-    System.out.println(metrics);
     assertNotNull(metrics);
     Map<String, Map<MomentoRpcMethod, List<Long>>> expectedMetrics =
         Map.of(

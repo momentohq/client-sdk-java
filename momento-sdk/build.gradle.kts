@@ -55,6 +55,11 @@ tasks.named("analyzeIntTestClassesDependencies").configure {
 tasks.named("analyzeTestClassesDependencies").configure {
     enabled = false
 }
+tasks.named<Test>("integrationTest") {
+    filter {
+        excludeTestsMatching("momento.sdk.retry.*")
+    }
+}
 
 fun registerIntegrationTestTask(name: String, testClasses: List<String>) {
     tasks.register<Test>(name) {
@@ -103,4 +108,9 @@ registerIntegrationTestTask(
 registerIntegrationTestTask(
     "test-leaderboard-service",
     listOf("momento.sdk.leaderboard.*")
+)
+
+registerIntegrationTestTask(
+    "test-retry-service",
+    listOf("momento.sdk.retry.*")
 )

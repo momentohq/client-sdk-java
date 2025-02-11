@@ -29,26 +29,29 @@ public class TestRetryMetricsMiddlewareRequestHandler implements MiddlewareReque
       setGrpcMetadata(
           grpcMetadata, "return-error", MomentoErrorCodeMetadataConverter.convert(returnError));
     }
-    String errorRpcMethods =
-        (testRetryMetricsMiddlewareArgs.getErrorRpcList() != null)
-            ? testRetryMetricsMiddlewareArgs.getErrorRpcList().stream()
-                .map(
-                    rpcMethod ->
-                        MomentoRpcMethodMetadataConverter.convert(
-                            MomentoRpcMethod.fromString(rpcMethod)))
-                .collect(Collectors.joining(" "))
-            : "";
-    setGrpcMetadata(grpcMetadata, "error-rpcs", errorRpcMethods);
-    String delayRpcMethods =
-        (testRetryMetricsMiddlewareArgs.getDelayRpcList() != null)
-            ? testRetryMetricsMiddlewareArgs.getDelayRpcList().stream()
-                .map(
-                    rpcMethod ->
-                        MomentoRpcMethodMetadataConverter.convert(
-                            MomentoRpcMethod.fromString(rpcMethod)))
-                .collect(Collectors.joining(" "))
-            : "";
-    setGrpcMetadata(grpcMetadata, "delay-rpcs", delayRpcMethods);
+    if (testRetryMetricsMiddlewareArgs.getErrorRpcList() != null
+        && !testRetryMetricsMiddlewareArgs.getErrorRpcList().isEmpty()) {
+      String errorRpcMethods =
+          testRetryMetricsMiddlewareArgs.getErrorRpcList().stream()
+              .map(
+                  rpcMethod ->
+                      MomentoRpcMethodMetadataConverter.convert(
+                          MomentoRpcMethod.fromString(rpcMethod)))
+              .collect(Collectors.joining(" "));
+      setGrpcMetadata(grpcMetadata, "error-rpcs", errorRpcMethods);
+    }
+
+    if (testRetryMetricsMiddlewareArgs.getDelayRpcList() != null
+        && !testRetryMetricsMiddlewareArgs.getDelayRpcList().isEmpty()) {
+      String delayRpcMethods =
+          testRetryMetricsMiddlewareArgs.getDelayRpcList().stream()
+              .map(
+                  rpcMethod ->
+                      MomentoRpcMethodMetadataConverter.convert(
+                          MomentoRpcMethod.fromString(rpcMethod)))
+              .collect(Collectors.joining(" "));
+      setGrpcMetadata(grpcMetadata, "delay-rpcs", delayRpcMethods);
+    }
     Integer errorCount = testRetryMetricsMiddlewareArgs.getErrorCount();
     if (errorCount != null) {
       setGrpcMetadata(grpcMetadata, "error-count", String.valueOf(errorCount));
