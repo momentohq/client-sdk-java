@@ -21,7 +21,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.slf4j.Logger;
 
 public class BaseCacheRetryTestClass {
-  protected static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(600);
+  protected static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
+  protected static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
   protected static CacheClient cacheClient;
   protected static CredentialProvider credentialProvider;
   protected static TestRetryMetricsCollector testRetryMetricsCollector;
@@ -74,37 +75,30 @@ public class BaseCacheRetryTestClass {
       TestRetryMetricsMiddlewareArgs testMetricsMiddlewareArgs,
       CacheTestCallback testCallback)
       throws Exception {
+
     String cacheName = testCacheName();
     String hostname = Optional.ofNullable(System.getenv("MOMENTO_HOSTNAME")).orElse("127.0.0.1");
     int port = Integer.parseInt(Optional.ofNullable(System.getenv("MOMENTO_PORT")).orElse("8080"));
     CredentialProvider credentialProvider = new MomentoLocalProvider(hostname, port);
-    TestRetryMetricsMiddleware testMiddleware =
-        new TestRetryMetricsMiddleware(testMetricsMiddlewareArgs);
-    Configuration modifiedConfig =
-        configFn.apply(Configurations.Laptop.latest()).withMiddleware(testMiddleware);
 
     CacheClient client =
-        CacheClient.builder(credentialProvider, modifiedConfig, DEFAULT_TTL_SECONDS).build();
+        CacheClient.builder(
+                credentialProvider,
+                configFn
+                    .apply(Configurations.Laptop.latest())
+                    .withMiddleware(new TestRetryMetricsMiddleware(testMetricsMiddlewareArgs)),
+                DEFAULT_TTL_SECONDS)
+            .build();
 
-    // create cache
-    CacheCreateResponse createResponse = client.createCache(cacheName).join();
-    if (createResponse instanceof CacheCreateResponse.Error) {
-      throw new RuntimeException(
-          "Failed to test create cache: "
-              + ((CacheCreateResponse.Error) createResponse).getMessage());
+    try {
+      if (client.createCache(cacheName).join() instanceof CacheCreateResponse.Error) {
+        throw new RuntimeException("Failed to create cache: " + cacheName);
+      }
+      testCallback.run(client, cacheName);
+    } finally {
+      client.deleteCache(cacheName).join(); // Cleanup cache
+      client.close(); // Close the client
     }
-
-    // run test
-    testCallback.run(client, cacheName);
-
-    // Cleanup
-    CacheDeleteResponse deleteResponse = client.deleteCache(cacheName).join();
-    if (deleteResponse instanceof CacheDeleteResponse.Error) {
-      throw new RuntimeException(
-          "Failed to test delete cache: "
-              + ((CacheDeleteResponse.Error) deleteResponse).getMessage());
-    }
-    client.close();
   }
 
   @FunctionalInterface

@@ -1,17 +1,18 @@
 package momento.sdk.retry;
 
+import static momento.sdk.retry.BaseCacheRetryTestClass.FIVE_SECONDS;
 import static momento.sdk.retry.BaseCacheRetryTestClass.withCacheAndCacheClient;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.slf4j.LoggerFactory.getLogger;
 
-import java.util.List;
+import java.util.Collections;
 import java.util.UUID;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.IncrementResponse;
 import momento.sdk.retry.utils.TestRetryMetricsCollector;
 import momento.sdk.retry.utils.TestRetryMetricsMiddlewareArgs;
+import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -33,22 +34,23 @@ public class FixedCountRetryStrategyIntegTest {
         new TestRetryMetricsMiddlewareArgs.Builder(
                 logger, testRetryMetricsCollector, UUID.randomUUID().toString())
             .returnError(MomentoErrorCode.SERVER_UNAVAILABLE.name())
-            .errorRpcList(List.of(MomentoRpcMethod.GET.getRequestName()))
+            .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET.getRequestName()))
             .build();
 
     withCacheAndCacheClient(
         config -> config,
         testRetryMetricsMiddlewareArgs,
         (cacheClient, cacheName) -> {
-          GetResponse getResponse = cacheClient.get(cacheName, "key").join();
-          assertEquals(GetResponse.Error.class, getResponse.getClass());
-          assertEquals(
-              MomentoErrorCode.SERVER_UNAVAILABLE,
-              ((GetResponse.Error) getResponse).getErrorCode());
+          assertThat(cacheClient.get(cacheName, "key"))
+              .succeedsWithin(FIVE_SECONDS)
+              .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
+              .satisfies(
+                  error ->
+                      assertThat(error.getErrorCode())
+                          .isEqualTo(MomentoErrorCode.SERVER_UNAVAILABLE));
 
-          int noOfRetries =
-              testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET);
-          assertEquals(3, noOfRetries);
+          assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
+              .isEqualTo(3);
         });
   }
 
@@ -58,22 +60,25 @@ public class FixedCountRetryStrategyIntegTest {
         new TestRetryMetricsMiddlewareArgs.Builder(
                 logger, testRetryMetricsCollector, UUID.randomUUID().toString())
             .returnError(MomentoErrorCode.SERVER_UNAVAILABLE.name())
-            .errorRpcList(List.of(MomentoRpcMethod.INCREMENT.getRequestName()))
+            .errorRpcList(Collections.singletonList(MomentoRpcMethod.INCREMENT.getRequestName()))
             .build();
 
     withCacheAndCacheClient(
         config -> config,
         testRetryMetricsMiddlewareArgs,
         (cacheClient, cacheName) -> {
-          IncrementResponse response = cacheClient.increment(cacheName, "key", 1).join();
-          assertEquals(IncrementResponse.Error.class, response.getClass());
-          assertEquals(
-              MomentoErrorCode.SERVER_UNAVAILABLE,
-              ((IncrementResponse.Error) response).getErrorCode());
+          assertThat(cacheClient.increment(cacheName, "key", 1))
+              .succeedsWithin(FIVE_SECONDS)
+              .asInstanceOf(InstanceOfAssertFactories.type(IncrementResponse.Error.class))
+              .satisfies(
+                  error ->
+                      assertThat(error.getErrorCode())
+                          .isEqualTo(MomentoErrorCode.SERVER_UNAVAILABLE));
 
-          int noOfRetries =
-              testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.INCREMENT);
-          assertEquals(0, noOfRetries);
+          assertThat(
+                  testRetryMetricsCollector.getTotalRetryCount(
+                      cacheName, MomentoRpcMethod.INCREMENT))
+              .isEqualTo(0);
         });
   }
 
@@ -84,7 +89,7 @@ public class FixedCountRetryStrategyIntegTest {
         new TestRetryMetricsMiddlewareArgs.Builder(
                 logger, testRetryMetricsCollector, UUID.randomUUID().toString())
             .returnError(MomentoErrorCode.SERVER_UNAVAILABLE.name())
-            .errorRpcList(List.of(MomentoRpcMethod.GET.getRequestName()))
+            .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET.getRequestName()))
             .errorCount(2)
             .build();
 
@@ -92,12 +97,13 @@ public class FixedCountRetryStrategyIntegTest {
         config -> config,
         testRetryMetricsMiddlewareArgs,
         (cacheClient, cacheName) -> {
-          GetResponse response = cacheClient.get(cacheName, "key").join();
-          assertEquals(GetResponse.Miss.class, response.getClass());
-          int noOfRetries =
-              testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET);
-          assertThat(noOfRetries).isGreaterThan(1);
-          assertThat(noOfRetries).isLessThanOrEqualTo(3);
+          assertThat(cacheClient.get(cacheName, "key"))
+              .succeedsWithin(FIVE_SECONDS)
+              .extracting(response -> (GetResponse.Miss) response)
+              .isNotNull();
+
+          assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
+              .isBetween(2, 3);
         });
   }
 }

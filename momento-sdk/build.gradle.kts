@@ -109,3 +109,8 @@ registerIntegrationTestTask(
     "test-leaderboard-service",
     listOf("momento.sdk.leaderboard.*")
 )
+
+registerIntegrationTestTask(
+    "test-retry-service",
+    listOf("momento.sdk.retry.*")
+)
