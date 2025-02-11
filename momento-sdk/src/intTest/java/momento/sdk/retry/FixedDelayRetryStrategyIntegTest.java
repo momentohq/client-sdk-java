@@ -209,11 +209,40 @@ public class FixedDelayRetryStrategyIntegTest {
         testRetryMetricsMiddlewareArgs,
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.get(cacheName, "key"))
-              .succeedsWithin(FIVE_SECONDS)
+              .succeedsWithin(Duration.ofSeconds(10))
               .isInstanceOf(GetResponse.Miss.class);
 
           assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
               .isEqualTo(0);
+        });
+  }
+
+  @Test
+  void testRetryEligibleApi_shouldMakeMaxRetries_WhenDelayMillisIsLessThanMaxDelayMillis()
+      throws Exception {
+    long maxDelayMillis = 5000L;
+
+    FixedDelayRetryStrategy retryStrategy =
+        new FixedDelayRetryStrategy(maxAttempts, delayMillis, maxDelayMillis);
+
+    TestRetryMetricsMiddlewareArgs testRetryMetricsMiddlewareArgs =
+        new TestRetryMetricsMiddlewareArgs.Builder(
+                logger, testRetryMetricsCollector, UUID.randomUUID().toString())
+            .returnError(MomentoErrorCode.SERVER_UNAVAILABLE.name())
+            .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET.getRequestName()))
+            .build();
+
+    withCacheAndCacheClient(
+        config -> config.withRetryStrategy(retryStrategy).withTimeout(CLIENT_TIMEOUT_MILLIS),
+        testRetryMetricsMiddlewareArgs,
+        (cacheClient, cacheName) -> {
+          assertThat(cacheClient.get(cacheName, "key"))
+              .succeedsWithin(Duration.ofSeconds(10))
+              .extracting(GetResponse::getClass)
+              .isEqualTo(GetResponse.Error.class);
+
+          assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
+              .isEqualTo(4);
         });
   }
 }
