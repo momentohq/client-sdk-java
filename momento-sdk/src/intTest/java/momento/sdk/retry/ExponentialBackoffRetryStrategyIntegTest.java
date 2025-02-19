@@ -34,10 +34,8 @@ public class ExponentialBackoffRetryStrategyIntegTest {
 
   @Test
   void testRetryEligibleApi_shouldHitDeadline_WhenFullNetworkOutage() throws Exception {
-    final RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
-
     final ExponentialBackoffRetryStrategy retryStrategy =
-        new ExponentialBackoffRetryStrategy(100, 500, eligibilityStrategy);
+        new ExponentialBackoffRetryStrategy(100, 500);
 
     final TestRetryMetricsMiddlewareArgs testRetryMetricsMiddlewareArgs =
         new TestRetryMetricsMiddlewareArgs.Builder(
@@ -59,10 +57,8 @@ public class ExponentialBackoffRetryStrategyIntegTest {
 
   @Test
   void testNonRetryEligibleApi_shouldMakeNoAttempts_WhenFullNetworkOutage() throws Exception {
-    final RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> false;
-
     final ExponentialBackoffRetryStrategy retryStrategy =
-        new ExponentialBackoffRetryStrategy(100, 500, eligibilityStrategy);
+        new ExponentialBackoffRetryStrategy(100, 500);
 
     final TestRetryMetricsMiddlewareArgs testRetryMetricsMiddlewareArgs =
         new TestRetryMetricsMiddlewareArgs.Builder(
@@ -85,6 +81,32 @@ public class ExponentialBackoffRetryStrategyIntegTest {
                   testRetryMetricsCollector.getTotalRetryCount(
                       cacheName, MomentoRpcMethod.INCREMENT))
               .isEqualTo(0);
+        });
+  }
+
+  @Test
+  void testRetryEligibleApi_shouldSucceed_WhenTemporaryNetworkOutage() throws Exception {
+    final ExponentialBackoffRetryStrategy retryStrategy =
+        new ExponentialBackoffRetryStrategy(100, 500);
+
+    final TestRetryMetricsMiddlewareArgs testRetryMetricsMiddlewareArgs =
+        new TestRetryMetricsMiddlewareArgs.Builder(
+                logger, testRetryMetricsCollector, UUID.randomUUID().toString())
+            .returnError(MomentoErrorCode.SERVER_UNAVAILABLE.name())
+            .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET.getRequestName()))
+            .errorCount(2)
+            .build();
+
+    withCacheAndCacheClient(
+        config -> config.withRetryStrategy(retryStrategy).withTimeout(CLIENT_TIMEOUT_MILLIS),
+        testRetryMetricsMiddlewareArgs,
+        (cacheClient, cacheName) -> {
+          assertThat(cacheClient.get(cacheName, "key"))
+              .succeedsWithin(FIVE_SECONDS)
+              .isInstanceOf(GetResponse.Miss.class);
+
+          assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
+              .isGreaterThan(0);
         });
   }
 }

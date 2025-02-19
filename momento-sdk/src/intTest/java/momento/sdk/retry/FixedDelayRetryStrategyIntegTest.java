@@ -96,7 +96,7 @@ public class FixedDelayRetryStrategyIntegTest {
   }
 
   @Test
-  void testNonRetryEligibleApi_shouldMakeLessThanMaxAttempts_WhenTemporaryNetworkOutage()
+  void testRetryEligibleApi_shouldMakeLessThanMaxAttempts_WhenTemporaryNetworkOutage()
       throws Exception {
     RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
 
