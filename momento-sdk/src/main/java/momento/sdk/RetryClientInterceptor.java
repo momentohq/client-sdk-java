@@ -51,8 +51,6 @@ import org.slf4j.LoggerFactory;
  *
  * @see RetryStrategy
  * @see RetryEligibilityStrategy
- * @param <ReqT> The type of the request message.
- * @param <RespT> The type of the response message.
  */
 final class RetryClientInterceptor implements ClientInterceptor {
 
@@ -112,6 +110,12 @@ final class RetryClientInterceptor implements ClientInterceptor {
                 // OK indicates the gRPC call completed successfully and hence we return
                 if (status.isOk()) {
                   super.onClose(status, trailers);
+                  return;
+                }
+
+                // If the deadline is expired, we don't want to retry
+                if (callOptions.getDeadline() != null && callOptions.getDeadline().isExpired()) {
+                  super.onClose(Status.DEADLINE_EXCEEDED, trailers);
                   return;
                 }
 

@@ -66,7 +66,7 @@ public class FixedDelayRetryStrategyIntegTest {
 
   @Test
   void testNonRetryEligibleApi_shouldMakeNoAttempts_WhenFullNetworkOutage() throws Exception {
-    RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
+    RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> false;
 
     FixedDelayRetryStrategy retryStrategy =
         new FixedDelayRetryStrategy(maxAttempts, delayMillis, maxDelayMillis, eligibilityStrategy);
@@ -91,12 +91,12 @@ public class FixedDelayRetryStrategyIntegTest {
           assertThat(
                   testRetryMetricsCollector.getTotalRetryCount(
                       cacheName, MomentoRpcMethod.INCREMENT))
-              .isGreaterThanOrEqualTo(0);
+              .isEqualTo(0);
         });
   }
 
   @Test
-  void testNonRetryEligibleApi_shouldMakeLessThanMaxAttempts_WhenTemporaryNetworkOutage()
+  void testRetryEligibleApi_shouldMakeLessThanMaxAttempts_WhenTemporaryNetworkOutage()
       throws Exception {
     RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
 

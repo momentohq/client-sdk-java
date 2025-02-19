@@ -24,17 +24,21 @@ public class BaseCacheRetryTestClass {
   protected static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
   protected static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
   protected static CacheClient cacheClient;
-  protected static CredentialProvider credentialProvider;
   protected static TestRetryMetricsCollector testRetryMetricsCollector;
   protected static TestRetryMetricsMiddlewareArgs testRetryMetricsMiddlewareArgs;
   protected static TestRetryMetricsMiddleware testRetryMetricsMiddleware;
   protected static Logger logger;
 
+  protected final String hostname =
+      Optional.ofNullable(System.getenv("MOMENTO_HOSTNAME")).orElse("127.0.0.1");
+  protected final int port =
+      Integer.parseInt(Optional.ofNullable(System.getenv("MOMENTO_PORT")).orElse("8080"));
+
   @BeforeEach
   void beforeEach() {
     testRetryMetricsCollector = new TestRetryMetricsCollector();
     logger = getLogger(BaseCacheRetryTestClass.class);
-    credentialProvider = CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
+    final CredentialProvider credentialProvider = new MomentoLocalProvider(hostname, port);
     testRetryMetricsMiddlewareArgs =
         new TestRetryMetricsMiddlewareArgs.Builder(
                 logger, testRetryMetricsCollector, UUID.randomUUID().toString())
