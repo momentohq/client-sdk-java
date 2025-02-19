@@ -17,7 +17,7 @@ repositories {
 }
 
 dependencies {
-    implementation("software.momento.java:sdk:1.19.0")
+    implementation("software.momento.java:sdk:1.21.0")
 
     implementation("com.google.guava:guava:31.1-android")
 
