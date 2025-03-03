@@ -37,6 +37,8 @@ public class GrpcChannelOptions {
       channelBuilder.usePlaintext();
     }
 
+    channelBuilder.disableServiceConfigLookUp();
+
     grpcConfig.getMaxReceivedMessageSize().ifPresent(channelBuilder::maxInboundMessageSize);
 
     // no equivalent for maxOutboundMessageSize
