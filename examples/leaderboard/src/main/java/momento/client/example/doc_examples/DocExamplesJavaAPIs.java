@@ -237,6 +237,22 @@ public class DocExamplesJavaAPIs {
     }
   }
 
+  public static void example_API_LeaderboardGetCompetitionRank(ILeaderboard leaderboard) {
+    final Set<Integer> ids = Set.of(123, 456, 789);
+    final FetchResponse response = leaderboard.getCompetitionRank(ids, SortOrder.ASCENDING).join();
+    if (response instanceof FetchResponse.Success success) {
+      System.out.println("Successfully fetched elements:");
+      for (LeaderboardElement element : success.values()) {
+        System.out.printf(
+            "id: %d, score: %.2f, rank: %d%n",
+            element.getId(), element.getScore(), element.getRank());
+      }
+    } else if (response instanceof FetchResponse.Error error) {
+      throw new RuntimeException(
+          "An error occurred while attempting to fetch elements: " + error.getErrorCode(), error);
+    }
+  }
+
   public static void main(String[] args) {
     try (final LeaderboardClient leaderboardClient =
         LeaderboardClient.builder(
@@ -258,6 +274,7 @@ public class DocExamplesJavaAPIs {
       example_API_LeaderboardRemoveElements(leaderboard);
       example_API_LeaderboardRemoveElementsPagination(leaderboard);
       example_API_LeaderboardDelete(leaderboard);
+      example_API_LeaderboardGetCompetitionRank(leaderboard);
     }
   }
 }
