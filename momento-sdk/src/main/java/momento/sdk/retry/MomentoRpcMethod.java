@@ -47,7 +47,9 @@ public enum MomentoRpcMethod {
   SORTED_SET_INCREMENT("_SortedSetIncrementRequest"),
   SORTED_SET_GET_RANK("_SortedSetGetRankRequest"),
   SORTED_SET_LENGTH("_SortedSetLengthRequest"),
-  SORTED_SET_LENGTH_BY_SCORE("_SortedSetLengthByScoreRequest");
+  SORTED_SET_LENGTH_BY_SCORE("_SortedSetLengthByScoreRequest"),
+  TOPIC_PUBLISH("_PublishRequest"),
+  TOPIC_SUBSCRIBE("_SubscriptionRequest");
 
   private final String requestName;
 

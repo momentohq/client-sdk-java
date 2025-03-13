@@ -1,7 +1,7 @@
 package momento.sdk.retry;
 
-import static momento.sdk.retry.BaseCacheRetryTestClass.FIVE_SECONDS;
-import static momento.sdk.retry.BaseCacheRetryTestClass.withCacheAndCacheClient;
+import static momento.sdk.retry.BaseMomentoLocalTestClass.FIVE_SECONDS;
+import static momento.sdk.retry.BaseMomentoLocalTestClass.withCacheAndCacheClient;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.slf4j.LoggerFactory.getLogger;
 
@@ -12,8 +12,8 @@ import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.GetResponse;
 import momento.sdk.responses.cache.IncrementResponse;
+import momento.sdk.retry.utils.MomentoLocalMiddlewareArgs;
 import momento.sdk.retry.utils.TestRetryMetricsCollector;
-import momento.sdk.retry.utils.TestRetryMetricsMiddlewareArgs;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -37,16 +37,16 @@ public class ExponentialBackoffRetryStrategyIntegTest {
     final ExponentialBackoffRetryStrategy retryStrategy =
         new ExponentialBackoffRetryStrategy(100, 500);
 
-    final TestRetryMetricsMiddlewareArgs testRetryMetricsMiddlewareArgs =
-        new TestRetryMetricsMiddlewareArgs.Builder(
-                logger, testRetryMetricsCollector, UUID.randomUUID().toString())
-            .returnError(MomentoErrorCode.SERVER_UNAVAILABLE.name())
-            .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET.getRequestName()))
+    final MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
+        new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
+            .testMetricsCollector(testRetryMetricsCollector)
+            .returnError(MomentoErrorCode.SERVER_UNAVAILABLE)
+            .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET))
             .build();
 
     withCacheAndCacheClient(
         config -> config.withRetryStrategy(retryStrategy).withTimeout(CLIENT_TIMEOUT_MILLIS),
-        testRetryMetricsMiddlewareArgs,
+        momentoLocalMiddlewareArgs,
         (cacheClient, cacheName) ->
             assertThat(cacheClient.get(cacheName, "key"))
                 .succeedsWithin(FIVE_SECONDS)
@@ -60,16 +60,16 @@ public class ExponentialBackoffRetryStrategyIntegTest {
     final ExponentialBackoffRetryStrategy retryStrategy =
         new ExponentialBackoffRetryStrategy(100, 500);
 
-    final TestRetryMetricsMiddlewareArgs testRetryMetricsMiddlewareArgs =
-        new TestRetryMetricsMiddlewareArgs.Builder(
-                logger, testRetryMetricsCollector, UUID.randomUUID().toString())
-            .returnError(MomentoErrorCode.SERVER_UNAVAILABLE.name())
-            .errorRpcList(Collections.singletonList(MomentoRpcMethod.INCREMENT.getRequestName()))
+    final MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
+        new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
+            .testMetricsCollector(testRetryMetricsCollector)
+            .returnError(MomentoErrorCode.SERVER_UNAVAILABLE)
+            .errorRpcList(Collections.singletonList(MomentoRpcMethod.INCREMENT))
             .build();
 
     withCacheAndCacheClient(
         config -> config.withRetryStrategy(retryStrategy).withTimeout(CLIENT_TIMEOUT_MILLIS),
-        testRetryMetricsMiddlewareArgs,
+        momentoLocalMiddlewareArgs,
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.increment(cacheName, "key", 1))
               .succeedsWithin(FIVE_SECONDS)
@@ -89,17 +89,17 @@ public class ExponentialBackoffRetryStrategyIntegTest {
     final ExponentialBackoffRetryStrategy retryStrategy =
         new ExponentialBackoffRetryStrategy(100, 500);
 
-    final TestRetryMetricsMiddlewareArgs testRetryMetricsMiddlewareArgs =
-        new TestRetryMetricsMiddlewareArgs.Builder(
-                logger, testRetryMetricsCollector, UUID.randomUUID().toString())
-            .returnError(MomentoErrorCode.SERVER_UNAVAILABLE.name())
-            .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET.getRequestName()))
+    final MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
+        new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
+            .testMetricsCollector(testRetryMetricsCollector)
+            .returnError(MomentoErrorCode.SERVER_UNAVAILABLE)
+            .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET))
             .errorCount(2)
             .build();
 
     withCacheAndCacheClient(
         config -> config.withRetryStrategy(retryStrategy).withTimeout(CLIENT_TIMEOUT_MILLIS),
-        testRetryMetricsMiddlewareArgs,
+        momentoLocalMiddlewareArgs,
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.get(cacheName, "key"))
               .succeedsWithin(FIVE_SECONDS)

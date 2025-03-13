@@ -7,7 +7,7 @@ import org.slf4j.LoggerFactory;
 
 /** Represents options for a topic subscription callback. */
 public interface ISubscriptionCallbacks {
-  Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
+  Logger logger = LoggerFactory.getLogger(ISubscriptionCallbacks.class);
   /**
    * Called when a new message is received on the subscribed topic.
    *
@@ -27,11 +27,9 @@ public interface ISubscriptionCallbacks {
 
   /** Called when a discontinuity occurs during the subscription. */
   default void onDiscontinuity(TopicDiscontinuity discontinuity) {}
-  ;
 
   /** Called when a heartbeat is received during the subscription. */
   default void onHeartbeat() {}
-  ;
 
   /** Called when the connection to the topic is lost. */
   default void onConnectionLost() {
