@@ -15,7 +15,6 @@ import momento.sdk.config.Configurations;
 import momento.sdk.config.TopicConfiguration;
 import momento.sdk.config.TopicConfigurations;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
-import momento.sdk.responses.cache.control.CacheDeleteResponse;
 import momento.sdk.retry.utils.MomentoLocalMiddleware;
 import momento.sdk.retry.utils.MomentoLocalMiddlewareArgs;
 import momento.sdk.retry.utils.TestRetryMetricsCollector;
@@ -65,14 +64,6 @@ public class BaseMomentoLocalTestClass {
     }
   }
 
-  public static void cleanupTestCache(String cacheName) {
-    CacheDeleteResponse response = cacheClient.deleteCache(cacheName).join();
-    if (response instanceof CacheDeleteResponse.Error) {
-      throw new RuntimeException(
-          "Failed to test delete cache: " + ((CacheDeleteResponse.Error) response).getMessage());
-    }
-  }
-
   public static String testCacheName() {
     return "java-integration-test-default-" + UUID.randomUUID();
   }
@@ -88,23 +79,18 @@ public class BaseMomentoLocalTestClass {
     int port = Integer.parseInt(Optional.ofNullable(System.getenv("MOMENTO_PORT")).orElse("8080"));
     CredentialProvider credentialProvider = new MomentoLocalProvider(hostname, port);
 
-    CacheClient client =
+    try (final CacheClient client =
         CacheClient.builder(
                 credentialProvider,
                 configFn
                     .apply(Configurations.Laptop.latest())
                     .withMiddleware(new MomentoLocalMiddleware(testMetricsMiddlewareArgs)),
                 DEFAULT_TTL_SECONDS)
-            .build();
-
-    try {
+            .build()) {
       if (client.createCache(cacheName).join() instanceof CacheCreateResponse.Error) {
         throw new RuntimeException("Failed to create cache: " + cacheName);
       }
       testCallback.run(client, cacheName);
-    } finally {
-      client.deleteCache(cacheName).join(); // Cleanup cache
-      client.close(); // Close the client
     }
   }
 
@@ -121,27 +107,21 @@ public class BaseMomentoLocalTestClass {
         Integer.parseInt(Optional.ofNullable(System.getenv("MOMENTO_PORT")).orElse("8080"));
     final CredentialProvider credentialProvider = new MomentoLocalProvider(hostname, port);
 
-    final CacheClient cacheClient =
-        CacheClient.builder(credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
-            .build();
-
-    final TopicClient topicClient =
-        TopicClient.builder(
-                credentialProvider,
-                configFn
-                    .apply(TopicConfigurations.Laptop.latest())
-                    .withMiddleware(new MomentoLocalMiddleware(testMetricsMiddlewareArgs)))
-            .build();
-
-    try {
+    try (final CacheClient cacheClient =
+            CacheClient.builder(
+                    credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
+                .build();
+        final TopicClient topicClient =
+            TopicClient.builder(
+                    credentialProvider,
+                    configFn
+                        .apply(TopicConfigurations.Laptop.latest())
+                        .withMiddleware(new MomentoLocalMiddleware(testMetricsMiddlewareArgs)))
+                .build()) {
       if (cacheClient.createCache(cacheName).join() instanceof CacheCreateResponse.Error) {
         throw new RuntimeException("Failed to create cache: " + cacheName);
       }
       testCallback.run(topicClient, cacheName);
-    } finally {
-      topicClient.close();
-      cacheClient.deleteCache(cacheName).join(); // Cleanup cache
-      cacheClient.close();
     }
   }
 

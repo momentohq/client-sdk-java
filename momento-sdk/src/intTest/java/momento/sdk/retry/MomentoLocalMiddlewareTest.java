@@ -15,7 +15,7 @@ import momento.sdk.retry.utils.MomentoLocalMiddlewareArgs;
 import momento.sdk.retry.utils.MomentoLocalMiddlewareRequestHandler;
 import org.junit.jupiter.api.Test;
 
-public class TestRetryMetricsMiddlewareTest extends BaseMomentoLocalTestClass {
+public class MomentoLocalMiddlewareTest extends BaseMomentoLocalTestClass {
 
   @Test
   public void shouldAddTimestampOnRequestBodyOnSingleCache() {
@@ -29,7 +29,6 @@ public class TestRetryMetricsMiddlewareTest extends BaseMomentoLocalTestClass {
     assertTrue(allMetrics.containsKey(cacheName));
     assertTrue(allMetrics.get(cacheName).containsKey(MomentoRpcMethod.GET));
     assertEquals(1, allMetrics.get(cacheName).get(MomentoRpcMethod.GET).size());
-    cleanupTestCache(cacheName);
   }
 
   @Test
@@ -50,8 +49,6 @@ public class TestRetryMetricsMiddlewareTest extends BaseMomentoLocalTestClass {
     assertTrue(allMetrics.get(cacheName2).containsKey(MomentoRpcMethod.GET));
     assertEquals(1, allMetrics.get(cacheName1).get(MomentoRpcMethod.GET).size());
     assertEquals(1, allMetrics.get(cacheName2).get(MomentoRpcMethod.GET).size());
-    cleanupTestCache(cacheName1);
-    cleanupTestCache(cacheName2);
   }
 
   @Test
@@ -69,7 +66,6 @@ public class TestRetryMetricsMiddlewareTest extends BaseMomentoLocalTestClass {
     assertTrue(allMetrics.get(cacheName).containsKey(MomentoRpcMethod.GET));
     assertEquals(1, allMetrics.get(cacheName).get(MomentoRpcMethod.SET).size());
     assertEquals(1, allMetrics.get(cacheName).get(MomentoRpcMethod.GET).size());
-    cleanupTestCache(cacheName);
   }
 
   @Test
