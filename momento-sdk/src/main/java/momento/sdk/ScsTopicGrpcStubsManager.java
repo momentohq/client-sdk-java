@@ -6,10 +6,14 @@ import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
+import momento.sdk.config.middleware.Middleware;
+import momento.sdk.config.middleware.MiddlewareRequestHandlerContext;
 import momento.sdk.internal.GrpcChannelOptions;
 
 /**
@@ -23,6 +27,7 @@ final class ScsTopicGrpcStubsManager implements Closeable {
 
   private final ManagedChannel channel;
   private final PubsubGrpc.PubsubStub stub;
+  public static final UUID CONNECTION_ID_KEY = UUID.randomUUID();
 
   private final TopicConfiguration configuration;
 
@@ -36,13 +41,22 @@ final class ScsTopicGrpcStubsManager implements Closeable {
   private static ManagedChannel setupConnection(
       CredentialProvider credentialProvider, TopicConfiguration configuration) {
     final NettyChannelBuilder channelBuilder =
-        NettyChannelBuilder.forAddress(credentialProvider.getCacheEndpoint(), 443);
+        NettyChannelBuilder.forAddress(
+            credentialProvider.getCacheEndpoint(), credentialProvider.getPort());
 
     // set additional channel options (message size, keepalive, auth, etc)
     GrpcChannelOptions.applyGrpcConfigurationToChannelBuilder(
-        configuration.getTransportStrategy().getGrpcConfiguration(), channelBuilder);
+        configuration.getTransportStrategy().getGrpcConfiguration(),
+        channelBuilder,
+        credentialProvider.isEndpointSecure());
 
     final List<ClientInterceptor> clientInterceptors = new ArrayList<>();
+
+    final List<Middleware> middlewares = configuration.getMiddlewares();
+    final MiddlewareRequestHandlerContext context =
+        () -> Collections.singletonMap(CONNECTION_ID_KEY.toString(), UUID.randomUUID().toString());
+    clientInterceptors.add(new GrpcMiddlewareInterceptor(middlewares, context));
+
     clientInterceptors.add(new UserHeaderInterceptor(credentialProvider.getAuthToken(), "topic"));
     channelBuilder.intercept(clientInterceptors);
     return channelBuilder.build();

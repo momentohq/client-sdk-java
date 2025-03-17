@@ -4,17 +4,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import io.grpc.Metadata;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import momento.sdk.config.middleware.MiddlewareMetadata;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.exceptions.MomentoErrorCodeMetadataConverter;
-import momento.sdk.retry.utils.TestRetryMetricsMiddlewareArgs;
-import momento.sdk.retry.utils.TestRetryMetricsMiddlewareRequestHandler;
+import momento.sdk.retry.utils.MomentoLocalMiddlewareArgs;
+import momento.sdk.retry.utils.MomentoLocalMiddlewareRequestHandler;
 import org.junit.jupiter.api.Test;
 
-public class TestRetryMetricsMiddlewareTest extends BaseCacheRetryTestClass {
+public class MomentoLocalMiddlewareTest extends BaseMomentoLocalTestClass {
 
   @Test
   public void shouldAddTimestampOnRequestBodyOnSingleCache() {
@@ -28,7 +29,6 @@ public class TestRetryMetricsMiddlewareTest extends BaseCacheRetryTestClass {
     assertTrue(allMetrics.containsKey(cacheName));
     assertTrue(allMetrics.get(cacheName).containsKey(MomentoRpcMethod.GET));
     assertEquals(1, allMetrics.get(cacheName).get(MomentoRpcMethod.GET).size());
-    cleanupTestCache(cacheName);
   }
 
   @Test
@@ -49,8 +49,6 @@ public class TestRetryMetricsMiddlewareTest extends BaseCacheRetryTestClass {
     assertTrue(allMetrics.get(cacheName2).containsKey(MomentoRpcMethod.GET));
     assertEquals(1, allMetrics.get(cacheName1).get(MomentoRpcMethod.GET).size());
     assertEquals(1, allMetrics.get(cacheName2).get(MomentoRpcMethod.GET).size());
-    cleanupTestCache(cacheName1);
-    cleanupTestCache(cacheName2);
   }
 
   @Test
@@ -68,23 +66,23 @@ public class TestRetryMetricsMiddlewareTest extends BaseCacheRetryTestClass {
     assertTrue(allMetrics.get(cacheName).containsKey(MomentoRpcMethod.GET));
     assertEquals(1, allMetrics.get(cacheName).get(MomentoRpcMethod.SET).size());
     assertEquals(1, allMetrics.get(cacheName).get(MomentoRpcMethod.GET).size());
-    cleanupTestCache(cacheName);
   }
 
   @Test
   public void shouldAddMetadataToGrpcMetadata() {
     String requestId = UUID.randomUUID().toString();
-    String returnError = MomentoErrorCode.SERVER_UNAVAILABLE.name();
-    List<String> errorRpcList = List.of(MomentoRpcMethod.GET.getRequestName());
+    MomentoErrorCode returnError = MomentoErrorCode.SERVER_UNAVAILABLE;
+    List<MomentoRpcMethod> errorRpcList = Collections.singletonList(MomentoRpcMethod.GET);
     int errorCount = 3;
-    List<String> delayRpcList = List.of(MomentoRpcMethod.GET.getRequestName());
+    List<MomentoRpcMethod> delayRpcList = Collections.singletonList(MomentoRpcMethod.GET);
     int delayMillis = 100;
     int delayCount = 1;
 
     Metadata metadata = new Metadata();
     MiddlewareMetadata middlewareMetadata = new MiddlewareMetadata(metadata);
-    TestRetryMetricsMiddlewareArgs args =
-        new TestRetryMetricsMiddlewareArgs.Builder(logger, testRetryMetricsCollector, requestId)
+    MomentoLocalMiddlewareArgs args =
+        new MomentoLocalMiddlewareArgs.Builder(logger, requestId)
+            .testMetricsCollector(testRetryMetricsCollector)
             .returnError(returnError)
             .errorRpcList(errorRpcList)
             .errorCount(errorCount)
@@ -93,8 +91,7 @@ public class TestRetryMetricsMiddlewareTest extends BaseCacheRetryTestClass {
             .delayCount(delayCount)
             .build();
 
-    TestRetryMetricsMiddlewareRequestHandler handler =
-        new TestRetryMetricsMiddlewareRequestHandler(args);
+    MomentoLocalMiddlewareRequestHandler handler = new MomentoLocalMiddlewareRequestHandler(args);
     handler.onRequestMetadata(middlewareMetadata);
 
     String expectedRpcList = MomentoRpcMethodMetadataConverter.convert(MomentoRpcMethod.GET);

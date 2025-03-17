@@ -33,11 +33,10 @@ public class MomentoErrorCodeMetadataConverter {
    * @return The corresponding metadata type.
    * @throws IllegalArgumentException if the error code is not supported.
    */
-  public static String convert(String errorCode) {
-    MomentoErrorCode momentoErrorCode = MomentoErrorCode.valueOf(errorCode);
-    if (!momentoErrorCodeToMetadataMap.containsKey(momentoErrorCode)) {
+  public static String convert(MomentoErrorCode errorCode) {
+    if (!momentoErrorCodeToMetadataMap.containsKey(errorCode)) {
       throw new IllegalArgumentException("Unsupported MomentoErrorCode: " + errorCode);
     }
-    return momentoErrorCodeToMetadataMap.get(momentoErrorCode);
+    return momentoErrorCodeToMetadataMap.get(errorCode);
   }
 }

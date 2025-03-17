@@ -97,6 +97,7 @@ class SubscriptionWrapper implements AutoCloseable {
                   scheduleRetry(() -> subscribeWithRetryInternal(future));
                 } else {
                   logger.debug("Status code is not UNAVAILABLE, not retrying subscription.");
+                  options.onError(t);
                 }
               } else {
                 logger.debug(
@@ -131,7 +132,7 @@ class SubscriptionWrapper implements AutoCloseable {
   }
 
   private void scheduleRetry(Runnable retryAction) {
-    scheduler.schedule(retryAction, 5, TimeUnit.SECONDS);
+    scheduler.schedule(retryAction, 500, TimeUnit.MILLISECONDS);
   }
 
   private void handleSubscriptionCompleted() {

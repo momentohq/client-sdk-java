@@ -52,6 +52,8 @@ public class MomentoRpcMethodMetadataConverter {
     rpcMethodToMetadataMap.put(MomentoRpcMethod.SORTED_SET_LENGTH, "sorted-set-length");
     rpcMethodToMetadataMap.put(
         MomentoRpcMethod.SORTED_SET_LENGTH_BY_SCORE, "sorted-set-length-by-score");
+    rpcMethodToMetadataMap.put(MomentoRpcMethod.TOPIC_PUBLISH, "topic-publish");
+    rpcMethodToMetadataMap.put(MomentoRpcMethod.TOPIC_SUBSCRIBE, "topic-subscribe");
   }
 
   public static String convert(MomentoRpcMethod rpcMethod) {
