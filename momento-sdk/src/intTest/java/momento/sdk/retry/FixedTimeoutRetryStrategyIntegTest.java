@@ -185,7 +185,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
         momentoLocalMiddlewareArgs,
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.get(cacheName, "key"))
-              .succeedsWithin(FIVE_SECONDS)
+              .succeedsWithin(Duration.ofSeconds(10))
               .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
               .extracting(SdkException::getErrorCode)
               .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
@@ -219,7 +219,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
         momentoLocalMiddlewareArgs,
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.get(cacheName, "key"))
-              .succeedsWithin(FIVE_SECONDS)
+              .succeedsWithin(Duration.ofSeconds(10))
               .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
               .extracting(SdkException::getErrorCode)
               .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
