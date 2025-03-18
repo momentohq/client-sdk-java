@@ -19,7 +19,7 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 
-public class FixedTimeoutRetryStrategyTest {
+public class FixedTimeoutRetryStrategyIntegTest {
   private static TestRetryMetricsCollector testRetryMetricsCollector;
   private static Logger logger;
 
@@ -30,7 +30,7 @@ public class FixedTimeoutRetryStrategyTest {
   @BeforeAll
   public static void setUp() {
     testRetryMetricsCollector = new TestRetryMetricsCollector();
-    logger = getLogger(FixedTimeoutRetryStrategyTest.class);
+    logger = getLogger(FixedTimeoutRetryStrategyIntegTest.class);
   }
 
   @Test
@@ -57,10 +57,6 @@ public class FixedTimeoutRetryStrategyTest {
               .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
               .extracting(SdkException::getErrorCode)
               .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
-
-          System.out.println(
-              "Total retry count: "
-                  + testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET));
 
           long maxRetries = CLIENT_TIMEOUT_MILLIS.toMillis() / retryDelayIntervalMillis;
 
