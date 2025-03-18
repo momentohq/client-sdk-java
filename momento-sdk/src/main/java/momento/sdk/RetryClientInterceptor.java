@@ -5,6 +5,7 @@ import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
 import io.grpc.Context;
+import io.grpc.Deadline;
 import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
@@ -16,6 +17,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
+import momento.sdk.retry.FixedTimeoutRetryStrategy;
 import momento.sdk.retry.RetryEligibilityStrategy;
 import momento.sdk.retry.RetryStrategy;
 import momento.sdk.retry.RetryingClientCall;
@@ -80,6 +82,9 @@ final class RetryClientInterceptor implements ClientInterceptor {
 
     return new RetryingClientCall<ReqT, RespT>(channel.newCall(method, callOptions)) {
       private int attemptNumber = 0;
+      private long cumulativeDelayMillis = 0; // cumulative delay for all retry attempts
+      private long lastAttemptTimeMillis =
+          System.currentTimeMillis(); // track time of the last attempt
       @Nullable private Future<?> future = null;
 
       @Override
@@ -113,8 +118,11 @@ final class RetryClientInterceptor implements ClientInterceptor {
                   return;
                 }
 
+                Deadline overallDeadline = callOptions.getDeadline();
+                long currentTimeMillis = System.currentTimeMillis();
+
                 // If the deadline is expired, we don't want to retry
-                if (callOptions.getDeadline() != null && callOptions.getDeadline().isExpired()) {
+                if (overallDeadline != null && overallDeadline.isExpired()) {
                   super.onClose(Status.DEADLINE_EXCEEDED, trailers);
                   return;
                 }
@@ -131,6 +139,32 @@ final class RetryClientInterceptor implements ClientInterceptor {
                   cancelAttempt();
                   super.onClose(status, trailers);
                   return;
+                }
+
+                if (retryStrategy instanceof FixedTimeoutRetryStrategy) {
+                  FixedTimeoutRetryStrategy fixedTimeoutRetryStrategy =
+                      (FixedTimeoutRetryStrategy) retryStrategy;
+                  // if the cumulative delay exceeds the maximum allowed delay, we don't want to
+                  // retry
+                  cumulativeDelayMillis += retryDelay.get().toMillis();
+                  // calculate the total time elapsed since the first attempt
+                  long elapsedTimeMillis = currentTimeMillis - lastAttemptTimeMillis;
+
+                  if (elapsedTimeMillis + cumulativeDelayMillis
+                      > fixedTimeoutRetryStrategy.getResponseDataReceivedTimeoutMillis()) {
+                    super.onClose(Status.DEADLINE_EXCEEDED, trailers);
+                    return;
+                  }
+                  // Check if cumulative delay exceeds overall deadline
+                  if (overallDeadline != null
+                      && elapsedTimeMillis + cumulativeDelayMillis
+                          > overallDeadline.timeRemaining(TimeUnit.MILLISECONDS)) {
+                    super.onClose(Status.DEADLINE_EXCEEDED, trailers);
+                    return;
+                  }
+
+                  // Update the last attempt time after deciding to retry
+                  lastAttemptTimeMillis = currentTimeMillis;
                 }
 
                 logger.debug(
