@@ -119,7 +119,7 @@ public class TopicClientLocalTest {
     final int streamErrorMessageLimit = 3;
     final MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
         new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
-            .streamError(MomentoErrorCode.INTERNAL_SERVER_ERROR)
+            .streamError(MomentoErrorCode.NOT_FOUND_ERROR)
             .streamErrorRpcList(Collections.singletonList(MomentoRpcMethod.TOPIC_SUBSCRIBE))
             .streamErrorMessageLimit(streamErrorMessageLimit)
             .build();

@@ -8,14 +8,15 @@ import grpc.cache_client.pubsub._SubscriptionItem;
 import grpc.cache_client.pubsub._SubscriptionRequest;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import java.time.Duration;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.atomic.AtomicBoolean;
 import momento.sdk.internal.SubscriptionState;
-import momento.sdk.responses.topic.TopicSubscribeResponse;
-import org.junit.jupiter.api.BeforeEach;
+import momento.sdk.responses.topic.TopicMessage;
+import momento.sdk.retry.FixedDelaySubscriptionRetryStrategy;
+import momento.sdk.retry.SubscriptionRetryStrategy;
 import org.junit.jupiter.api.Test;
-import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,43 +24,42 @@ public class SubscriptionWrapperTest {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapperTest.class);
   private final long requestTimeoutSeconds = 5;
 
-  @BeforeEach
-  public void setUp() {
-    MockitoAnnotations.openMocks(this);
-  }
-
   @Test
   public void testConnectionLostAndRestored() throws InterruptedException {
-    SubscriptionState state = new SubscriptionState();
-    TopicSubscribeResponse.Subscription subscription =
-        new TopicSubscribeResponse.Subscription(state);
+    final String cacheName = "cache";
+    final String topicName = "topic";
+    final SubscriptionState state = new SubscriptionState();
 
-    AtomicBoolean gotConnectionLostCallback = new AtomicBoolean(false);
-    AtomicBoolean gotConnectionRestoredCallback = new AtomicBoolean(false);
+    final AtomicBoolean gotConnectionLostCallback = new AtomicBoolean(false);
+    final AtomicBoolean gotConnectionRestoredCallback = new AtomicBoolean(false);
 
-    Semaphore waitingForSubscriptionAttempt = new Semaphore(0);
+    final Semaphore waitingForSubscriptionAttempt = new Semaphore(0);
 
-    SendSubscribeOptions options =
-        new SendSubscribeOptions(
-            "cache",
-            "topic",
-            (message) -> {},
-            () -> {},
-            (err) -> {},
-            (discontinuity) -> {},
-            () -> {},
-            () -> {
-              logger.info("Got to our connection lost callback!");
-              gotConnectionLostCallback.set(true);
-            },
-            () -> {
-              logger.info("Got to our connection restored callback!");
-              gotConnectionRestoredCallback.set(true);
-            },
-            state,
-            subscription);
+    final ISubscriptionCallbacks callbacks =
+        new ISubscriptionCallbacks() {
+          @Override
+          public void onItem(TopicMessage message) {}
 
-    IScsTopicConnection connection =
+          @Override
+          public void onCompleted() {}
+
+          @Override
+          public void onError(Throwable t) {}
+
+          @Override
+          public void onConnectionLost() {
+            logger.info("Got to our connection lost callback!");
+            gotConnectionLostCallback.set(true);
+          }
+
+          @Override
+          public void onConnectionRestored() {
+            logger.info("Got to our connection restored callback!");
+            gotConnectionRestoredCallback.set(true);
+          }
+        };
+
+    final IScsTopicConnection connection =
         new IScsTopicConnection() {
           boolean isOpen = true;
           CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
@@ -95,9 +95,19 @@ public class SubscriptionWrapperTest {
           }
         };
 
-    SubscriptionWrapper subscriptionWrapper =
-        new SubscriptionWrapper(connection, options, requestTimeoutSeconds);
-    CompletableFuture<Void> subscribeWithRetryResult = subscriptionWrapper.subscribeWithRetry();
+    final SubscriptionRetryStrategy retryStrategy =
+        new FixedDelaySubscriptionRetryStrategy(Duration.ofMillis(500));
+    final SubscriptionWrapper subscriptionWrapper =
+        new SubscriptionWrapper(
+            cacheName,
+            topicName,
+            connection,
+            callbacks,
+            state,
+            requestTimeoutSeconds,
+            retryStrategy);
+    final CompletableFuture<Void> subscribeWithRetryResult =
+        subscriptionWrapper.subscribeWithRetry();
     subscribeWithRetryResult.join();
 
     waitingForSubscriptionAttempt.acquire();
