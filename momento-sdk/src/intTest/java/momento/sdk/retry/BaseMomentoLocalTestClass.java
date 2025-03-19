@@ -34,7 +34,7 @@ public class BaseMomentoLocalTestClass {
   protected final String hostname =
       Optional.ofNullable(System.getenv("MOMENTO_HOSTNAME")).orElse("127.0.0.1");
   protected final int port =
-      Integer.parseInt(Optional.ofNullable(System.getenv("MOMENTO_PORT")).orElse("8080"));
+      Optional.ofNullable(System.getenv("MOMENTO_PORT")).map(Integer::parseInt).orElse(8080);
 
   @BeforeEach
   void beforeEach() {
@@ -76,7 +76,8 @@ public class BaseMomentoLocalTestClass {
 
     String cacheName = testCacheName();
     String hostname = Optional.ofNullable(System.getenv("MOMENTO_HOSTNAME")).orElse("127.0.0.1");
-    int port = Integer.parseInt(Optional.ofNullable(System.getenv("MOMENTO_PORT")).orElse("8080"));
+    int port =
+        Optional.ofNullable(System.getenv("MOMENTO_PORT")).map(Integer::parseInt).orElse(8080);
     CredentialProvider credentialProvider = new MomentoLocalProvider(hostname, port);
 
     try (final CacheClient client =
@@ -104,7 +105,7 @@ public class BaseMomentoLocalTestClass {
     final String hostname =
         Optional.ofNullable(System.getenv("MOMENTO_HOSTNAME")).orElse("127.0.0.1");
     final int port =
-        Integer.parseInt(Optional.ofNullable(System.getenv("MOMENTO_PORT")).orElse("8080"));
+        Optional.ofNullable(System.getenv("MOMENTO_PORT")).map(Integer::parseInt).orElse(8080);
     final CredentialProvider credentialProvider = new MomentoLocalProvider(hostname, port);
 
     try (final CacheClient cacheClient =
