@@ -1,16 +1,16 @@
 package momento.sdk.retry.utils;
 
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Optional;
+import org.slf4j.LoggerFactory;
 
 public class TestAdminClient {
   protected final String hostname =
       Optional.ofNullable(System.getenv("TEST_ADMIN_HOSTNAME")).orElse("127.0.0.1");
-  protected final int port = Optional.ofNullable(System.getenv("TEST_ADMIN_PORT")).map(Integer::parseInt).orElse(9090);
+  protected final int port =
+      Optional.ofNullable(System.getenv("TEST_ADMIN_PORT")).map(Integer::parseInt).orElse(9090);
   private final String endpoint;
 
   public TestAdminClient() {

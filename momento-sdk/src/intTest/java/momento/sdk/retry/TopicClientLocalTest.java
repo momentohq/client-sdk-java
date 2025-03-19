@@ -241,10 +241,10 @@ public class TopicClientLocalTest {
 
           @Override
           public void onHeartbeat() {
-              // Release the semaphore after multiple heartbeats
-              if (heartbeatCounter.incrementAndGet() >= noOfHeartbeatsBeforeSemaphoreRelease) {
-                  heartbeatSemaphore.release();
-              }
+            // Release the semaphore after multiple heartbeats
+            if (heartbeatCounter.incrementAndGet() >= noOfHeartbeatsBeforeSemaphoreRelease) {
+              heartbeatSemaphore.release();
+            }
           }
         };
 
