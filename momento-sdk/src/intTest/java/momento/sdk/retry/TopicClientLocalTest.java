@@ -214,7 +214,7 @@ public class TopicClientLocalTest {
     final AtomicInteger connectionLostCounter = new AtomicInteger(0);
     final AtomicInteger connectionRestoredCounter = new AtomicInteger(0);
     final AtomicInteger heartbeatCounter = new AtomicInteger(0);
-    final AtomicInteger noOfHeartbeatsBeforeSemaphoreRelease = new AtomicInteger(3);
+    final int noOfHeartbeatsBeforeSemaphoreRelease = 3;
 
     final ISubscriptionCallbacks callbacks =
         new ISubscriptionCallbacks() {
@@ -241,12 +241,10 @@ public class TopicClientLocalTest {
 
           @Override
           public void onHeartbeat() {
-            heartbeatCounter.incrementAndGet();
-
-            // Release the semaphore after multiple heartbeats
-            if (heartbeatCounter.get() >= noOfHeartbeatsBeforeSemaphoreRelease.get()) {
-              heartbeatSemaphore.release();
-            }
+              // Release the semaphore after multiple heartbeats
+              if (heartbeatCounter.incrementAndGet() >= noOfHeartbeatsBeforeSemaphoreRelease) {
+                  heartbeatSemaphore.release();
+              }
           }
         };
 

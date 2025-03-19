@@ -1,18 +1,16 @@
 package momento.sdk.retry.utils;
 
+import org.slf4j.LoggerFactory;
+
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.Optional;
-import java.util.logging.Logger;
 
 public class TestAdminClient {
-  private static final Logger LOGGER = Logger.getLogger(TestAdminClient.class.getName());
-
   protected final String hostname =
       Optional.ofNullable(System.getenv("TEST_ADMIN_HOSTNAME")).orElse("127.0.0.1");
-  protected final int port =
-      Integer.parseInt(Optional.ofNullable(System.getenv("TEST_ADMIN_PORT")).orElse("9090"));
+  protected final int port = Optional.ofNullable(System.getenv("TEST_ADMIN_PORT")).map(Integer::parseInt).orElse(9090);
   private final String endpoint;
 
   public TestAdminClient() {
@@ -43,7 +41,7 @@ public class TestAdminClient {
         throw new IOException(errorMessage + ": Received response code " + responseCode);
       }
     } catch (IOException e) {
-      LOGGER.severe(errorMessage + ": " + e.getMessage());
+      LoggerFactory.getLogger(TestAdminClient.class).error(errorMessage);
       throw e;
     } finally {
       if (connection != null) {
