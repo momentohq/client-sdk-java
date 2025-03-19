@@ -18,6 +18,7 @@ import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 import momento.sdk.retry.utils.MomentoLocalMiddlewareArgs;
+import momento.sdk.retry.utils.TestAdminClient;
 import org.assertj.core.api.InstanceOfAssertFactories;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -196,6 +197,102 @@ public class TopicClientLocalTest {
                 .asInstanceOf(InstanceOfAssertFactories.type(TopicPublishResponse.Error.class))
                 .extracting(SdkException::getErrorCode)
                 .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR));
+  }
+
+  @Test
+  @Timeout(30)
+  void testTestAdmin_pauseSubscriptionOnPortBlockAndResumeSubscriptionOnPortUnblock()
+      throws Exception {
+    final TestAdminClient testAdminClient = new TestAdminClient();
+    final MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
+        new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString()).build();
+
+    final Semaphore heartbeatSemaphore = new Semaphore(0);
+    final Semaphore lostConnectionSemaphore = new Semaphore(0);
+    final Semaphore restoredConnectionSemaphore = new Semaphore(0);
+
+    final AtomicInteger connectionLostCounter = new AtomicInteger(0);
+    final AtomicInteger connectionRestoredCounter = new AtomicInteger(0);
+    final AtomicInteger heartbeatCounter = new AtomicInteger(0);
+    final AtomicInteger noOfHeartbeatsBeforeSemaphoreRelease = new AtomicInteger(3);
+
+    final ISubscriptionCallbacks callbacks =
+        new ISubscriptionCallbacks() {
+          @Override
+          public void onItem(TopicMessage message) {}
+
+          @Override
+          public void onCompleted() {}
+
+          @Override
+          public void onError(Throwable t) {}
+
+          @Override
+          public void onConnectionLost() {
+            connectionLostCounter.incrementAndGet();
+            lostConnectionSemaphore.release();
+          }
+
+          @Override
+          public void onConnectionRestored() {
+            connectionRestoredCounter.incrementAndGet();
+            restoredConnectionSemaphore.release();
+          }
+
+          @Override
+          public void onHeartbeat() {
+            heartbeatCounter.incrementAndGet();
+
+            // Release the semaphore after multiple heartbeats
+            if (heartbeatCounter.get() >= noOfHeartbeatsBeforeSemaphoreRelease.get()) {
+              heartbeatSemaphore.release();
+            }
+          }
+        };
+
+    withCacheAndTopicClient(
+        config -> config,
+        momentoLocalMiddlewareArgs,
+        (topicClient, cacheName) -> {
+          final String topicName = "topic";
+
+          assertThat(topicClient.subscribe(cacheName, topicName, callbacks))
+              .succeedsWithin(FIVE_SECONDS)
+              .asInstanceOf(
+                  InstanceOfAssertFactories.type(TopicSubscribeResponse.Subscription.class))
+              .satisfies(
+                  subscription -> {
+                    // Wait for the first heartbeats to confirm connection
+                    heartbeatSemaphore.acquire();
+                    int initialHeartbeatCount = heartbeatCounter.get();
+                    assertThat(initialHeartbeatCount).isGreaterThan(0);
+
+                    // Block the admin port
+                    testAdminClient.blockPort();
+                    // Wait for connection lost event
+                    lostConnectionSemaphore.acquire();
+                    assertThat(connectionLostCounter.get()).isGreaterThan(0);
+
+                    // Ensure heartbeats are paused
+                    int heartbeatsAfterBlock = heartbeatCounter.get();
+                    assertThat(heartbeatsAfterBlock).isEqualTo(initialHeartbeatCount);
+
+                    // Unblock the admin port
+                    testAdminClient.unblockPort();
+
+                    // Wait for connection restoration
+                    restoredConnectionSemaphore.acquire();
+                    assertThat(connectionRestoredCounter.get()).isGreaterThan(0);
+
+                    // Ensure heartbeats resume
+                    // wait for the heartbeat to be received
+                    heartbeatSemaphore.acquire();
+                    int heartbeatsAfterUnblock = heartbeatCounter.get();
+                    assertThat(heartbeatsAfterUnblock).isGreaterThan(initialHeartbeatCount);
+
+                    subscription.unsubscribe();
+                  });
+        });
   }
 
   private void publishMessages(
