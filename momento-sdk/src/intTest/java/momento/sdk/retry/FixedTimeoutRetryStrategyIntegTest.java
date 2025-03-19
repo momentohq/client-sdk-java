@@ -23,9 +23,9 @@ public class FixedTimeoutRetryStrategyIntegTest {
   private static TestRetryMetricsCollector testRetryMetricsCollector;
   private static Logger logger;
 
-  private static final Duration CLIENT_TIMEOUT_MILLIS = Duration.ofMillis(5000L);
-  private static final long retryDelayIntervalMillis = 1000;
-  private static final long responseDataReceivedTimeoutMillis = 4000;
+  private static final Duration CLIENT_TIMEOUT_MILLIS = Duration.ofMillis(3000L);
+  private static final long retryDelayIntervalMillis = 100;
+  private static final long responseDataReceivedTimeoutMillis = 1000;
 
   @BeforeAll
   public static void setUp() {
@@ -130,9 +130,9 @@ public class FixedTimeoutRetryStrategyIntegTest {
 
   @Test
   void
-      testRetryEligibleApi_shouldMakeNoRetries_WhenTestRetryDelayIntervalMillisIsGreaterThanClientMaxDelayMillis()
+      testRetryEligibleApi_shouldMakeNoRetries_WhenRetryDelayIntervalMillisIsGreaterThanClientMaxDelayMillis()
           throws Exception {
-    long retryDelayIntervalMillis = 6000;
+    long retryDelayIntervalMillis = 4000;
     RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
 
     FixedTimeoutRetryStrategy retryStrategy =
@@ -176,7 +176,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
             .testMetricsCollector(testRetryMetricsCollector)
             .returnError(MomentoErrorCode.SERVER_UNAVAILABLE)
             .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET))
-            .delayMillis(5000) // Delay greater than response data received timeout
+            .delayMillis(4000) // Delay greater than response data received timeout
             .delayRpcList(Collections.singletonList(MomentoRpcMethod.GET))
             .build();
 
@@ -185,7 +185,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
         momentoLocalMiddlewareArgs,
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.get(cacheName, "key"))
-              .succeedsWithin(Duration.ofSeconds(10))
+              .succeedsWithin(FIVE_SECONDS)
               .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
               .extracting(SdkException::getErrorCode)
               .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
@@ -210,7 +210,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
             .testMetricsCollector(testRetryMetricsCollector)
             .returnError(MomentoErrorCode.SERVER_UNAVAILABLE)
             .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET))
-            .delayMillis(6000) // Delay greater than client timeout
+            .delayMillis(4000) // Delay greater than client timeout
             .delayRpcList(Collections.singletonList(MomentoRpcMethod.GET))
             .build();
 
@@ -219,7 +219,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
         momentoLocalMiddlewareArgs,
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.get(cacheName, "key"))
-              .succeedsWithin(Duration.ofSeconds(10))
+              .succeedsWithin(FIVE_SECONDS)
               .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
               .extracting(SdkException::getErrorCode)
               .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);

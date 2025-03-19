@@ -49,4 +49,17 @@ public interface RetryStrategy {
    */
   Optional<Duration> determineWhenToRetry(
       Status grpcStatus, MethodDescriptor request, int currentAttempt);
+
+  /**
+   * Retrieves the timeout in milliseconds allowed for receiving response data.
+   *
+   * <p>By default, this method returns an empty optional, meaning no timeout restriction is
+   * enforced unless overridden.
+   *
+   * @return An {@link Optional} containing the maximum response timeout in milliseconds, or an
+   *     empty optional if no timeout is enforced.
+   */
+  default Optional<Long> getResponseDataReceivedTimeoutMillis() {
+    return Optional.empty();
+  }
 }

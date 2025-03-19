@@ -41,8 +41,14 @@ public class FixedTimeoutRetryStrategyTest {
         new FixedTimeoutRetryStrategy(
             eligibilityStrategy, retryIntervalDelayMillis, responseDataReceivedTimeoutMillis);
     Optional<Duration> delay = retryStrategy.determineWhenToRetry(status, methodDescriptor, 1);
-    assertTrue(delay.isPresent());
-    assertTrue(delay.get().toMillis() <= responseDataReceivedTimeoutMillis);
+
+    assertTrue(delay.isPresent(), "The retry delay should be present");
+    long delayMillis = delay.get().toMillis();
+    double lowerBound = 0.9 * retryIntervalDelayMillis;
+    double upperBound = 1.1 * retryIntervalDelayMillis;
+    assertTrue(
+        delayMillis >= lowerBound && delayMillis <= upperBound,
+        String.format("Delay %d should be between %f and %f", delayMillis, lowerBound, upperBound));
   }
 
   @Test

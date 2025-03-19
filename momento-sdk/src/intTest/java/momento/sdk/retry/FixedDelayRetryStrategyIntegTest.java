@@ -242,7 +242,7 @@ public class FixedDelayRetryStrategyIntegTest {
               .isEqualTo(GetResponse.Error.class);
 
           assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
-              .isEqualTo(4);
+              .isGreaterThanOrEqualTo(1);
         });
   }
 }

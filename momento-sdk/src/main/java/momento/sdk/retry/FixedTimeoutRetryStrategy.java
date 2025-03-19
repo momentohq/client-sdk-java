@@ -8,18 +8,17 @@ import java.util.Random;
 
 /**
  * A retry strategy that applies a fixed delay between consecutive retry attempts with an added
- * jitter to prevent retries from occurring at exact intervals, and imposes a maximum cumulative
- * delay for all retry attempts.
+ * jitter to prevent retries from occurring at exact intervals.
  *
  * <p>The `FixedTimeoutRetryStrategy` implements the {@link RetryStrategy} interface and provides a
  * fixed delay interval between each retry attempt. This delay interval includes a jitter factor to
  * add randomness to the retry intervals, preventing retries from occurring at regular, predictable
  * intervals.
  *
- * <p>Additionally, the strategy enforces a maximum cumulative delay (specified by
- * `responseDataReceivedTimeoutMillis`). If the cumulative delay from all retry attempts exceeds
- * this maximum value, no further retries will be performed, and the strategy will return an empty
- * optional.
+ * <p>Additionally, the strategy enforces a `responseDataReceivedTimeoutMillis` value, which is the
+ * number of milliseconds to wait for a response data to be received before retrying. If the
+ * response data is not received within this time, the strategy will stop further retries
+ * immediately.
  *
  * <p>The strategy also includes an eligibility check for retries, allowing the caller to specify
  * which gRPC statuses and methods should be eligible for retry. If the status or method is not
@@ -44,10 +43,8 @@ public class FixedTimeoutRetryStrategy implements RetryStrategy {
    *     eligible or safe to retry. If null, a default strategy is used.
    * @param retryDelayIntervalMillis The delay in milliseconds for each retry attempt. If null,
    *     default value of 100 milliseconds is used.
-   * @param responseDataReceivedTimeoutMillis The maximum cumulative delay in milliseconds that is
-   *     allowed for all retry attempts combined. If the cumulative delay exceeds this value, no
-   *     more retries will be performed, and the strategy will return an empty optional. If null,
-   *     default value of 1000 milliseconds is used.
+   * @param responseDataReceivedTimeoutMillis The number of milliseconds to wait for a response data
+   *     to be received before retrying. If null, default value of 1000 milliseconds is used.
    */
   public FixedTimeoutRetryStrategy(
       RetryEligibilityStrategy eligibilityStrategy,
@@ -78,7 +75,9 @@ public class FixedTimeoutRetryStrategy implements RetryStrategy {
     return Duration.ofMillis((long) ((0.2 * random.nextDouble() + 0.9) * whenToRetry));
   }
 
-  public long getResponseDataReceivedTimeoutMillis() {
-    return responseDataReceivedTimeoutMillis;
+  /** {@inheritDoc} */
+  @Override
+  public Optional<Long> getResponseDataReceivedTimeoutMillis() {
+    return Optional.of(responseDataReceivedTimeoutMillis);
   }
 }
