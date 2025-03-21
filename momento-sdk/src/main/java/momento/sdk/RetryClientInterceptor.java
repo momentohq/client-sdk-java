@@ -5,6 +5,7 @@ import io.grpc.Channel;
 import io.grpc.ClientCall;
 import io.grpc.ClientInterceptor;
 import io.grpc.Context;
+import io.grpc.Deadline;
 import io.grpc.ForwardingClientCallListener;
 import io.grpc.Metadata;
 import io.grpc.MethodDescriptor;
@@ -81,6 +82,7 @@ final class RetryClientInterceptor implements ClientInterceptor {
     return new RetryingClientCall<ReqT, RespT>(channel.newCall(method, callOptions)) {
       private int attemptNumber = 0;
       @Nullable private Future<?> future = null;
+      private final Deadline overallDeadline = callOptions.getDeadline();
 
       @Override
       public void start(Listener<RespT> responseListener, Metadata headers) {
@@ -113,14 +115,13 @@ final class RetryClientInterceptor implements ClientInterceptor {
                   return;
                 }
 
-                // If the deadline is expired, we don't want to retry
-                if (callOptions.getDeadline() != null && callOptions.getDeadline().isExpired()) {
+                // If the overall deadline is expired, we don't want to retry
+                if (overallDeadline != null && overallDeadline.isExpired()) {
                   super.onClose(Status.DEADLINE_EXCEEDED, trailers);
                   return;
                 }
 
                 // now we can safely start retrying
-
                 attemptNumber++;
                 final Optional<Duration> retryDelay =
                     retryStrategy.determineWhenToRetry(status, method, attemptNumber);
@@ -140,7 +141,44 @@ final class RetryClientInterceptor implements ClientInterceptor {
                     retryDelay.get().toMillis());
 
                 final Runnable runnable =
-                    Context.current().wrap(() -> retry(channel.newCall(method, callOptions)));
+                    Context.current()
+                        .wrap(
+                            () -> {
+                              Optional<Long> responseTimeout =
+                                  retryStrategy.getResponseDataReceivedTimeoutMillis();
+
+                              // Check if the overall deadline is set and if the retry deadline
+                              // exceeds it
+                              if (responseTimeout.isPresent()) {
+                                // Calculate the retry deadline (current time + retry delay)
+                                long retryDeadlineMillis =
+                                    System.currentTimeMillis() + retryDelay.get().toMillis();
+                                // Calculate the absolute time when the overall deadline will expire
+                                long overallDeadlineMillis =
+                                    overallDeadline != null
+                                        ? overallDeadline.timeRemaining(TimeUnit.MILLISECONDS)
+                                            + System.currentTimeMillis()
+                                        : Long.MAX_VALUE;
+                                // Check if retrying will exceed the overall deadline
+                                if (retryDeadlineMillis > overallDeadlineMillis) {
+                                  logger.debug(
+                                      "Retry deadline exceeds overall deadline, not retrying.");
+                                  super.onClose(Status.DEADLINE_EXCEEDED, trailers);
+                                  return;
+                                }
+                              }
+
+                              // Proceed with the retry if everything is valid
+                              CallOptions retryCallOptions =
+                                  responseTimeout
+                                      .map(
+                                          aLong ->
+                                              callOptions.withDeadlineAfter(
+                                                  aLong, TimeUnit.MILLISECONDS))
+                                      .orElse(callOptions);
+
+                              retry(channel.newCall(method, retryCallOptions));
+                            });
 
                 // schedule the task to be executed on the executor
                 future =
