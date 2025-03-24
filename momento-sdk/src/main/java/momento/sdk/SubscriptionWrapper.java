@@ -77,7 +77,24 @@ class SubscriptionWrapper implements AutoCloseable {
 
     subscribeWithRetryInternal(future);
 
-    // Ensure that timeout error takes precedence
+    // Combine the subscription future and the first-message timeout future.
+    // Although CompletableFuture.anyOf(...) returns as soon as *either* future completes,
+    // it does not tell us *which one* completed, nor does it propagate the actual exception.
+    // So we explicitly check both futures:
+    //
+    // - If the timeout future completed exceptionally, that means the client didn't receive
+    //   the first message (typically a heartbeat) within the expected time, so we want to return
+    //   that timeout error.
+    //
+    // - If the timeout didn't fire, but the subscription future failed (e.g., gRPC UNAVAILABLE),
+    //   then we propagate that error.
+    //
+    // - If neither completed exceptionally, it means the subscription succeeded, and we return
+    // success.
+    //
+    // This ensures that a timeout error always takes precedence and prevents it from being
+    // overwritten by a later gRPC error (e.g., UNAVAILABLE) that may arrive after the timeout has
+    // fired.
     CompletableFuture<Void> result = new CompletableFuture<>();
     CompletableFuture.anyOf(future, firstMessageTimeoutFuture)
         .whenComplete(
