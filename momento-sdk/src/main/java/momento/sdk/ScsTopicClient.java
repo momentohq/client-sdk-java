@@ -22,6 +22,7 @@ public class ScsTopicClient extends ScsClientBase {
 
   private final Logger logger = LoggerFactory.getLogger(ScsTopicClient.class);
   private final ScsTopicGrpcStubsManager topicGrpcStubsManager;
+  private final long DEFAULT_REQUEST_TIMEOUT_SECONDS = 5;
 
   public ScsTopicClient(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
@@ -172,7 +173,7 @@ public class ScsTopicClient extends ScsClientBase {
             .getDeadline()
             .getSeconds();
     long firstMessageSubscribeTimeoutSeconds =
-        configuredTimeoutSeconds > 0 ? configuredTimeoutSeconds : 5;
+        configuredTimeoutSeconds > 0 ? configuredTimeoutSeconds : DEFAULT_REQUEST_TIMEOUT_SECONDS;
 
     subscriptionWrapper =
         new SubscriptionWrapper(
