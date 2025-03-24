@@ -12,7 +12,7 @@ interface IScsTopicConnection {
    * <p>Note: This method is intended for testing purposes and should never be called from outside
    * of tests.
    */
-  void close();
+  default void close() {}
 
   /**
    * Opens the connection.
@@ -20,7 +20,7 @@ interface IScsTopicConnection {
    * <p>Note: This method is intended for testing purposes and should never be called from outside
    * of tests.
    */
-  void open();
+  default void open() {}
 
   /**
    * Subscribes to a specific topic using the provided subscription request and observer.
