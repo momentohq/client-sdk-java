@@ -164,7 +164,19 @@ public class ScsTopicClient extends ScsClientBase {
           }
         };
 
-    subscriptionWrapper = new SubscriptionWrapper(connection, sendSubscribeOptions);
+    long configuredTimeoutSeconds =
+        topicGrpcStubsManager
+            .getConfiguration()
+            .getTransportStrategy()
+            .getGrpcConfiguration()
+            .getDeadline()
+            .getSeconds();
+    long firstMessageSubscribeTimeoutSeconds =
+        configuredTimeoutSeconds > 0 ? configuredTimeoutSeconds : 5;
+
+    subscriptionWrapper =
+        new SubscriptionWrapper(
+            connection, sendSubscribeOptions, firstMessageSubscribeTimeoutSeconds);
     final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
     return subscribeFuture.handle(
         (v, ex) -> {
