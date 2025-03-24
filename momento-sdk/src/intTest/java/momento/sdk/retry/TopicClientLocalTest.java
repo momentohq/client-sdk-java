@@ -203,10 +203,11 @@ public class TopicClientLocalTest {
   @Timeout(10)
   void topicSubscribe_ReturnsTimeoutError_IfFirstMessageNotReceivedBeforeDeadline()
       throws Exception {
+    final Duration CLIENT_TIMEOUT_MILLIS = Duration.ofMillis(1000);
     final MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
         new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
             .delayRpcList(Collections.singletonList(MomentoRpcMethod.TOPIC_SUBSCRIBE))
-            .delayMillis(4000) // Greater than the client timeout of 3000 ms
+            .delayMillis(2000) // Greater than the client timeout of 1000 ms
             .build();
 
     final ISubscriptionCallbacks callbacks =
@@ -233,7 +234,7 @@ public class TopicClientLocalTest {
         };
 
     withCacheAndTopicClient(
-        config -> config.withTimeout(Duration.ofMillis(3000)),
+        config -> config.withTimeout(CLIENT_TIMEOUT_MILLIS),
         momentoLocalMiddlewareArgs,
         (topicClient, cacheName) -> {
           final String topicName = "topic";
