@@ -12,6 +12,9 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
 import momento.sdk.exceptions.InternalServerException;
+import momento.sdk.exceptions.TimeoutException;
+import momento.sdk.internal.MomentoGrpcErrorDetails;
+import momento.sdk.internal.MomentoTransportErrorDetails;
 import momento.sdk.responses.topic.TopicDiscontinuity;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
@@ -22,6 +25,7 @@ class SubscriptionWrapper implements AutoCloseable {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapper.class);
   private final IScsTopicConnection connection;
   private final SendSubscribeOptions options;
+  private final long requestTimeoutSeconds;
   private boolean firstMessage = true;
   private boolean isConnectionLost = false;
 
@@ -29,25 +33,83 @@ class SubscriptionWrapper implements AutoCloseable {
 
   private CancelableClientCallStreamObserver<_SubscriptionItem> subscription;
 
-  SubscriptionWrapper(IScsTopicConnection connection, SendSubscribeOptions options) {
+  private volatile CompletableFuture<Void> firstMessageTimeoutFuture = null;
+
+  SubscriptionWrapper(
+      IScsTopicConnection connection, SendSubscribeOptions options, long requestTimeoutSeconds) {
     this.connection = connection;
     this.options = options;
+    this.requestTimeoutSeconds = requestTimeoutSeconds;
   }
 
-  /**
-   * Public method for testing purposes only. Do not call this method in production code or any
-   * context other than testing the topic client.
-   *
-   * <p>This method returns a CompletableFuture that represents the asynchronous execution of the
-   * internal subscription logic with retry mechanism.
-   *
-   * @return A CompletableFuture representing the asynchronous execution of the internal
-   *     subscription logic with retry mechanism.
-   */
   public CompletableFuture<Void> subscribeWithRetry() {
     CompletableFuture<Void> future = new CompletableFuture<>();
+    firstMessageTimeoutFuture = new CompletableFuture<>();
+
+    scheduler.schedule(
+        () -> {
+          if (!firstMessageTimeoutFuture.isDone()) {
+            logger.warn(
+                "First message timeout exceeded for topic {} on cache {}",
+                options.getTopicName(),
+                options.getCacheName());
+
+            if (subscription != null) {
+              subscription.cancel("Timed out waiting for first message", null);
+            }
+
+            firstMessageTimeoutFuture.completeExceptionally(
+                new TimeoutException(
+                    new RuntimeException(
+                        "Timed out waiting for first message (heartbeat) for topic "
+                            + options.getTopicName()
+                            + " on cache "
+                            + options.getCacheName()),
+                    new MomentoTransportErrorDetails(
+                        new MomentoGrpcErrorDetails(
+                            Status.Code.DEADLINE_EXCEEDED,
+                            "Timed out waiting for first message (heartbeat)",
+                            null))));
+          }
+        },
+        requestTimeoutSeconds,
+        TimeUnit.SECONDS);
+
     subscribeWithRetryInternal(future);
-    return future;
+
+    // Combine the subscription future and the first-message timeout future.
+    // Although CompletableFuture.anyOf(...) returns as soon as *either* future completes,
+    // it does not tell us *which one* completed, nor does it propagate the actual exception.
+    // So we explicitly check both futures:
+    //
+    // - If the timeout future completed exceptionally, that means the client didn't receive
+    //   the first message (typically a heartbeat) within the expected time, so we want to return
+    //   that timeout error.
+    //
+    // - If the timeout didn't fire, but the subscription future failed (e.g., gRPC UNAVAILABLE),
+    //   then we propagate that error.
+    //
+    // - If neither completed exceptionally, it means the subscription succeeded, and we return
+    // success.
+    //
+    // This ensures that a timeout error always takes precedence and prevents it from being
+    // overwritten by a later gRPC error (e.g., UNAVAILABLE) that may arrive after the timeout has
+    // fired.
+    CompletableFuture<Void> result = new CompletableFuture<>();
+    CompletableFuture.anyOf(future, firstMessageTimeoutFuture)
+        .whenComplete(
+            (ignored, throwable) -> {
+              if (firstMessageTimeoutFuture.isCompletedExceptionally()) {
+                firstMessageTimeoutFuture.whenComplete(
+                    (__, ex) -> result.completeExceptionally(ex));
+              } else if (future.isCompletedExceptionally()) {
+                future.whenComplete((__, ex) -> result.completeExceptionally(ex));
+              } else {
+                result.complete(null);
+              }
+            });
+
+    return result;
   }
 
   private void subscribeWithRetryInternal(CompletableFuture<Void> future) {
@@ -56,6 +118,11 @@ class SubscriptionWrapper implements AutoCloseable {
           @Override
           public void onNext(_SubscriptionItem item) {
             if (firstMessage) {
+              firstMessage = false;
+              if (firstMessageTimeoutFuture != null) {
+                firstMessageTimeoutFuture.complete(null);
+              }
+
               if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
                 future.completeExceptionally(
                     new InternalServerException(
@@ -66,8 +133,8 @@ class SubscriptionWrapper implements AutoCloseable {
                             + ". Got: "
                             + item.getKindCase()));
               }
-              firstMessage = false;
               future.complete(null);
+              return;
             }
             if (isConnectionLost) {
               isConnectionLost = false;
@@ -80,7 +147,13 @@ class SubscriptionWrapper implements AutoCloseable {
           public void onError(Throwable t) {
             if (firstMessage) {
               firstMessage = false;
-              future.completeExceptionally(t);
+              if (firstMessageTimeoutFuture != null && !firstMessageTimeoutFuture.isDone()) {
+                firstMessageTimeoutFuture.completeExceptionally(t);
+              }
+              if (!future.isDone()) {
+                future.completeExceptionally(t);
+              }
+
             } else {
               logger.debug("Subscription failed, retrying...");
               if (!isConnectionLost) {

@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 public class SubscriptionWrapperTest {
   private final Logger logger = LoggerFactory.getLogger(SubscriptionWrapperTest.class);
+  private final long requestTimeoutSeconds = 5;
 
   @BeforeEach
   public void setUp() {
@@ -94,7 +95,8 @@ public class SubscriptionWrapperTest {
           }
         };
 
-    SubscriptionWrapper subscriptionWrapper = new SubscriptionWrapper(connection, options);
+    SubscriptionWrapper subscriptionWrapper =
+        new SubscriptionWrapper(connection, options, requestTimeoutSeconds);
     CompletableFuture<Void> subscribeWithRetryResult = subscriptionWrapper.subscribeWithRetry();
     subscribeWithRetryResult.join();
 

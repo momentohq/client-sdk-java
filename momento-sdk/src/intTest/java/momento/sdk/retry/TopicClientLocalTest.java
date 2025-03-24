@@ -200,6 +200,55 @@ public class TopicClientLocalTest {
   }
 
   @Test
+  @Timeout(10)
+  void topicSubscribe_ReturnsTimeoutError_IfFirstMessageNotReceivedBeforeDeadline()
+      throws Exception {
+    final MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
+        new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
+            .delayRpcList(Collections.singletonList(MomentoRpcMethod.TOPIC_SUBSCRIBE))
+            .delayMillis(4000) // Greater than the client timeout of 3000 ms
+            .build();
+
+    final ISubscriptionCallbacks callbacks =
+        new ISubscriptionCallbacks() {
+          @Override
+          public void onItem(TopicMessage message) {}
+
+          @Override
+          public void onCompleted() {}
+
+          @Override
+          public void onError(Throwable t) {}
+
+          @Override
+          public void onConnectionLost() {}
+
+          @Override
+          public void onConnectionRestored() {}
+
+          @Override
+          public void onHeartbeat() {
+            System.out.println("onHeartbeat Invoked");
+          }
+        };
+
+    withCacheAndTopicClient(
+        config -> config.withTimeout(Duration.ofMillis(3000)),
+        momentoLocalMiddlewareArgs,
+        (topicClient, cacheName) -> {
+          final String topicName = "topic";
+
+          assertThat(topicClient.subscribe(cacheName, topicName, callbacks))
+              .succeedsWithin(FIVE_SECONDS)
+              .asInstanceOf(InstanceOfAssertFactories.type(TopicSubscribeResponse.Error.class))
+              .satisfies(
+                  error -> {
+                    assertThat(error.getErrorCode()).isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
+                  });
+        });
+  }
+
+  @Test
   @Timeout(30)
   void testTestAdmin_pauseSubscriptionOnPortBlockAndResumeSubscriptionOnPortUnblock()
       throws Exception {
