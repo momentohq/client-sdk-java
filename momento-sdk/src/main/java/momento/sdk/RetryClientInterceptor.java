@@ -147,25 +147,10 @@ final class RetryClientInterceptor implements ClientInterceptor {
                               Optional<Long> responseTimeout =
                                   retryStrategy.getResponseDataReceivedTimeoutMillis();
 
-                              // Check if the overall deadline is set and if the retry deadline
-                              // exceeds it
-                              if (responseTimeout.isPresent()) {
-                                // Calculate the retry deadline (current time + retry delay)
-                                long retryDeadlineMillis =
-                                    System.currentTimeMillis() + retryDelay.get().toMillis();
-                                // Calculate the absolute time when the overall deadline will expire
-                                long overallDeadlineMillis =
-                                    overallDeadline != null
-                                        ? overallDeadline.timeRemaining(TimeUnit.MILLISECONDS)
-                                            + System.currentTimeMillis()
-                                        : Long.MAX_VALUE;
-                                // Check if retrying will exceed the overall deadline
-                                if (retryDeadlineMillis > overallDeadlineMillis) {
-                                  logger.debug(
-                                      "Retry deadline exceeds overall deadline, not retrying.");
-                                  super.onClose(Status.DEADLINE_EXCEEDED, trailers);
-                                  return;
-                                }
+                              // Set responseTimeout to the min(retry timeout, overall deadline time remaining) to ensure we
+                              // don't exceed the overall deadline while making use of the entire overall client timeout.
+                              if (responseTimeout.isPresent() && overallDeadline.timeRemaining(TimeUnit.MILLISECONDS) <= responseTimeout.get()) {
+                                responseTimeout = Optional.of(overallDeadline.timeRemaining(TimeUnit.MILLISECONDS));
                               }
 
                               // Proceed with the retry if everything is valid
