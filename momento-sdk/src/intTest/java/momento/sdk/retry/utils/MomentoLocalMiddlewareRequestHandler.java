@@ -8,9 +8,7 @@ import momento.sdk.config.middleware.MiddlewareMessage;
 import momento.sdk.config.middleware.MiddlewareMetadata;
 import momento.sdk.config.middleware.MiddlewareRequestHandler;
 import momento.sdk.config.middleware.MiddlewareStatus;
-import momento.sdk.exceptions.MomentoErrorCodeMetadataConverter;
 import momento.sdk.retry.MomentoRpcMethod;
-import momento.sdk.retry.MomentoRpcMethodMetadataConverter;
 
 public class MomentoLocalMiddlewareRequestHandler implements MiddlewareRequestHandler {
   private String cacheName = null;
@@ -28,7 +26,6 @@ public class MomentoLocalMiddlewareRequestHandler implements MiddlewareRequestHa
 
     momentoLocalMiddlewareArgs
         .getReturnError()
-        .map(MomentoErrorCodeMetadataConverter::convert)
         .ifPresent(e -> setGrpcMetadata(grpcMetadata, "return-error", e));
 
     momentoLocalMiddlewareArgs
@@ -63,7 +60,6 @@ public class MomentoLocalMiddlewareRequestHandler implements MiddlewareRequestHa
 
     momentoLocalMiddlewareArgs
         .getStreamError()
-        .map(MomentoErrorCodeMetadataConverter::convert)
         .ifPresent(e -> setGrpcMetadata(grpcMetadata, "stream-error", e));
 
     momentoLocalMiddlewareArgs
@@ -125,9 +121,7 @@ public class MomentoLocalMiddlewareRequestHandler implements MiddlewareRequestHa
     }
   }
 
-  private String concatenateRPCs(List<MomentoRpcMethod> RPCs) {
-    return RPCs.stream()
-        .map(MomentoRpcMethodMetadataConverter::convert)
-        .collect(Collectors.joining(" "));
+  private String concatenateRPCs(List<String> RPCs) {
+    return RPCs.stream().collect(Collectors.joining(" "));
   }
 }
