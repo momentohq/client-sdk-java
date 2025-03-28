@@ -147,10 +147,16 @@ final class RetryClientInterceptor implements ClientInterceptor {
                               Optional<Long> responseTimeout =
                                   retryStrategy.getResponseDataReceivedTimeoutMillis();
 
-                              // Set responseTimeout to the min(retry timeout, overall deadline time remaining) to ensure we
-                              // don't exceed the overall deadline while making use of the entire overall client timeout.
-                              if (responseTimeout.isPresent() && overallDeadline.timeRemaining(TimeUnit.MILLISECONDS) <= responseTimeout.get()) {
-                                responseTimeout = Optional.of(overallDeadline.timeRemaining(TimeUnit.MILLISECONDS));
+                              // Set responseTimeout to the min(retry timeout, overall deadline time
+                              // remaining) to ensure we
+                              // don't exceed the overall deadline while making use of the entire
+                              // overall client timeout.
+                              if (responseTimeout.isPresent()
+                                  && overallDeadline.timeRemaining(TimeUnit.MILLISECONDS)
+                                      <= responseTimeout.get()) {
+                                responseTimeout =
+                                    Optional.of(
+                                        overallDeadline.timeRemaining(TimeUnit.MILLISECONDS));
                               }
 
                               // Proceed with the retry if everything is valid
