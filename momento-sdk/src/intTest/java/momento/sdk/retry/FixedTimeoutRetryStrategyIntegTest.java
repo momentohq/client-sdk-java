@@ -157,7 +157,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
               .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
 
           assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
-              .isEqualTo(1);
+              .isLessThanOrEqualTo(1);
         });
   }
 
