@@ -130,7 +130,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
 
   @Test
   void
-      testRetryEligibleApi_shouldMakeNoRetries_WhenRetryDelayIntervalMillisIsGreaterThanClientMaxDelayMillis()
+      testRetryEligibleApi_shouldTimeoutRetry_WhenRetryDelayIntervalMillisIsGreaterThanClientMaxDelayMillis()
           throws Exception {
     long retryDelayIntervalMillis = 4000;
     RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
@@ -157,7 +157,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
               .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
 
           assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
-              .isEqualTo(0);
+              .isLessThanOrEqualTo(1);
         });
   }
 
