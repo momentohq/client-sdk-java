@@ -2,36 +2,39 @@ package momento.sdk.retry.utils;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import momento.sdk.exceptions.MomentoErrorCode;
+import momento.sdk.exceptions.MomentoErrorCodeMetadataConverter;
 import momento.sdk.retry.MomentoRpcMethod;
+import momento.sdk.retry.MomentoRpcMethodMetadataConverter;
 import org.slf4j.Logger;
 
 public class MomentoLocalMiddlewareArgs {
   private final Logger logger;
   private final TestRetryMetricsCollector testMetricsCollector;
   private final String requestId;
-  private final MomentoErrorCode returnError;
-  private final List<MomentoRpcMethod> errorRpcList;
+  private final String returnError;
+  private final List<String> errorRpcList;
   private final Integer errorCount;
-  private final List<MomentoRpcMethod> delayRpcList;
+  private final List<String> delayRpcList;
   private final Integer delayMillis;
   private final Integer delayCount;
-  private final List<MomentoRpcMethod> streamErrorRpcList;
-  private final MomentoErrorCode streamError;
+  private final List<String> streamErrorRpcList;
+  private final String streamError;
   private final Integer streamErrorMessageLimit;
 
   private MomentoLocalMiddlewareArgs(
       Logger logger,
       TestRetryMetricsCollector testMetricsCollector,
       String requestId,
-      MomentoErrorCode returnError,
-      List<MomentoRpcMethod> errorRpcList,
+      String returnError,
+      List<String> errorRpcList,
       Integer errorCount,
-      List<MomentoRpcMethod> delayRpcList,
+      List<String> delayRpcList,
       Integer delayMillis,
       Integer delayCount,
-      List<MomentoRpcMethod> streamErrorRpcList,
-      MomentoErrorCode streamError,
+      List<String> streamErrorRpcList,
+      String streamError,
       Integer streamErrorMessageLimit) {
     this.logger = logger;
     this.testMetricsCollector = testMetricsCollector;
@@ -51,14 +54,14 @@ public class MomentoLocalMiddlewareArgs {
     private final Logger logger;
     private final String requestId;
     private TestRetryMetricsCollector testMetricsCollector;
-    private MomentoErrorCode returnError = null;
-    private List<MomentoRpcMethod> errorRpcList = null;
+    private String returnError = null;
+    private List<String> errorRpcList = null;
     private Integer errorCount = null;
-    private List<MomentoRpcMethod> delayRpcList = null;
+    private List<String> delayRpcList = null;
     private Integer delayMillis = null;
     private Integer delayCount = null;
-    private List<MomentoRpcMethod> streamErrorRpcList = null;
-    private MomentoErrorCode streamError = null;
+    private List<String> streamErrorRpcList = null;
+    private String streamError = null;
     private Integer streamErrorMessageLimit = null;
 
     public Builder(Logger logger, String requestId) {
@@ -72,12 +75,12 @@ public class MomentoLocalMiddlewareArgs {
     }
 
     public Builder returnError(MomentoErrorCode returnError) {
-      this.returnError = returnError;
+      this.returnError = MomentoErrorCodeMetadataConverter.convert(returnError);
       return this;
     }
 
     public Builder errorRpcList(List<MomentoRpcMethod> errorRpcList) {
-      this.errorRpcList = errorRpcList;
+      this.errorRpcList = this.convertRPCs(errorRpcList);
       return this;
     }
 
@@ -87,7 +90,7 @@ public class MomentoLocalMiddlewareArgs {
     }
 
     public Builder delayRpcList(List<MomentoRpcMethod> delayRpcList) {
-      this.delayRpcList = delayRpcList;
+      this.delayRpcList = this.convertRPCs(delayRpcList);
       return this;
     }
 
@@ -102,12 +105,12 @@ public class MomentoLocalMiddlewareArgs {
     }
 
     public Builder streamErrorRpcList(List<MomentoRpcMethod> errorRpcList) {
-      this.streamErrorRpcList = errorRpcList;
+      this.streamErrorRpcList = this.convertRPCs(errorRpcList);
       return this;
     }
 
     public Builder streamError(MomentoErrorCode streamError) {
-      this.streamError = streamError;
+      this.streamError = MomentoErrorCodeMetadataConverter.convert(streamError);
       return this;
     }
 
@@ -131,6 +134,12 @@ public class MomentoLocalMiddlewareArgs {
           streamError,
           streamErrorMessageLimit);
     }
+
+    private List<String> convertRPCs(List<MomentoRpcMethod> RPCs) {
+      return RPCs.stream()
+          .map(MomentoRpcMethodMetadataConverter::convert)
+          .collect(Collectors.toList());
+    }
   }
 
   public Logger getLogger() {
@@ -145,11 +154,11 @@ public class MomentoLocalMiddlewareArgs {
     return Optional.ofNullable(testMetricsCollector);
   }
 
-  public Optional<MomentoErrorCode> getReturnError() {
+  public Optional<String> getReturnError() {
     return Optional.ofNullable(returnError);
   }
 
-  public Optional<List<MomentoRpcMethod>> getErrorRpcList() {
+  public Optional<List<String>> getErrorRpcList() {
     return Optional.ofNullable(errorRpcList);
   }
 
@@ -157,7 +166,7 @@ public class MomentoLocalMiddlewareArgs {
     return Optional.ofNullable(errorCount);
   }
 
-  public Optional<List<MomentoRpcMethod>> getDelayRpcList() {
+  public Optional<List<String>> getDelayRpcList() {
     return Optional.ofNullable(delayRpcList);
   }
 
@@ -169,11 +178,11 @@ public class MomentoLocalMiddlewareArgs {
     return Optional.ofNullable(delayCount);
   }
 
-  public Optional<List<MomentoRpcMethod>> getStreamErrorRpcList() {
+  public Optional<List<String>> getStreamErrorRpcList() {
     return Optional.ofNullable(streamErrorRpcList);
   }
 
-  public Optional<MomentoErrorCode> getStreamError() {
+  public Optional<String> getStreamError() {
     return Optional.ofNullable(streamError);
   }
 
