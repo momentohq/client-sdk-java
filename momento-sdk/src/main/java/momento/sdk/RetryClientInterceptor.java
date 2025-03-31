@@ -134,14 +134,6 @@ final class RetryClientInterceptor implements ClientInterceptor {
                   return;
                 }
 
-                // If the retry delay is greater than the overall deadline, we don't need to retry
-                if (retryDelay.get().toMillis()
-                    > overallDeadline.timeRemaining(TimeUnit.MILLISECONDS)) {
-                  cancelAttempt();
-                  super.onClose(Status.DEADLINE_EXCEEDED, trailers);
-                  return;
-                }
-
                 logger.debug(
                     "Retrying request {} on error code {} with delay {} milliseconds",
                     method.getFullMethodName(),
