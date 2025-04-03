@@ -1,5 +1,5 @@
 .PHONY: all clean build test prod-test test-unit test-integration test-auth-service test-cache-service \
-    test-leaderboard-service test-storage-service test-topics-service test-http-service format lint precommit help
+    test-leaderboard-service test-topics-service test-http-service format lint precommit help
 
 all: precommit
 
@@ -37,10 +37,6 @@ test-cache-service:
 ## Run the leaderboard service tests
 test-leaderboard-service:
 	@CONSISTENT_READS=1 ./gradlew test-leaderboard-service
-
-## Run the storage service tests
-test-storage-service:
-	@CONSISTENT_READS=1 ./gradlew test-storage-service
 
 ## Run the topics service tests
 test-topics-service:

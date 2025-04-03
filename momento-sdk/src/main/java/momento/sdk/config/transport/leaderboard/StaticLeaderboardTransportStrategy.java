@@ -9,7 +9,7 @@ public class StaticLeaderboardTransportStrategy implements LeaderboardTransportS
   private final LeaderboardGrpcConfiguration grpcConfiguration;
 
   /**
-   * Constructs a StaticStorageTransportStrategy.
+   * Constructs a StaticLeaderboardTransportStrategy.
    *
    * @param grpcConfiguration gRPC tunables.
    */

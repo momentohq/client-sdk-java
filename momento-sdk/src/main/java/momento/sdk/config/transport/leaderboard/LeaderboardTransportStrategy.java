@@ -13,7 +13,7 @@ public interface LeaderboardTransportStrategy {
    * Copy constructor that modifies the gRPC configuration.
    *
    * @param grpcConfiguration low-level gRPC settings.
-   * @return The modified StorageTransportStrategy.
+   * @return The modified LeaderboardTransportStrategy.
    */
   LeaderboardTransportStrategy withGrpcConfiguration(
       LeaderboardGrpcConfiguration grpcConfiguration);
