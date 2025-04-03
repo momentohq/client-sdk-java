@@ -96,11 +96,6 @@ registerIntegrationTestTask(
 )
 
 registerIntegrationTestTask(
-    "test-storage-service",
-    listOf("momento.sdk.storage.*")
-)
-
-registerIntegrationTestTask(
     "test-topics-service",
     listOf("momento.sdk.topics.*")
 )
