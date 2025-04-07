@@ -13,12 +13,12 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.LeaderboardConfigurations;
 import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.responses.SortOrder;
+import momento.sdk.responses.leaderboard.DeleteResponse;
 import momento.sdk.responses.leaderboard.FetchResponse;
 import momento.sdk.responses.leaderboard.LeaderboardElement;
 import momento.sdk.responses.leaderboard.LengthResponse;
 import momento.sdk.responses.leaderboard.RemoveElementsResponse;
 import momento.sdk.responses.leaderboard.UpsertResponse;
-import momento.sdk.responses.storage.DeleteResponse;
 
 public class DocExamplesJavaAPIs {
 
