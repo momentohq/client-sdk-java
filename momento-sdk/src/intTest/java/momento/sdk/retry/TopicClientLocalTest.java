@@ -229,7 +229,7 @@ public class TopicClientLocalTest {
 
           @Override
           public void onHeartbeat() {
-            System.out.println("onHeartbeat Invoked");
+
           }
         };
 
