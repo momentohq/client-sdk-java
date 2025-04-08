@@ -228,9 +228,7 @@ public class TopicClientLocalTest {
           public void onConnectionRestored() {}
 
           @Override
-          public void onHeartbeat() {
-
-          }
+          public void onHeartbeat() {}
         };
 
     withCacheAndTopicClient(
