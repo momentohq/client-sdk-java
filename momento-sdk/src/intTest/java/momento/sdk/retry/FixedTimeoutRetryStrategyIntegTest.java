@@ -162,9 +162,8 @@ public class FixedTimeoutRetryStrategyIntegTest {
   }
 
   @Test
-  void
-      testRetryEligibleApi_shouldMakeNoRetries_WhenTestConfigDelayMillisIsGreaterThanResponseDataReceivedTimeoutMillis()
-          throws Exception {
+  void testRetryEligibleApi_shouldMakeNoRetries_WhenResponseDelayIsGreaterThanClientTimeout()
+      throws Exception {
     RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
 
     FixedTimeoutRetryStrategy retryStrategy =
@@ -196,21 +195,22 @@ public class FixedTimeoutRetryStrategyIntegTest {
   }
 
   @Test
-  void
-      testRetryEligibleApi_shouldMakeNoRetries_WhenTestConfigDelayMillisIsGreaterThanClientTimeoutMillis()
-          throws Exception {
+  void testRetryEligibleApi_shouldRetry_WhenResponsesHaveShortDelaysDuringFullOutage()
+      throws Exception {
     RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
 
     FixedTimeoutRetryStrategy retryStrategy =
         new FixedTimeoutRetryStrategy(
             eligibilityStrategy, retryDelayIntervalMillis, responseDataReceivedTimeoutMillis);
 
+    int shortDelay = (int) (retryDelayIntervalMillis + 100);
+
     MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
         new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
             .testMetricsCollector(testRetryMetricsCollector)
             .returnError(MomentoErrorCode.SERVER_UNAVAILABLE)
             .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET))
-            .delayMillis(4000) // Delay greater than client timeout
+            .delayMillis(shortDelay)
             .delayRpcList(Collections.singletonList(MomentoRpcMethod.GET))
             .build();
 
@@ -224,42 +224,82 @@ public class FixedTimeoutRetryStrategyIntegTest {
               .extracting(SdkException::getErrorCode)
               .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
 
+          // Should receive errors after shortDelay ms and retry every RETRY_DELAY_INTERVAL_MILLIS
+          // until the client timeout is reached.
+          int delayBetweenAttempts = (int) (retryDelayIntervalMillis + shortDelay);
+          int maxAttempts =
+              (int) Math.round(CLIENT_TIMEOUT_MILLIS.toMillis() / (double) delayBetweenAttempts);
           assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
-              .isEqualTo(0);
+              .isBetween(2, maxAttempts);
+
+          // Jitter will be +/- 10% of the delay between retry attempts
+          double maxDelay = delayBetweenAttempts * 1.1;
+          double minDelay = delayBetweenAttempts * 0.9;
+          double average =
+              testRetryMetricsCollector.getAverageTimeBetweenRetries(
+                  cacheName, MomentoRpcMethod.GET);
+          assertThat(average).isBetween(minDelay, maxDelay);
         });
   }
 
   @Test
-  void
-      testRetryEligibleApi_shouldRetry_WhenTestConfigDelayMillisIsLessThanResponseDataReceivedTimeoutMillis()
-          throws Exception {
+  void testRetryEligibleApi_shouldRetry_WhenResponsesHaveLongDelaysDuringFullOutage()
+      throws Exception {
     RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
 
     FixedTimeoutRetryStrategy retryStrategy =
         new FixedTimeoutRetryStrategy(
             eligibilityStrategy, retryDelayIntervalMillis, responseDataReceivedTimeoutMillis);
 
+    // Momento-local should delay responses for longer than the retry timeout so that
+    // we can test the retry strategy's timeout is actually being respected.
+    int longDelay = (int) (responseDataReceivedTimeoutMillis + 500);
+
     MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
         new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
             .testMetricsCollector(testRetryMetricsCollector)
             .returnError(MomentoErrorCode.SERVER_UNAVAILABLE)
             .errorRpcList(Collections.singletonList(MomentoRpcMethod.GET))
-            .errorCount(1) // return error only on first attempt
-            .delayMillis(100) // Delay less than response data received timeout
+            .delayMillis(longDelay)
             .delayRpcList(Collections.singletonList(MomentoRpcMethod.GET))
-            .delayCount(1) // Delay only on first attempt
             .build();
 
+    Duration clientTimeout = Duration.ofMillis(6000L);
     withCacheAndCacheClient(
-        config -> config.withRetryStrategy(retryStrategy).withTimeout(CLIENT_TIMEOUT_MILLIS),
+        config -> config.withRetryStrategy(retryStrategy).withTimeout(clientTimeout),
         momentoLocalMiddlewareArgs,
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.get(cacheName, "key"))
-              .succeedsWithin(FIVE_SECONDS)
-              .isInstanceOf(GetResponse.Miss.class);
+              .succeedsWithin(Duration.ofSeconds(8))
+              .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
+              .extracting(SdkException::getErrorCode)
+              .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
 
+          // Should receive errors after longDelay ms and retry every RETRY_DELAY_INTERVAL_MILLIS
+          // until the client timeout is reached.
+          int delayBetweenAttempts = (int) (retryDelayIntervalMillis + longDelay);
+          int maxAttempts =
+              (int) Math.ceil(clientTimeout.toMillis() / (double) delayBetweenAttempts) + 1;
+          // Fixed timeout retry strategy should retry at least twice.
+          // If it retries only once, it could mean that the retry attempt is timing out and if we
+          // aren't
+          // handling that case correctly, then it won't continue retrying until the client timeout
+          // is reached.
           assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
-              .isEqualTo(1);
+              .isBetween(2, maxAttempts);
+
+          // Jitter will contribute +/- 10% of the delay between retry attempts, and estimating
+          // the request will take up to 10% more time as well.
+          // The expected delay here is not longDelay because the retry strategy's timeout is
+          // shorter than that and retry attempts should stop before longDelay is reached.
+          double expectedDelayBetweenAttempts =
+              responseDataReceivedTimeoutMillis + retryDelayIntervalMillis;
+          double maxDelay = expectedDelayBetweenAttempts * 1.2;
+          double minDelay = expectedDelayBetweenAttempts * 0.9;
+          double average =
+              testRetryMetricsCollector.getAverageTimeBetweenRetries(
+                  cacheName, MomentoRpcMethod.GET);
+          assertThat(average).isBetween(minDelay, maxDelay);
         });
   }
 }
