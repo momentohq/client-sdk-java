@@ -13,6 +13,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
 
   private final @Nonnull Duration deadline;
   private final int minNumGrpcChannels;
+  private final @Nullable Integer numStreamGrpcChannels;
+  private final @Nullable Integer numUnaryGrpcChannels;
   private final @Nullable Integer maxMessageSize;
   private final @Nullable Boolean keepAliveWithoutCalls;
   private final @Nullable Duration keepAliveTimeout;
@@ -26,7 +28,9 @@ public class GrpcConfiguration implements IGrpcConfiguration {
   public GrpcConfiguration(@Nonnull Duration deadline) {
     this(
         deadline,
-        1,
+        GrpcChannelOptions.DEFAULT_NUM_GRPC_CHANNELS,
+        null,
+        null,
         GrpcChannelOptions.DEFAULT_MAX_MESSAGE_SIZE,
         GrpcChannelOptions.DEFAULT_KEEPALIVE_WITHOUT_STREAM,
         GrpcChannelOptions.DEFAULT_KEEPALIVE_TIMEOUT,
@@ -38,6 +42,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
    *
    * @param deadline The maximum duration of a gRPC call.
    * @param minNumGrpcChannels The minimum number of gRPC channels to keep open at any given time.
+   * @param numStreamGrpcChannels The number of stream grpc channels to keep open at any given time.
+   * @param numUnaryGrpcChannels The number of unary grpc channels to keep open at any given time.
    * @param maxMessageSize The maximum size of a message (in bytes) that can be received by the
    *     client.
    * @param keepAliveWithoutCalls Whether to send keepalive pings without any active calls.
@@ -48,6 +54,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
   public GrpcConfiguration(
       @Nonnull Duration deadline,
       int minNumGrpcChannels,
+      Optional<Integer> numStreamGrpcChannels,
+      Optional<Integer> numUnaryGrpcChannels,
       Optional<Integer> maxMessageSize,
       Optional<Boolean> keepAliveWithoutCalls,
       Optional<Integer> keepAliveTimeout,
@@ -55,6 +63,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     this(
         deadline,
         minNumGrpcChannels,
+        numStreamGrpcChannels.orElse(null),
+        numUnaryGrpcChannels.orElse(null),
         maxMessageSize.orElse(null),
         keepAliveWithoutCalls.orElse(null),
         keepAliveTimeout.map(Duration::ofMillis).orElse(null),
@@ -76,6 +86,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
   public GrpcConfiguration(
       @Nonnull Duration deadline,
       int minNumGrpcChannels,
+      @Nullable Integer numStreamGrpcChannels,
+      @Nullable Integer numUnaryGrpcChannels,
       @Nullable Integer maxMessageSize,
       @Nullable Boolean keepAliveWithoutCalls,
       @Nullable Duration keepAliveTimeout,
@@ -83,6 +95,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     ensureRequestDeadlineValid(deadline);
     this.deadline = deadline;
     this.minNumGrpcChannels = minNumGrpcChannels;
+    this.numStreamGrpcChannels = numStreamGrpcChannels;
+    this.numUnaryGrpcChannels = numUnaryGrpcChannels;
     this.maxMessageSize = maxMessageSize;
     this.keepAliveWithoutCalls = keepAliveWithoutCalls;
     this.keepAliveTimeout = keepAliveTimeout;
@@ -104,6 +118,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     return new GrpcConfiguration(
         deadline,
         minNumGrpcChannels,
+        numStreamGrpcChannels,
+        numUnaryGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
         keepAliveTimeout,
@@ -116,7 +132,29 @@ public class GrpcConfiguration implements IGrpcConfiguration {
   }
 
   /**
-   * Copy constructor that updates the minimum number of gRPC channels.
+   * Gets the explicitly configured number of streaming gRPC channels, or fallback to
+   * minNumGrpcChannels.
+   *
+   * @return The number of streaming gRPC channels to create.
+   */
+  public int getNumStreamGrpcChannels() {
+    return numStreamGrpcChannels != null ? numStreamGrpcChannels : minNumGrpcChannels;
+  }
+
+  /**
+   * Gets the explicitly configured number of unary gRPC channels, or fallback to
+   * minNumGrpcChannels.
+   *
+   * @return The number of unary gRPC channels to create.
+   */
+  public int getNumUnaryGrpcChannels() {
+    return numUnaryGrpcChannels != null ? numUnaryGrpcChannels : minNumGrpcChannels;
+  }
+
+  /**
+   * Copy constructor that updates the minimum number of gRPC channels. <b>Note:</b> This setting is
+   * ignored by the TopicClient. Use {@link #withNumStreamGrpcChannels} and {@link
+   * #withNumUnaryGrpcChannels} instead for topic clients.
    *
    * @param minNumGrpcChannels The new minimum number of gRPC channels.
    * @return The updated GrpcConfiguration.
@@ -125,6 +163,46 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     return new GrpcConfiguration(
         deadline,
         minNumGrpcChannels,
+        numStreamGrpcChannels,
+        numUnaryGrpcChannels,
+        maxMessageSize,
+        keepAliveWithoutCalls,
+        keepAliveTimeout,
+        keepAliveTime);
+  }
+
+  /**
+   * Copy constructor that sets the number of stream gRPC channels to be used by clients that
+   * support streaming (e.g. TopicClient). <b>Note:</b> This setting is ignored by the CacheClient.
+   *
+   * @param numStreamGrpcChannels The new number of streaming gRPC channels.
+   * @return The updated GrpcConfiguration.
+   */
+  public GrpcConfiguration withNumStreamGrpcChannels(int numStreamGrpcChannels) {
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        numStreamGrpcChannels,
+        numUnaryGrpcChannels,
+        maxMessageSize,
+        keepAliveWithoutCalls,
+        keepAliveTimeout,
+        keepAliveTime);
+  }
+
+  /**
+   * Copy constructor that sets the number of unary gRPC channels. <b>Note:</b> This setting is
+   * ignored by the CacheClient.
+   *
+   * @param numUnaryGrpcChannels The new minimum number of gRPC channels.
+   * @return The updated GrpcConfiguration.
+   */
+  public GrpcConfiguration withNumUnaryGrpcChannels(int numUnaryGrpcChannels) {
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        numStreamGrpcChannels,
+        numUnaryGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
         keepAliveTimeout,
@@ -155,6 +233,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     return new GrpcConfiguration(
         deadline,
         minNumGrpcChannels,
+        numStreamGrpcChannels,
+        numUnaryGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
         keepAliveTimeout,
@@ -204,6 +284,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     return new GrpcConfiguration(
         deadline,
         minNumGrpcChannels,
+        numStreamGrpcChannels,
+        numUnaryGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
         keepAliveTimeout,
@@ -242,6 +324,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     return new GrpcConfiguration(
         deadline,
         minNumGrpcChannels,
+        numStreamGrpcChannels,
+        numUnaryGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
         Duration.ofMillis(keepAliveTimeoutMs),
@@ -279,6 +363,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     return new GrpcConfiguration(
         deadline,
         minNumGrpcChannels,
+        numStreamGrpcChannels,
+        numUnaryGrpcChannels,
         maxMessageSize,
         keepAliveWithoutCalls,
         keepAliveTimeout,
@@ -298,6 +384,14 @@ public class GrpcConfiguration implements IGrpcConfiguration {
    * @return The updated GrpcConfiguration.
    */
   public GrpcConfiguration withKeepAliveDisabled() {
-    return new GrpcConfiguration(deadline, minNumGrpcChannels, maxMessageSize, null, null, null);
+    return new GrpcConfiguration(
+        deadline,
+        minNumGrpcChannels,
+        numStreamGrpcChannels,
+        numUnaryGrpcChannels,
+        maxMessageSize,
+        null,
+        null,
+        null);
   }
 }
