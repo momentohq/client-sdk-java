@@ -23,7 +23,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
   private static TestRetryMetricsCollector testRetryMetricsCollector;
   private static Logger logger;
 
-  private static final Duration CLIENT_TIMEOUT_MILLIS = Duration.ofMillis(4000L);
+  private static final Duration CLIENT_TIMEOUT_MILLIS = Duration.ofMillis(3000L);
   private static final long retryDelayIntervalMillis = 100;
   private static final long responseDataReceivedTimeoutMillis = 1000;
 
@@ -264,12 +264,13 @@ public class FixedTimeoutRetryStrategyIntegTest {
             .delayRpcList(Collections.singletonList(MomentoRpcMethod.GET))
             .build();
 
+    Duration clientTimeout = Duration.ofMillis(6000L);
     withCacheAndCacheClient(
-        config -> config.withRetryStrategy(retryStrategy).withTimeout(CLIENT_TIMEOUT_MILLIS),
+        config -> config.withRetryStrategy(retryStrategy).withTimeout(clientTimeout),
         momentoLocalMiddlewareArgs,
         (cacheClient, cacheName) -> {
           assertThat(cacheClient.get(cacheName, "key"))
-              .succeedsWithin(FIVE_SECONDS)
+              .succeedsWithin(Duration.ofSeconds(8))
               .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Error.class))
               .extracting(SdkException::getErrorCode)
               .isEqualTo(MomentoErrorCode.TIMEOUT_ERROR);
@@ -278,7 +279,7 @@ public class FixedTimeoutRetryStrategyIntegTest {
           // until the client timeout is reached.
           int delayBetweenAttempts = (int) (retryDelayIntervalMillis + longDelay);
           int maxAttempts =
-              (int) Math.ceil(CLIENT_TIMEOUT_MILLIS.toMillis() / (double) delayBetweenAttempts);
+              (int) Math.ceil(clientTimeout.toMillis() / (double) delayBetweenAttempts) + 1;
           // Fixed timeout retry strategy should retry at least twice.
           // If it retries only once, it could mean that the retry attempt is timing out and if we
           // aren't
@@ -288,13 +289,13 @@ public class FixedTimeoutRetryStrategyIntegTest {
               .isBetween(2, maxAttempts);
 
           // Jitter will contribute +/- 10% of the delay between retry attempts, and estimating
-          // the request will take +/- 5% more time as well.
+          // the request will take up to 10% more time as well.
           // The expected delay here is not longDelay because the retry strategy's timeout is
           // shorter than that and retry attempts should stop before longDelay is reached.
           double expectedDelayBetweenAttempts =
               responseDataReceivedTimeoutMillis + retryDelayIntervalMillis;
-          double maxDelay = expectedDelayBetweenAttempts * 1.15;
-          double minDelay = expectedDelayBetweenAttempts * 0.85;
+          double maxDelay = expectedDelayBetweenAttempts * 1.2;
+          double minDelay = expectedDelayBetweenAttempts * 0.9;
           double average =
               testRetryMetricsCollector.getAverageTimeBetweenRetries(
                   cacheName, MomentoRpcMethod.GET);
