@@ -1,9 +1,9 @@
 package momento.sdk.config;
 
 import java.time.Duration;
-import momento.sdk.config.transport.topics.StaticTopicsTransportStrategy;
-import momento.sdk.config.transport.topics.TopicsGrpcConfiguration;
-import momento.sdk.config.transport.topics.TopicsTransportStrategy;
+import momento.sdk.config.transport.GrpcConfiguration;
+import momento.sdk.config.transport.StaticTransportStrategy;
+import momento.sdk.config.transport.TransportStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +15,7 @@ public class TopicConfigurations {
    */
   public static class Laptop extends TopicConfiguration {
 
-    private Laptop(TopicsTransportStrategy transportStrategy, Logger logger) {
+    private Laptop(TransportStrategy transportStrategy, Logger logger) {
       super(transportStrategy, logger);
     }
 
@@ -28,12 +28,11 @@ public class TopicConfigurations {
      * @return the latest Laptop configuration
      */
     public static TopicConfiguration latest() {
-      final TopicsGrpcConfiguration grpcConfig =
-          new TopicsGrpcConfiguration(Duration.ofMillis(15000))
+      final GrpcConfiguration grpcConfig =
+          new GrpcConfiguration(Duration.ofMillis(15000))
               .withKeepAliveTime(10000)
               .withKeepAliveTimeout(5000);
-      final TopicsTransportStrategy transportStrategy =
-          new StaticTopicsTransportStrategy(grpcConfig);
+      final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);
       return new Laptop(transportStrategy, logger);
     }
@@ -45,7 +44,7 @@ public class TopicConfigurations {
    */
   public static class InRegion extends TopicConfiguration {
 
-    private InRegion(TopicsTransportStrategy transportStrategy, Logger logger) {
+    private InRegion(TransportStrategy transportStrategy, Logger logger) {
       super(transportStrategy, logger);
     }
 
@@ -58,12 +57,11 @@ public class TopicConfigurations {
      * @return the latest in-region configuration
      */
     public static TopicConfiguration latest() {
-      final TopicsGrpcConfiguration grpcConfig =
-          new TopicsGrpcConfiguration(Duration.ofMillis(1100))
+      final GrpcConfiguration grpcConfig =
+          new GrpcConfiguration(Duration.ofMillis(1100))
               .withKeepAliveTime(10000)
               .withKeepAliveTimeout(5000);
-      final TopicsTransportStrategy transportStrategy =
-          new StaticTopicsTransportStrategy(grpcConfig);
+      final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);
       return new InRegion(transportStrategy, logger);
     }
@@ -76,7 +74,7 @@ public class TopicConfigurations {
    */
   public static class LowLatency extends TopicConfiguration {
 
-    private LowLatency(TopicsTransportStrategy transportStrategy, Logger logger) {
+    private LowLatency(TransportStrategy transportStrategy, Logger logger) {
       super(transportStrategy, logger);
     }
 
@@ -89,12 +87,11 @@ public class TopicConfigurations {
      * @return the latest low-latency configuration
      */
     public static TopicConfiguration latest() {
-      final TopicsGrpcConfiguration grpcConfig =
-          new TopicsGrpcConfiguration(Duration.ofMillis(500))
+      final GrpcConfiguration grpcConfig =
+          new GrpcConfiguration(Duration.ofMillis(500))
               .withKeepAliveTime(10000)
               .withKeepAliveTimeout(5000);
-      final TopicsTransportStrategy transportStrategy =
-          new StaticTopicsTransportStrategy(grpcConfig);
+      final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
       final Logger logger = LoggerFactory.getLogger(TopicConfiguration.class);
       return new LowLatency(transportStrategy, logger);
     }
