@@ -60,7 +60,7 @@ public class TopicConfiguration {
    * Copy constructor that adds a middleware.
    *
    * @param middleware The new middleware.
-   * @return a new Configuration with the updated middleware.
+   * @return a new TopicConfiguration with the updated middleware.
    */
   public TopicConfiguration withMiddleware(@Nonnull final Middleware middleware) {
     final List<Middleware> newMiddlewares = new ArrayList<>(this.middlewares);
