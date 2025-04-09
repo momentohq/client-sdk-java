@@ -44,9 +44,9 @@ public class Configurations {
   public void testTopicsLaptopConfigurationNumChannels() {
     final TopicConfiguration config = momento.sdk.config.TopicConfigurations.Laptop.latest();
     final GrpcConfiguration grpcConfig = config.getTransportStrategy().getGrpcConfiguration();
-    assertEquals(4, grpcConfig.getNumUnaryGrpcChannels());
-    assertEquals(4, grpcConfig.getNumStreamGrpcChannels());
-    assertEquals(4, grpcConfig.getMinNumGrpcChannels());
+    assertEquals(4, grpcConfig.getNumUnaryGrpcChannels()); // Default value
+    assertEquals(4, grpcConfig.getNumStreamGrpcChannels()); // Default value
+    assertEquals(4, grpcConfig.getMinNumGrpcChannels()); // Default value
   }
 
   @Test
@@ -59,7 +59,7 @@ public class Configurations {
 
     assertEquals(2, transportStrategy.getGrpcConfiguration().getNumUnaryGrpcChannels());
     assertEquals(3, transportStrategy.getGrpcConfiguration().getNumStreamGrpcChannels());
-    assertEquals(4, transportStrategy.getGrpcConfiguration().getMinNumGrpcChannels());
+    assertEquals(4, transportStrategy.getGrpcConfiguration().getMinNumGrpcChannels()); // Default value
     assertEquals(Duration.ofMillis(15000), transportStrategy.getGrpcConfiguration().getDeadline());
   }
 
@@ -69,8 +69,8 @@ public class Configurations {
         new GrpcConfiguration(Duration.ofMillis(15000)).withMinNumGrpcChannels(2);
     final TransportStrategy transportStrategy = new StaticTransportStrategy(grpcConfig);
 
-    assertEquals(2, transportStrategy.getGrpcConfiguration().getNumUnaryGrpcChannels());
-    assertEquals(2, transportStrategy.getGrpcConfiguration().getNumStreamGrpcChannels());
+    assertEquals(2, transportStrategy.getGrpcConfiguration().getNumUnaryGrpcChannels()); // Fallback to minNumGrpcChannels
+    assertEquals(2, transportStrategy.getGrpcConfiguration().getNumStreamGrpcChannels()); // Fallback to minNumGrpcChannels
     assertEquals(2, transportStrategy.getGrpcConfiguration().getMinNumGrpcChannels());
     assertEquals(Duration.ofMillis(15000), transportStrategy.getGrpcConfiguration().getDeadline());
   }
