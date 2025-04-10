@@ -302,4 +302,35 @@ public class FixedTimeoutRetryStrategyIntegTest {
           assertThat(average).isBetween(minDelay, maxDelay);
         });
   }
+
+  @Test
+  void testRetryDeadlineShouldNotBeSetOnInitialRequest() throws Exception {
+    RetryEligibilityStrategy eligibilityStrategy = (status, methodName) -> true;
+
+    long retryTimeoutMillis = 100; // really short
+    int delayMillis = 500;
+
+    FixedTimeoutRetryStrategy retryStrategy =
+        new FixedTimeoutRetryStrategy(
+            eligibilityStrategy, retryDelayIntervalMillis, retryTimeoutMillis);
+
+    MomentoLocalMiddlewareArgs momentoLocalMiddlewareArgs =
+        new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
+            .testMetricsCollector(testRetryMetricsCollector)
+            .delayMillis(delayMillis)
+            .delayRpcList(Collections.singletonList(MomentoRpcMethod.GET))
+            .build();
+
+    withCacheAndCacheClient(
+        config -> config.withRetryStrategy(retryStrategy).withTimeout(CLIENT_TIMEOUT_MILLIS),
+        momentoLocalMiddlewareArgs,
+        (cacheClient, cacheName) -> {
+          assertThat(cacheClient.get(cacheName, "key"))
+              .succeedsWithin(FIVE_SECONDS)
+              .asInstanceOf(InstanceOfAssertFactories.type(GetResponse.Miss.class));
+
+          assertThat(testRetryMetricsCollector.getTotalRetryCount(cacheName, MomentoRpcMethod.GET))
+              .isEqualTo(0);
+        });
+  }
 }
