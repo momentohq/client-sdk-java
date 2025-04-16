@@ -7,7 +7,6 @@ import grpc.cache_client.pubsub._SubscriptionRequest;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.stub.StreamObserver;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
@@ -103,15 +102,7 @@ public class ScsTopicClient extends ScsClientBase {
 
     try {
       topicGrpcStubsManager
-          .getStub()
-          .withDeadlineAfter(
-              topicGrpcStubsManager
-                  .getConfiguration()
-                  .getTransportStrategy()
-                  .getGrpcConfiguration()
-                  .getDeadline()
-                  .getSeconds(),
-              TimeUnit.SECONDS)
+          .getNextUnaryStub()
           .publish(
               request,
               new StreamObserver() {
@@ -161,7 +152,7 @@ public class ScsTopicClient extends ScsClientBase {
           public void subscribe(
               _SubscriptionRequest subscriptionRequest,
               CancelableClientCallStreamObserver<_SubscriptionItem> subscription) {
-            topicGrpcStubsManager.getStub().subscribe(subscriptionRequest, subscription);
+            topicGrpcStubsManager.getNextStreamStub().subscribe(subscriptionRequest, subscription);
           }
         };
 

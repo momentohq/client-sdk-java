@@ -21,6 +21,9 @@ public class GrpcChannelOptions {
   public static final int DEFAULT_KEEPALIVE_TIMEOUT_MS = 1000; // milliseconds
   public static final Duration DEFAULT_KEEPALIVE_TIMEOUT =
       Duration.ofMillis(DEFAULT_KEEPALIVE_TIMEOUT_MS);
+  public static final int DEFAULT_NUM_GRPC_CHANNELS = 4;
+  public static final int DEFAULT_NUM_UNARY_GRPC_CHANNELS = 4;
+  public static final int DEFAULT_NUM_STREAM_GRPC_CHANNELS = 4;
 
   public static void applyGrpcConfigurationToChannelBuilder(
       IGrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder) {
