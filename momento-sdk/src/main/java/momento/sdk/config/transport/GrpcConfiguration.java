@@ -127,6 +127,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     ensureRequestDeadlineValid(deadline);
     this.deadline = deadline;
     this.minNumGrpcChannels = minNumGrpcChannels;
+    this.numStreamGrpcChannels = null;
+    this.numUnaryGrpcChannels = null;
     this.maxMessageSize = maxMessageSize;
     this.keepAliveWithoutCalls = keepAliveWithoutCalls;
     this.keepAliveTimeout = keepAliveTimeout;
