@@ -76,6 +76,8 @@ public class GrpcConfiguration implements IGrpcConfiguration {
    *
    * @param deadline The maximum duration of a gRPC call.
    * @param minNumGrpcChannels The minimum number of gRPC channels to keep open at any given time.
+   * @param numStreamGrpcChannels The number of stream grpc channels to keep open at any given time.
+   * @param numUnaryGrpcChannels The number of unary grpc channels to keep open at any given time.
    * @param maxMessageSize The maximum size of a message (in bytes) that can be received by the
    *     client.
    * @param keepAliveWithoutCalls Whether to send keepalive pings without any active calls.
@@ -97,6 +99,34 @@ public class GrpcConfiguration implements IGrpcConfiguration {
     this.minNumGrpcChannels = minNumGrpcChannels;
     this.numStreamGrpcChannels = numStreamGrpcChannels;
     this.numUnaryGrpcChannels = numUnaryGrpcChannels;
+    this.maxMessageSize = maxMessageSize;
+    this.keepAliveWithoutCalls = keepAliveWithoutCalls;
+    this.keepAliveTimeout = keepAliveTimeout;
+    this.keepAliveTime = keepAliveTime;
+  }
+
+  /**
+   * Constructs a GrpcConfiguration.
+   *
+   * @param deadline The maximum duration of a gRPC call.
+   * @param minNumGrpcChannels The minimum number of gRPC channels to keep open at any given time.
+   * @param maxMessageSize The maximum size of a message (in bytes) that can be received by the
+   *     client.
+   * @param keepAliveWithoutCalls Whether to send keepalive pings without any active calls.
+   * @param keepAliveTimeout The time to wait for a keepalive ping response before considering the
+   *     connection dead.
+   * @param keepAliveTime The time to wait between keepalive pings.
+   */
+  public GrpcConfiguration(
+          @Nonnull Duration deadline,
+          int minNumGrpcChannels,
+          @Nullable Integer maxMessageSize,
+          @Nullable Boolean keepAliveWithoutCalls,
+          @Nullable Duration keepAliveTimeout,
+          @Nullable Duration keepAliveTime) {
+    ensureRequestDeadlineValid(deadline);
+    this.deadline = deadline;
+    this.minNumGrpcChannels = minNumGrpcChannels;
     this.maxMessageSize = maxMessageSize;
     this.keepAliveWithoutCalls = keepAliveWithoutCalls;
     this.keepAliveTimeout = keepAliveTimeout;
