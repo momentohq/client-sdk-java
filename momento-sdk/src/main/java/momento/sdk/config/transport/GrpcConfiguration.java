@@ -118,12 +118,12 @@ public class GrpcConfiguration implements IGrpcConfiguration {
    * @param keepAliveTime The time to wait between keepalive pings.
    */
   public GrpcConfiguration(
-          @Nonnull Duration deadline,
-          int minNumGrpcChannels,
-          @Nullable Integer maxMessageSize,
-          @Nullable Boolean keepAliveWithoutCalls,
-          @Nullable Duration keepAliveTimeout,
-          @Nullable Duration keepAliveTime) {
+      @Nonnull Duration deadline,
+      int minNumGrpcChannels,
+      @Nullable Integer maxMessageSize,
+      @Nullable Boolean keepAliveWithoutCalls,
+      @Nullable Duration keepAliveTimeout,
+      @Nullable Duration keepAliveTime) {
     ensureRequestDeadlineValid(deadline);
     this.deadline = deadline;
     this.minNumGrpcChannels = minNumGrpcChannels;
