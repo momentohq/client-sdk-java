@@ -5,10 +5,15 @@ import io.grpc.ClientInterceptor;
 import io.grpc.ManagedChannel;
 import io.grpc.netty.shaded.io.grpc.netty.NettyChannelBuilder;
 import java.io.Closeable;
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
@@ -25,17 +30,42 @@ import momento.sdk.internal.GrpcChannelOptions;
  */
 final class ScsTopicGrpcStubsManager implements Closeable {
 
-  private final ManagedChannel channel;
-  private final PubsubGrpc.PubsubStub stub;
+  private final List<ManagedChannel> unaryChannels;
+  private final List<PubsubGrpc.PubsubStub> unaryStubs;
+  private final AtomicInteger unaryIndex = new AtomicInteger(0);
+
+  private final List<ManagedChannel> streamChannels;
+  private final List<PubsubGrpc.PubsubStub> streamStubs;
+  private final AtomicInteger streamIndex = new AtomicInteger(0);
+
   public static final UUID CONNECTION_ID_KEY = UUID.randomUUID();
 
+  private final int numUnaryGrpcChannels;
+  private final int numStreamGrpcChannels;
   private final TopicConfiguration configuration;
+  private final Duration deadline;
 
   ScsTopicGrpcStubsManager(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
-    this.channel = setupConnection(credentialProvider, configuration);
-    this.stub = PubsubGrpc.newStub(channel);
     this.configuration = configuration;
+    this.deadline = configuration.getTransportStrategy().getGrpcConfiguration().getDeadline();
+    this.numUnaryGrpcChannels =
+        configuration.getTransportStrategy().getGrpcConfiguration().getNumUnaryGrpcChannels();
+    this.numStreamGrpcChannels =
+        configuration.getTransportStrategy().getGrpcConfiguration().getNumStreamGrpcChannels();
+
+    this.unaryChannels =
+        IntStream.range(0, this.numUnaryGrpcChannels)
+            .mapToObj(i -> setupConnection(credentialProvider, configuration))
+            .collect(Collectors.toList());
+    this.unaryStubs = unaryChannels.stream().map(PubsubGrpc::newStub).collect(Collectors.toList());
+
+    this.streamChannels =
+        IntStream.range(0, this.numStreamGrpcChannels)
+            .mapToObj(i -> setupConnection(credentialProvider, configuration))
+            .collect(Collectors.toList());
+    this.streamStubs =
+        streamChannels.stream().map(PubsubGrpc::newStub).collect(Collectors.toList());
   }
 
   private static ManagedChannel setupConnection(
@@ -62,9 +92,16 @@ final class ScsTopicGrpcStubsManager implements Closeable {
     return channelBuilder.build();
   }
 
-  /** Returns a pubsub stub. */
-  PubsubGrpc.PubsubStub getStub() {
-    return stub;
+  /** Round-robin publish stub. */
+  PubsubGrpc.PubsubStub getNextUnaryStub() {
+    return unaryStubs
+        .get(unaryIndex.getAndIncrement() % this.numUnaryGrpcChannels)
+        .withDeadlineAfter(deadline.toMillis(), TimeUnit.MILLISECONDS);
+  }
+
+  /** Round-robin subscribe stub. */
+  PubsubGrpc.PubsubStub getNextStreamStub() {
+    return streamStubs.get(streamIndex.getAndIncrement() % this.numStreamGrpcChannels);
   }
 
   TopicConfiguration getConfiguration() {
@@ -73,6 +110,7 @@ final class ScsTopicGrpcStubsManager implements Closeable {
 
   @Override
   public void close() {
-    channel.shutdown();
+    unaryChannels.forEach(ManagedChannel::shutdown);
+    streamChannels.forEach(ManagedChannel::shutdown);
   }
 }

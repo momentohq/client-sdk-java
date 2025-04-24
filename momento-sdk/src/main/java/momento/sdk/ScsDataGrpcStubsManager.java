@@ -91,7 +91,7 @@ final class ScsDataGrpcStubsManager implements AutoCloseable {
       @Nonnull CredentialProvider credentialProvider, @Nonnull Configuration configuration) {
     this.deadline = configuration.getTransportStrategy().getGrpcConfiguration().getDeadline();
     this.numGrpcChannels =
-        configuration.getTransportStrategy().getGrpcConfiguration().getMinNumGrpcChannels();
+        configuration.getTransportStrategy().getGrpcConfiguration().getNumUnaryGrpcChannels();
 
     this.retryScheduler = Executors.newSingleThreadScheduledExecutor();
     this.retryExecutor =
