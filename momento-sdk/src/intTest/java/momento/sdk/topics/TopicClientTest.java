@@ -1,35 +1,28 @@
 package momento.sdk.topics;
 
+import static momento.sdk.TestUtils.randomString;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
 import momento.sdk.ISubscriptionCallbacks;
 import momento.sdk.TopicClient;
 import momento.sdk.cache.BaseCacheTestClass;
 import momento.sdk.config.TopicConfigurations;
 import momento.sdk.exceptions.MomentoErrorCode;
-import momento.sdk.responses.topic.TopicDiscontinuity;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.junit.jupiter.api.Timeout;
 
 public class TopicClientTest extends BaseCacheTestClass {
   private static TopicClient topicClient;
-
-  private final String topicName = "test-topic";
-  private final Logger logger = LoggerFactory.getLogger(TopicClientTest.class);
-
-  private final List<String> receivedStringValues = new ArrayList<>();
-  private final List<byte[]> receivedByteArrayValues = new ArrayList<>();
 
   @BeforeAll
   static void setupAll() {
@@ -42,46 +35,41 @@ public class TopicClientTest extends BaseCacheTestClass {
     topicClient.close();
   }
 
-  private ISubscriptionCallbacks callbacks(CountDownLatch latch) {
+  private ISubscriptionCallbacks callbacks() {
+    return new ISubscriptionCallbacks() {
+      @Override
+      public void onItem(TopicMessage message) {}
+
+      @Override
+      public void onCompleted() {}
+
+      @Override
+      public void onError(Throwable t) {}
+    };
+  }
+
+  private ISubscriptionCallbacks callbacks(
+      Semaphore onItemSemaphore, List<TopicMessage> receivedMessages) {
     return new ISubscriptionCallbacks() {
       @Override
       public void onItem(TopicMessage message) {
-        logger.info("onItem Invoked");
-        logger.info(message.toString());
-        if (message instanceof TopicMessage.Text) {
-          receivedStringValues.add(((TopicMessage.Text) message).getValue());
-        } else if (message instanceof TopicMessage.Binary) {
-          receivedByteArrayValues.add(((TopicMessage.Binary) message).getValue());
-        }
-        latch.countDown();
+        receivedMessages.add(message);
+        onItemSemaphore.release();
       }
 
       @Override
-      public void onCompleted() {
-        logger.info("onCompleted Invoked");
-      }
+      public void onCompleted() {}
 
       @Override
-      public void onError(Throwable t) {
-        logger.info("onError Invoked");
-      }
-
-      @Override
-      public void onDiscontinuity(TopicDiscontinuity discontinuity) {
-        logger.info("onDiscontinuity Invoked");
-      }
-
-      @Override
-      public void onHeartbeat() {
-        logger.info("onHeartbeat Invoked");
-      }
+      public void onError(Throwable t) {}
     };
   }
 
   @Test
   public void topicPublishNullChecksIsError() {
-    byte[] byteValue = new byte[0];
-    String stringValue = "test-value";
+    final String topicName = randomString();
+    final byte[] byteValue = new byte[0];
+    final String stringValue = "test-value";
 
     // badCacheName, validTopicName, byteArray value
     TopicPublishResponse response = topicClient.publish(null, topicName, byteValue).join();
@@ -128,8 +116,9 @@ public class TopicClientTest extends BaseCacheTestClass {
 
   @Test
   public void topicPublishCacheDoesNotExistIsError() {
-    String stringValue = "test-value";
-    TopicPublishResponse response =
+    final String topicName = randomString();
+    final String stringValue = "test-value";
+    final TopicPublishResponse response =
         topicClient.publish("doesNotExist", topicName, stringValue).join();
     assertThat(response).isInstanceOf(TopicPublishResponse.Error.class);
     assertEquals(
@@ -139,16 +128,15 @@ public class TopicClientTest extends BaseCacheTestClass {
   @Test
   public void topicSubscribeNullChecksIsError() {
     // badCacheName, validTopicName
-    CountDownLatch latch = new CountDownLatch(1);
-    TopicSubscribeResponse response =
-        topicClient.subscribe(null, topicName, callbacks(latch)).join();
+    final String topicName = randomString();
+    TopicSubscribeResponse response = topicClient.subscribe(null, topicName, callbacks()).join();
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Error.class);
     assertEquals(
         MomentoErrorCode.INVALID_ARGUMENT_ERROR,
         ((TopicSubscribeResponse.Error) response).getErrorCode());
 
     // validCacheName, badTopicName
-    response = topicClient.subscribe(cacheName, null, callbacks(latch)).join();
+    response = topicClient.subscribe(cacheName, null, callbacks()).join();
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Error.class);
     assertEquals(
         MomentoErrorCode.INVALID_ARGUMENT_ERROR,
@@ -157,61 +145,75 @@ public class TopicClientTest extends BaseCacheTestClass {
 
   @Test
   public void topicSubscribeCacheDoesNotExistIsError() {
-    TopicSubscribeResponse response =
-        topicClient.subscribe("doesNotExist", topicName, callbacks(new CountDownLatch(1))).join();
+    final String topicName = randomString();
+    final TopicSubscribeResponse response =
+        topicClient.subscribe("doesNotExist", topicName, callbacks()).join();
     assertThat(response).isInstanceOf(TopicSubscribeResponse.Error.class);
     assertEquals(
         MomentoErrorCode.NOT_FOUND_ERROR, ((TopicSubscribeResponse.Error) response).getErrorCode());
   }
 
   @Test
+  @Timeout(10)
   public void topicPublishSubscribe_ByteArray_HappyPath() throws InterruptedException {
+    final String topicName = randomString();
+    final byte[] value = new byte[] {0x00};
 
-    byte[] value = new byte[] {0x00};
+    final Semaphore onItemSemaphore = new Semaphore(0);
+    final List<TopicMessage> receivedMessages = new ArrayList<>();
+    final ISubscriptionCallbacks callbacks = callbacks(onItemSemaphore, receivedMessages);
 
-    CountDownLatch latch = new CountDownLatch(1);
-    TopicSubscribeResponse response =
-        topicClient.subscribe(cacheName, topicName, callbacks(latch)).join();
-    assertThat(response).isInstanceOf(TopicSubscribeResponse.Subscription.class);
+    final TopicSubscribeResponse subscribeResponse =
+        topicClient.subscribe(cacheName, topicName, callbacks).join();
+    assertThat(subscribeResponse).isInstanceOf(TopicSubscribeResponse.Subscription.class);
 
-    TopicPublishResponse publishResponse = topicClient.publish(cacheName, topicName, value).join();
-    assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
+    try {
+      final CompletableFuture<TopicPublishResponse> publishFuture =
+          topicClient.publish(cacheName, topicName, value);
+      onItemSemaphore.acquire();
 
-    latch.await();
+      assertThat(publishFuture)
+          .succeedsWithin(FIVE_SECONDS)
+          .isInstanceOf(TopicPublishResponse.Success.class);
 
-    List<byte[]> expectedReceivedValues = new ArrayList<>();
-    expectedReceivedValues.add(value);
-
-    assertArrayEquals(
-        expectedReceivedValues.toArray(new byte[0][]),
-        receivedByteArrayValues.toArray(new byte[0][]),
-        "Received values do not match the expected values");
-
-    ((TopicSubscribeResponse.Subscription) response).unsubscribe();
+      assertThat(receivedMessages)
+          .filteredOn(tm -> tm instanceof TopicMessage.Binary)
+          .map(tm -> ((TopicMessage.Binary) tm).getValue())
+          .containsOnly(value);
+    } finally {
+      ((TopicSubscribeResponse.Subscription) subscribeResponse).unsubscribe();
+    }
   }
 
   @Test
+  @Timeout(10)
   public void topicPublishSubscribe_String_HappyPath() throws InterruptedException {
-    String value = "test-value";
+    final String topicName = randomString();
+    final String value = "test-value";
 
-    CountDownLatch latch = new CountDownLatch(1);
-    TopicSubscribeResponse response =
-        topicClient.subscribe(cacheName, topicName, callbacks(latch)).join();
-    assertThat(response).isInstanceOf(TopicSubscribeResponse.Subscription.class);
+    final Semaphore onItemSemaphore = new Semaphore(0);
+    final List<TopicMessage> receivedMessages = new ArrayList<>();
+    final ISubscriptionCallbacks callbacks = callbacks(onItemSemaphore, receivedMessages);
 
-    TopicPublishResponse publishResponse = topicClient.publish(cacheName, topicName, value).join();
-    assertThat(publishResponse).isInstanceOf(TopicPublishResponse.Success.class);
+    final TopicSubscribeResponse subscribeResponse =
+        topicClient.subscribe(cacheName, topicName, callbacks).join();
+    assertThat(subscribeResponse).isInstanceOf(TopicSubscribeResponse.Subscription.class);
 
-    latch.await();
+    try {
+      final CompletableFuture<TopicPublishResponse> publishFuture =
+          topicClient.publish(cacheName, topicName, value);
+      onItemSemaphore.acquire();
 
-    List<String> expectedReceivedValues = new ArrayList<>();
-    expectedReceivedValues.add(value);
+      assertThat(publishFuture)
+          .succeedsWithin(FIVE_SECONDS)
+          .isInstanceOf(TopicPublishResponse.Success.class);
 
-    logger.info("expectedReceivedValues: " + expectedReceivedValues);
-    logger.info("receivedStringValues: " + receivedStringValues);
-
-    assertEquals(expectedReceivedValues, receivedStringValues);
-
-    ((TopicSubscribeResponse.Subscription) response).unsubscribe();
+      assertThat(receivedMessages)
+          .filteredOn(tm -> tm instanceof TopicMessage.Text)
+          .map(tm -> ((TopicMessage.Text) tm).getValue())
+          .containsOnly(value);
+    } finally {
+      ((TopicSubscribeResponse.Subscription) subscribeResponse).unsubscribe();
+    }
   }
 }
