@@ -12,7 +12,7 @@ repositories {
 
 dependencies {
     implementation("com.amazonaws:aws-lambda-java-core:1.2.1")
-    implementation("software.momento.java:sdk:1.21.0")
+    implementation("software.momento.java:sdk:1.22.0")
 }
 
 tasks.jar {
