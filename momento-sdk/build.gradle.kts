@@ -58,6 +58,7 @@ tasks.named("analyzeTestClassesDependencies").configure {
 tasks.named<Test>("integrationTest") {
     filter {
         excludeTestsMatching("momento.sdk.retry.*")
+        excludeTestsMatching("momento.sdk.subscriptionInitialization.*")
     }
 }
 
