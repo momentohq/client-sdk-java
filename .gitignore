@@ -46,3 +46,4 @@ examples/lib/.classpath
 examples/lib/.project
 examples/lib/bin
 .vscode/
+momento-sdk/bin

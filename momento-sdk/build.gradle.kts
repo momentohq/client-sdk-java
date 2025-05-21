@@ -109,3 +109,8 @@ registerIntegrationTestTask(
     "test-retries",
     listOf("momento.sdk.retry.*")
 )
+
+registerIntegrationTestTask(
+    "test-topics-subscription-initialization",
+    listOf("momento.sdk.subscriptionInitialization.*")
+)

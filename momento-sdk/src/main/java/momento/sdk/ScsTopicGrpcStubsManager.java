@@ -19,7 +19,36 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
 import momento.sdk.config.middleware.Middleware;
 import momento.sdk.config.middleware.MiddlewareRequestHandlerContext;
+import momento.sdk.exceptions.ClientSdkException;
+import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.internal.GrpcChannelOptions;
+
+// Helper class for bookkeeping the number of active concurrent subscriptions.
+final class StreamStubWithCount {
+  private final PubsubGrpc.PubsubStub stub;
+  private final AtomicInteger count = new AtomicInteger(0);
+
+  StreamStubWithCount(PubsubGrpc.PubsubStub stub) {
+    this.stub = stub;
+  }
+
+  PubsubGrpc.PubsubStub getStub() {
+    return stub;
+  }
+
+  int getCount() {
+    return count.get();
+  }
+
+  int incrementCount() {
+    return count.incrementAndGet();
+  }
+
+  int decrementCount() {
+    int decremented = count.decrementAndGet();
+    return decremented;
+  }
+}
 
 /**
  * Manager responsible for GRPC channels and stubs for the Topics.
@@ -35,7 +64,7 @@ final class ScsTopicGrpcStubsManager implements Closeable {
   private final AtomicInteger unaryIndex = new AtomicInteger(0);
 
   private final List<ManagedChannel> streamChannels;
-  private final List<PubsubGrpc.PubsubStub> streamStubs;
+  private final List<StreamStubWithCount> streamStubs;
   private final AtomicInteger streamIndex = new AtomicInteger(0);
 
   public static final UUID CONNECTION_ID_KEY = UUID.randomUUID();
@@ -44,6 +73,7 @@ final class ScsTopicGrpcStubsManager implements Closeable {
   private final int numStreamGrpcChannels;
   private final TopicConfiguration configuration;
   private final Duration deadline;
+  private final int maximumActiveSubscriptions;
 
   ScsTopicGrpcStubsManager(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
@@ -53,6 +83,9 @@ final class ScsTopicGrpcStubsManager implements Closeable {
         configuration.getTransportStrategy().getGrpcConfiguration().getNumUnaryGrpcChannels();
     this.numStreamGrpcChannels =
         configuration.getTransportStrategy().getGrpcConfiguration().getNumStreamGrpcChannels();
+
+    // Each stream grpc channel can support 100 concurrent active subscriptions
+    this.maximumActiveSubscriptions = this.numStreamGrpcChannels * 100;
 
     this.unaryChannels =
         IntStream.range(0, this.numUnaryGrpcChannels)
@@ -65,7 +98,10 @@ final class ScsTopicGrpcStubsManager implements Closeable {
             .mapToObj(i -> setupConnection(credentialProvider, configuration))
             .collect(Collectors.toList());
     this.streamStubs =
-        streamChannels.stream().map(PubsubGrpc::newStub).collect(Collectors.toList());
+        streamChannels.stream()
+            .map(PubsubGrpc::newStub)
+            .map(StreamStubWithCount::new)
+            .collect(Collectors.toList());
   }
 
   private static ManagedChannel setupConnection(
@@ -100,8 +136,30 @@ final class ScsTopicGrpcStubsManager implements Closeable {
   }
 
   /** Round-robin subscribe stub. */
-  PubsubGrpc.PubsubStub getNextStreamStub() {
-    return streamStubs.get(streamIndex.getAndIncrement() % this.numStreamGrpcChannels);
+  StreamStubWithCount getNextStreamStub() {
+    // First check if there's available capacity on any of the stubs
+    int totalActiveSubscriptions = 0;
+    for (StreamStubWithCount stubWithCount : streamStubs) {
+      totalActiveSubscriptions += stubWithCount.getCount();
+    }
+    if (totalActiveSubscriptions < this.maximumActiveSubscriptions) {
+      // Try to get a client with capacity for another subscription.
+      // Allow up to maximumActiveSubscriptions attempts.
+      for (int i = 0; i < this.maximumActiveSubscriptions; i++) {
+        // Round-robin to the next stub
+        final StreamStubWithCount stubWithCount =
+            streamStubs.get(streamIndex.getAndIncrement() % this.numStreamGrpcChannels);
+        if (stubWithCount.getCount() < 100) {
+          stubWithCount.incrementCount();
+          return stubWithCount;
+        }
+      }
+    }
+
+    // Otherwise return an error
+    throw new ClientSdkException(
+        MomentoErrorCode.CLIENT_RESOURCE_EXHAUSTED,
+        "Maximum number of active subscriptions reached");
   }
 
   TopicConfiguration getConfiguration() {

@@ -118,40 +118,55 @@ public class ScsTopicClient extends ScsClientBase {
       String cacheName, String topicName, ISubscriptionCallbacks callbacks) {
     final SubscriptionState subscriptionState = new SubscriptionState();
 
-    final IScsTopicConnection connection =
-        (request, subscription) ->
-            topicGrpcStubsManager.getNextStreamStub().subscribe(request, subscription);
+    try {
+      // Wrap in try-catch because getNextStreamStub() can throw an exception
+      // if the number of active subscriptions is already at max capacity.
+      final StreamStubWithCount stubWithCount = topicGrpcStubsManager.getNextStreamStub();
 
-    long configuredTimeoutSeconds =
-        topicGrpcStubsManager
-            .getConfiguration()
-            .getTransportStrategy()
-            .getGrpcConfiguration()
-            .getDeadline()
-            .getSeconds();
-    long firstMessageSubscribeTimeoutSeconds =
-        configuredTimeoutSeconds > 0 ? configuredTimeoutSeconds : DEFAULT_REQUEST_TIMEOUT_SECONDS;
+      final IScsTopicConnection connection =
+          (request, subscription) -> stubWithCount.getStub().subscribe(request, subscription);
 
-    @SuppressWarnings("resource") // the wrapper closes itself when a subscription ends.
-    final SubscriptionWrapper subscriptionWrapper =
-        new SubscriptionWrapper(
-            cacheName,
-            topicName,
-            connection,
-            callbacks,
-            subscriptionState,
-            firstMessageSubscribeTimeoutSeconds,
-            subscriptionRetryStrategy);
-    final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
-    return subscribeFuture.handle(
-        (v, ex) -> {
-          if (ex != null) {
-            return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
-          } else {
-            subscriptionState.setUnsubscribeFn(subscriptionWrapper::unsubscribe);
-            return new TopicSubscribeResponse.Subscription(subscriptionState);
-          }
-        });
+      long configuredTimeoutSeconds =
+          topicGrpcStubsManager
+              .getConfiguration()
+              .getTransportStrategy()
+              .getGrpcConfiguration()
+              .getDeadline()
+              .getSeconds();
+      long firstMessageSubscribeTimeoutSeconds =
+          configuredTimeoutSeconds > 0 ? configuredTimeoutSeconds : DEFAULT_REQUEST_TIMEOUT_SECONDS;
+
+      @SuppressWarnings("resource") // the wrapper closes itself when a subscription ends.
+      final SubscriptionWrapper subscriptionWrapper =
+          new SubscriptionWrapper(
+              cacheName,
+              topicName,
+              connection,
+              callbacks,
+              subscriptionState,
+              firstMessageSubscribeTimeoutSeconds,
+              subscriptionRetryStrategy);
+
+      final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
+      return subscribeFuture.handle(
+          (v, ex) -> {
+            if (ex != null) {
+              return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
+            } else {
+              subscriptionState.setUnsubscribeFn(
+                  () -> {
+                    // Revise the unsubscribe function to decrement the count of active
+                    // subscriptions
+                    stubWithCount.decrementCount();
+                    subscriptionWrapper.unsubscribe();
+                  });
+              return new TopicSubscribeResponse.Subscription(subscriptionState);
+            }
+          });
+    } catch (Throwable e) {
+      return CompletableFuture.completedFuture(
+          new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   @Override
