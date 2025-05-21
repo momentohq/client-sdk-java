@@ -136,50 +136,65 @@ public class ScsTopicClient extends ScsClientBase {
       SendSubscribeOptions sendSubscribeOptions) {
     SubscriptionWrapper subscriptionWrapper;
 
-    IScsTopicConnection connection =
-        new IScsTopicConnection() {
-          @Override
-          public void close() {
-            logger.warn("Closing the connection (for testing purposes only)");
-          }
+    try {
+      // Wrap in try-catch because getNextStreamStub() can throw an exception
+      // if the number of active subscriptions is already at max capacity.
+      final StreamStubWithCount stubWithCount = topicGrpcStubsManager.getNextStreamStub();
 
-          @Override
-          public void open() {
-            logger.warn("Opening the connection (for testing purposes only)");
-          }
+      IScsTopicConnection connection =
+          new IScsTopicConnection() {
+            @Override
+            public void close() {
+              logger.warn("Closing the connection (for testing purposes only)");
+            }
 
-          @Override
-          public void subscribe(
-              _SubscriptionRequest subscriptionRequest,
-              CancelableClientCallStreamObserver<_SubscriptionItem> subscription) {
-            topicGrpcStubsManager.getNextStreamStub().subscribe(subscriptionRequest, subscription);
-          }
-        };
+            @Override
+            public void open() {
+              logger.warn("Opening the connection (for testing purposes only)");
+            }
 
-    long configuredTimeoutSeconds =
-        topicGrpcStubsManager
-            .getConfiguration()
-            .getTransportStrategy()
-            .getGrpcConfiguration()
-            .getDeadline()
-            .getSeconds();
-    long firstMessageSubscribeTimeoutSeconds =
-        configuredTimeoutSeconds > 0 ? configuredTimeoutSeconds : DEFAULT_REQUEST_TIMEOUT_SECONDS;
+            @Override
+            public void subscribe(
+                _SubscriptionRequest subscriptionRequest,
+                CancelableClientCallStreamObserver<_SubscriptionItem> subscription) {
+              stubWithCount.getStub().subscribe(subscriptionRequest, subscription);
+            }
+          };
 
-    subscriptionWrapper =
-        new SubscriptionWrapper(
-            connection, sendSubscribeOptions, firstMessageSubscribeTimeoutSeconds);
-    final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
-    return subscribeFuture.handle(
-        (v, ex) -> {
-          if (ex != null) {
-            return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
-          } else {
-            sendSubscribeOptions.subscriptionState.setUnsubscribeFn(
-                subscriptionWrapper::unsubscribe);
-            return new TopicSubscribeResponse.Subscription(sendSubscribeOptions.subscriptionState);
-          }
-        });
+      long configuredTimeoutSeconds =
+          topicGrpcStubsManager
+              .getConfiguration()
+              .getTransportStrategy()
+              .getGrpcConfiguration()
+              .getDeadline()
+              .getSeconds();
+      long firstMessageSubscribeTimeoutSeconds =
+          configuredTimeoutSeconds > 0 ? configuredTimeoutSeconds : DEFAULT_REQUEST_TIMEOUT_SECONDS;
+
+      subscriptionWrapper =
+          new SubscriptionWrapper(
+              connection, sendSubscribeOptions, firstMessageSubscribeTimeoutSeconds);
+      final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
+      return subscribeFuture.handle(
+          (v, ex) -> {
+            if (ex != null) {
+              return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
+            } else {
+              sendSubscribeOptions.subscriptionState.setUnsubscribeFn(
+                  () -> {
+                    // Revise the unsubscribe function to decrement the count of active
+                    // subscriptions
+                    stubWithCount.decrementCount();
+                    subscriptionWrapper.unsubscribe();
+                  });
+              return new TopicSubscribeResponse.Subscription(
+                  sendSubscribeOptions.subscriptionState);
+            }
+          });
+    } catch (Throwable e) {
+      return CompletableFuture.completedFuture(
+          new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
+    }
   }
 
   @Override
