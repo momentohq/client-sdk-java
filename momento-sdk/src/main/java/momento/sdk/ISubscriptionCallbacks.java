@@ -33,7 +33,7 @@ public interface ISubscriptionCallbacks {
 
   /** Called when the connection to the topic is lost. */
   default void onConnectionLost() {
-    logger.info("Connection to topic lost");
+    // logger.info("Connection to topic lost");
   }
 
   /** Called when the connection to the topic is restored. */

@@ -124,6 +124,7 @@ class SubscriptionWrapper implements AutoCloseable {
               }
 
               if (item.getKindCase() != _SubscriptionItem.KindCase.HEARTBEAT) {
+                handleSubscriptionCompleted();
                 future.completeExceptionally(
                     new InternalServerException(
                         "Expected heartbeat message for topic "
@@ -148,9 +149,11 @@ class SubscriptionWrapper implements AutoCloseable {
             if (firstMessage) {
               firstMessage = false;
               if (firstMessageTimeoutFuture != null && !firstMessageTimeoutFuture.isDone()) {
+                handleSubscriptionCompleted();
                 firstMessageTimeoutFuture.completeExceptionally(t);
               }
               if (!future.isDone()) {
+                handleSubscriptionCompleted();
                 future.completeExceptionally(t);
               }
 
@@ -170,11 +173,13 @@ class SubscriptionWrapper implements AutoCloseable {
                   scheduleRetry(() -> subscribeWithRetryInternal(future));
                 } else {
                   logger.debug("Status code is not UNAVAILABLE, not retrying subscription.");
+                  handleSubscriptionCompleted();
                   options.onError(t);
                 }
               } else {
                 logger.debug(
                     "Throwable is not an instance of StatusRuntimeException, not retrying subscription.");
+                handleSubscriptionCompleted();
                 options.onError(t);
               }
             }
