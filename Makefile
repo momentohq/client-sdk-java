@@ -42,6 +42,10 @@ test-leaderboard-service:
 test-topics-service:
 	@CONSISTENT_READS=1 ./gradlew test-topics-service
 
+## Run the topics subscription initialization tests
+test-topics-subscription-initialization:
+	@CONSISTENT_READS=1 ./gradlew test-topics-subscription-initialization
+
 ## Run the http service tests
 test-http-service:
 	@echo "No tests for http service."
