@@ -121,5 +121,7 @@ public class SubscriptionWrapperTest {
     waitingForSubscriptionAttempt.acquire();
 
     assertTrue(gotConnectionRestoredCallback.get());
+
+    subscriptionWrapper.close();
   }
 }
