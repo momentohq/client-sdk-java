@@ -7,6 +7,8 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Semaphore;
+import java.util.concurrent.atomic.AtomicInteger;
 import momento.sdk.ISubscriptionCallbacks;
 import momento.sdk.TopicClient;
 import momento.sdk.auth.CredentialProvider;
@@ -587,6 +589,70 @@ public class TopicsSubscriptionInitializationTest {
 
     // Cleanup
     for (TopicSubscribeResponse.Subscription sub : subscriptions) {
+      sub.unsubscribe();
+    }
+    topicClient.close();
+  }
+
+  @Test
+  @Timeout(1000)
+  public void shouldDecrementActiveSubscriptionsCountWhenSubscribeRequestsFail() {
+    final int numGrpcChannels = 1;
+    final int maxStreamCapacity = 100 * numGrpcChannels;
+    final GrpcConfiguration grpcConfig =
+        new GrpcConfiguration(Duration.ofMillis(15000)).withNumStreamGrpcChannels(numGrpcChannels);
+    final TopicConfiguration topicConfiguration =
+        new TopicConfiguration(
+            new StaticTransportStrategy(grpcConfig),
+            LoggerFactory.getLogger(TopicsSubscriptionInitializationTest.class));
+    TopicClient topicClient = TopicClient.builder(credentialProvider, topicConfiguration).build();
+
+    final Semaphore errorSemaphore = new Semaphore(0);
+    final AtomicInteger errorCounter = new AtomicInteger(0);
+
+    final ISubscriptionCallbacks callbacks =
+        new ISubscriptionCallbacks() {
+          @Override
+          public void onItem(TopicMessage message) {}
+
+          @Override
+          public void onCompleted() {}
+
+          @Override
+          public void onError(Throwable t) {
+            errorCounter.incrementAndGet();
+            errorSemaphore.release();
+          }
+        };
+
+    // Should successfully start the maximum number of subscriptions because 10 attempts ran into
+    // NOT_FOUND_ERROR and the errors should have decremented the active subscriptions count.
+    List<TopicSubscribeResponse.Subscription> successfulSubscriptions = new ArrayList<>();
+    for (int i = 0; i < maxStreamCapacity + 10; i++) {
+      String cacheNameToUse = cacheName;
+      if (i % 11 == 0) {
+        cacheNameToUse = "this-cache-does-not-exist";
+      }
+      TopicSubscribeResponse attempt =
+          topicClient.subscribe(cacheNameToUse, "test-topic", callbacks).join();
+      if (attempt instanceof TopicSubscribeResponse.Subscription) {
+        successfulSubscriptions.add((TopicSubscribeResponse.Subscription) attempt);
+      } else {
+        assertThat(attempt).isInstanceOf(TopicSubscribeResponse.Error.class);
+        assertThat(((TopicSubscribeResponse.Error) attempt).getErrorCode())
+            .isEqualTo(MomentoErrorCode.NOT_FOUND_ERROR);
+        errorCounter.incrementAndGet();
+      }
+    }
+
+    // Assert that we have received maxStreamCapacity number of successful subscriptions
+    assertThat(successfulSubscriptions.size()).isEqualTo(maxStreamCapacity);
+
+    // Assert that we have received 10 NOT_FOUND_ERRORs
+    assertThat(errorCounter).hasValue(10);
+
+    // Cleanup
+    for (TopicSubscribeResponse.Subscription sub : successfulSubscriptions) {
       sub.unsubscribe();
     }
     topicClient.close();

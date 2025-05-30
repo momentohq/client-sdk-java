@@ -45,8 +45,7 @@ final class StreamStubWithCount {
   }
 
   int decrementCount() {
-    int decremented = count.decrementAndGet();
-    return decremented;
+    return count.decrementAndGet();
   }
 }
 
