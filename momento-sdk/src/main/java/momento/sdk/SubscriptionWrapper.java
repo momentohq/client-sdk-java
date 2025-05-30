@@ -6,6 +6,8 @@ import grpc.cache_client.pubsub._SubscriptionRequest;
 import grpc.cache_client.pubsub._TopicItem;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.Optional;
@@ -149,13 +151,25 @@ class SubscriptionWrapper implements Closeable {
               if (!future.isDone()) {
                 future.completeExceptionally(t);
               }
-              // is this needed?
-              // completeExceptionally(future, t);
+              completeExceptionally(future, t);
             } else {
               logger.debug("Subscription failed, retrying...");
               if (isConnectionLost.compareAndSet(false, true)) {
                 callbacks.onConnectionLost();
               }
+
+              // If it was a CANCELLED error because unsubscribe was called, do not retry and
+              // exit gracefully.
+              if (t instanceof StatusRuntimeException) {
+                final StatusRuntimeException exception = (StatusRuntimeException) t;
+                if (exception.getStatus().getCode() == Status.Code.CANCELLED && exception.getMessage().contains("Unsubscribing")) {
+                  callbacks.onCompleted();
+                  close();
+                  return;
+                }
+              }
+
+              // Otherwise, determine if we should retry.
               final Optional<Duration> retryOpt = retryStrategy.determineWhenToRetry(t);
               if (retryOpt.isPresent()) {
                 if (isSubscribed.get()) {
