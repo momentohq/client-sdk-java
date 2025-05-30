@@ -151,15 +151,12 @@ public class ScsTopicClient extends ScsClientBase {
       return subscribeFuture.handle(
           (v, ex) -> {
             if (ex != null) {
+              stubWithCount.decrementCount();
               return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
             } else {
-              subscriptionState.setUnsubscribeFn(
-                  () -> {
-                    // Revise the unsubscribe function to decrement the count of active
-                    // subscriptions
-                    stubWithCount.decrementCount();
-                    subscriptionWrapper.unsubscribe();
-                  });
+              subscriptionState.setDecrementActiveSubscriptionsCountFn(
+                  stubWithCount::decrementCount);
+              subscriptionState.setUnsubscribeFn(subscriptionWrapper::unsubscribe);
               return new TopicSubscribeResponse.Subscription(subscriptionState);
             }
           });

@@ -3,6 +3,7 @@ package momento.sdk.internal;
 /** Represents the state of a subscription to a topic. */
 public class SubscriptionState {
 
+  private Runnable decrementActiveSubscriptionsCountFn;
   private Runnable unsubscribeFn;
   private Long lastTopicSequenceNumber;
   private Long lastTopicSequencePage;
@@ -10,6 +11,7 @@ public class SubscriptionState {
 
   /** Constructs a new SubscriptionState instance with default values. */
   public SubscriptionState() {
+    this.decrementActiveSubscriptionsCountFn = () -> {};
     this.unsubscribeFn = () -> {};
     this.isSubscribed = false;
   }
@@ -59,8 +61,24 @@ public class SubscriptionState {
   /** Unsubscribes from the topic, executing the unsubscribe function. */
   public void unsubscribe() {
     if (isSubscribed) {
+      decrementActiveSubscriptionsCountFn.run();
       unsubscribeFn.run();
       this.isSubscribed = false;
     }
+  }
+
+  /**
+   * Sets the function to be decrement the active subscriptions count for a given stub.
+   *
+   * @param decrementActiveSubscriptionsCountFn The function to decrement the active subscriptions
+   *     count.
+   */
+  public void setDecrementActiveSubscriptionsCountFn(Runnable decrementActiveSubscriptionsCountFn) {
+    this.decrementActiveSubscriptionsCountFn = decrementActiveSubscriptionsCountFn;
+  }
+
+  /** Decrements the active subscriptions count for a given stub. */
+  public void decrementActiveSubscriptionsCount() {
+    decrementActiveSubscriptionsCountFn.run();
   }
 }
