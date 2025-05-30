@@ -7,7 +7,6 @@ import grpc.cache_client.pubsub._TopicItem;
 import grpc.cache_client.pubsub._TopicValue;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-
 import java.io.Closeable;
 import java.time.Duration;
 import java.util.Optional;
@@ -162,7 +161,8 @@ class SubscriptionWrapper implements Closeable {
               // exit gracefully.
               if (t instanceof StatusRuntimeException) {
                 final StatusRuntimeException exception = (StatusRuntimeException) t;
-                if (exception.getStatus().getCode() == Status.Code.CANCELLED && exception.getMessage().contains("Unsubscribing")) {
+                if (exception.getStatus().getCode() == Status.Code.CANCELLED
+                    && exception.getMessage().contains("Unsubscribing")) {
                   callbacks.onCompleted();
                   close();
                   return;
