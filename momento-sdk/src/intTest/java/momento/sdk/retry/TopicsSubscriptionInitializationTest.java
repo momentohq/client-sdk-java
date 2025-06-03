@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.slf4j.LoggerFactory.getLogger;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
@@ -88,7 +89,7 @@ public class TopicsSubscriptionInitializationTest {
           subscriptions.get(0).unsubscribe();
           // Wait for the subscription to end
           try {
-            Thread.sleep(200);
+            Thread.sleep(500);
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Test interrupted while waiting for subscriptions", e);
@@ -153,7 +154,7 @@ public class TopicsSubscriptionInitializationTest {
           }
           // Wait a bit for the subscription to end
           try {
-            Thread.sleep(200);
+            Thread.sleep(500);
           } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new RuntimeException("Test interrupted while waiting for subscriptions", e);
@@ -292,7 +293,7 @@ public class TopicsSubscriptionInitializationTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = {2, 10})
+  @ValueSource(ints = {2, 10, 20})
   @Timeout(30)
   public void multipleStreamChannels_handlesBurstOfSubscribeRequestsAtHalfOfMaxCapacity(
       int numGrpcChannels) throws Exception {
@@ -393,6 +394,68 @@ public class TopicsSubscriptionInitializationTest {
           for (TopicSubscribeResponse.Subscription sub : successfulSubscriptions) {
             sub.unsubscribe();
           }
+        });
+  }
+
+  @Test
+  @Timeout(30)
+  public void oneStreamChannel_properlyDecrementsWhenErrorOccursMidStream() throws Exception {
+    unsubscribeCounter = 0;
+    final AtomicInteger unsubscribeOnErrorCounter = new AtomicInteger(0);
+    final ISubscriptionCallbacks callbacks =
+        new ISubscriptionCallbacks() {
+          @Override
+          public void onItem(TopicMessage message) {}
+
+          @Override
+          public void onCompleted() {
+            System.out.println("onCompleted");
+            unsubscribeCounter++;
+          }
+
+          @Override
+          public void onError(Throwable t) {
+            System.out.println("onError");
+            unsubscribeOnErrorCounter.incrementAndGet();
+          }
+        };
+
+    final MomentoLocalMiddlewareArgs middlewareArgs =
+        new MomentoLocalMiddlewareArgs.Builder(logger, UUID.randomUUID().toString())
+            .streamError(MomentoErrorCode.NOT_FOUND_ERROR)
+            .streamErrorRpcList(Collections.singletonList(MomentoRpcMethod.TOPIC_SUBSCRIBE))
+            .streamErrorMessageLimit(3)
+            .build();
+
+    withCacheAndTopicClientWithNumStreamChannels(
+        1,
+        middlewareArgs,
+        (topicClient, cacheName) -> {
+          List<TopicSubscribeResponse.Subscription> subscriptions = new ArrayList<>();
+
+          // Subscribe but expecting an error after a couple of heartbeats
+          final TopicSubscribeResponse response =
+              topicClient.subscribe(cacheName, "topic", callbacks).join();
+          assertThat(response).isInstanceOf(TopicSubscribeResponse.Subscription.class);
+          subscriptions.add((TopicSubscribeResponse.Subscription) response);
+
+          // Wait for the subscription that ran into the error to be closed
+          try {
+            Thread.sleep(3000);
+          } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException("Test interrupted while waiting for subscriptions", e);
+          }
+
+          // Cleanup
+          for (TopicSubscribeResponse.Subscription sub : subscriptions) {
+            if (sub != null) {
+              sub.unsubscribe();
+            }
+          }
+
+          assertEquals(0, unsubscribeCounter);
+          assertEquals(1, unsubscribeOnErrorCounter.get());
         });
   }
 }
