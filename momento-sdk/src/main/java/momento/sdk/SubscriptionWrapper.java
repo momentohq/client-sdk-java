@@ -92,7 +92,7 @@ class SubscriptionWrapper implements Closeable {
             logger.warn(
                 "First message timeout exceeded for topic {} on cache {}", topicName, cacheName);
 
-            if (subscription != null) {
+            if (subscription.get() != null) {
               subscription.get().cancel("Timed out waiting for first message", null);
             }
 
