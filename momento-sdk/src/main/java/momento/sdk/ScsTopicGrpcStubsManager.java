@@ -72,7 +72,6 @@ final class ScsTopicGrpcStubsManager implements Closeable {
   private final int numStreamGrpcChannels;
   private final TopicConfiguration configuration;
   private final Duration deadline;
-  private final int maximumActiveSubscriptions;
 
   ScsTopicGrpcStubsManager(
       @Nonnull CredentialProvider credentialProvider, @Nonnull TopicConfiguration configuration) {
@@ -82,9 +81,6 @@ final class ScsTopicGrpcStubsManager implements Closeable {
         configuration.getTransportStrategy().getGrpcConfiguration().getNumUnaryGrpcChannels();
     this.numStreamGrpcChannels =
         configuration.getTransportStrategy().getGrpcConfiguration().getNumStreamGrpcChannels();
-
-    // Each stream grpc channel can support 100 concurrent active subscriptions
-    this.maximumActiveSubscriptions = this.numStreamGrpcChannels * 100;
 
     this.unaryChannels =
         IntStream.range(0, this.numUnaryGrpcChannels)
@@ -136,22 +132,14 @@ final class ScsTopicGrpcStubsManager implements Closeable {
 
   /** Round-robin subscribe stub. */
   StreamStubWithCount getNextStreamStub() {
-    // First check if there's available capacity on any of the stubs
-    int totalActiveSubscriptions = 0;
-    for (StreamStubWithCount stubWithCount : streamStubs) {
-      totalActiveSubscriptions += stubWithCount.getCount();
-    }
-    if (totalActiveSubscriptions < this.maximumActiveSubscriptions) {
-      // Try to get a client with capacity for another subscription.
-      // Allow up to maximumActiveSubscriptions attempts.
-      for (int i = 0; i < this.maximumActiveSubscriptions; i++) {
-        // Round-robin to the next stub
-        final StreamStubWithCount stubWithCount =
-            streamStubs.get(streamIndex.getAndIncrement() % this.numStreamGrpcChannels);
-        if (stubWithCount.getCount() < 100) {
-          stubWithCount.incrementCount();
-          return stubWithCount;
-        }
+    // Try to get a client with capacity for another subscription
+    // by round-robining through the stubs.
+    for (int i = 0; i < this.streamStubs.size(); i++) {
+      final StreamStubWithCount stubWithCount =
+          streamStubs.get(streamIndex.getAndIncrement() % this.numStreamGrpcChannels);
+      if (stubWithCount.getCount() < 100) {
+        stubWithCount.incrementCount();
+        return stubWithCount;
       }
     }
 
