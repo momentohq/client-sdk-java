@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.internal.SubscriptionState;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
@@ -118,40 +119,55 @@ public class ScsTopicClient extends ScsClientBase {
       String cacheName, String topicName, ISubscriptionCallbacks callbacks) {
     final SubscriptionState subscriptionState = new SubscriptionState();
 
-    final IScsTopicConnection connection =
-        (request, subscription) ->
-            topicGrpcStubsManager.getNextStreamStub().subscribe(request, subscription);
+    try {
+      // Wrap in try-catch because getNextStreamStub() can throw an exception
+      // if the number of active subscriptions is already at max capacity.
+      final StreamStubWithCount stubWithCount = topicGrpcStubsManager.getNextStreamStub();
 
-    long configuredTimeoutSeconds =
-        topicGrpcStubsManager
-            .getConfiguration()
-            .getTransportStrategy()
-            .getGrpcConfiguration()
-            .getDeadline()
-            .getSeconds();
-    long firstMessageSubscribeTimeoutSeconds =
-        configuredTimeoutSeconds > 0 ? configuredTimeoutSeconds : DEFAULT_REQUEST_TIMEOUT_SECONDS;
+      final IScsTopicConnection connection =
+          (request, subscription) -> stubWithCount.getStub().subscribe(request, subscription);
 
-    @SuppressWarnings("resource") // the wrapper closes itself when a subscription ends.
-    final SubscriptionWrapper subscriptionWrapper =
-        new SubscriptionWrapper(
-            cacheName,
-            topicName,
-            connection,
-            callbacks,
-            subscriptionState,
-            firstMessageSubscribeTimeoutSeconds,
-            subscriptionRetryStrategy);
-    final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
-    return subscribeFuture.handle(
-        (v, ex) -> {
-          if (ex != null) {
-            return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
-          } else {
-            subscriptionState.setUnsubscribeFn(subscriptionWrapper::unsubscribe);
-            return new TopicSubscribeResponse.Subscription(subscriptionState);
-          }
-        });
+      long configuredTimeoutSeconds =
+          topicGrpcStubsManager
+              .getConfiguration()
+              .getTransportStrategy()
+              .getGrpcConfiguration()
+              .getDeadline()
+              .getSeconds();
+      long firstMessageSubscribeTimeoutSeconds =
+          configuredTimeoutSeconds > 0 ? configuredTimeoutSeconds : DEFAULT_REQUEST_TIMEOUT_SECONDS;
+
+      @SuppressWarnings("resource") // the wrapper closes itself when a subscription ends.
+      final SubscriptionWrapper subscriptionWrapper =
+          new SubscriptionWrapper(
+              cacheName,
+              topicName,
+              connection,
+              callbacks,
+              subscriptionState,
+              firstMessageSubscribeTimeoutSeconds,
+              subscriptionRetryStrategy);
+
+      final CompletableFuture<Void> subscribeFuture = subscriptionWrapper.subscribeWithRetry();
+      return subscribeFuture.handle(
+          (v, ex) -> {
+            if (ex != null) {
+              stubWithCount.decrementCount();
+              return new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(ex));
+            } else {
+              subscriptionState.setDecrementActiveSubscriptionsCountFn(
+                  stubWithCount::decrementCount);
+              subscriptionState.setUnsubscribeFn(subscriptionWrapper::unsubscribe);
+              return new TopicSubscribeResponse.Subscription(subscriptionState);
+            }
+          });
+    } catch (ClientSdkException e) {
+      // getNextStreamStub() may throw a ClientSdkException
+      return CompletableFuture.completedFuture(new TopicSubscribeResponse.Error(e));
+    } catch (TopicSubscribeResponse.Error e) {
+      // subscribeWithRetry() may throw a TopicSubscribeResponse.Error
+      return CompletableFuture.completedFuture(e);
+    }
   }
 
   @Override

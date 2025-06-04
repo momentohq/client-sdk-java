@@ -92,7 +92,7 @@ class SubscriptionWrapper implements Closeable {
             logger.warn(
                 "First message timeout exceeded for topic {} on cache {}", topicName, cacheName);
 
-            if (subscription != null) {
+            if (subscription.get() != null) {
               subscription.get().cancel("Timed out waiting for first message", null);
             }
 
@@ -241,6 +241,7 @@ class SubscriptionWrapper implements Closeable {
   }
 
   private void completeExceptionally(CompletableFuture<Void> future, Throwable t) {
+    subscriptionState.decrementActiveSubscriptionsCount();
     future.completeExceptionally(
         new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(t)));
     close();
@@ -251,6 +252,7 @@ class SubscriptionWrapper implements Closeable {
   }
 
   private void handleSubscriptionCompleted() {
+    subscriptionState.decrementActiveSubscriptionsCount();
     callbacks.onCompleted();
   }
 
@@ -346,6 +348,7 @@ class SubscriptionWrapper implements Closeable {
 
   @Override
   public void close() {
+    subscriptionState.decrementActiveSubscriptionsCount();
     scheduler.shutdown();
   }
 }

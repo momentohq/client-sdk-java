@@ -14,6 +14,8 @@ import momento.sdk.config.Configuration;
 import momento.sdk.config.Configurations;
 import momento.sdk.config.TopicConfiguration;
 import momento.sdk.config.TopicConfigurations;
+import momento.sdk.config.transport.GrpcConfiguration;
+import momento.sdk.config.transport.StaticTransportStrategy;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.retry.utils.MomentoLocalMiddleware;
 import momento.sdk.retry.utils.MomentoLocalMiddlewareArgs;
@@ -119,6 +121,39 @@ public class BaseMomentoLocalTestClass {
                         .apply(TopicConfigurations.Laptop.latest())
                         .withMiddleware(new MomentoLocalMiddleware(testMetricsMiddlewareArgs)))
                 .build()) {
+      if (cacheClient.createCache(cacheName).join() instanceof CacheCreateResponse.Error) {
+        throw new RuntimeException("Failed to create cache: " + cacheName);
+      }
+      testCallback.run(topicClient, cacheName);
+    }
+  }
+
+  public static void withCacheAndTopicClientWithNumStreamChannels(
+      int numStreamChannels,
+      MomentoLocalMiddlewareArgs testMetricsMiddlewareArgs,
+      TopicTestCallback testCallback)
+      throws Exception {
+
+    final String cacheName = testCacheName();
+    final String hostname =
+        Optional.ofNullable(System.getenv("MOMENTO_HOSTNAME")).orElse("127.0.0.1");
+    final int port =
+        Optional.ofNullable(System.getenv("MOMENTO_PORT")).map(Integer::parseInt).orElse(8080);
+    final CredentialProvider credentialProvider = new MomentoLocalProvider(hostname, port);
+
+    final GrpcConfiguration grpcConfig =
+        new GrpcConfiguration(Duration.ofMillis(15000))
+            .withNumStreamGrpcChannels(numStreamChannels);
+    final TopicConfiguration topicConfiguration =
+        new TopicConfiguration(new StaticTransportStrategy(grpcConfig))
+            .withMiddleware(new MomentoLocalMiddleware(testMetricsMiddlewareArgs));
+
+    try (final CacheClient cacheClient =
+            CacheClient.builder(
+                    credentialProvider, Configurations.Laptop.latest(), DEFAULT_TTL_SECONDS)
+                .build();
+        final TopicClient topicClient =
+            TopicClient.builder(credentialProvider, topicConfiguration).build()) {
       if (cacheClient.createCache(cacheName).join() instanceof CacheCreateResponse.Error) {
         throw new RuntimeException("Failed to create cache: " + cacheName);
       }
