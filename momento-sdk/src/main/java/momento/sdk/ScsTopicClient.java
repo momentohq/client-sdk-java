@@ -10,6 +10,7 @@ import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
 import momento.sdk.exceptions.CacheServiceExceptionMapper;
+import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.internal.SubscriptionState;
 import momento.sdk.responses.topic.TopicPublishResponse;
 import momento.sdk.responses.topic.TopicSubscribeResponse;
@@ -160,9 +161,9 @@ public class ScsTopicClient extends ScsClientBase {
               return new TopicSubscribeResponse.Subscription(subscriptionState);
             }
           });
-    } catch (Throwable e) {
+    } catch (ClientSdkException e) {
       return CompletableFuture.completedFuture(
-          new TopicSubscribeResponse.Error(CacheServiceExceptionMapper.convert(e)));
+          new TopicSubscribeResponse.Error(e));
     }
   }
 
