@@ -47,6 +47,17 @@ final class StreamStubWithCount {
   int decrementCount() {
     return count.decrementAndGet();
   }
+
+  void acquireStubOrThrow() throws ClientSdkException {
+    if (count.incrementAndGet() <= 100) {
+      return;
+    } else {
+      count.decrementAndGet();
+      throw new ClientSdkException(
+          MomentoErrorCode.CLIENT_RESOURCE_EXHAUSTED,
+          "Maximum number of active subscriptions reached");
+    }
+  }
 }
 
 /**
@@ -134,16 +145,20 @@ final class ScsTopicGrpcStubsManager implements Closeable {
   StreamStubWithCount getNextStreamStub() {
     // Try to get a client with capacity for another subscription
     // by round-robining through the stubs.
-    for (int i = 0; i < this.streamStubs.size(); i++) {
+    // Allow up to two attempts per stub.
+    for (int i = 0; i < this.streamStubs.size() * 2; i++) {
       final StreamStubWithCount stubWithCount =
           streamStubs.get(streamIndex.getAndIncrement() % this.numStreamGrpcChannels);
-      if (stubWithCount.getCount() < 100) {
-        stubWithCount.incrementCount();
+      try {
+        stubWithCount.acquireStubOrThrow();
         return stubWithCount;
+      } catch (ClientSdkException e) {
+        // If the stub is at capacity, continue to the next one.
+        continue;
       }
     }
 
-    // Otherwise return an error
+    // Otherwise return an error if no stubs have capacity.
     throw new ClientSdkException(
         MomentoErrorCode.CLIENT_RESOURCE_EXHAUSTED,
         "Maximum number of active subscriptions reached");
