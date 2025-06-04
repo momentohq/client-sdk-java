@@ -162,8 +162,11 @@ public class ScsTopicClient extends ScsClientBase {
             }
           });
     } catch (ClientSdkException e) {
-      return CompletableFuture.completedFuture(
-          new TopicSubscribeResponse.Error(e));
+      // getNextStreamStub() may throw a ClientSdkException
+      return CompletableFuture.completedFuture(new TopicSubscribeResponse.Error(e));
+    } catch (TopicSubscribeResponse.Error e) {
+      // subscribeWithRetry() may throw a TopicSubscribeResponse.Error
+      return CompletableFuture.completedFuture(e);
     }
   }
 
