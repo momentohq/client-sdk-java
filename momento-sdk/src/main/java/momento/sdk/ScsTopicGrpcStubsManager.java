@@ -145,8 +145,9 @@ final class ScsTopicGrpcStubsManager implements Closeable {
   StreamStubWithCount getNextStreamStub() {
     // Try to get a client with capacity for another subscription
     // by round-robining through the stubs.
-    // Allow up to two attempts per stub.
-    for (int i = 0; i < this.streamStubs.size() * 2; i++) {
+    // Allow up to maximumActiveSubscriptions attempts to account for large bursts of requests.
+    final int maximumActiveSubscriptions = this.numStreamGrpcChannels * 100;
+    for (int i = 0; i < maximumActiveSubscriptions; i++) {
       final StreamStubWithCount stubWithCount =
           streamStubs.get(streamIndex.getAndIncrement() % this.numStreamGrpcChannels);
       try {
