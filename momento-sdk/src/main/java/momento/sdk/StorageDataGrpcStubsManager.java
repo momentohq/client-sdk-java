@@ -20,6 +20,7 @@ import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.StorageConfiguration;
 import momento.sdk.exceptions.ConnectionFailedException;
+import momento.sdk.interceptors.UserHeaderInterceptor;
 import momento.sdk.internal.GrpcChannelOptions;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

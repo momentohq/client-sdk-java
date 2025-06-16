@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.interceptors;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
@@ -12,7 +12,7 @@ import io.grpc.MethodDescriptor;
 import java.util.Collections;
 import java.util.Map;
 
-final class UserHeaderInterceptor implements ClientInterceptor {
+public final class UserHeaderInterceptor implements ClientInterceptor {
 
   private static final Metadata.Key<String> AUTH_HEADER_KEY =
       Metadata.Key.of("authorization", ASCII_STRING_MARSHALLER);
@@ -20,7 +20,7 @@ final class UserHeaderInterceptor implements ClientInterceptor {
       Metadata.Key.of("agent", ASCII_STRING_MARSHALLER);
   private static final Metadata.Key<String> RUNTIME_VERSION_KEY =
       Metadata.Key.of("runtime-version", ASCII_STRING_MARSHALLER);
-  static final Metadata.Key<String> READ_CONCERN =
+  public static final Metadata.Key<String> READ_CONCERN =
       Metadata.Key.of("read-concern", ASCII_STRING_MARSHALLER);
 
   private final Map<Metadata.Key<String>, String> extraHeaders;
@@ -29,11 +29,11 @@ final class UserHeaderInterceptor implements ClientInterceptor {
   private final String runtimeVersion;
   private boolean isUserAgentSent = false;
 
-  UserHeaderInterceptor(String token, String clientType) {
+  public UserHeaderInterceptor(String token, String clientType) {
     this(token, clientType, Collections.emptyMap());
   }
 
-  UserHeaderInterceptor(
+  public UserHeaderInterceptor(
       String token, String clientType, Map<Metadata.Key<String>, String> extraHeaders) {
     tokenValue = token;
     sdkVersion =

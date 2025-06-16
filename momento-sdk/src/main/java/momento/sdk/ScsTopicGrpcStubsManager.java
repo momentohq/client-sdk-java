@@ -21,6 +21,8 @@ import momento.sdk.config.middleware.Middleware;
 import momento.sdk.config.middleware.MiddlewareRequestHandlerContext;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.MomentoErrorCode;
+import momento.sdk.interceptors.GrpcMiddlewareInterceptor;
+import momento.sdk.interceptors.UserHeaderInterceptor;
 import momento.sdk.internal.GrpcChannelOptions;
 
 // Helper class for bookkeeping the number of active concurrent subscriptions.

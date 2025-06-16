@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.interceptors;
 
 import io.grpc.CallOptions;
 import io.grpc.Channel;
@@ -53,7 +53,7 @@ import org.slf4j.LoggerFactory;
  * @see RetryStrategy
  * @see RetryEligibilityStrategy
  */
-final class RetryClientInterceptor implements ClientInterceptor {
+public final class RetryClientInterceptor implements ClientInterceptor {
 
   private final RetryStrategy retryStrategy;
   private final ScheduledExecutorService scheduler;

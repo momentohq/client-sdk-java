@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.transport.GrpcConfiguration;
+import momento.sdk.interceptors.UserHeaderInterceptor;
 import momento.sdk.internal.GrpcChannelOptions;
 import momento.token.TokenGrpc;
 

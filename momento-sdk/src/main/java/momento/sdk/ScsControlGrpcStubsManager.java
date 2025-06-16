@@ -12,6 +12,7 @@ import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.Configuration;
 import momento.sdk.config.transport.GrpcConfiguration;
+import momento.sdk.interceptors.UserHeaderInterceptor;
 import momento.sdk.internal.GrpcChannelOptions;
 
 /**

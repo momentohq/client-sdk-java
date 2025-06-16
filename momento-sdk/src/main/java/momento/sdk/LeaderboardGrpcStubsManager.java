@@ -14,6 +14,7 @@ import java.util.stream.IntStream;
 import javax.annotation.Nonnull;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.LeaderboardConfiguration;
+import momento.sdk.interceptors.UserHeaderInterceptor;
 import momento.sdk.internal.GrpcChannelOptions;
 
 /** Manager responsible for GRPC channels and stubs for leaderboards. */

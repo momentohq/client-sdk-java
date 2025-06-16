@@ -1,4 +1,4 @@
-package momento.sdk;
+package momento.sdk.interceptors;
 
 import com.google.protobuf.Message;
 import io.grpc.CallOptions;
@@ -20,7 +20,7 @@ import momento.sdk.config.middleware.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-final class GrpcMiddlewareInterceptor implements ClientInterceptor {
+public final class GrpcMiddlewareInterceptor implements ClientInterceptor {
 
   private final List<MiddlewareRequestHandler> middlewareHandlers;
   private final Logger logger = LoggerFactory.getLogger(GrpcMiddlewareInterceptor.class);
