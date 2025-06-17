@@ -7,6 +7,7 @@ import javax.annotation.Nonnull;
 import momento.sdk.config.middleware.Middleware;
 import momento.sdk.config.transport.GrpcConfiguration;
 import momento.sdk.config.transport.TransportStrategy;
+import momento.sdk.exceptions.InvalidArgumentException;
 import momento.sdk.retry.FixedDelaySubscriptionRetryStrategy;
 import momento.sdk.retry.SubscriptionRetryStrategy;
 import org.slf4j.Logger;
@@ -19,6 +20,7 @@ public class TopicConfiguration {
   private final SubscriptionRetryStrategy subscriptionRetryStrategy;
   private final List<Middleware> middlewares;
   private final Logger logger;
+  private final boolean isNumStreamChannelsDynamic;
 
   /**
    * Creates a new topic configuration.
@@ -38,6 +40,31 @@ public class TopicConfiguration {
     this.subscriptionRetryStrategy = subscriptionRetryStrategy;
     this.middlewares = middlewares;
     this.logger = logger;
+    this.isNumStreamChannelsDynamic = false;
+  }
+
+  /**
+   * Creates a new topic configuration.
+   *
+   * @param transportStrategy Responsible for configuring network tunables.
+   * @param subscriptionRetryStrategy Responsible for determining when to reconnect a broken
+   *     subscription.
+   * @param middlewares List of middleware that can intercept and modify calls to Momento.
+   * @param logger Responsible for logging
+   * @param isNumStreamChannelsDynamic Whether the number of stream gRPC channels dynamically grow
+   *     to accommodate the maximum number of active subscriptions.
+   */
+  public TopicConfiguration(
+      TransportStrategy transportStrategy,
+      SubscriptionRetryStrategy subscriptionRetryStrategy,
+      List<Middleware> middlewares,
+      Logger logger,
+      boolean isNumStreamChannelsDynamic) {
+    this.transportStrategy = transportStrategy;
+    this.subscriptionRetryStrategy = subscriptionRetryStrategy;
+    this.middlewares = middlewares;
+    this.logger = logger;
+    this.isNumStreamChannelsDynamic = isNumStreamChannelsDynamic;
   }
 
   /**
@@ -146,5 +173,38 @@ public class TopicConfiguration {
    */
   public List<Middleware> getMiddlewares() {
     return middlewares;
+  }
+
+  /**
+   * Copy constructor that sets the maximum number of active subscriptions the topic client should
+   * accommodate, but will start with one channel which supports 100 subscriptions.
+   *
+   * @param maxSubscriptions The new maximum number of active subscriptions.
+   * @return a new TopicConfiguration with the updated maximum number of active subscriptions.
+   */
+  public TopicConfiguration withMaxSubscriptions(int maxSubscriptions) {
+    if (maxSubscriptions < 0) {
+      throw new InvalidArgumentException("maxSubscriptions must be greater than 0");
+    }
+    final int maxStreamChannels = (int) Math.ceil(maxSubscriptions / 100.0);
+    final GrpcConfiguration newGrpcConfiguration =
+        this.getTransportStrategy()
+            .getGrpcConfiguration()
+            .withNumStreamGrpcChannels(maxStreamChannels);
+    final TransportStrategy newTransportStrategy =
+        this.getTransportStrategy().withGrpcConfiguration(newGrpcConfiguration);
+    return new TopicConfiguration(
+        newTransportStrategy, this.subscriptionRetryStrategy, this.middlewares, this.logger, true);
+  }
+
+  /**
+   * Whether the number of stream gRPC channels dynamically grow to accommodate the maximum number
+   * of active subscriptions.
+   *
+   * @return Whether the number of stream gRPC channels dynamically grow to accommodate the maximum
+   *     number of active subscriptions.
+   */
+  public boolean getIsNumStreamChannelsDynamic() {
+    return isNumStreamChannelsDynamic;
   }
 }
