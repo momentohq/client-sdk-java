@@ -53,8 +53,10 @@ public class DynamicStreamGrpcConnectionPool implements StreamTopicGrpcConnectio
             .collect(Collectors.toCollection(CopyOnWriteArrayList::new));
   }
 
-  // Multiple threads could get to the point of seeing currentNumActiveStreams == currentMaxConcurrentStreams,
-  // but we need to ensure only one thread will add a new channel at a time so that we don't exceed the max number of channels.
+  // Multiple threads could get to the point of seeing currentNumActiveStreams ==
+  // currentMaxConcurrentStreams,
+  // but we need to ensure only one thread will add a new channel at a time so that we don't exceed
+  // the max number of channels.
   private void addNewChannel() {
     final int updatedCount = this.currentNumStreamGrpcChannels.incrementAndGet();
 
@@ -66,8 +68,11 @@ public class DynamicStreamGrpcConnectionPool implements StreamTopicGrpcConnectio
     this.streamChannels.add(
         TopicGrpcConnectionPoolUtils.setupConnection(
             credentialProvider, configuration, connectionIdKey));
-    this.streamStubs.add(new StreamStubWithCount(PubsubGrpc.newStub(TopicGrpcConnectionPoolUtils.setupConnection(
-      credentialProvider, configuration, connectionIdKey))));
+    this.streamStubs.add(
+        new StreamStubWithCount(
+            PubsubGrpc.newStub(
+                TopicGrpcConnectionPoolUtils.setupConnection(
+                    credentialProvider, configuration, connectionIdKey))));
   }
 
   @Override
