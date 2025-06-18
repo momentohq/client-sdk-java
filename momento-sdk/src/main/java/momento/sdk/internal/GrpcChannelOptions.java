@@ -24,6 +24,7 @@ public class GrpcChannelOptions {
   public static final int DEFAULT_NUM_GRPC_CHANNELS = 4;
   public static final int DEFAULT_NUM_UNARY_GRPC_CHANNELS = 4;
   public static final int DEFAULT_NUM_STREAM_GRPC_CHANNELS = 4;
+  public static final int NUM_CONCURRENT_STREAMS_PER_GRPC_CHANNEL = 100; // grpc default
 
   public static void applyGrpcConfigurationToChannelBuilder(
       IGrpcConfiguration grpcConfig, NettyChannelBuilder channelBuilder) {
