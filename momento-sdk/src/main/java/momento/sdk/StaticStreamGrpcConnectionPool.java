@@ -11,6 +11,7 @@ import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.MomentoErrorCode;
+import momento.sdk.internal.GrpcChannelOptions;
 
 class StaticStreamGrpcConnectionPool implements StreamTopicGrpcConnectionPool {
   private final AtomicInteger index = new AtomicInteger(0);
@@ -43,7 +44,8 @@ class StaticStreamGrpcConnectionPool implements StreamTopicGrpcConnectionPool {
     // Try to get a client with capacity for another subscription
     // by round-robining through the stubs.
     // Allow up to maximumActiveSubscriptions attempts to account for large bursts of requests.
-    final int maximumActiveSubscriptions = this.numStreamGrpcChannels * 100;
+    final int maximumActiveSubscriptions =
+        this.numStreamGrpcChannels * GrpcChannelOptions.NUM_CONCURRENT_STREAMS_PER_GRPC_CHANNEL;
     for (int i = 0; i < maximumActiveSubscriptions; i++) {
       final StreamStubWithCount stubWithCount =
           streamStubs.get(index.getAndIncrement() % this.numStreamGrpcChannels);

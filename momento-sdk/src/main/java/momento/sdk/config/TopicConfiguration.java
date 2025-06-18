@@ -8,6 +8,7 @@ import momento.sdk.config.middleware.Middleware;
 import momento.sdk.config.transport.GrpcConfiguration;
 import momento.sdk.config.transport.TransportStrategy;
 import momento.sdk.exceptions.InvalidArgumentException;
+import momento.sdk.internal.GrpcChannelOptions;
 import momento.sdk.retry.FixedDelaySubscriptionRetryStrategy;
 import momento.sdk.retry.SubscriptionRetryStrategy;
 import org.slf4j.Logger;
@@ -186,7 +187,10 @@ public class TopicConfiguration {
     if (maxSubscriptions < 0) {
       throw new InvalidArgumentException("maxSubscriptions must be greater than 0");
     }
-    final int maxStreamChannels = (int) Math.ceil(maxSubscriptions / 100.0);
+    final int maxStreamChannels =
+        (int)
+            Math.ceil(
+                maxSubscriptions / GrpcChannelOptions.NUM_CONCURRENT_STREAMS_PER_GRPC_CHANNEL);
     final GrpcConfiguration newGrpcConfiguration =
         this.getTransportStrategy()
             .getGrpcConfiguration()

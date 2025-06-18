@@ -4,6 +4,7 @@ import grpc.cache_client.pubsub.PubsubGrpc;
 import java.util.concurrent.atomic.AtomicInteger;
 import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.MomentoErrorCode;
+import momento.sdk.internal.GrpcChannelOptions;
 
 interface StreamTopicGrpcConnectionPool {
   StreamStubWithCount getNextStreamStub();
@@ -37,7 +38,7 @@ final class StreamStubWithCount {
   }
 
   void acquireStubOrThrow() throws ClientSdkException {
-    if (count.incrementAndGet() <= 100) {
+    if (count.incrementAndGet() <= GrpcChannelOptions.NUM_CONCURRENT_STREAMS_PER_GRPC_CHANNEL) {
       return;
     } else {
       count.decrementAndGet();
