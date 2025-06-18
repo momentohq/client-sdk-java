@@ -2,6 +2,7 @@ package momento.sdk;
 
 import grpc.cache_client.pubsub.PubsubGrpc;
 import io.grpc.ManagedChannel;
+import java.io.Closeable;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -13,7 +14,7 @@ import momento.sdk.exceptions.ClientSdkException;
 import momento.sdk.exceptions.MomentoErrorCode;
 import momento.sdk.internal.GrpcChannelOptions;
 
-class StaticStreamGrpcConnectionPool implements StreamTopicGrpcConnectionPool {
+class StaticStreamGrpcConnectionPool implements StreamTopicGrpcConnectionPool, Closeable {
   private final AtomicInteger index = new AtomicInteger(0);
   private final int numStreamGrpcChannels;
   private final List<ManagedChannel> streamChannels;

@@ -3,6 +3,7 @@ package momento.sdk;
 import grpc.cache_client.pubsub.PubsubGrpc;
 import grpc.cache_client.pubsub.PubsubGrpc.PubsubStub;
 import io.grpc.ManagedChannel;
+import java.io.Closeable;
 import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
@@ -13,7 +14,7 @@ import java.util.stream.IntStream;
 import momento.sdk.auth.CredentialProvider;
 import momento.sdk.config.TopicConfiguration;
 
-class StaticUnaryGrpcConnectionPool implements UnaryTopicGrpcConnectionPool {
+class StaticUnaryGrpcConnectionPool implements UnaryTopicGrpcConnectionPool, Closeable {
   private final Duration deadline;
   private final AtomicInteger index = new AtomicInteger(0);
   private final int numUnaryGrpcChannels;
