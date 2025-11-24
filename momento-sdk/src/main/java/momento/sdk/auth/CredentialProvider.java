@@ -3,7 +3,8 @@ package momento.sdk.auth;
 import javax.annotation.Nonnull;
 
 /**
- * Specifies the fields that are required for a Momento client to connect to and authenticate with
+ * Specifies the fields that are required for a Momento client to connect to and
+ * authenticate with
  * the Momento service.
  */
 public abstract class CredentialProvider {
@@ -19,7 +20,8 @@ public abstract class CredentialProvider {
   }
 
   /**
-   * Creates a CredentialProvider by loading an auth token from the provided environment variable.
+   * Creates a CredentialProvider by loading an auth token from the provided
+   * environment variable.
    *
    * @param envVar An environment variable containing a Momento auth token.
    * @return The provider.
@@ -38,6 +40,30 @@ public abstract class CredentialProvider {
   }
 
   /**
+   * Creates a CredentialProvider using an endpoint and a string containing a
+   * global api key.
+   * 
+   * @param authToken string containing a global api key.
+   * @param endpoint
+   * @return The provider.
+   */
+  public static CredentialProvider globalKeyFromString(@Nonnull String authToken, @Nonnull String endpoint) {
+    return new GlobalStringCredentialProvider(authToken, endpoint);
+  }
+
+  /**
+   * Creates a CredentialProvider using an endpoint and a string containing a
+   * global api key.
+   * 
+   * @param envVar   environment variable containing a global api key.
+   * @param endpoint
+   * @return The provider.
+   */
+  public static CredentialProvider globalKeyFromEnvVar(@Nonnull String envVar, @Nonnull String endpoint) {
+    return new GlobalEnvVarCredentialProvider(envVar, endpoint);
+  }
+
+  /**
    * Gets the token used to authenticate to Momento.
    *
    * @return The token.
@@ -45,28 +71,32 @@ public abstract class CredentialProvider {
   public abstract String getAuthToken();
 
   /**
-   * Gets the endpoint with which the Momento client will connect to the Momento control plane.
+   * Gets the endpoint with which the Momento client will connect to the Momento
+   * control plane.
    *
    * @return The endpoint.
    */
   public abstract String getControlEndpoint();
 
   /**
-   * Gets the endpoint with which the Momento client will connect to the Momento data plane.
+   * Gets the endpoint with which the Momento client will connect to the Momento
+   * data plane.
    *
    * @return The endpoint.
    */
   public abstract String getCacheEndpoint();
 
   /**
-   * Gets the endpoint with which the Momento client will connect to the Momento storage service.
+   * Gets the endpoint with which the Momento client will connect to the Momento
+   * storage service.
    *
    * @return The endpoint.
    */
   public abstract String getStorageEndpoint();
 
   /**
-   * Gets the token endpoint with which the Momento client will connect to the Momento token
+   * Gets the token endpoint with which the Momento client will connect to the
+   * Momento token
    * service.
    *
    * @return The token endpoint.
@@ -76,12 +106,14 @@ public abstract class CredentialProvider {
   /**
    * Gets whether the endpoint connection is secure.
    *
-   * @return true if connecting to the endpoint connection with TLS; false if not using TLS
+   * @return true if connecting to the endpoint connection with TLS; false if not
+   *         using TLS
    */
   public abstract boolean isEndpointSecure();
 
   /**
-   * Gets the port with which the Momento client will connect to the Momento local.
+   * Gets the port with which the Momento client will connect to the Momento
+   * local.
    *
    * @return The port.
    */
