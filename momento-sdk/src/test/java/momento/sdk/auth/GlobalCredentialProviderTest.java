@@ -2,8 +2,10 @@ package momento.sdk.auth;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
+import org.junit.jupiter.api.AfterEach;
 
 import momento.sdk.auth.CredentialProvider;
+import momento.sdk.auth.GlobalStringCredentialProvider;
 import momento.sdk.exceptions.InvalidArgumentException;
 import org.junit.jupiter.api.Test;
 
@@ -21,39 +23,37 @@ class GlobalCredentialProviderTest {
     void globalKeyFromEnvVar() {
         System.setProperty(ENV_VAR_NAME, TEST_API_KEY);
 
-        CredentialProvider credentialProvider = CredentialProvider.globalKeyFromEnvVar(ENV_VAR_NAME, TEST_ENDPOINT);
+        CredentialProvider credentialProvider = new GlobalEnvVarCredentialProvider(ENV_VAR_NAME, TEST_ENDPOINT);
 
-        assertEquals(TEST_API_KEY, credentialProvider.getAuthToken());
-        assertEquals("cache." + TEST_ENDPOINT, credentialProvider.getCacheEndpoint());
-        assertEquals("control." + TEST_ENDPOINT, credentialProvider.getControlEndpoint());
-        assertEquals("token." + TEST_ENDPOINT, credentialProvider.getTokenEndpoint());
-        assertEquals("storage." + TEST_ENDPOINT, credentialProvider.getStorageEndpoint());
+        assertThat(TEST_API_KEY).isEqualTo(credentialProvider.getAuthToken());
+        assertThat("cache." + TEST_ENDPOINT).isEqualTo(credentialProvider.getCacheEndpoint());
+        assertThat("control." + TEST_ENDPOINT).isEqualTo(credentialProvider.getControlEndpoint());
+        assertThat("token." + TEST_ENDPOINT).isEqualTo(credentialProvider.getTokenEndpoint());
+        assertThat("storage." + TEST_ENDPOINT).isEqualTo(credentialProvider.getStorageEndpoint());
     }
 
     @Test
     void globalKeyFromString() {
-        CredentialProvider credentialProvider = CredentialProvider.globalKeyFromString(TEST_API_KEY, TEST_ENDPOINT);
+        CredentialProvider credentialProvider = new GlobalStringCredentialProvider(TEST_API_KEY, TEST_ENDPOINT);
 
-        assertEquals(TEST_API_KEY, credentialProvider.getAuthToken());
-        assertEquals("cache." + TEST_ENDPOINT, credentialProvider.getCacheEndpoint());
-        assertEquals("control." + TEST_ENDPOINT, credentialProvider.getControlEndpoint());
-        assertEquals("token." + TEST_ENDPOINT, credentialProvider.getTokenEndpoint());
-        assertEquals("storage." + TEST_ENDPOINT, credentialProvider.getStorageEndpoint());
+        assertThat(TEST_API_KEY).isEqualTo(credentialProvider.getAuthToken());
+        assertThat("cache." + TEST_ENDPOINT).isEqualTo(credentialProvider.getCacheEndpoint());
+        assertThat("control." + TEST_ENDPOINT).isEqualTo(credentialProvider.getControlEndpoint());
+        assertThat("token." + TEST_ENDPOINT).isEqualTo(credentialProvider.getTokenEndpoint());
+        assertThat("storage." + TEST_ENDPOINT).isEqualTo(credentialProvider.getStorageEndpoint());
     }
 
     @Test
     void globalFromStringEmptyArguments() {
         // Test empty endpoint
-        IllegalArgumentException emptyEndpointException = assertThrows(
-                IllegalArgumentException.class,
-                () -> CredentialProvider.globalKeyFromString(TEST_API_KEY, ""));
-        assertEquals("Endpoint must not be empty", emptyEndpointException.getMessage());
+        assertThatExceptionOfType(InvalidArgumentException.class)
+                .isThrownBy(() -> CredentialProvider.globalKeyFromString(TEST_API_KEY, ""))
+                .withMessageContaining("Endpoint string cannot be empty");
 
         // Test empty API key
-        IllegalArgumentException emptyKeyException = assertThrows(
-                IllegalArgumentException.class,
-                () -> CredentialProvider.globalKeyFromString("", TEST_ENDPOINT));
-        assertEquals("Auth token string cannot be empty", emptyKeyException.getMessage());
+        assertThatExceptionOfType(InvalidArgumentException.class)
+                .isThrownBy(() -> CredentialProvider.globalKeyFromString("", TEST_ENDPOINT))
+                .withMessageContaining("Auth token string cannot be empty");
     }
 
     @Test
@@ -61,23 +61,20 @@ class GlobalCredentialProviderTest {
         System.setProperty(ENV_VAR_NAME, TEST_API_KEY);
 
         // Test empty endpoint
-        IllegalArgumentException emptyEndpointException = assertThrows(
-                IllegalArgumentException.class,
-                () -> CredentialProvider.globalKeyFromEnvVar(ENV_VAR_NAME, ""));
-        assertEquals("Endpoint must not be empty", emptyEndpointException.getMessage());
+        assertThatExceptionOfType(InvalidArgumentException.class)
+                .isThrownBy(() -> CredentialProvider.globalKeyFromEnvVar(ENV_VAR_NAME, ""))
+                .withMessageContaining("Endpoint string cannot be empty");
 
         // Test empty env var name
-        IllegalArgumentException emptyEnvVarNameException = assertThrows(
-                IllegalArgumentException.class,
-                () -> CredentialProvider.globalKeyFromEnvVar("", TEST_ENDPOINT));
-        assertEquals("Env var name cannot be empty", emptyEnvVarNameException.getMessage());
+        assertThatExceptionOfType(InvalidArgumentException.class)
+                .isThrownBy(() -> CredentialProvider.globalKeyFromEnvVar("", TEST_ENDPOINT))
+                .withMessageContaining("Env var name cannot be empty");
 
         // Test empty env var value
         System.setProperty(ENV_VAR_NAME, "");
-        IllegalArgumentException emptyEnvVarException = assertThrows(
-                IllegalArgumentException.class,
-                () -> CredentialProvider.globalKeyFromEnvVar(ENV_VAR_NAME, TEST_ENDPOINT));
-        assertEquals("Env var " + envVarName + " must be set", emptyEnvVarException.getMessage());
+        assertThatExceptionOfType(InvalidArgumentException.class)
+                .isThrownBy(() -> CredentialProvider.globalKeyFromEnvVar(ENV_VAR_NAME, TEST_ENDPOINT))
+                .withMessageContaining("Env var " + ENV_VAR_NAME + " must be set");
     }
 
     @Test
@@ -85,9 +82,8 @@ class GlobalCredentialProviderTest {
         // Ensure the env var is not set
         System.clearProperty(ENV_VAR_NAME);
 
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> CredentialProvider.globalKeyFromEnvVar(ENV_VAR_NAME, TEST_ENDPOINT));
-        assertEquals("Env var " + ENV_VAR_NAME + " must be set", exception.getMessage());
+        assertThatExceptionOfType(InvalidArgumentException.class)
+                .isThrownBy(() -> CredentialProvider.globalKeyFromEnvVar(ENV_VAR_NAME, TEST_ENDPOINT))
+                .withMessageContaining("Env var " + ENV_VAR_NAME + " must be set");
     }
 }

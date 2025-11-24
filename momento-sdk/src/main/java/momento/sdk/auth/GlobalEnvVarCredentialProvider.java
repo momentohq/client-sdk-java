@@ -3,6 +3,7 @@ package momento.sdk.auth;
 import javax.annotation.Nonnull;
 
 import momento.sdk.auth.GlobalStringCredentialProvider;
+import momento.sdk.exceptions.InvalidArgumentException;
 
 public class GlobalEnvVarCredentialProvider extends GlobalStringCredentialProvider {
 

@@ -4,6 +4,12 @@ import javax.annotation.Nonnull;
 import momento.sdk.exceptions.InvalidArgumentException;
 
 public class GlobalStringCredentialProvider extends CredentialProvider {
+    private final String authToken;
+    private final String controlEndpoint;
+    private final String cacheEndpoint;
+    private final String storageEndpoint;
+    private final String tokenEndpoint;
+
     private static String build(String prefix, String endpoint) {
         return prefix + "." + endpoint;
     }
@@ -51,5 +57,10 @@ public class GlobalStringCredentialProvider extends CredentialProvider {
     @Override
     public boolean isEndpointSecure() {
         return true;
+    }
+
+    @Override
+    public int getPort() {
+        return 443;
     }
 }
