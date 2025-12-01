@@ -15,10 +15,10 @@ public class GlobalStringCredentialProvider extends CredentialProvider {
   }
 
   public GlobalStringCredentialProvider(@Nonnull String authToken, @Nonnull String endpoint) {
-    if (authToken == null) {
+    if (authToken == null || authToken == "") {
       throw new InvalidArgumentException("Auth token must not be empty");
     }
-    if (endpoint == null) {
+    if (endpoint == null || endpoint == "") {
       throw new InvalidArgumentException("Endpoint must not be empty");
     }
     this.authToken = authToken;

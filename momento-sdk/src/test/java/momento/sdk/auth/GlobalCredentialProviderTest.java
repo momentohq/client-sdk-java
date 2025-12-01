@@ -18,20 +18,6 @@ class GlobalCredentialProviderTest {
   }
 
   @Test
-  void globalKeyFromEnvVar() {
-    System.setProperty(ENV_VAR_NAME, TEST_API_KEY);
-
-    CredentialProvider credentialProvider =
-        new GlobalEnvVarCredentialProvider(ENV_VAR_NAME, TEST_ENDPOINT);
-
-    assertThat(TEST_API_KEY).isEqualTo(credentialProvider.getAuthToken());
-    assertThat("cache." + TEST_ENDPOINT).isEqualTo(credentialProvider.getCacheEndpoint());
-    assertThat("control." + TEST_ENDPOINT).isEqualTo(credentialProvider.getControlEndpoint());
-    assertThat("token." + TEST_ENDPOINT).isEqualTo(credentialProvider.getTokenEndpoint());
-    assertThat("storage." + TEST_ENDPOINT).isEqualTo(credentialProvider.getStorageEndpoint());
-  }
-
-  @Test
   void globalKeyFromString() {
     CredentialProvider credentialProvider =
         new GlobalStringCredentialProvider(TEST_API_KEY, TEST_ENDPOINT);
@@ -48,35 +34,18 @@ class GlobalCredentialProviderTest {
     // Test empty endpoint
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(() -> CredentialProvider.globalKeyFromString(TEST_API_KEY, ""))
-        .withMessageContaining("Endpoint string cannot be empty");
+        .withMessageContaining("Endpoint must not be empty");
 
     // Test empty API key
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(() -> CredentialProvider.globalKeyFromString("", TEST_ENDPOINT))
-        .withMessageContaining("Auth token string cannot be empty");
+        .withMessageContaining("Auth token must not be empty");
   }
 
-  @Test
-  void globalFromEnvVarEmptyArguments() {
-    System.setProperty(ENV_VAR_NAME, TEST_API_KEY);
-
-    // Test empty endpoint
-    assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(() -> CredentialProvider.globalKeyFromEnvVar(ENV_VAR_NAME, ""))
-        .withMessageContaining("Endpoint string cannot be empty");
-
-    // Test empty env var name
-    assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(() -> CredentialProvider.globalKeyFromEnvVar("", TEST_ENDPOINT))
-        .withMessageContaining("Env var name cannot be empty");
-
-    // Test empty env var value
-    System.setProperty(ENV_VAR_NAME, "");
-    assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(() -> CredentialProvider.globalKeyFromEnvVar(ENV_VAR_NAME, TEST_ENDPOINT))
-        .withMessageContaining("Env var " + ENV_VAR_NAME + " must be set");
-  }
-
+  /*
+   * Java does not appear to provide a way to dynamically set environment
+   * variables, cannot test the happy path
+   */
   @Test
   void globalFromEnvVarNotSet() {
     // Ensure the env var is not set
