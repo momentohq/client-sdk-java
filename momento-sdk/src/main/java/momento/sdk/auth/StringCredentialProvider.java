@@ -69,6 +69,11 @@ public class StringCredentialProvider extends CredentialProvider {
       @Nullable String storageHost,
       @Nullable String tokenHost) {
     TokenAndEndpoints data;
+    if (isGlobalApiKey(authToken)) {
+      throw new InvalidArgumentException(
+          "Received a global API key. Are you using the correct key? Or did you mean to use"
+              + "`GlobalKeyFromString()` or `GlobalKeyFromEnvironmentVariable()` instead?");
+    }
     try {
       data = processV1Token(authToken);
     } catch (IllegalArgumentException iae) {
@@ -86,6 +91,29 @@ public class StringCredentialProvider extends CredentialProvider {
     cacheEndpoint = cacheHost != null ? cacheHost : data.cacheEndpoint;
     storageEndpoint = storageHost != null ? storageHost : data.storageEndpoint;
     tokenEndpoint = tokenHost != null ? tokenHost : data.tokenEndpoint;
+  }
+
+  private static boolean isGlobalApiKey(String authToken) {
+    try {
+      // JWT tokens have 3 parts separated by dots
+      if (authToken.chars().filter(ch -> ch == '.').count() != 2) {
+        return false;
+      }
+
+      // Split and get the payload (second part)
+      String[] parts = authToken.split("\\.");
+      if (parts.length != 3) {
+        return false;
+      }
+
+      // Decode the payload from base64
+      String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
+
+      // Check if it contains "t":"g" (global key indicator)
+      return payload.contains("\"t\"") && payload.contains("\"g\"");
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   private TokenAndEndpoints processLegacyToken(String authToken) {

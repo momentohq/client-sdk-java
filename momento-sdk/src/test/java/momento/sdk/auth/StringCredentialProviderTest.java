@@ -13,6 +13,8 @@ class StringCredentialProviderTest {
   private static final String CONTROL_ENDPOINT_V1 = "control.test.momentohq.com";
   private static final String CACHE_ENDPOINT_V1 = "cache.test.momentohq.com";
 
+  private static final String GLOBAL_TEST_API_KEY =
+      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0IjoiZyJ9.LloWc3qLRkBm_djlOjXE8wNSENqOay17xHLJR5XIr0cwkyhhh8w_oBaiQDktBkOvh-wKLQGUKavSQuOwXEb2_g";
   // Test tokens are all fake and nonfunctional.
   private static final String VALID_LEGACY_AUTH_TOKEN =
       "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiY29udHJvbC5leGFtcGxlL"
@@ -47,7 +49,7 @@ class StringCredentialProviderTest {
 
   @Test
   public void testCredentialProviderNullToken() {
-    //noinspection DataFlowIssue
+    // noinspection DataFlowIssue
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(() -> new StringCredentialProvider(null))
         .withMessageContaining("null");
@@ -144,5 +146,14 @@ class StringCredentialProviderTest {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(() -> new StringCredentialProvider(TEST_V1_MISSING_API_KEY))
         .withMessageContaining("parse auth token");
+  }
+
+  @Test
+  public void fromStringWithGlobalToken() {
+    assertThatExceptionOfType(InvalidArgumentException.class)
+        .isThrownBy(() -> CredentialProvider.fromString(GLOBAL_TEST_API_KEY))
+        .withMessageContaining(
+            "Received a global API key. Are you using the correct key? Or did you mean to use"
+                + "`GlobalKeyFromString()` or `GlobalKeyFromEnvironmentVariable()` instead?");
   }
 }
