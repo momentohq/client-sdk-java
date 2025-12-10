@@ -13,7 +13,7 @@ class StringCredentialProviderTest {
   private static final String CONTROL_ENDPOINT_V1 = "control.test.momentohq.com";
   private static final String CACHE_ENDPOINT_V1 = "cache.test.momentohq.com";
 
-  private static final String GLOBAL_TEST_API_KEY =
+  private static final String V2_TEST_API_KEY =
       "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0IjoiZyJ9.LloWc3qLRkBm_djlOjXE8wNSENqOay17xHLJR5XIr0cwkyhhh8w_oBaiQDktBkOvh-wKLQGUKavSQuOwXEb2_g";
   // Test tokens are all fake and nonfunctional.
   private static final String VALID_LEGACY_AUTH_TOKEN =
@@ -149,11 +149,11 @@ class StringCredentialProviderTest {
   }
 
   @Test
-  public void fromStringWithGlobalToken() {
+  public void fromStringWithV2ApiKey() {
     assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(() -> CredentialProvider.fromString(GLOBAL_TEST_API_KEY))
+        .isThrownBy(() -> CredentialProvider.fromString(V2_TEST_API_KEY))
         .withMessageContaining(
-            "Received a global API key. Are you using the correct key? Or did you mean to use"
-                + "`GlobalKeyFromString()` or `GlobalKeyFromEnvironmentVariable()` instead?");
+            "Received a V2 API key. Are you using the correct key? Or did you mean to use"
+                + "`fromApiKeyV2()` or `fromEnvVarV2()` instead?");
   }
 }

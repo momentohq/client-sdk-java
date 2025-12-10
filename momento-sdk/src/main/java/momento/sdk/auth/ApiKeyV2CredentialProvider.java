@@ -4,7 +4,7 @@ import java.util.Base64;
 import javax.annotation.Nonnull;
 import momento.sdk.exceptions.InvalidArgumentException;
 
-public class GlobalStringCredentialProvider extends CredentialProvider {
+public class ApiKeyV2CredentialProvider extends CredentialProvider {
   private final String authToken;
   private final String controlEndpoint;
   private final String cacheEndpoint;
@@ -15,7 +15,7 @@ public class GlobalStringCredentialProvider extends CredentialProvider {
     return prefix + "." + endpoint;
   }
 
-  private static boolean isGlobalApiKey(String authToken) {
+  private static boolean isV2ApiKey(String authToken) {
     try {
       // JWT tokens have 3 parts separated by dots
       if (authToken.chars().filter(ch -> ch == '.').count() != 2) {
@@ -40,7 +40,7 @@ public class GlobalStringCredentialProvider extends CredentialProvider {
 
   private static boolean isBase64EncodedToken(String apiKey) {
     // Check if it's a global JWT (which is allowed)
-    if (isGlobalApiKey(apiKey)) {
+    if (isV2ApiKey(apiKey)) {
       return false;
     }
 
@@ -58,7 +58,7 @@ public class GlobalStringCredentialProvider extends CredentialProvider {
     }
   }
 
-  public GlobalStringCredentialProvider(@Nonnull String authToken, @Nonnull String endpoint) {
+  public ApiKeyV2CredentialProvider(@Nonnull String authToken, @Nonnull String endpoint) {
     if (authToken == null || authToken == "") {
       throw new InvalidArgumentException("Auth token must not be empty");
     }
@@ -68,8 +68,8 @@ public class GlobalStringCredentialProvider extends CredentialProvider {
 
     if (isBase64EncodedToken(authToken)) {
       throw new InvalidArgumentException(
-          "Global API key appears to be a V1 or legacy token. "
-              + "Please use CredentialProvider.fromString() instead of globalKeyFromString()");
+          "V2 API key appears to be a V1 or legacy token. "
+              + "Did you mean to use CredentialProvider.fromString() or CredentialProvider.fromEnvVar() instead?");
     }
 
     this.authToken = authToken;

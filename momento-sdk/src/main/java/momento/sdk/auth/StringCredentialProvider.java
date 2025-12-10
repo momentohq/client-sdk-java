@@ -69,10 +69,10 @@ public class StringCredentialProvider extends CredentialProvider {
       @Nullable String storageHost,
       @Nullable String tokenHost) {
     TokenAndEndpoints data;
-    if (isGlobalApiKey(authToken)) {
+    if (isV2ApiKey(authToken)) {
       throw new InvalidArgumentException(
-          "Received a global API key. Are you using the correct key? Or did you mean to use"
-              + "`GlobalKeyFromString()` or `GlobalKeyFromEnvironmentVariable()` instead?");
+          "Received a V2 API key. Are you using the correct key? Or did you mean to use"
+              + "`fromApiKeyV2()` or `fromEnvVarV2()` instead?");
     }
     try {
       data = processV1Token(authToken);
@@ -93,7 +93,7 @@ public class StringCredentialProvider extends CredentialProvider {
     tokenEndpoint = tokenHost != null ? tokenHost : data.tokenEndpoint;
   }
 
-  private static boolean isGlobalApiKey(String authToken) {
+  private static boolean isV2ApiKey(String authToken) {
     try {
       // JWT tokens have 3 parts separated by dots
       if (authToken.chars().filter(ch -> ch == '.').count() != 2) {

@@ -13,7 +13,9 @@ public abstract class CredentialProvider {
    *
    * @param authToken A Momento auth token.
    * @return The provider.
+   * @deprecated use {@link #fromApiKeyV2(String, String)} instead.
    */
+  @Deprecated
   public static CredentialProvider fromString(@Nonnull String authToken) {
     return new StringCredentialProvider(authToken);
   }
@@ -23,7 +25,9 @@ public abstract class CredentialProvider {
    *
    * @param envVar An environment variable containing a Momento auth token.
    * @return The provider.
+   * @deprecated use {@link #fromEnvVarV2(String, String)} instead.
    */
+  @Deprecated
   public static CredentialProvider fromEnvVar(@Nonnull String envVar) {
     return new EnvVarCredentialProvider(envVar);
   }
@@ -44,21 +48,31 @@ public abstract class CredentialProvider {
    * @param endpoint
    * @return The provider.
    */
-  public static CredentialProvider globalKeyFromString(
+  public static CredentialProvider fromApiKeyV2(
       @Nonnull String authToken, @Nonnull String endpoint) {
-    return new GlobalStringCredentialProvider(authToken, endpoint);
+    return new ApiKeyV2CredentialProvider(authToken, endpoint);
   }
 
   /**
    * Creates a CredentialProvider using an endpoint and a string containing a global api key.
    *
    * @param envVar environment variable containing a global api key.
-   * @param endpoint
+   * @param endpointEnvVar environment variable containing a endpoint.
    * @return The provider.
    */
-  public static CredentialProvider globalKeyFromEnvVar(
-      @Nonnull String envVar, @Nonnull String endpoint) {
-    return new GlobalEnvVarCredentialProvider(envVar, endpoint);
+  public static CredentialProvider fromEnvVarV2(
+      @Nonnull String envVar, @Nonnull String endpointEnvVar) {
+    return new EnvVarV2CredentialProvider(envVar, endpointEnvVar);
+  }
+
+  /**
+   * Creates a CredentialProvider using a disposable token.
+   *
+   * @param disposableToken
+   * @return The provider.
+   */
+  public static CredentialProvider fromDisposableToken(@Nonnull String disposableToken) {
+    return new StringCredentialProvider(disposableToken);
   }
 
   /**
