@@ -17,6 +17,12 @@ public class ApiKeyV2CredentialProvider extends CredentialProvider {
 
   private static boolean isV2ApiKey(String authToken) {
     try {
+      // only v1 api keys are entirely b64 encoded
+      // v2 keys are JWTs with b64 encoded segments
+      if (isBase64Encoded(authToken)) {
+        return false;
+      }
+
       // JWT tokens have 3 parts separated by dots
       if (authToken.chars().filter(ch -> ch == '.').count() != 2) {
         return false;
@@ -38,25 +44,34 @@ public class ApiKeyV2CredentialProvider extends CredentialProvider {
     }
   }
 
-  private static boolean isBase64EncodedToken(String apiKey) {
-    // Check if it's a global JWT (which is allowed)
-    if (isV2ApiKey(apiKey)) {
-      return false;
-    }
-
-    // Legacy tokens have format: xxx.yyy.zzz (JWT format)
-    if (apiKey.chars().filter(ch -> ch == '.').count() == 2) {
-      return true;
-    }
-
-    // Check if it's base64 encoded (V1 tokens are base64 encoded)
+  public static boolean isBase64Encoded(String apiKey) {
     try {
       Base64.getUrlDecoder().decode(apiKey);
       return true;
-    } catch (Exception e) {
+    } catch (IllegalArgumentException e) {
       return false;
     }
   }
+
+  // private static boolean isBase64EncodedToken(String apiKey) {
+  // // Check if it's a global JWT (which is allowed)
+  // if (isV2ApiKey(apiKey)) {
+  // return false;
+  // }
+
+  // // Legacy tokens have format: xxx.yyy.zzz (JWT format)
+  // if (apiKey.chars().filter(ch -> ch == '.').count() == 2) {
+  // return true;
+  // }
+
+  // // Check if it's base64 encoded (V1 tokens are base64 encoded)
+  // try {
+  // Base64.getUrlDecoder().decode(apiKey);
+  // return true;
+  // } catch (Exception e) {
+  // return false;
+  // }
+  // }
 
   public ApiKeyV2CredentialProvider(@Nonnull String authToken, @Nonnull String endpoint) {
     if (authToken == null || authToken == "") {
@@ -66,7 +81,7 @@ public class ApiKeyV2CredentialProvider extends CredentialProvider {
       throw new InvalidArgumentException("Endpoint must not be empty");
     }
 
-    if (isBase64EncodedToken(authToken)) {
+    if (!isV2ApiKey(authToken)) {
       throw new InvalidArgumentException(
           "V2 API key appears to be a V1 or legacy token. "
               + "Did you mean to use CredentialProvider.fromString() or CredentialProvider.fromEnvVar() instead?");

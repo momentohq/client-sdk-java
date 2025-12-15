@@ -95,11 +95,11 @@ public class StringCredentialProvider extends CredentialProvider {
 
   private static boolean isV2ApiKey(String authToken) {
     try {
-      // JWT tokens have 3 parts separated by dots
-      if (authToken.chars().filter(ch -> ch == '.').count() != 2) {
+      // only v1 api keys are entirely b64 encoded
+      // v2 keys are JWTs with b64 encoded segments
+      if (isBase64Encoded(authToken)) {
         return false;
       }
-
       // Split and get the payload (second part)
       String[] parts = authToken.split("\\.");
       if (parts.length != 3) {
@@ -112,6 +112,15 @@ public class StringCredentialProvider extends CredentialProvider {
       // Check if it contains "t":"g" (global key indicator)
       return payload.contains("\"t\"") && payload.contains("\"g\"");
     } catch (Exception e) {
+      return false;
+    }
+  }
+
+  public static boolean isBase64Encoded(String apiKey) {
+    try {
+      Base64.getUrlDecoder().decode(apiKey);
+      return true;
+    } catch (IllegalArgumentException e) {
       return false;
     }
   }

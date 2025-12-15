@@ -42,9 +42,9 @@ public abstract class CredentialProvider {
   }
 
   /**
-   * Creates a CredentialProvider using an endpoint and a string containing a global api key.
+   * Creates a CredentialProvider using an endpoint and a string containing a v2 api key.
    *
-   * @param authToken string containing a global api key.
+   * @param authToken string containing a v2 api key.
    * @param endpoint
    * @return The provider.
    */
@@ -54,9 +54,9 @@ public abstract class CredentialProvider {
   }
 
   /**
-   * Creates a CredentialProvider using an endpoint and a string containing a global api key.
+   * Creates a CredentialProvider using an endpoint and a string containing a v2 api key.
    *
-   * @param envVar environment variable containing a global api key.
+   * @param envVar environment variable containing a v2 api key.
    * @param endpointEnvVar environment variable containing a endpoint.
    * @return The provider.
    */
