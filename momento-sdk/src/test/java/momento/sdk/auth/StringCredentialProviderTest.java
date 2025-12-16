@@ -14,7 +14,7 @@ class StringCredentialProviderTest {
   private static final String CACHE_ENDPOINT_V1 = "cache.test.momentohq.com";
 
   private static final String V2_TEST_API_KEY =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJqdGkiOiIwMTliMjM0MC0xNDEyLTc1NzItOTAwMS00M2VlNjE1NDM0MzIiLCJ0IjoiZyIsImV4cCI6MTc2NTkyOTYwMH0.UcKw5i0QPMHS4ajEcotsyHqDhIK6IpBRrFiVayS_blBBe3TcZFtjKEij9SkP1mU3eWy_Kw-S9zeQ_Eh5eT7owA";
+      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0IjoiZyIsImp0aSI6InNvbWUtaWQifQ.GMr9nA6HE0ttB6llXct_2Sg5-fOKGFbJCdACZFgNbN1fhT6OPg_hVc8ThGzBrWC_RlsBpLA1nzqK3SOJDXYxAw";
   // Test tokens are all fake and nonfunctional.
   private static final String VALID_LEGACY_AUTH_TOKEN =
       "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiY29udHJvbC5leGFtcGxlL"

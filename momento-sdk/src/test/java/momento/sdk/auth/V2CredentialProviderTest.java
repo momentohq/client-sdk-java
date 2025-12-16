@@ -4,16 +4,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import momento.sdk.exceptions.InvalidArgumentException;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
 class V2CredentialProviderTest {
 
-  private static final String ENV_VAR_NAME = "MOMENTO_TEST_GLOBAL_API_KEY";
+  private static final String ENV_VAR_NAME = "MOMENTO_API_KEY";
   private static final String TEST_V2_API_KEY =
-      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJqdGkiOiIwMTliMjM0MC0xNDEyLTc1NzItOTAwMS00M2VlNjE1NDM0MzIiLCJ0IjoiZyIsImV4cCI6MTc2NTkyOTYwMH0.UcKw5i0QPMHS4ajEcotsyHqDhIK6IpBRrFiVayS_blBBe3TcZFtjKEij9SkP1mU3eWy_Kw-S9zeQ_Eh5eT7owA";
+      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0IjoiZyIsImp0aSI6InNvbWUtaWQifQ.GMr9nA6HE0ttB6llXct_2Sg5-fOKGFbJCdACZFgNbN1fhT6OPg_hVc8ThGzBrWC_RlsBpLA1nzqK3SOJDXYxAw";
   private static final String TEST_ENDPOINT = "test_endpoint";
-  private static final String ENDPOINT_ENV_VAR = "MOMENTO_TEST_ENDPOINT";
   private static final String VALID_LEGACY_AUTH_TOKEN =
       "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiY29udHJvbC5leGFtcGxlL"
           + "mNvbSIsImMiOiJjYWNoZS5leGFtcGxlLmNvbSJ9.YY7RSMBCpMRs_qgbNkW0PYC2eX-M"
@@ -24,11 +22,6 @@ class V2CredentialProviderTest {
           + "SXNJbVY0Y0NJNk5EZzJOVFV4TlRReE1pd2lZWFZrSWpvaUlpd2ljM1ZpSWpvaWFuSnZZMn"
           + "RsZEVCbGVHRnRjR3hsTG1OdmJTSjkuOEl5OHE4NExzci1EM1lDb19IUDRkLXhqSGRUOFVD"
           + "SXV2QVljeGhGTXl6OCIsICJlbmRwb2ludCI6ICJ0ZXN0Lm1vbWVudG9ocS5jb20ifQ==";
-
-  @AfterEach
-  void cleanupEnvironment() {
-    System.clearProperty(ENV_VAR_NAME);
-  }
 
   @Test
   void fromApiKeyV2() {
@@ -57,15 +50,12 @@ class V2CredentialProviderTest {
 
   /*
    * Java does not appear to provide a way to dynamically set environment
-   * variables, cannot test the happy path
+   * variables, cannot test the happy path, will not be able to test endpoint
    */
   @Test
-  void fromEnvVarV2NotSet() {
-    // Ensure the env var is not set
-    System.clearProperty(ENV_VAR_NAME);
-
+  void fromEnvVarV2NotSetDefaultEnvVars() {
     assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(() -> CredentialProvider.fromEnvVarV2(ENV_VAR_NAME, ENDPOINT_ENV_VAR))
+        .isThrownBy(() -> CredentialProvider.fromEnvVarV2())
         .withMessageContaining("Env var " + ENV_VAR_NAME + " must be set");
   }
 
