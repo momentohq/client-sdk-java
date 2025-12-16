@@ -1,5 +1,7 @@
 package momento.sdk.auth;
 
+import static momento.sdk.internal.AuthUtils.isV2ApiKey;
+
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
@@ -16,6 +18,7 @@ import momento.sdk.exceptions.InvalidArgumentException;
 public class StringCredentialProvider extends CredentialProvider {
 
   private static class TokenAndEndpoints {
+
     public final String controlEndpoint;
     public final String cacheEndpoint;
     public final String storageEndpoint;
@@ -69,6 +72,10 @@ public class StringCredentialProvider extends CredentialProvider {
       @Nullable String storageHost,
       @Nullable String tokenHost) {
     TokenAndEndpoints data;
+    if (isV2ApiKey(authToken)) {
+      throw new InvalidArgumentException(
+          "Received a v2 API key. Are you using the correct key? Or did you mean to use `fromApiKeyV2()` or `fromEnvVarV2()` instead?");
+    }
     try {
       data = processV1Token(authToken);
     } catch (IllegalArgumentException iae) {
@@ -109,7 +116,6 @@ public class StringCredentialProvider extends CredentialProvider {
     }
 
     // Note: Storage endpoint is not present in legacy tokens
-
     return new TokenAndEndpoints(controlEp, cacheEp, null, cacheEp, authToken);
   }
 
