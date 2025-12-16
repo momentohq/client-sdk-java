@@ -14,7 +14,7 @@ class StringCredentialProviderTest {
   private static final String CACHE_ENDPOINT_V1 = "cache.test.momentohq.com";
 
   private static final String V2_TEST_API_KEY =
-      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0IjoiZyJ9.LloWc3qLRkBm_djlOjXE8wNSENqOay17xHLJR5XIr0cwkyhhh8w_oBaiQDktBkOvh-wKLQGUKavSQuOwXEb2_g";
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJqdGkiOiIwMTliMjM0MC0xNDEyLTc1NzItOTAwMS00M2VlNjE1NDM0MzIiLCJ0IjoiZyIsImV4cCI6MTc2NTkyOTYwMH0.UcKw5i0QPMHS4ajEcotsyHqDhIK6IpBRrFiVayS_blBBe3TcZFtjKEij9SkP1mU3eWy_Kw-S9zeQ_Eh5eT7owA";
   // Test tokens are all fake and nonfunctional.
   private static final String VALID_LEGACY_AUTH_TOKEN =
       "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJzcXVpcnJlbCIsImNwIjoiY29udHJvbC5leGFtcGxlL"
@@ -153,7 +153,6 @@ class StringCredentialProviderTest {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(() -> CredentialProvider.fromString(V2_TEST_API_KEY))
         .withMessageContaining(
-            "Received a V2 API key. Are you using the correct key? Or did you mean to use"
-                + "`fromApiKeyV2()` or `fromEnvVarV2()` instead?");
+            "Received a v2 API key. Are you using the correct key? Or did you mean to use `fromApiKeyV2()` or `fromEnvVarV2()` instead?");
   }
 }

@@ -13,7 +13,8 @@ public abstract class CredentialProvider {
    *
    * @param authToken A Momento auth token.
    * @return The provider.
-   * @deprecated use {@link #fromApiKeyV2(String, String)} instead.
+   * @deprecated use {@link #fromApiKeyV2(String, String)} or {@link #fromDisposableToken(String)}
+   *     instead.
    */
   @Deprecated
   public static CredentialProvider fromString(@Nonnull String authToken) {
@@ -54,15 +55,26 @@ public abstract class CredentialProvider {
   }
 
   /**
-   * Creates a CredentialProvider using an endpoint and a string containing a v2 api key.
+   * Creates a CredentialProvider using an endpoint and a v2 api key stored in the provided
+   * environment variables.
    *
-   * @param envVar environment variable containing a v2 api key.
-   * @param endpointEnvVar environment variable containing a endpoint.
+   * @param apiKeyEnvVar environment variable containing the v2 api key.
+   * @param endpointEnvVar environment variable containing the endpoint.
    * @return The provider.
    */
   public static CredentialProvider fromEnvVarV2(
-      @Nonnull String envVar, @Nonnull String endpointEnvVar) {
-    return new EnvVarV2CredentialProvider(envVar, endpointEnvVar);
+      @Nonnull String apiKeyEnvVar, @Nonnull String endpointEnvVar) {
+    return new EnvVarV2CredentialProvider(apiKeyEnvVar, endpointEnvVar);
+  }
+
+  /**
+   * Creates a CredentialProvider using an endpoint and a v2 api key stored in the default
+   * environment variables MOMENTO_API_KEY and MOMENTO_ENDPOINT.
+   *
+   * @return The provider.
+   */
+  public static CredentialProvider fromEnvVarV2() {
+    return new EnvVarV2CredentialProvider("MOMENTO_API_KEY", "MOMENTO_ENDPOINT");
   }
 
   /**

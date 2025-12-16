@@ -7,10 +7,11 @@ import momento.sdk.exceptions.InvalidArgumentException;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 
-class GlobalCredentialProviderTest {
+class V2CredentialProviderTest {
+
   private static final String ENV_VAR_NAME = "MOMENTO_TEST_GLOBAL_API_KEY";
   private static final String TEST_V2_API_KEY =
-      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0IjoiZyJ9.LloWc3qLRkBm_djlOjXE8wNSENqOay17xHLJR5XIr0cwkyhhh8w_oBaiQDktBkOvh-wKLQGUKavSQuOwXEb2_g";
+      "eyJ0eXAiOiJKV1QiLCJhbGciOiJFUzI1NiJ9.eyJqdGkiOiIwMTliMjM0MC0xNDEyLTc1NzItOTAwMS00M2VlNjE1NDM0MzIiLCJ0IjoiZyIsImV4cCI6MTc2NTkyOTYwMH0.UcKw5i0QPMHS4ajEcotsyHqDhIK6IpBRrFiVayS_blBBe3TcZFtjKEij9SkP1mU3eWy_Kw-S9zeQ_Eh5eT7owA";
   private static final String TEST_ENDPOINT = "test_endpoint";
   private static final String ENDPOINT_ENV_VAR = "MOMENTO_TEST_ENDPOINT";
   private static final String VALID_LEGACY_AUTH_TOKEN =
@@ -51,7 +52,7 @@ class GlobalCredentialProviderTest {
     // Test empty API key
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(() -> CredentialProvider.fromApiKeyV2("", TEST_ENDPOINT))
-        .withMessageContaining("Auth token must not be empty");
+        .withMessageContaining("API key must not be empty");
   }
 
   /*
@@ -73,8 +74,7 @@ class GlobalCredentialProviderTest {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(() -> CredentialProvider.fromApiKeyV2(VALID_V1_AUTH_TOKEN, TEST_ENDPOINT))
         .withMessageContaining(
-            "V2 API key appears to be a V1 or legacy token. Did you mean to use "
-                + "CredentialProvider.fromString() or CredentialProvider.fromEnvVar() instead?");
+            "Received an invalid v2 API key. Did you mean to use `fromString()` or `fromEnvVar()` with a legacy key instead?");
   }
 
   @Test
@@ -82,8 +82,7 @@ class GlobalCredentialProviderTest {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(() -> CredentialProvider.fromApiKeyV2(VALID_LEGACY_AUTH_TOKEN, TEST_ENDPOINT))
         .withMessageContaining(
-            "V2 API key appears to be a V1 or legacy token. Did you mean to use "
-                + "CredentialProvider.fromString() or CredentialProvider.fromEnvVar() instead?");
+            "Received an invalid v2 API key. Did you mean to use `fromString()` or `fromEnvVar()` with a legacy key instead?");
   }
 
   @Test
@@ -91,7 +90,6 @@ class GlobalCredentialProviderTest {
     assertThatExceptionOfType(InvalidArgumentException.class)
         .isThrownBy(() -> CredentialProvider.fromDisposableToken(TEST_V2_API_KEY))
         .withMessageContaining(
-            "Received a V2 API key. Are you using the correct key? Or did you mean to use"
-                + "`fromApiKeyV2()` or `fromEnvVarV2()` instead?");
+            "Received a v2 API key. Are you using the correct key? Or did you mean to use `fromApiKeyV2()` or `fromEnvVarV2()` instead?");
   }
 }

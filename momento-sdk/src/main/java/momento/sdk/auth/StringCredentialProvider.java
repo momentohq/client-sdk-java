@@ -1,5 +1,7 @@
 package momento.sdk.auth;
 
+import static momento.sdk.internal.AuthUtils.isV2ApiKey;
+
 import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import io.jsonwebtoken.Claims;
@@ -16,6 +18,7 @@ import momento.sdk.exceptions.InvalidArgumentException;
 public class StringCredentialProvider extends CredentialProvider {
 
   private static class TokenAndEndpoints {
+
     public final String controlEndpoint;
     public final String cacheEndpoint;
     public final String storageEndpoint;
@@ -71,8 +74,7 @@ public class StringCredentialProvider extends CredentialProvider {
     TokenAndEndpoints data;
     if (isV2ApiKey(authToken)) {
       throw new InvalidArgumentException(
-          "Received a V2 API key. Are you using the correct key? Or did you mean to use"
-              + "`fromApiKeyV2()` or `fromEnvVarV2()` instead?");
+          "Received a v2 API key. Are you using the correct key? Or did you mean to use `fromApiKeyV2()` or `fromEnvVarV2()` instead?");
     }
     try {
       data = processV1Token(authToken);
@@ -91,38 +93,6 @@ public class StringCredentialProvider extends CredentialProvider {
     cacheEndpoint = cacheHost != null ? cacheHost : data.cacheEndpoint;
     storageEndpoint = storageHost != null ? storageHost : data.storageEndpoint;
     tokenEndpoint = tokenHost != null ? tokenHost : data.tokenEndpoint;
-  }
-
-  private static boolean isV2ApiKey(String authToken) {
-    try {
-      // only v1 api keys are entirely b64 encoded
-      // v2 keys are JWTs with b64 encoded segments
-      if (isBase64Encoded(authToken)) {
-        return false;
-      }
-      // Split and get the payload (second part)
-      String[] parts = authToken.split("\\.");
-      if (parts.length != 3) {
-        return false;
-      }
-
-      // Decode the payload from base64
-      String payload = new String(Base64.getUrlDecoder().decode(parts[1]));
-
-      // Check if it contains "t":"g" (global key indicator)
-      return payload.contains("\"t\"") && payload.contains("\"g\"");
-    } catch (Exception e) {
-      return false;
-    }
-  }
-
-  public static boolean isBase64Encoded(String apiKey) {
-    try {
-      Base64.getUrlDecoder().decode(apiKey);
-      return true;
-    } catch (IllegalArgumentException e) {
-      return false;
-    }
   }
 
   private TokenAndEndpoints processLegacyToken(String authToken) {
@@ -146,7 +116,6 @@ public class StringCredentialProvider extends CredentialProvider {
     }
 
     // Note: Storage endpoint is not present in legacy tokens
-
     return new TokenAndEndpoints(controlEp, cacheEp, null, cacheEp, authToken);
   }
 
