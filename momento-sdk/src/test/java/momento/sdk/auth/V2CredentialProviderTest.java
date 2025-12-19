@@ -55,7 +55,8 @@ class V2CredentialProviderTest {
   void fromEnvVarV2NotSetDefaultEnvVars() {
     // either env var may be checked first
     assertThatExceptionOfType(InvalidArgumentException.class)
-        .isThrownBy(() -> CredentialProvider.fromEnvVarV2())
+        .isThrownBy(
+            () -> CredentialProvider.fromEnvVarV2("NONEXISTENT_ENV_VAR", "NONEXISTENT_ENDPOINT"))
         .withMessageContaining("must be set");
   }
 
