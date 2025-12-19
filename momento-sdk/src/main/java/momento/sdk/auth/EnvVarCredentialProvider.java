@@ -2,6 +2,7 @@ package momento.sdk.auth;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
+import momento.sdk.internal.AuthUtils;
 
 /**
  * Parses connection and authentication information from a JWT read from an environment variable.
@@ -15,7 +16,7 @@ public class EnvVarCredentialProvider extends StringCredentialProvider {
    * @param envVarName the environment variable containing the Momento authentication token.
    */
   public EnvVarCredentialProvider(@Nonnull String envVarName) {
-    super(getApiKeyValueFromEnvVar(envVarName), null, null, null, null);
+    super(AuthUtils.getApiKeyValueFromEnvVar(envVarName), null, null, null, null);
   }
 
   /**
@@ -32,15 +33,7 @@ public class EnvVarCredentialProvider extends StringCredentialProvider {
       @Nullable String controlHost,
       @Nullable String cacheHost,
       @Nullable String storageHost) {
-    super(getApiKeyValueFromEnvVar(envVarName), controlHost, cacheHost, storageHost, null);
-  }
-
-  private static String getApiKeyValueFromEnvVar(String envVarName) {
-    String authToken = System.getenv(envVarName);
-    if (authToken == null) {
-      throw new IllegalArgumentException(
-          "Missing required Momento API Key environment variable: " + envVarName);
-    }
-    return authToken;
+    super(
+        AuthUtils.getApiKeyValueFromEnvVar(envVarName), controlHost, cacheHost, storageHost, null);
   }
 }

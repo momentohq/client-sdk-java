@@ -1,6 +1,7 @@
 package momento.sdk.internal;
 
 import java.util.Base64;
+import momento.sdk.exceptions.InvalidArgumentException;
 
 public class AuthUtils {
 
@@ -40,5 +41,29 @@ public class AuthUtils {
     } catch (IllegalArgumentException e) {
       return false;
     }
+  }
+
+  public static String getApiKeyValueFromEnvVar(String apiKeyEnvVar) {
+    if (apiKeyEnvVar == null || apiKeyEnvVar.isEmpty()) { // Check for empty env var name
+      throw new InvalidArgumentException("API key env var name cannot be empty");
+    }
+
+    String authToken = System.getenv(apiKeyEnvVar);
+    if (authToken == null || authToken.isEmpty()) { // Check for empty value
+      throw new InvalidArgumentException("Env var " + apiKeyEnvVar + " must be set");
+    }
+    return authToken;
+  }
+
+  public static String getEndpointValueFromEnvVar(String endpointEnvVar) {
+    if (endpointEnvVar == null || endpointEnvVar.isEmpty()) { // Check for empty env var name
+      throw new InvalidArgumentException("Endpoint env var name cannot be empty");
+    }
+
+    String authToken = System.getenv(endpointEnvVar);
+    if (authToken == null || authToken.isEmpty()) { // Check for empty value
+      throw new InvalidArgumentException(" Endpoint env var " + endpointEnvVar + " must be set");
+    }
+    return authToken;
   }
 }
