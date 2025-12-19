@@ -4,7 +4,6 @@ import com.amazonaws.services.lambda.runtime.Context;
 import com.amazonaws.services.lambda.runtime.RequestHandler;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
 import momento.sdk.responses.cache.GetResponse;
@@ -15,7 +14,6 @@ import java.util.Map;
 
 public class MomentoJavaLambda implements RequestHandler<Map<String, String>, String> {
 
-    private static final String AUTH_TOKEN_ENV_VAR = "MOMENTO_AUTH_TOKEN";
     private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
     private static final String CACHE_NAME = "cache";
@@ -25,10 +23,10 @@ public class MomentoJavaLambda implements RequestHandler<Map<String, String>, St
     @Override
     public String handleRequest(Map<String, String> event, Context context) {
 
-        final CredentialProvider credentialProvider = new EnvVarCredentialProvider(AUTH_TOKEN_ENV_VAR);
+        final CredentialProvider credentialProvider = CredentialProvider.fromEnvVarV2();
 
-        try (final CacheClient client =
-                     CacheClient.create(credentialProvider, Configurations.Lambda.latest(), DEFAULT_ITEM_TTL)) {
+        try (final CacheClient client
+                = CacheClient.create(credentialProvider, Configurations.Lambda.latest(), DEFAULT_ITEM_TTL)) {
 
             createCache(client, CACHE_NAME);
 

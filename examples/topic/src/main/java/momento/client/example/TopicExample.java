@@ -5,11 +5,9 @@ import momento.sdk.CacheClient;
 import momento.sdk.ISubscriptionCallbacks;
 import momento.sdk.TopicClient;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.config.TopicConfigurations;
 import momento.sdk.exceptions.AlreadyExistsException;
-import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.topic.TopicMessage;
 import momento.sdk.responses.topic.TopicPublishResponse;
@@ -19,7 +17,6 @@ import org.slf4j.LoggerFactory;
 
 public class TopicExample {
 
-  private static final String API_KEY_ENV_VAR = "MOMENTO_API_KEY";
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   private static final String CACHE_NAME = "topic-example-cache";
@@ -30,13 +27,7 @@ public class TopicExample {
   public static void main(String[] args) {
     logStartBanner();
 
-    final CredentialProvider credentialProvider;
-    try {
-      credentialProvider = new EnvVarCredentialProvider(API_KEY_ENV_VAR);
-    } catch (SdkException e) {
-      logger.error("Unable to load credential from environment variable " + API_KEY_ENV_VAR, e);
-      throw e;
-    }
+    final CredentialProvider credentialProvider = CredentialProvider.fromEnvVarV2();
 
     try (final CacheClient client =
             CacheClient.create(

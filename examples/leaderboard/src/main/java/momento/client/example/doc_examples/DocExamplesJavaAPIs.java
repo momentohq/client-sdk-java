@@ -28,8 +28,7 @@ public class DocExamplesJavaAPIs {
   public static void example_API_InstantiateLeaderboardClient() {
     try (final LeaderboardClient leaderboardClient =
         LeaderboardClient.builder(
-                CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
-                LeaderboardConfigurations.Laptop.latest())
+                CredentialProvider.fromEnvVarV2(), LeaderboardConfigurations.Laptop.latest())
             .build()) {
       // ...
     }
@@ -256,8 +255,7 @@ public class DocExamplesJavaAPIs {
   public static void main(String[] args) {
     try (final LeaderboardClient leaderboardClient =
         LeaderboardClient.builder(
-                CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
-                LeaderboardConfigurations.Laptop.latest())
+                CredentialProvider.fromEnvVarV2(), LeaderboardConfigurations.Laptop.latest())
             .build()) {
       example_API_InstantiateLeaderboardClient();
       example_API_CreateLeaderboard(leaderboardClient);

@@ -6,10 +6,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
-import momento.sdk.exceptions.AlreadyExistsException;
-import momento.sdk.exceptions.SdkException;
+import momento.sdk.exceptions.CacheAlreadyExistsException;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetFetchResponse;
 import momento.sdk.responses.cache.sortedset.SortedSetGetScoresResponse;
@@ -22,7 +20,6 @@ import org.slf4j.LoggerFactory;
 
 public class SortedSetExample {
 
-  private static final String API_KEY_ENV_VAR = "MOMENTO_API_KEY";
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
   private static final String CACHE_NAME = "set-example-cache";
@@ -33,13 +30,7 @@ public class SortedSetExample {
   public static void main(String[] args) {
     logStartBanner();
 
-    final CredentialProvider credentialProvider;
-    try {
-      credentialProvider = new EnvVarCredentialProvider(API_KEY_ENV_VAR);
-    } catch (SdkException e) {
-      logger.error("Unable to load credential from environment variable " + API_KEY_ENV_VAR, e);
-      throw e;
-    }
+    final CredentialProvider credentialProvider = CredentialProvider.fromEnvVarV2();
 
     try (final CacheClient client =
         CacheClient.create(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)) {
@@ -47,7 +38,7 @@ public class SortedSetExample {
       // Create a cache
       final CacheCreateResponse createResponse = client.createCache(CACHE_NAME).join();
       if (createResponse instanceof CacheCreateResponse.Error error) {
-        if (error.getCause() instanceof AlreadyExistsException) {
+        if (error.getCause() instanceof CacheAlreadyExistsException) {
           logger.info("Cache with name '{}' already exists.", CACHE_NAME);
         } else {
           logger.error("Cache creation failed with error " + error.getErrorCode(), error);

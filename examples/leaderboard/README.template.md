@@ -8,11 +8,12 @@
 - JDK 14 or above is required to run the example
 - To get started with Momento you will need a Momento API key. You can get one from the
   [Momento Console](https://console.gomomento.com).
+- A Momento service endpoint is required. Choose the one for the [region](https://docs.momentohq.com/platform/regions) you'll be using, e.g. `cache.cell-1-ap-southeast-1-1.prod.a.momentohq.com` for ap-southeast-1.
 
 ### Basic
 
 ```bash
-MOMENTO_API_KEY=<YOUR API KEY> ./gradlew basic
+MOMENTO_API_KEY=<YOUR API KEY> MOMENTO_ENDPOINT=<YOUR_ENDPOINT> ./gradlew basic
 ```
 
 Example Code: [BasicExample.java](src/main/java/momento/client/example/BasicExample.java)
