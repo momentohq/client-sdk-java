@@ -4,10 +4,8 @@ import java.time.Duration;
 import java.util.Set;
 import momento.sdk.CacheClient;
 import momento.sdk.auth.CredentialProvider;
-import momento.sdk.auth.EnvVarCredentialProvider;
 import momento.sdk.config.Configurations;
 import momento.sdk.exceptions.AlreadyExistsException;
-import momento.sdk.exceptions.SdkException;
 import momento.sdk.responses.cache.control.CacheCreateResponse;
 import momento.sdk.responses.cache.set.SetAddElementResponse;
 import momento.sdk.responses.cache.set.SetAddElementsResponse;
@@ -29,13 +27,7 @@ public class SetExample {
   public static void main(String[] args) {
     logStartBanner();
 
-    final CredentialProvider credentialProvider;
-    try {
-      credentialProvider = new EnvVarCredentialProvider(API_KEY_ENV_VAR);
-    } catch (SdkException e) {
-      logger.error("Unable to load credential from environment variable " + API_KEY_ENV_VAR, e);
-      throw e;
-    }
+    final CredentialProvider credentialProvider = CredentialProvider.fromEnvVarV2();
 
     try (final CacheClient client =
         CacheClient.create(credentialProvider, Configurations.Laptop.latest(), DEFAULT_ITEM_TTL)) {

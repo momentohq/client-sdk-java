@@ -7,10 +7,11 @@
 1. Run gradle build
     * `./gradlew clean build`
 1. To run integration tests:
-    * Generate API key using the [Momento Console](https://console.gomomento.com/api-keys) (if you don't already have one)
-    * `TEST_AUTH_TOKEN=<api key> TEST_CACHE_NAME=<cache id> TEST_ENDPOINT=<endpoint> ./gradlew integrationTest`
-        * `TEST_CACHE_NAME` is required. Give it any string value for now. TODO - Add a way of getting this per environment
-        * `TEST_ENDPOINT` is optional and defaults to alpha. TEST_ENDPOINT must belong to the cell where the auth token was generated.
+    * Generate API keys using the [Momento Console](https://console.gomomento.com/api-keys)
+    * `V1_API_KEY=<api key> MOMENTO_API_KEY=<cache id> MOMENTO_ENDPOINT=<endpoint> ./gradlew integrationTest`
+        * `V1_API_KEY` - required - v1 api key
+        * `MOMENTO_API_KEY` - required - v2 api key
+        * `MOMENTO_ENDPOINT` - required - Momento service [endpoint](https://docs.momentohq.com/platform/regions) 
       
 ### Code Formatting
 [google-java-format](https://github.com/google/google-java-format) is used for code formatting.

@@ -13,18 +13,22 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
 public class BaseCacheTestClass {
+
   protected static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
   protected static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
   protected static CredentialProvider credentialProvider;
+  protected static CredentialProvider credentialProviderApiKeyV2;
 
   protected static CacheClient cacheClient;
+  protected static CacheClient cacheClientApiKeyV2;
   protected static String cacheName;
 
   @BeforeAll
   static void beforeAll() {
     final boolean consistentReads = System.getenv("CONSISTENT_READS") != null;
 
-    credentialProvider = CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
+    credentialProvider = CredentialProvider.fromEnvVar("V1_API_KEY");
+    credentialProviderApiKeyV2 = CredentialProvider.fromEnvVarV2();
 
     final Configuration config = Configurations.Laptop.latest();
     final Configuration consistentConfig = config.withReadConcern(ReadConcern.CONSISTENT);
@@ -34,6 +38,9 @@ public class BaseCacheTestClass {
             ? CacheClient.builder(credentialProvider, consistentConfig, DEFAULT_TTL_SECONDS).build()
             : CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build();
 
+    cacheClientApiKeyV2 =
+        CacheClient.builder(credentialProviderApiKeyV2, config, DEFAULT_TTL_SECONDS).build();
+
     cacheName = testCacheName();
     ensureTestCacheExists(cacheName);
   }
@@ -42,6 +49,7 @@ public class BaseCacheTestClass {
   static void afterAll() {
     cleanupTestCache(cacheName);
     cacheClient.close();
+    cacheClientApiKeyV2.close();
   }
 
   protected static void ensureTestCacheExists(String cacheName) {

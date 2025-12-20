@@ -4,11 +4,14 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  V1_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
+  MOMENTO_API_KEY: ${{ secrets.ALPHA_API_KEY_V2 }}
+  MOMENTO_ENDPOINT: "cell-alpha-dev.preprod.a.momentohq.com"
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    env:
-      MOMENTO_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
 
     steps:
     - name: Checkout project
@@ -53,8 +56,6 @@ jobs:
 
   build-examples:
     runs-on: ubuntu-latest
-    env:
-      MOMENTO_API_KEY: ${{ secrets.ALPHA_TEST_AUTH_TOKEN }}
 
     steps:
       - name: Checkout project

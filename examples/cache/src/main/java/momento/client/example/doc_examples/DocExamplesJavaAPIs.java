@@ -25,17 +25,39 @@ public class DocExamplesJavaAPIs {
           + "2lZWFZrSWpvaUlpd2ljM1ZpSWpvaWFuSnZZMnRsZEVCbGVHRnRjR3hsTG1OdmJTSjkuOEl5OHE4NExzci1EM1lDb19IUDRkLXhqSGRUOFVDSX"
           + "V2QVljeGhGTXl6OCIsICJlbmRwb2ludCI6ICJ0ZXN0Lm1vbWVudG9ocS5jb20ifQo=";
 
+  public static final String FAKE_V2_API_KEY =
+      "eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJ0IjoiZyIsImp0aSI6InNvbWUtaWQifQ.GMr9nA6HE0ttB6llXct_2Sg5-fOKGFbJCdACZFgNbN1fhT6OPg_hVc8ThGzBrWC_RlsBpLA1nzqK3SOJDXYxAw";
+
   public static String retrieveAuthTokenFromYourSecretsManager() {
     return FAKE_V1_API_KEY;
   }
 
+  public static String retrieveApiKeyV2FromYourSecretsManager() {
+    return FAKE_V2_API_KEY;
+  }
+
   public static void example_API_CredentialProviderFromEnvVar() {
-    CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
+    CredentialProvider.fromEnvVar("V1_API_KEY");
   }
 
   public static void example_API_CredentialProviderFromString() {
     final String authToken = retrieveAuthTokenFromYourSecretsManager();
     CredentialProvider.fromString(authToken);
+  }
+
+  public static void example_API_CredentialProviderFromEnvVarV2() {
+    CredentialProvider.fromEnvVarV2();
+  }
+
+  public static void example_API_CredentialProviderFromApiKeyV2() {
+    final String apiKey = retrieveApiKeyV2FromYourSecretsManager();
+    final String endpoint = "cell-4-us-west-2-1.prod.a.momentohq.com";
+    CredentialProvider.fromApiKeyV2(apiKey, endpoint);
+  }
+
+  public static void example_API_CredentialProviderFromDispoableToken() {
+    final String authToken = retrieveAuthTokenFromYourSecretsManager();
+    CredentialProvider.fromDisposableToken(authToken);
   }
 
   public static void example_API_ConfigurationLaptop() {
@@ -54,7 +76,7 @@ public class DocExamplesJavaAPIs {
   public static void example_API_InstantiateCacheClient() {
     try (CacheClient cacheClient =
         CacheClient.create(
-            CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+            CredentialProvider.fromEnvVarV2(),
             Configurations.Laptop.v1(),
             Duration.ofSeconds(60))) {
       // ...
@@ -210,6 +232,9 @@ public class DocExamplesJavaAPIs {
   public static void main(String[] args) {
     example_API_CredentialProviderFromEnvVar();
     example_API_CredentialProviderFromString();
+    example_API_CredentialProviderFromEnvVarV2();
+    example_API_CredentialProviderFromApiKeyV2();
+    example_API_CredentialProviderFromDispoableToken();
     example_API_ConfigurationLaptop();
     example_API_ConfigurationInRegionLatest();
     example_API_ConfigurationLowLatency();
@@ -217,7 +242,7 @@ public class DocExamplesJavaAPIs {
     example_API_InstantiateCacheClient();
     try (final CacheClient cacheClient =
         CacheClient.builder(
-                CredentialProvider.fromEnvVar("MOMENTO_API_KEY"),
+                CredentialProvider.fromEnvVarV2(),
                 Configurations.Laptop.v1(),
                 Duration.ofSeconds(60))
             .build()) {

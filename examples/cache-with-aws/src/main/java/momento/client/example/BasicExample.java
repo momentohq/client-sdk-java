@@ -20,6 +20,7 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 
 public class BasicExample {
 
+  private static final String MOMENTO_ENDPOINT = "cache.cell-4-us-west-2-1.prod.a.momentohq.com";
   private static final String API_KEY_SECRET_NAME = "MOMENTO_API_KEY";
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 
@@ -85,7 +86,7 @@ public class BasicExample {
   }
 
   public static CredentialProvider getCredentialsFromSecretsManagerAuthToken() {
-    final Region region = Region.of("us-east-1");
+    final Region region = Region.of("us-west-2");
 
     // Create a Secrets Manager client
     final SecretsManagerClient client =
@@ -111,7 +112,7 @@ public class BasicExample {
 
     final String secret = getSecretValueResponse.secretString();
     try {
-      return CredentialProvider.fromString(secret);
+      return CredentialProvider.fromApiKeyV2(secret, MOMENTO_ENDPOINT);
     } catch (SdkException e) {
       logger.error(
           "An error occured while parsing the secrets manager vended"

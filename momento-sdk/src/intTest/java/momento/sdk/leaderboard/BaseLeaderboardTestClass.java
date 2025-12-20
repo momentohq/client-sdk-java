@@ -15,17 +15,21 @@ import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
 
 public class BaseLeaderboardTestClass {
+
   protected static final Duration DEFAULT_TTL_SECONDS = Duration.ofSeconds(60);
   protected static final Duration FIVE_SECONDS = Duration.ofSeconds(5);
   protected static CredentialProvider credentialProvider;
+  protected static CredentialProvider credentialProviderApiKeyV2;
 
   protected static CacheClient cacheClient;
   protected static LeaderboardClient leaderboardClient;
+  protected static LeaderboardClient leaderboardClientApiKeyV2;
   protected static String cacheName;
 
   @BeforeAll
   static void beforeAll() {
-    credentialProvider = CredentialProvider.fromEnvVar("MOMENTO_API_KEY");
+    credentialProvider = CredentialProvider.fromEnvVar("V1_API_KEY");
+    credentialProviderApiKeyV2 = CredentialProvider.fromEnvVarV2();
 
     final Configuration config = Configurations.Laptop.latest();
 
@@ -33,6 +37,8 @@ public class BaseLeaderboardTestClass {
 
     final LeaderboardConfiguration leaderboardConfig = LeaderboardConfigurations.Laptop.latest();
     leaderboardClient = LeaderboardClient.builder(credentialProvider, leaderboardConfig).build();
+    leaderboardClientApiKeyV2 =
+        LeaderboardClient.builder(credentialProviderApiKeyV2, leaderboardConfig).build();
 
     cacheName = testCacheName();
     ensureTestCacheExists(cacheName);
@@ -43,6 +49,7 @@ public class BaseLeaderboardTestClass {
     cleanupTestCache(cacheName);
     cacheClient.close();
     leaderboardClient.close();
+    leaderboardClientApiKeyV2.close();
   }
 
   protected static void ensureTestCacheExists(String cacheName) {

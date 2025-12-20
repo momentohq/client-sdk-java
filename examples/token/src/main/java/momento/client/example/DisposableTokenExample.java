@@ -19,7 +19,7 @@ import momento.sdk.responses.auth.GenerateDisposableTokenResponse;
 
 public class DisposableTokenExample {
 
-  private static final String API_KEY_ENV_VAR = "MOMENTO_API_KEY";
+  private static final String API_KEY_ENV_VAR = "V1_API_KEY";
 
   public static void main(String[] args) throws Exception {
     printStartBanner();

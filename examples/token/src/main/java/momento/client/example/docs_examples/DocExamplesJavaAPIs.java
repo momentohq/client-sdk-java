@@ -26,7 +26,7 @@ public class DocExamplesJavaAPIs {
 
   public static void main(String[] args) {
     try (final AuthClient authClient =
-        AuthClient.builder(CredentialProvider.fromEnvVar("MOMENTO_API_KEY")).build()) {
+        AuthClient.builder(CredentialProvider.fromEnvVar("V1_API_KEY")).build()) {
       example_API_GenerateDisposableToken(authClient);
     }
   }
