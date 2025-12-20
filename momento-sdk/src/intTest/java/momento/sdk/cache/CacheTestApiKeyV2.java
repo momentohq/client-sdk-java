@@ -66,12 +66,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
   public void listsCachesHappyPath() {
     final String newCache = randomString("name");
 
-    assertThat(cacheClient.createCache(newCache))
+    assertThat(cacheClientApiKeyV2.createCache(newCache))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheCreateResponse.Success.class);
 
     try {
-      assertThat(cacheClient.listCaches())
+      assertThat(cacheClientApiKeyV2.listCaches())
           .succeedsWithin(FIVE_SECONDS)
           .asInstanceOf(InstanceOfAssertFactories.type(CacheListResponse.Success.class))
           .satisfies(
@@ -79,7 +79,7 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
                   assertThat(success.getCaches()).anyMatch(ci -> ci.name().equals(newCache)));
     } finally {
       // cleanup
-      assertThat(cacheClient.deleteCache(newCache))
+      assertThat(cacheClientApiKeyV2.deleteCache(newCache))
           .succeedsWithin(FIVE_SECONDS)
           .isInstanceOf(CacheDeleteResponse.Success.class);
     }
@@ -89,21 +89,21 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
   public void createDeleteCache_HappyPath() {
     final String newCache = randomString("java-v2");
 
-    assertThat(cacheClient.createCache(newCache))
+    assertThat(cacheClientApiKeyV2.createCache(newCache))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheCreateResponse.Success.class);
 
-    assertThat(cacheClient.createCache(newCache))
+    assertThat(cacheClientApiKeyV2.createCache(newCache))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheCreateResponse.Error.class))
         .satisfies(
             error -> assertThat(error).hasCauseInstanceOf(CacheAlreadyExistsException.class));
 
-    assertThat(cacheClient.deleteCache(newCache))
+    assertThat(cacheClientApiKeyV2.deleteCache(newCache))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(CacheDeleteResponse.Success.class);
 
-    assertThat(cacheClient.deleteCache(newCache))
+    assertThat(cacheClientApiKeyV2.deleteCache(newCache))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(CacheDeleteResponse.Error.class))
         .satisfies(error -> assertThat(error).hasCauseInstanceOf(CacheNotFoundException.class));
@@ -117,24 +117,24 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final Duration ttl1Hour = Duration.ofHours(1);
 
     try {
-      CacheCreateResponse response = cacheClient.createCache(cacheToFlush).join();
+      CacheCreateResponse response = cacheClientApiKeyV2.createCache(cacheToFlush).join();
       assertThat(response).isInstanceOf(CacheCreateResponse.Success.class);
-      assertThat(cacheClient.set(cacheName, key, value, ttl1Hour))
+      assertThat(cacheClientApiKeyV2.set(cacheName, key, value, ttl1Hour))
           .succeedsWithin(FIVE_SECONDS)
           .asInstanceOf(InstanceOfAssertFactories.type(SetResponse.Success.class))
           .satisfies(success -> assertThat(success.value()).isEqualTo(value));
 
       // Execute Flush
-      assertThat(cacheClient.flushCache(cacheName))
+      assertThat(cacheClientApiKeyV2.flushCache(cacheName))
           .succeedsWithin(FIVE_SECONDS)
           .isInstanceOf(CacheFlushResponse.Success.class);
 
       // Verify that previously set key is now a MISS
-      assertThat(cacheClient.get(cacheName, key))
+      assertThat(cacheClientApiKeyV2.get(cacheName, key))
           .succeedsWithin(FIVE_SECONDS)
           .isInstanceOf(GetResponse.Miss.class);
     } finally {
-      cacheClient.deleteCache(cacheToFlush).join();
+      cacheClientApiKeyV2.deleteCache(cacheToFlush).join();
     }
   }
 
@@ -145,24 +145,25 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String key = randomString("key");
     final String value = randomString("value");
 
-    cacheClient.createCache(alternateCacheName).join();
+    cacheClientApiKeyV2.createCache(alternateCacheName).join();
     try {
-      cacheClient.set(cacheName, key, value).join();
+      cacheClientApiKeyV2.set(cacheName, key, value).join();
 
-      final GetResponse getResponse = cacheClient.get(cacheName, key).join();
+      final GetResponse getResponse = cacheClientApiKeyV2.get(cacheName, key).join();
       assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
       assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(value);
 
-      final DeleteResponse deleteResponse = cacheClient.delete(cacheName, key).join();
+      final DeleteResponse deleteResponse = cacheClientApiKeyV2.delete(cacheName, key).join();
       assertThat(deleteResponse).isInstanceOf(DeleteResponse.Success.class);
 
-      final GetResponse getAfterDeleteResponse = cacheClient.get(cacheName, key).join();
+      final GetResponse getAfterDeleteResponse = cacheClientApiKeyV2.get(cacheName, key).join();
       assertThat(getAfterDeleteResponse).isInstanceOf(GetResponse.Miss.class);
 
-      final GetResponse getForKeyInSomeOtherCache = cacheClient.get(alternateCacheName, key).join();
+      final GetResponse getForKeyInSomeOtherCache =
+          cacheClientApiKeyV2.get(alternateCacheName, key).join();
       assertThat(getForKeyInSomeOtherCache).isInstanceOf(GetResponse.Miss.class);
     } finally {
-      cacheClient.deleteCache(alternateCacheName).join();
+      cacheClientApiKeyV2.deleteCache(alternateCacheName).join();
     }
   }
 
@@ -172,14 +173,14 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String value = randomString();
 
     SetIfNotExistsResponse setIfNotExistsResponse =
-        cacheClient.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
+        cacheClientApiKeyV2.setIfNotExists(cacheName, key, value, DEFAULT_TTL_SECONDS).join();
 
     assertThat(setIfNotExistsResponse).isInstanceOf(SetIfNotExistsResponse.Stored.class);
     assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).keyString()).isEqualTo(key);
     assertThat(((SetIfNotExistsResponse.Stored) setIfNotExistsResponse).valueString())
         .isEqualTo(value);
 
-    GetResponse getResponse = cacheClient.get(cacheName, key).join();
+    GetResponse getResponse = cacheClientApiKeyV2.get(cacheName, key).join();
     assertThat(getResponse).isInstanceOf(GetResponse.Hit.class);
     assertThat(((GetResponse.Hit) getResponse).valueString()).isEqualTo(value);
   }
@@ -191,7 +192,7 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     items.put("key2", "val2");
     items.put("key3", "val3");
     final SetBatchResponse setBatchResponse =
-        cacheClient.setBatch(cacheName, items, Duration.ofMinutes(1)).join();
+        cacheClientApiKeyV2.setBatch(cacheName, items, Duration.ofMinutes(1)).join();
     assertThat(setBatchResponse).isInstanceOf(SetBatchResponse.Success.class);
     for (SetResponse setResponse :
         ((SetBatchResponse.Success) setBatchResponse).results().values()) {
@@ -199,7 +200,7 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     }
 
     final GetBatchResponse getBatchResponse =
-        cacheClient.getBatch(cacheName, items.keySet()).join();
+        cacheClientApiKeyV2.getBatch(cacheName, items.keySet()).join();
 
     assertThat(getBatchResponse).isInstanceOf(GetBatchResponse.Success.class);
     assertThat(((GetBatchResponse.Success) getBatchResponse).valueMapStringString())
@@ -212,11 +213,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String key = randomString();
 
     // set a key with default ttl
-    SetResponse setResponse = cacheClient.set(cacheName, key, "value", DEFAULT_TTL_SECONDS).join();
+    SetResponse setResponse =
+        cacheClientApiKeyV2.set(cacheName, key, "value", DEFAULT_TTL_SECONDS).join();
 
     assertThat(setResponse).isInstanceOf(SetResponse.Success.class);
 
-    ItemGetTtlResponse itemGetTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    ItemGetTtlResponse itemGetTtlResponse = cacheClientApiKeyV2.itemGetTtl(cacheName, key).join();
 
     // retrieved ttl should work and less than default ttl
     assertThat(itemGetTtlResponse).isInstanceOf(ItemGetTtlResponse.Hit.class);
@@ -225,11 +227,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
 
     // update ttl to 300 seconds
     Duration updatedTTL = Duration.of(300, ChronoUnit.SECONDS);
-    UpdateTtlResponse updateTtlResponse = cacheClient.updateTtl(cacheName, key, updatedTTL).join();
+    UpdateTtlResponse updateTtlResponse =
+        cacheClientApiKeyV2.updateTtl(cacheName, key, updatedTTL).join();
 
     assertThat(updateTtlResponse).isInstanceOf(UpdateTtlResponse.Set.class);
 
-    itemGetTtlResponse = cacheClient.itemGetTtl(cacheName, key).join();
+    itemGetTtlResponse = cacheClientApiKeyV2.itemGetTtl(cacheName, key).join();
 
     // assert that the updated ttl is less than 300 seconds but more than 300 - epsilon (taken as 60
     // to reduce flakiness)
@@ -245,24 +248,25 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String field = randomString();
 
     IncrementResponse incrementResponse =
-        cacheClient.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
+        cacheClientApiKeyV2.increment(cacheName, field, 1, DEFAULT_TTL_SECONDS).join();
 
     assertThat(incrementResponse).isInstanceOf(IncrementResponse.Success.class);
     assertThat(((IncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(1);
 
     // increment with ttl specified
-    incrementResponse = cacheClient.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
+    incrementResponse =
+        cacheClientApiKeyV2.increment(cacheName, field, 50, DEFAULT_TTL_SECONDS).join();
 
     assertThat(incrementResponse).isInstanceOf(IncrementResponse.Success.class);
     assertThat(((IncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(51);
 
     // increment without ttl specified
-    incrementResponse = cacheClient.increment(cacheName, field, -1051).join();
+    incrementResponse = cacheClientApiKeyV2.increment(cacheName, field, -1051).join();
 
     assertThat(incrementResponse).isInstanceOf(IncrementResponse.Success.class);
     assertThat(((IncrementResponse.Success) incrementResponse).valueNumber()).isEqualTo(-1000);
 
-    GetResponse getResp = cacheClient.get(cacheName, field).join();
+    GetResponse getResp = cacheClientApiKeyV2.get(cacheName, field).join();
     assertThat(getResp).isInstanceOf(GetResponse.Hit.class);
     assertThat(((GetResponse.Hit) getResp).valueString()).isEqualTo("-1000");
   }
@@ -274,12 +278,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
 
     // Set String key, String Value
     assertThat(
-            cacheClient.dictionarySetField(
+            cacheClientApiKeyV2.dictionarySetField(
                 cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
-    assertThat(cacheClient.dictionaryFetch(cacheName, dictionaryName))
+    assertThat(cacheClientApiKeyV2.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
@@ -287,12 +291,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
 
     // Set String key, ByteArray Value
     assertThat(
-            cacheClient.dictionarySetField(
+            cacheClientApiKeyV2.dictionarySetField(
                 cacheName, dictionaryName, "c", "d".getBytes(), CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
-    assertThat(cacheClient.dictionaryFetch(cacheName, dictionaryName))
+    assertThat(cacheClientApiKeyV2.dictionaryFetch(cacheName, dictionaryName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DictionaryFetchResponse.Hit.class))
         .satisfies(
@@ -308,12 +312,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
 
     // Get the value as a string
     assertThat(
-            cacheClient.dictionarySetField(
+            cacheClientApiKeyV2.dictionarySetField(
                 cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
-    assertThat(cacheClient.dictionaryGetField(cacheName, dictionaryName, "a"))
+    assertThat(cacheClientApiKeyV2.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Hit.class))
         .satisfies(
@@ -324,12 +328,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
 
     // Get the value as a byte array
     assertThat(
-            cacheClient.dictionarySetField(
+            cacheClientApiKeyV2.dictionarySetField(
                 cacheName, dictionaryName, "c", "d".getBytes(), CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
-    assertThat(cacheClient.dictionaryGetField(cacheName, dictionaryName, "c"))
+    assertThat(cacheClientApiKeyV2.dictionaryGetField(cacheName, dictionaryName, "c"))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Hit.class))
         .satisfies(
@@ -344,13 +348,13 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String dictionaryName = randomString();
 
     // Increment with ttl
-    assertThat(cacheClient.dictionaryIncrement(cacheName, dictionaryName, "a", 1))
+    assertThat(cacheClientApiKeyV2.dictionaryIncrement(cacheName, dictionaryName, "a", 1))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Success.class))
         .satisfies(success -> assertThat(success.value()).isEqualTo(1));
 
     assertThat(
-            cacheClient.dictionaryIncrement(
+            cacheClientApiKeyV2.dictionaryIncrement(
                 cacheName, dictionaryName, "a", 41, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Success.class))
@@ -358,13 +362,13 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
 
     // Increment without ttl
     assertThat(
-            cacheClient.dictionaryIncrement(
+            cacheClientApiKeyV2.dictionaryIncrement(
                 cacheName, dictionaryName, "a", -1042, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DictionaryIncrementResponse.Success.class))
         .satisfies(success -> assertThat(success.value()).isEqualTo(-1000));
 
-    assertThat(cacheClient.dictionaryGetField(cacheName, dictionaryName, "a"))
+    assertThat(cacheClientApiKeyV2.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Hit.class))
         .satisfies(
@@ -378,17 +382,17 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
   public void dictionaryRemoveFieldStringHappyPath() {
     final String dictionaryName = randomString();
 
-    assertThat(cacheClient.dictionaryGetField(cacheName, dictionaryName, "a"))
+    assertThat(cacheClientApiKeyV2.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(DictionaryGetFieldResponse.Miss.class);
 
     assertThat(
-            cacheClient.dictionarySetField(
+            cacheClientApiKeyV2.dictionarySetField(
                 cacheName, dictionaryName, "a", "b", CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(DictionarySetFieldResponse.Success.class);
 
-    assertThat(cacheClient.dictionaryGetField(cacheName, dictionaryName, "a"))
+    assertThat(cacheClientApiKeyV2.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(DictionaryGetFieldResponse.Hit.class))
         .satisfies(
@@ -397,11 +401,11 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
               assertThat(hit.valueString()).isEqualTo("b");
             });
 
-    assertThat(cacheClient.dictionaryRemoveField(cacheName, dictionaryName, "a"))
+    assertThat(cacheClientApiKeyV2.dictionaryRemoveField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(DictionaryRemoveFieldResponse.Success.class);
 
-    assertThat(cacheClient.dictionaryGetField(cacheName, dictionaryName, "a"))
+    assertThat(cacheClientApiKeyV2.dictionaryGetField(cacheName, dictionaryName, "a"))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(DictionaryGetFieldResponse.Miss.class);
   }
@@ -413,29 +417,29 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final List<String> oldValues = Arrays.asList("val1", "val2", "val3");
     final List<String> newValues = Arrays.asList("val4", "val5", "val6");
 
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListFetchResponse.Miss.class);
 
     assertThat(
-            cacheClient.listConcatenateBack(
+            cacheClientApiKeyV2.listConcatenateBack(
                 cacheName, listName, oldValues, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateBackResponse.Success.class);
 
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.valueListString()).hasSize(3).containsExactlyElementsOf(oldValues));
 
-    assertThat(cacheClient.listConcatenateBack(cacheName, listName, newValues))
+    assertThat(cacheClientApiKeyV2.listConcatenateBack(cacheName, listName, newValues))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateBackResponse.Success.class);
 
     final Iterable<String> expectedList = Iterables.concat(oldValues, newValues);
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
@@ -445,12 +449,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
                     .containsExactlyElementsOf(expectedList));
 
     // Add the original values again and truncate the list to 6 items
-    assertThat(cacheClient.listConcatenateBack(cacheName, listName, oldValues, 6))
+    assertThat(cacheClientApiKeyV2.listConcatenateBack(cacheName, listName, oldValues, 6))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateBackResponse.Success.class);
 
     final Iterable<String> newExpectedList = Iterables.concat(newValues, oldValues);
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
@@ -470,7 +474,8 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
             cacheName, listName, values, null, CollectionTtl.of(DEFAULT_TTL_SECONDS))
         .join();
 
-    ListFetchResponse listFetchResponse = cacheClient.listFetch(cacheName, listName, 1, 3).join();
+    ListFetchResponse listFetchResponse =
+        cacheClientApiKeyV2.listFetch(cacheName, listName, 1, 3).join();
 
     assertThat(listFetchResponse).isInstanceOf(ListFetchResponse.Hit.class);
 
@@ -485,29 +490,29 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final List<String> oldValues = Arrays.asList("val1", "val2", "val3");
     final List<String> newValues = Arrays.asList("val4", "val5", "val6");
 
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListFetchResponse.Miss.class);
 
     assertThat(
-            cacheClient.listConcatenateFront(
+            cacheClientApiKeyV2.listConcatenateFront(
                 cacheName, listName, oldValues, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateFrontResponse.Success.class);
 
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
             hit ->
                 assertThat(hit.valueListString()).hasSize(3).containsExactlyElementsOf(oldValues));
 
-    assertThat(cacheClient.listConcatenateFront(cacheName, listName, newValues))
+    assertThat(cacheClientApiKeyV2.listConcatenateFront(cacheName, listName, newValues))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateFrontResponse.Success.class);
 
     final Iterable<String> expectedList = Iterables.concat(newValues, oldValues);
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
@@ -517,12 +522,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
                     .containsExactlyElementsOf(expectedList));
 
     // Add the original values again and truncate the list to 6 items
-    assertThat(cacheClient.listConcatenateFront(cacheName, listName, oldValues, 6))
+    assertThat(cacheClientApiKeyV2.listConcatenateFront(cacheName, listName, oldValues, 6))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateFrontResponse.Success.class);
 
     final Iterable<String> newExpectedList = Iterables.concat(oldValues, newValues);
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
@@ -539,30 +544,30 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final List<byte[]> byteArrayValues =
         Arrays.asList("val1".getBytes(), "val2".getBytes(), "val3".getBytes());
 
-    assertThat(cacheClient.listLength(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listLength(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListLengthResponse.Miss.class);
 
     // add string values to list
     assertThat(
-            cacheClient.listConcatenateFront(
+            cacheClientApiKeyV2.listConcatenateFront(
                 cacheName, listName, stringValues, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateFrontResponse.Success.class);
 
-    assertThat(cacheClient.listLength(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listLength(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListLengthResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.getListLength()).isEqualTo(stringValues.size()));
 
     // add byte array values to list
     assertThat(
-            cacheClient.listConcatenateFrontByteArray(
+            cacheClientApiKeyV2.listConcatenateFrontByteArray(
                 cacheName, listName, byteArrayValues, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateFrontResponse.Success.class);
 
-    assertThat(cacheClient.listLength(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listLength(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListLengthResponse.Hit.class))
         .satisfies(
@@ -576,24 +581,24 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String listName = randomString();
     List<String> values = Arrays.asList("val1", "val2", "val3");
 
-    assertThat(cacheClient.listFetch(cacheName, listName, null, null))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName, null, null))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListFetchResponse.Miss.class);
 
     assertThat(
-            cacheClient.listConcatenateBack(
+            cacheClientApiKeyV2.listConcatenateBack(
                 cacheName, listName, values, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateBackResponse.Success.class);
 
     // Pop the value as string from back of the list
-    assertThat(cacheClient.listPopBack(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listPopBack(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListPopBackResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueString()).isEqualTo("val3"));
 
     // Pop the value as byte array from the back of the new list
-    assertThat(cacheClient.listPopBack(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listPopBack(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListPopBackResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueByteArray()).isEqualTo("val2".getBytes()));
@@ -604,24 +609,24 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String listName = randomString();
     List<String> values = Arrays.asList("val1", "val2", "val3");
 
-    assertThat(cacheClient.listFetch(cacheName, listName, null, null))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName, null, null))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListFetchResponse.Miss.class);
 
     assertThat(
-            cacheClient.listConcatenateBack(
+            cacheClientApiKeyV2.listConcatenateBack(
                 cacheName, listName, values, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateBackResponse.Success.class);
 
     // Pop the value as string from front of the list
-    assertThat(cacheClient.listPopFront(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listPopFront(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListPopFrontResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueString()).isEqualTo("val1"));
 
     // Pop the value as byte array from the front of the new list
-    assertThat(cacheClient.listPopFront(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listPopFront(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListPopFrontResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueByteArray()).isEqualTo("val2".getBytes()));
@@ -633,28 +638,28 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String oldValue = "val1";
     final String newValue = "val2";
 
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListFetchResponse.Miss.class);
 
     assertThat(
-            cacheClient.listPushBack(
+            cacheClientApiKeyV2.listPushBack(
                 cacheName, listName, oldValue, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListPushBackResponse.Success.class);
 
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueListString()).hasSize(1).containsOnly(oldValue));
 
     // Add the same value
-    assertThat(cacheClient.listPushBack(cacheName, listName, oldValue))
+    assertThat(cacheClientApiKeyV2.listPushBack(cacheName, listName, oldValue))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListPushBackResponse.Success.class);
 
     final List<String> expectedList = Arrays.asList(oldValue, oldValue);
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
@@ -664,12 +669,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
                     .containsExactlyElementsOf(expectedList));
 
     // Add a new value and truncate the list to 2 items
-    assertThat(cacheClient.listPushBack(cacheName, listName, newValue, 2))
+    assertThat(cacheClientApiKeyV2.listPushBack(cacheName, listName, newValue, 2))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListPushBackResponse.Success.class);
 
     final List<String> newExpectedList = Arrays.asList(oldValue, newValue);
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
@@ -685,28 +690,28 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String oldValue = "val1";
     final String newValue = "val2";
 
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListFetchResponse.Miss.class);
 
     assertThat(
-            cacheClient.listPushFront(
+            cacheClientApiKeyV2.listPushFront(
                 cacheName, listName, oldValue, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListPushFrontResponse.Success.class);
 
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueListString()).hasSize(1).containsOnly(oldValue));
 
     // Add the same value
-    assertThat(cacheClient.listPushFront(cacheName, listName, oldValue))
+    assertThat(cacheClientApiKeyV2.listPushFront(cacheName, listName, oldValue))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListPushFrontResponse.Success.class);
 
     final List<String> expectedList = Arrays.asList(oldValue, oldValue);
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
@@ -716,12 +721,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
                     .containsExactlyElementsOf(expectedList));
 
     // Add a new value and truncate the list to 2 items
-    assertThat(cacheClient.listPushFront(cacheName, listName, newValue, 2))
+    assertThat(cacheClientApiKeyV2.listPushFront(cacheName, listName, newValue, 2))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListPushFrontResponse.Success.class);
 
     final List<String> newExpectedList = Arrays.asList(newValue, oldValue);
-    assertThat(cacheClient.listFetch(cacheName, listName))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(
@@ -737,19 +742,19 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     List<String> values = Arrays.asList("val1", "val1", "val2", "val3", "val4");
 
     assertThat(
-            cacheClient.listConcatenateFront(
+            cacheClientApiKeyV2.listConcatenateFront(
                 cacheName, listName, values, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateFrontResponse.Success.class);
 
     // Remove value from list
     String removeValue = "val1";
-    assertThat(cacheClient.listRemoveValue(cacheName, listName, removeValue))
+    assertThat(cacheClientApiKeyV2.listRemoveValue(cacheName, listName, removeValue))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListRemoveValueResponse.Success.class);
 
     List<String> expectedList = Arrays.asList("val2", "val3", "val4");
-    assertThat(cacheClient.listFetch(cacheName, listName, null, null))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName, null, null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueListString()).hasSize(3).containsAll(expectedList));
@@ -761,22 +766,22 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final List<String> stringValues = Arrays.asList("val1", "val2", "val3", "val4");
 
     assertThat(
-            cacheClient.listConcatenateFront(
+            cacheClientApiKeyV2.listConcatenateFront(
                 cacheName, listName, stringValues, null, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListConcatenateFrontResponse.Success.class);
 
-    assertThat(cacheClient.listFetch(cacheName, listName, null, null))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName, null, null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueListString()).hasSize(4).containsAll(stringValues));
 
-    assertThat(cacheClient.listRetain(cacheName, listName, 1, 3))
+    assertThat(cacheClientApiKeyV2.listRetain(cacheName, listName, 1, 3))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(ListRetainResponse.Success.class);
 
     List<String> expectedList = Arrays.asList("val2", "val3");
-    assertThat(cacheClient.listFetch(cacheName, listName, null, null))
+    assertThat(cacheClientApiKeyV2.listFetch(cacheName, listName, null, null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(ListFetchResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueListString()).hasSize(2).containsAll(expectedList));
@@ -789,33 +794,35 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final Set<String> firstSet = Sets.newHashSet("one", "two");
     final Set<String> secondSet = Sets.newHashSet("two", "three");
 
-    assertThat(cacheClient.setAddElements(cacheName, setName, firstSet))
+    assertThat(cacheClientApiKeyV2.setAddElements(cacheName, setName, firstSet))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetAddElementsResponse.Success.class);
 
-    assertThat(cacheClient.setFetch(cacheName, setName))
+    assertThat(cacheClientApiKeyV2.setFetch(cacheName, setName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SetFetchResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueSetString()).hasSize(2).containsAll(firstSet));
 
     // Try to add the same elements again
     assertThat(
-            cacheClient.setAddElements(cacheName, setName, firstSet, CollectionTtl.fromCacheTtl()))
+            cacheClientApiKeyV2.setAddElements(
+                cacheName, setName, firstSet, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetAddElementsResponse.Success.class);
 
-    assertThat(cacheClient.setFetch(cacheName, setName))
+    assertThat(cacheClientApiKeyV2.setFetch(cacheName, setName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SetFetchResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueSetString()).hasSize(2).containsAll(firstSet));
 
     // Add a set with one new and one overlapping element
     assertThat(
-            cacheClient.setAddElements(cacheName, setName, secondSet, CollectionTtl.fromCacheTtl()))
+            cacheClientApiKeyV2.setAddElements(
+                cacheName, setName, secondSet, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetAddElementsResponse.Success.class);
 
-    assertThat(cacheClient.setFetch(cacheName, setName))
+    assertThat(cacheClientApiKeyV2.setFetch(cacheName, setName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SetFetchResponse.Hit.class))
         .satisfies(
@@ -835,51 +842,52 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
 
     // Add some elements to a set
     assertThat(
-            cacheClient.setAddElements(cacheName, setName, elements, CollectionTtl.fromCacheTtl()))
+            cacheClientApiKeyV2.setAddElements(
+                cacheName, setName, elements, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetAddElementsResponse.Success.class);
 
-    assertThat(cacheClient.setFetch(cacheName, setName))
+    assertThat(cacheClientApiKeyV2.setFetch(cacheName, setName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SetFetchResponse.Hit.class))
         .satisfies(
             hit -> assertThat(hit.valueSetString()).hasSize(2).containsOnly(element1, element2));
 
     // Remove an element
-    assertThat(cacheClient.setRemoveElement(cacheName, setName, element1))
+    assertThat(cacheClientApiKeyV2.setRemoveElement(cacheName, setName, element1))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetRemoveElementResponse.Success.class);
 
-    assertThat(cacheClient.setFetch(cacheName, setName))
+    assertThat(cacheClientApiKeyV2.setFetch(cacheName, setName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SetFetchResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueSetString()).hasSize(1).containsOnly(element2));
 
     // Try to remove the same element again
-    assertThat(cacheClient.setRemoveElement(cacheName, setName, element1))
+    assertThat(cacheClientApiKeyV2.setRemoveElement(cacheName, setName, element1))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetRemoveElementResponse.Success.class);
 
-    assertThat(cacheClient.setFetch(cacheName, setName))
+    assertThat(cacheClientApiKeyV2.setFetch(cacheName, setName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SetFetchResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.valueSetString()).hasSize(1).containsOnly(element2));
 
     // Remove the last element
-    assertThat(cacheClient.setRemoveElement(cacheName, setName, element2))
+    assertThat(cacheClientApiKeyV2.setRemoveElement(cacheName, setName, element2))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetRemoveElementResponse.Success.class);
 
-    assertThat(cacheClient.setFetch(cacheName, setName))
+    assertThat(cacheClientApiKeyV2.setFetch(cacheName, setName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetFetchResponse.Miss.class);
 
     // Remove an element from the now non-existent set
-    assertThat(cacheClient.setRemoveElement(cacheName, setName, element2))
+    assertThat(cacheClientApiKeyV2.setRemoveElement(cacheName, setName, element2))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetRemoveElementResponse.Success.class);
 
-    assertThat(cacheClient.setFetch(cacheName, setName))
+    assertThat(cacheClientApiKeyV2.setFetch(cacheName, setName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SetFetchResponse.Miss.class);
   }
@@ -891,17 +899,17 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String value = "1";
     final double score = 1.0;
 
-    assertThat(cacheClient.sortedSetFetchByRank(cacheName, sortedSetName))
+    assertThat(cacheClientApiKeyV2.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
     assertThat(
-            cacheClient.sortedSetPutElement(
+            cacheClientApiKeyV2.sortedSetPutElement(
                 cacheName, sortedSetName, value, score, CollectionTtl.fromCacheTtl()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
-    assertThat(cacheClient.sortedSetFetchByRank(cacheName, sortedSetName))
+    assertThat(cacheClientApiKeyV2.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -928,17 +936,18 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     elements.put(four, 2.0);
     elements.put(five, 1.5);
 
-    assertThat(cacheClient.sortedSetFetchByRank(cacheName, sortedSetName))
+    assertThat(cacheClientApiKeyV2.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
-    assertThat(cacheClient.sortedSetPutElements(cacheName, sortedSetName, elements))
+    assertThat(cacheClientApiKeyV2.sortedSetPutElements(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     // Full set ascending, end index larger than set
     assertThat(
-            cacheClient.sortedSetFetchByRank(cacheName, sortedSetName, 0, 6, SortOrder.ASCENDING))
+            cacheClientApiKeyV2.sortedSetFetchByRank(
+                cacheName, sortedSetName, 0, 6, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -953,7 +962,8 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
 
     // Partial set descending
     assertThat(
-            cacheClient.sortedSetFetchByRank(cacheName, sortedSetName, 1, 4, SortOrder.DESCENDING))
+            cacheClientApiKeyV2.sortedSetFetchByRank(
+                cacheName, sortedSetName, 1, 4, SortOrder.DESCENDING))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -983,17 +993,17 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     elements.put(four, 2.0);
     elements.put(five, 1.5);
 
-    assertThat(cacheClient.sortedSetFetchByScore(cacheName, sortedSetName))
+    assertThat(cacheClientApiKeyV2.sortedSetFetchByScore(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetFetchResponse.Miss.class);
 
-    assertThat(cacheClient.sortedSetPutElements(cacheName, sortedSetName, elements))
+    assertThat(cacheClientApiKeyV2.sortedSetPutElements(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     // Full set ascending, end index larger than set
     assertThat(
-            cacheClient.sortedSetFetchByScore(
+            cacheClientApiKeyV2.sortedSetFetchByScore(
                 cacheName, sortedSetName, 0.0, 9.9, SortOrder.ASCENDING))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
@@ -1012,7 +1022,7 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
 
     // Partial set descending
     assertThat(
-            cacheClient.sortedSetFetchByScore(
+            cacheClientApiKeyV2.sortedSetFetchByScore(
                 cacheName, sortedSetName, 0.2, 1.9, SortOrder.DESCENDING, 0, 99))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
@@ -1027,7 +1037,9 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
             });
 
     // Partial set limited by offset and count
-    assertThat(cacheClient.sortedSetFetchByScore(cacheName, sortedSetName, null, null, null, 1, 3))
+    assertThat(
+            cacheClientApiKeyV2.sortedSetFetchByScore(
+                cacheName, sortedSetName, null, null, null, 1, 3))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -1041,7 +1053,7 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
             });
 
     // Full set ascending
-    assertThat(cacheClient.sortedSetFetchByScore(cacheName, sortedSetName))
+    assertThat(cacheClientApiKeyV2.sortedSetFetchByScore(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -1061,31 +1073,33 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String one = "1";
     final String two = "2";
 
-    assertThat(cacheClient.sortedSetGetRank(cacheName, sortedSetName, one, null))
+    assertThat(cacheClientApiKeyV2.sortedSetGetRank(cacheName, sortedSetName, one, null))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetGetRankResponse.Miss.class);
 
-    assertThat(cacheClient.sortedSetPutElement(cacheName, sortedSetName, one, 1.0))
+    assertThat(cacheClientApiKeyV2.sortedSetPutElement(cacheName, sortedSetName, one, 1.0))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
-    assertThat(cacheClient.sortedSetGetRank(cacheName, sortedSetName, one, null))
+    assertThat(cacheClientApiKeyV2.sortedSetGetRank(cacheName, sortedSetName, one, null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.rank()).isEqualTo(0));
 
     // Add another element that changes the rank of the first one
-    assertThat(cacheClient.sortedSetPutElement(cacheName, sortedSetName, two, 0.5))
+    assertThat(cacheClientApiKeyV2.sortedSetPutElement(cacheName, sortedSetName, two, 0.5))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
-    assertThat(cacheClient.sortedSetGetRank(cacheName, sortedSetName, one, null))
+    assertThat(cacheClientApiKeyV2.sortedSetGetRank(cacheName, sortedSetName, one, null))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.rank()).isEqualTo(1));
 
     // Check the descending rank
-    assertThat(cacheClient.sortedSetGetRank(cacheName, sortedSetName, one, SortOrder.DESCENDING))
+    assertThat(
+            cacheClientApiKeyV2.sortedSetGetRank(
+                cacheName, sortedSetName, one, SortOrder.DESCENDING))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetRankResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.rank()).isEqualTo(0));
@@ -1097,25 +1111,25 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String one = "1";
     final String two = "2";
 
-    assertThat(cacheClient.sortedSetGetScore(cacheName, sortedSetName, one))
+    assertThat(cacheClientApiKeyV2.sortedSetGetScore(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetGetScoreResponse.Miss.class);
 
-    assertThat(cacheClient.sortedSetPutElement(cacheName, sortedSetName, one, 1.0))
+    assertThat(cacheClientApiKeyV2.sortedSetPutElement(cacheName, sortedSetName, one, 1.0))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
-    assertThat(cacheClient.sortedSetGetScore(cacheName, sortedSetName, one))
+    assertThat(cacheClientApiKeyV2.sortedSetGetScore(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.score()).isEqualTo(1.0));
 
     // Add another element that changes the rank of the first one
-    assertThat(cacheClient.sortedSetPutElement(cacheName, sortedSetName, two, 0.5))
+    assertThat(cacheClientApiKeyV2.sortedSetPutElement(cacheName, sortedSetName, two, 0.5))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetPutElementResponse.Success.class);
 
-    assertThat(cacheClient.sortedSetGetScore(cacheName, sortedSetName, one))
+    assertThat(cacheClientApiKeyV2.sortedSetGetScore(cacheName, sortedSetName, one))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetGetScoreResponse.Hit.class))
         .satisfies(hit -> assertThat(hit.score()).isEqualTo(1.0));
@@ -1126,12 +1140,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String sortedSetName = randomString();
     final String one = "1";
 
-    assertThat(cacheClient.sortedSetIncrementScore(cacheName, sortedSetName, one, 1.0))
+    assertThat(cacheClientApiKeyV2.sortedSetIncrementScore(cacheName, sortedSetName, one, 1.0))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Success.class))
         .satisfies(success -> assertThat(success.score()).isEqualTo(1.0));
 
-    assertThat(cacheClient.sortedSetFetchByRank(cacheName, sortedSetName))
+    assertThat(cacheClientApiKeyV2.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -1141,12 +1155,12 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
                     .map(ScoredElement::getScore)
                     .containsOnly(1.0));
 
-    assertThat(cacheClient.sortedSetIncrementScore(cacheName, sortedSetName, one, 14.5))
+    assertThat(cacheClientApiKeyV2.sortedSetIncrementScore(cacheName, sortedSetName, one, 14.5))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Success.class))
         .satisfies(success -> assertThat(success.score()).isEqualTo(15.5));
 
-    assertThat(cacheClient.sortedSetFetchByRank(cacheName, sortedSetName))
+    assertThat(cacheClientApiKeyV2.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
@@ -1156,7 +1170,7 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
                     .map(ScoredElement::getScore)
                     .containsOnly(15.5));
 
-    assertThat(cacheClient.sortedSetIncrementScore(cacheName, sortedSetName, one, -115.5))
+    assertThat(cacheClientApiKeyV2.sortedSetIncrementScore(cacheName, sortedSetName, one, -115.5))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetIncrementScoreResponse.Success.class))
         .satisfies(success -> assertThat(success.score()).isEqualTo(-100));
@@ -1170,21 +1184,23 @@ final class CacheTestApiKeyV2 extends BaseCacheTestClass {
     final String three = "3";
     final Map<String, Double> elements = ImmutableMap.of(one, 1.0, two, 2.0, three, 3.0);
 
-    assertThat(cacheClient.sortedSetRemoveElements(cacheName, sortedSetName, elements.keySet()))
+    assertThat(
+            cacheClientApiKeyV2.sortedSetRemoveElements(
+                cacheName, sortedSetName, elements.keySet()))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetRemoveElementsResponse.Success.class);
 
-    assertThat(cacheClient.sortedSetPutElements(cacheName, sortedSetName, elements))
+    assertThat(cacheClientApiKeyV2.sortedSetPutElements(cacheName, sortedSetName, elements))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetPutElementsResponse.Success.class);
 
     assertThat(
-            cacheClient.sortedSetRemoveElements(
+            cacheClientApiKeyV2.sortedSetRemoveElements(
                 cacheName, sortedSetName, Sets.newHashSet(one, two)))
         .succeedsWithin(FIVE_SECONDS)
         .isInstanceOf(SortedSetRemoveElementsResponse.Success.class);
 
-    assertThat(cacheClient.sortedSetFetchByRank(cacheName, sortedSetName))
+    assertThat(cacheClientApiKeyV2.sortedSetFetchByRank(cacheName, sortedSetName))
         .succeedsWithin(FIVE_SECONDS)
         .asInstanceOf(InstanceOfAssertFactories.type(SortedSetFetchResponse.Hit.class))
         .satisfies(
