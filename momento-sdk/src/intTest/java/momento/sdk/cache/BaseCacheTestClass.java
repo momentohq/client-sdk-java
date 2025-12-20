@@ -39,7 +39,7 @@ public class BaseCacheTestClass {
             : CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build();
 
     cacheClientApiKeyV2 =
-        CacheClient.builder(credentialProvider, config, DEFAULT_TTL_SECONDS).build();
+        CacheClient.builder(credentialProviderApiKeyV2, config, DEFAULT_TTL_SECONDS).build();
 
     cacheName = testCacheName();
     ensureTestCacheExists(cacheName);
