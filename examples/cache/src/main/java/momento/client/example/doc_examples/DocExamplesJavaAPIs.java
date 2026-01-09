@@ -46,6 +46,10 @@ public class DocExamplesJavaAPIs {
   }
 
   public static void example_API_CredentialProviderFromEnvVarV2() {
+    CredentialProvider.fromEnvVarV2("MOMENTO_API_KEY", "MOMENTO_ENDPOINT");
+  }
+
+  public static void example_API_CredentialProviderFromEnvVarV2Default() {
     CredentialProvider.fromEnvVarV2();
   }
 
@@ -233,6 +237,7 @@ public class DocExamplesJavaAPIs {
     example_API_CredentialProviderFromEnvVar();
     example_API_CredentialProviderFromString();
     example_API_CredentialProviderFromEnvVarV2();
+    example_API_CredentialProviderFromEnvVarV2Default();
     example_API_CredentialProviderFromApiKeyV2();
     example_API_CredentialProviderFromDispoableToken();
     example_API_ConfigurationLaptop();

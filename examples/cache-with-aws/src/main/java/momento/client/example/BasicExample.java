@@ -20,7 +20,7 @@ import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRespon
 
 public class BasicExample {
 
-  private static final String MOMENTO_ENDPOINT = "cache.cell-4-us-west-2-1.prod.a.momentohq.com";
+  private static final String MOMENTO_ENDPOINT = "cell-4-us-west-2-1.prod.a.momentohq.com";
   private static final String API_KEY_SECRET_NAME = "MOMENTO_API_KEY";
   private static final Duration DEFAULT_ITEM_TTL = Duration.ofSeconds(60);
 

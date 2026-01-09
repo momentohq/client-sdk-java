@@ -1,14 +1,18 @@
 import * as path from 'path';
 import * as cdk from 'aws-cdk-lib';
-import {Construct} from 'constructs';
+import { Construct } from 'constructs';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 
 export class MomentoLambdaStack extends cdk.Stack {
     constructor(scope: Construct, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
 
-        if (!process.env.MOMENTO_AUTH_TOKEN) {
-            throw new Error('The environment variable MOMENTO_AUTH_TOKEN must be set.');
+        if (!process.env.MOMENTO_API_KEY) {
+            throw new Error('The environment variable MOMENTO_API_KEY must be set.');
+        }
+
+        if (!process.env.MOMENTO_ENDPOINT) {
+            throw new Error('The environment variable MOMENTO_ENDPOINT must be set.');
         }
 
         // Create Lambda function from Docker Image
@@ -16,7 +20,8 @@ export class MomentoLambdaStack extends cdk.Stack {
             functionName: 'MomentoDockerLambdaJava',
             code: lambda.DockerImageCode.fromImageAsset(path.join(__dirname, '../../docker')), // Point to the root since Dockerfile should be there
             environment: {
-                MOMENTO_AUTH_TOKEN: process.env.MOMENTO_AUTH_TOKEN || ''
+                MOMENTO_API_KEY: process.env.MOMENTO_API_KEY || '',
+                MOMENTO_ENDPOINT: process.env.MOMENTO_ENDPOINT || ''
             },
             memorySize: 128,
             timeout: cdk.Duration.seconds(30)
