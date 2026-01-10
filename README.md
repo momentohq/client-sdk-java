@@ -26,7 +26,7 @@ The Java SDK is available on Maven Central:
 ### Gradle
 
 ```kotlin
-implementation("software.momento.java:sdk:1.0.0")
+implementation("software.momento.java:sdk:1.23.0")
 ```
 
 ### Maven
