@@ -24,8 +24,6 @@ public final class ValidationUtils {
 
   static final String DISPOSABLE_TOKEN_EXPIRY_MUST_BE_POSITIVE =
       "Disposable token expiry must be positive";
-  static final String DISPOSABLE_TOKEN_EXPIRY_EXCEEDS_ONE_HOUR =
-      "Disposable token must expire within 1 hour";
   static final String DISPOSABLE_TOKEN_MUST_HAVE_AN_EXPIRY =
       "Disposable tokens must have an expiry";
   static final String LEADERBOARD_NAME_IS_REQUIRED = "Non-empty leaderboard name is required.";
@@ -141,8 +139,6 @@ public final class ValidationUtils {
   static void checkValidDisposableTokenExpiry(ExpiresIn expiresIn) {
     if (!expiresIn.doesExpire()) {
       throw new InvalidArgumentException(DISPOSABLE_TOKEN_MUST_HAVE_AN_EXPIRY);
-    } else if (expiresIn.getSeconds() > 60 * 60) {
-      throw new InvalidArgumentException(DISPOSABLE_TOKEN_EXPIRY_EXCEEDS_ONE_HOUR);
     } else if (expiresIn.getSeconds() <= 0) {
       throw new InvalidArgumentException(DISPOSABLE_TOKEN_EXPIRY_MUST_BE_POSITIVE);
     }
