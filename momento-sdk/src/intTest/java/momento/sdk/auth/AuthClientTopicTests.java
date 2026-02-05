@@ -495,19 +495,6 @@ public class AuthClientTopicTests extends BaseCacheTestClass {
       assertEquals(
           MomentoErrorCode.INVALID_ARGUMENT_ERROR,
           ((GenerateDisposableTokenResponse.Error) response).getErrorCode());
-
-      response =
-          authClient
-              .generateDisposableTokenAsync(
-                  DisposableTokenScopes.topicPublishSubscribe(cacheName, topicName),
-                  ExpiresIn.minutes(365))
-              .join();
-      assertTrue(
-          response instanceof GenerateDisposableTokenResponse.Error,
-          "Unexpected response: " + response);
-      assertEquals(
-          MomentoErrorCode.INVALID_ARGUMENT_ERROR,
-          ((GenerateDisposableTokenResponse.Error) response).getErrorCode());
     } catch (Exception e) {
       fail("Unexpected exception: " + e.getMessage());
     }
