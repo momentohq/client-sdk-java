@@ -7,6 +7,8 @@
     ],
     "declaration": true,
     "strict": true,
+    // skipLibCheck: aws-cdk-lib/@types/node ship .d.ts needing newer lib targets than this example uses
+    "skipLibCheck": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
     "noImplicitThis": true,
