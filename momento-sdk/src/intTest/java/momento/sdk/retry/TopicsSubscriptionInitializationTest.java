@@ -26,7 +26,7 @@ import org.junit.jupiter.params.provider.ValueSource;
 import org.slf4j.Logger;
 
 public class TopicsSubscriptionInitializationTest {
-  private int unsubscribeCounter = 0;
+  private final AtomicInteger unsubscribeCounter = new AtomicInteger(0);
 
   private ISubscriptionCallbacks callbacks() {
     return new ISubscriptionCallbacks() {
@@ -35,12 +35,27 @@ public class TopicsSubscriptionInitializationTest {
 
       @Override
       public void onCompleted() {
-        unsubscribeCounter++;
+        unsubscribeCounter.incrementAndGet();
       }
 
       @Override
       public void onError(Throwable t) {}
     };
+  }
+
+  // Subscription callbacks run on gRPC threads, so poll for the expected count instead of
+  // sleeping a fixed amount of time.
+  private static void awaitCount(int expected, AtomicInteger counter) {
+    final long deadline = System.currentTimeMillis() + 5000;
+    while (counter.get() != expected && System.currentTimeMillis() < deadline) {
+      try {
+        Thread.sleep(50);
+      } catch (InterruptedException e) {
+        Thread.currentThread().interrupt();
+        throw new RuntimeException("Test interrupted while waiting for callbacks", e);
+      }
+    }
+    assertEquals(expected, counter.get());
   }
 
   private static Logger logger;
@@ -54,7 +69,7 @@ public class TopicsSubscriptionInitializationTest {
   @Timeout(30)
   public void staticPool_oneStreamChannel_doesNotSilentlyQueueSubscribeRequestOnFullChannel()
       throws Exception {
-    unsubscribeCounter = 0;
+    unsubscribeCounter.set(0);
 
     withCacheAndTopicClientWithNumStreamChannels(
         1,
@@ -88,14 +103,7 @@ public class TopicsSubscriptionInitializationTest {
 
           // Ending a subscription should free up one new stream
           subscriptions.get(0).unsubscribe();
-          // Wait for the subscription to end
-          try {
-            Thread.sleep(750);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Test interrupted while waiting for subscriptions", e);
-          }
-          assertEquals(1, unsubscribeCounter);
+          awaitCount(1, unsubscribeCounter);
 
           final TopicSubscribeResponse response2 =
               topicClient.subscribe(cacheName, "test-topic", callbacks()).join();
@@ -116,7 +124,7 @@ public class TopicsSubscriptionInitializationTest {
   @Timeout(30)
   public void staticPool_multipleStreamChannels_handlesBurstOfSubscribeAndUnsubscribeRequests(
       int numGrpcChannels) throws Exception {
-    unsubscribeCounter = 0;
+    unsubscribeCounter.set(0);
     final int maxStreamCapacity = 100 * numGrpcChannels;
 
     withCacheAndTopicClientWithNumStreamChannels(
@@ -153,14 +161,7 @@ public class TopicsSubscriptionInitializationTest {
           for (int i = 0; i < unsubscribeBurstSize; i++) {
             subscriptions.get(i).unsubscribe();
           }
-          // Wait a bit for the subscription to end
-          try {
-            Thread.sleep(750);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Test interrupted while waiting for subscriptions", e);
-          }
-          assertEquals(unsubscribeBurstSize, unsubscribeCounter);
+          awaitCount(unsubscribeBurstSize, unsubscribeCounter);
 
           // Burst of subscribe requests should succeed
           final int subscribeBurstSize = maxStreamCapacity / 2 + 10;
@@ -403,7 +404,7 @@ public class TopicsSubscriptionInitializationTest {
   @Timeout(30)
   public void staticPool_oneStreamChannel_properlyDecrementsWhenErrorOccursMidStream()
       throws Exception {
-    unsubscribeCounter = 0;
+    unsubscribeCounter.set(0);
     final AtomicInteger unsubscribeOnErrorCounter = new AtomicInteger(0);
     final ISubscriptionCallbacks callbacks =
         new ISubscriptionCallbacks() {
@@ -413,7 +414,7 @@ public class TopicsSubscriptionInitializationTest {
           @Override
           public void onCompleted() {
             System.out.println("onCompleted");
-            unsubscribeCounter++;
+            unsubscribeCounter.incrementAndGet();
           }
 
           @Override
@@ -443,12 +444,7 @@ public class TopicsSubscriptionInitializationTest {
           subscriptions.add((TopicSubscribeResponse.Subscription) response);
 
           // Wait for the subscription that ran into the error to be closed
-          try {
-            Thread.sleep(3000);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Test interrupted while waiting for subscriptions", e);
-          }
+          awaitCount(1, unsubscribeOnErrorCounter);
 
           // Cleanup
           for (TopicSubscribeResponse.Subscription sub : subscriptions) {
@@ -457,8 +453,7 @@ public class TopicsSubscriptionInitializationTest {
             }
           }
 
-          assertEquals(0, unsubscribeCounter);
-          assertEquals(1, unsubscribeOnErrorCounter.get());
+          assertEquals(0, unsubscribeCounter.get());
         });
   }
 
@@ -466,7 +461,7 @@ public class TopicsSubscriptionInitializationTest {
   @Timeout(30)
   public void dynamicPool_oneStreamChannel_doesNotSilentlyQueueSubscribeRequestOnFullChannel()
       throws Exception {
-    unsubscribeCounter = 0;
+    unsubscribeCounter.set(0);
 
     withCacheAndTopicClient(
         (config) -> config.withMaxSubscriptions(100),
@@ -500,14 +495,7 @@ public class TopicsSubscriptionInitializationTest {
 
           // Ending a subscription should free up one new stream
           subscriptions.get(0).unsubscribe();
-          // Wait for the subscription to end
-          try {
-            Thread.sleep(750);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Test interrupted while waiting for subscriptions", e);
-          }
-          assertEquals(1, unsubscribeCounter);
+          awaitCount(1, unsubscribeCounter);
 
           final TopicSubscribeResponse response2 =
               topicClient.subscribe(cacheName, "test-topic", callbacks()).join();
@@ -528,7 +516,7 @@ public class TopicsSubscriptionInitializationTest {
   @Timeout(60)
   public void dynamicPool_multipleStreamChannels_handlesBurstOfSubscribeAndUnsubscribeRequests(
       int maxSubscriptions) throws Exception {
-    unsubscribeCounter = 0;
+    unsubscribeCounter.set(0);
 
     withCacheAndTopicClient(
         (config) -> config.withMaxSubscriptions(maxSubscriptions),
@@ -564,14 +552,7 @@ public class TopicsSubscriptionInitializationTest {
           for (int i = 0; i < unsubscribeBurstSize; i++) {
             subscriptions.get(i).unsubscribe();
           }
-          // Wait a bit for the subscription to end
-          try {
-            Thread.sleep(750);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Test interrupted while waiting for subscriptions", e);
-          }
-          assertEquals(unsubscribeBurstSize, unsubscribeCounter);
+          awaitCount(unsubscribeBurstSize, unsubscribeCounter);
 
           // Burst of subscribe requests should succeed
           final int subscribeBurstSize = maxSubscriptions / 2 + 10;
@@ -810,7 +791,7 @@ public class TopicsSubscriptionInitializationTest {
   @Timeout(30)
   public void dynamicPool_oneStreamChannel_properlyDecrementsWhenErrorOccursMidStream()
       throws Exception {
-    unsubscribeCounter = 0;
+    unsubscribeCounter.set(0);
     final AtomicInteger unsubscribeOnErrorCounter = new AtomicInteger(0);
     final ISubscriptionCallbacks callbacks =
         new ISubscriptionCallbacks() {
@@ -820,7 +801,7 @@ public class TopicsSubscriptionInitializationTest {
           @Override
           public void onCompleted() {
             System.out.println("onCompleted");
-            unsubscribeCounter++;
+            unsubscribeCounter.incrementAndGet();
           }
 
           @Override
@@ -850,12 +831,7 @@ public class TopicsSubscriptionInitializationTest {
           subscriptions.add((TopicSubscribeResponse.Subscription) response);
 
           // Wait for the subscription that ran into the error to be closed
-          try {
-            Thread.sleep(3000);
-          } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new RuntimeException("Test interrupted while waiting for subscriptions", e);
-          }
+          awaitCount(1, unsubscribeOnErrorCounter);
 
           // Cleanup
           for (TopicSubscribeResponse.Subscription sub : subscriptions) {
@@ -864,8 +840,7 @@ public class TopicsSubscriptionInitializationTest {
             }
           }
 
-          assertEquals(0, unsubscribeCounter);
-          assertEquals(1, unsubscribeOnErrorCounter.get());
+          assertEquals(0, unsubscribeCounter.get());
         });
   }
 }
