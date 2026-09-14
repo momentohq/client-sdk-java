@@ -2,6 +2,11 @@ name: 'Manual Release'
 
 on:
   workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Compute the next version without tagging or publishing'
+        type: boolean
+        default: false
 
 jobs:
   build:
@@ -28,8 +33,10 @@ jobs:
       with:
         github-token: ${{ secrets.GITHUB_TOKEN }}
         force-bump-patch-version: true
+        dry: ${{ inputs.dry_run }}
 
     - name: Publish to sonatype
+      if: ${{ !inputs.dry_run }}
       env:
         SONATYPE_SIGNING_KEY: ${{ secrets.SONATYPE_SIGNING_KEY }}
         SONATYPE_SIGNING_KEY_PASSWORD: ${{ secrets.SONATYPE_SIGNING_KEY_PASSWORD }}
