@@ -48,10 +48,6 @@ public final class ValidationUtils {
     validateNotNull(cacheName, "Cache name");
   }
 
-  static void checkStoreNameValid(String storeName) {
-    validateNotNull(storeName, "Store name");
-  }
-
   static void checkTopicNameValid(String topicName) {
     validateNotNull(topicName, "Topic name");
   }

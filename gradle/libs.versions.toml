@@ -1,22 +1,21 @@
 [versions]
-assertj = "3.24.2"
-grpc = "1.53.0"
-protobuf = "3.22.2"
+assertj = "3.27.7"
+grpc = "1.84.0"
+protobuf = "4.36.1"
 jjwt = "0.11.5"
 jsr305 = "3.0.2"
 junit = "5.9.2"
 gson = "2.10.1"
-guava = "31.1-android"
-java-protos = "0.122.1"
+guava = "33.6.0-android"
+java-protos = "0.136.0"
 slf4j = "1.7.36"
-logback = "1.4.8"
+logback = "1.5.38"
 mockito = "5.4.0"
 
 [libraries]
 grpc-api = { module = "io.grpc:grpc-api", version.ref = "grpc"}
 grpc-stub = { module = "io.grpc:grpc-stub", version.ref = "grpc" }
 grpc-nettyshaded = { module = "io.grpc:grpc-netty-shaded", version.ref = "grpc" }
-grpc-context = { module = "io.grpc:grpc-context", version.ref = "grpc" }
 
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }

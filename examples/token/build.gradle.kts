@@ -19,10 +19,10 @@ repositories {
 dependencies {
     implementation("software.momento.java:sdk:1.23.0")
 
-    implementation("com.google.guava:guava:31.1-android")
+    implementation("com.google.guava:guava:33.6.0-android")
 
     // Logging framework to log and enable logging in the Momento client.
-    implementation("ch.qos.logback:logback-classic:1.4.7")
+    implementation("ch.qos.logback:logback-classic:1.5.38")
 
     // Histogram for collecting stats in the load generator
     implementation("org.hdrhistogram:HdrHistogram:2.1.12")
