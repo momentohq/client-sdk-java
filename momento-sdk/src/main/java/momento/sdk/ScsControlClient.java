@@ -192,7 +192,7 @@ final class ScsControlClient extends ScsClientBase {
         rsp ->
             new CacheListResponse.Success(
                 rsp.getCacheList().stream()
-                    .map(c -> new CacheInfo(c.getCacheName()))
+                    .map(c -> new CacheInfo(c.getCacheName(), c.getCacheId()))
                     .collect(Collectors.toList()));
 
     final Function<Throwable, CacheListResponse> failure =
